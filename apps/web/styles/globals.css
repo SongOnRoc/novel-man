@@ -1,0 +1,482 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+
+    /* 卡片系统相关变量 */
+    --card-container-padding: 0.5rem;
+    --card-spacing: 0rem;
+    --card-border-color: hsl(214.3 31.8% 91.4%);
+    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --card-hover-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --card-dragging-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+
+    --novel-highlight-default: #ffffff;
+    --novel-highlight-purple: #f6f3f8;
+    --novel-highlight-red: #fdebeb;
+    --novel-highlight-yellow: #fbf4a2;
+    --novel-highlight-blue: #c1ecf9;
+    --novel-highlight-green: #acf79f;
+    --novel-highlight-orange: #faebdd;
+    --novel-highlight-pink: #faf1f5;
+    --novel-highlight-gray: #f1f1ef;
+
+    /* Novel Text Colors (Light Mode) */
+    --novel-black: var(--foreground); /* Default text color */
+    --novel-text-purple: 262 89% 56%; /* #9333EA */
+    --novel-text-red: 0 100% 44%; /* #E00000 */
+    --novel-text-yellow: 45 94% 48%; /* #EAB308 */
+    --novel-text-blue: 222 84% 54%; /* #2563EB */
+    --novel-text-green: 120 100% 27%; /* #008A00 */
+    --novel-text-orange: 39 100% 50%; /* #FFA500 */
+    --novel-text-pink: 324 56% 61%; /* #BA4081 */
+    --novel-text-gray: 30 4% 64%; /* #A8A29E */
+
+    /* Code Highlighting Colors (Light Mode) */
+    --code-background: 0 0% 5%; /* #0d0d0d */
+    --code-foreground: 0 0% 100%; /* #fff */
+    --code-comment: 0 0% 38%; /* #616161 */
+    --code-variable: 0 92% 74%; /* #f98181 */
+    --code-number: 30 94% 76%; /* #fbbc88 */
+    --code-string: 99 78% 75%; /* #b9f18d */
+    --code-title: 55 90% 78%; /* #faf594 */
+    --code-keyword: 199 92% 70%; /* #70cff8 */
+
+    --editor-font-base-size: 16px;
+    --title-font-base-size: 18px; /* 假设标题基础字号为 18px */
+    --font-size-scale-factor: 1;
+
+    /* AI Toolbox Colors (Light Mode) */
+    --ai-loading: 257 83% 56%; /* Corresponds to purple-500 */
+    --ai-scrollarea-bg: 0 0% 100% / 0.9; /* Corresponds to white/90 */
+
+    /* Base Tailwind Colors (approximated HSL) */
+    --gray-50-hsl: 220 14% 99%;
+    --gray-100-hsl: 220 14% 96%;
+    --gray-200-hsl: 220 13% 91%;
+    --gray-300-hsl: 220 12% 81%;
+    --gray-400-hsl: 220 10% 64%;
+    --gray-500-hsl: 220 9% 46%;
+    --gray-600-hsl: 220 13% 40%;
+    --gray-700-hsl: 220 13% 30%;
+    --gray-800-hsl: 220 12% 17%;
+    --gray-900-hsl: 220 10% 10%;
+    --orange-500-hsl: 30 100% 50%;
+    --blue-500-hsl: 220 89% 60%;
+    --purple-500-hsl: 257 83% 56%;
+    --white-hsl: 0 0% 100%;
+    --black-hsl: 0 0% 0%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+
+    /* 卡片系统相关变量 - 暗色模式 */
+    --card-border-color: hsl(217.2 32.6% 17.5%);
+    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --card-hover-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+    --card-dragging-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+
+    --novel-highlight-default: #000000;
+    --novel-highlight-purple: #3f2c4b;
+    --novel-highlight-red: #5c1a1a;
+    --novel-highlight-yellow: #5c4b1a;
+    --novel-highlight-blue: #1a3d5c;
+    --novel-highlight-green: #1a5c20;
+    --novel-highlight-orange: #5c3a1a;
+    --novel-highlight-pink: #5c1a3a;
+    --novel-text-gray: 30 4% 80%;
+
+    /* Code Highlighting Colors (Dark Mode) */
+    --code-background: 222.2 84% 4.9%; /* Using background variable for consistency */
+    --code-foreground: 210 40% 98%; /* Using foreground variable for consistency */
+    --code-comment: 215 20.2% 65.1%; /* Using muted-foreground variable for consistency */
+    --code-variable: 0 60% 60%;
+    --code-number: 30 60% 60%;
+    --code-string: 100 60% 60%;
+    --code-title: 50 60% 60%;
+    --code-keyword: 240 60% 60%;
+  }
+
+  .dark {
+    /* Base Tailwind Colors (approximated HSL) - Dark Mode adjustments */
+    --gray-50-hsl: 220 14% 96%; /* Adjust for dark mode appearance */
+    --gray-100-hsl: 220 13% 91%;
+    --gray-200-hsl: 220 12% 81%;
+    --gray-300-hsl: 220 10% 64%;
+    --gray-400-hsl: 220 9% 46%;
+    --gray-500-hsl: 220 13% 40%;
+    --gray-600-hsl: 220 13% 30%;
+    --gray-700-hsl: 220 12% 17%;
+    --gray-800-hsl: 220 10% 10%;
+    --gray-900-hsl: 220 10% 5%;
+    --orange-500-hsl: 30 100% 60%; /* Slightly brighter in dark mode */
+    --blue-500-hsl: 220 89% 70%; /* Slightly brighter in dark mode */
+    --purple-500-hsl: 257 83% 70%; /* Slightly brighter in dark mode */
+    --white-hsl: 0 0% 100%;
+    --black-hsl: 0 0% 0%;
+  }
+}
+
+/* 卡片系统相关样式 */
+.collection-card {
+  transition: box-shadow 0.2s ease;
+}
+
+.collection-card:hover {
+  box-shadow: var(--card-hover-shadow);
+}
+
+/* 卡片拖拽时的样式 */
+[data-handler-id]:hover {
+  cursor: grab;
+}
+
+[data-handler-id]:active {
+  cursor: grabbing;
+  box-shadow: var(--card-dragging-shadow);
+}
+
+/* 卡片容器内的卡片样式 */
+.space-y-4 > * {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+/* 确保卡片容器有足够的内边距 */
+.collection-card > div > div {
+  padding: var(--card-container-padding);
+}
+
+@layer utilities {
+  @keyframes progress {
+    0% {
+      width: 0%;
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+    100% {
+      width: 100%;
+      opacity: 1;
+    }
+  }
+
+  .animate-progress {
+    animation: progress 2s ease-in-out infinite;
+  }
+}
+
+@keyframes wave {
+  0%,
+  100% {
+    transform: scaleY(0.8);
+  }
+  50% {
+    transform: scaleY(1.2);
+  }
+}
+
+.animate-wave {
+  animation: wave 1s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 0.6s ease-in-out infinite;
+}
+
+@keyframes particle {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+.animate-particle {
+  animation: particle 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.animate-pulse {
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@layer components {
+  /* 对话框基础样式 - 完全独立不依赖外部变量 */
+  .app-dialog-theme {
+    /* 重置基础变量 */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --popover: 0 0% 100%;
+    --primary: 222.2 47.4% 11.2%;
+    --secondary: 210 40% 96.1%;
+    --muted: 210 40% 96.1%;
+    --accent: 210 40% 96.1%;
+    --destructive: 0 84.2% 60.2%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    /* 浅色主题样式 - 固定HSL值 */
+    --app-text-color: hsl(220 12% 17%); /* gray-800 */
+    --app-title-color: hsl(220 10% 10%); /* gray-900 */
+    --app-section-title-color: hsl(220 12% 17%); /* gray-800 */
+    --app-icon-color: hsl(220 9% 46%); /* gray-500 */
+    --app-hover-bg: hsl(220 14% 96%); /* gray-100 */
+    --app-card-bg: hsl(195deg 51.19% 86.15% / 21%); /* white */
+    --app-divider-border: hsl(220 13% 91%); /* gray-200 */
+    --app-slider-bg: hsl(220 13% 91%); /* gray-200 */
+    --app-toggle-on-bg: hsl(30 100% 50%); /* orange-500 */
+    --app-toggle-off-bg: hsl(220 12% 81%); /* gray-300 */
+    --app-option-selected-border: hsl(30 100% 50%); /* orange-500 */
+    --app-option-white-border-light: hsl(220 12% 81%); /* gray-300 */
+    --app-option-white-border-dark: hsl(220 9% 46%); /* gray-500 */
+    --app-option-white-border-dark-selected: hsl(220 10% 64%); /* gray-400 */
+    --app-toggle-thumb-bg: hsl(0 0% 100%); /* white */
+    --app-toggle-focus-ring: hsl(0 0% 100%); /* white */
+    --app-button-color: hsl(220 89% 60%); /* blue-500 */
+  }
+
+  /* 深色主题覆盖样式 - 只定义需要变化的值 */
+  .bg-gray-800.app-dialog-theme {
+    --app-text-color: hsl(220 14% 96%); /* gray-100 */
+    --app-title-color: hsl(220 14% 96%); /* gray-100 */
+    --app-section-title-color: hsl(220 13% 91%); /* gray-200 */
+    --app-icon-color: hsl(220 10% 64%); /* gray-400 */
+    --app-hover-bg: hsl(220deg 1.25% 57.5% / 54%); /* gray-800 */
+    --app-card-bg: hsl(220deg 14.39% 54.73% / 36%); /* gray-800 */
+    --app-divider-border: hsl(220 13% 30%); /* gray-600 */
+    --app-slider-bg: hsl(220 13% 30%); /* gray-600 */
+    --app-toggle-off-bg: hsl(220 13% 40%); /* gray-500 */
+  }
+
+  /* Add rules for other APP_THEME_COLORS if needed */
+  /* Example for bg-yellow-50: */
+  /*
+  .bg-yellow-50.settings-dialog-theme {
+    --settings-text-color: hsl(var(--gray-800-hsl));
+    --settings-title-color: hsl(var(--gray-900-hsl));
+    --settings-section-title-color: hsl(var(--gray-700-hsl));
+    --settings-icon-color: hsl(var(--gray-500-hsl));
+    --settings-hover-bg: hsl(var(--gray-100-hsl));
+    --settings-card-bg: hsl(var(--white-hsl));
+    --settings-divider-border: hsl(var(--gray-200-hsl));
+    --settings-slider-bg: hsl(var(--gray-200-hsl));
+    --settings-toggle-on-bg: hsl(var(--orange-500-hsl));
+    --settings-toggle-off-bg: hsl(var(--gray-300-hsl));
+    --settings-option-selected-border: hsl(var(--orange-500-hsl));
+    --settings-option-white-border-light: hsl(var(--gray-300-hsl));
+    --settings-option-white-border-dark: hsl(var(--gray-500-hsl));
+    --settings-option-white-border-dark-selected: hsl(var(--gray-400-hsl));
+    --settings-toggle-thumb-bg: hsl(var(--white-hsl));
+    --settings-toggle-focus-ring: hsl(var(--white-hsl));
+  }
+  */
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  .page-main-title {
+    font-size: calc(var(--title-font-base-size) * var(--font-size-scale-factor));
+  }
+
+  /* Placeholder for contentEditable title in page.tsx (class-based) */
+  .page-main-title.title-is-empty[contentEditable="true"][data-placeholder]::before {
+    content: attr(data-placeholder);
+    color: hsl(var(--muted-foreground)); /* Use muted-foreground for placeholder */
+    pointer-events: none; /* Ensure the placeholder text doesn't interfere with clicks */
+    display: block;
+  }
+}
+
+pre {
+  background: hsl(var(--code-background));
+  border-radius: 0.5rem;
+  color: hsl(var(--code-foreground));
+  font-family: "JetBrainsMono", monospace;
+  padding: 0.75rem 1rem;
+
+  code {
+    background: none;
+    color: inherit;
+    font-size: 0.8rem;
+    padding: 0;
+  }
+
+  .hljs-comment,
+  .hljs-quote {
+    color: hsl(var(--code-comment));
+  }
+
+  .hljs-variable,
+  .hljs-template-variable,
+  .hljs-attribute,
+  .hljs-tag,
+  .hljs-name,
+  .hljs-regexp,
+  .hljs-link,
+  .hljs-name,
+  .hljs-selector-id,
+  .hljs-selector-class {
+    color: hsl(var(--code-variable));
+  }
+
+  .hljs-number,
+  .hljs-meta,
+  .hljs-built_in,
+  .hljs-builtin-name,
+  .hljs-literal,
+  .hljs-type,
+  .hljs-params {
+    color: hsl(var(--code-number));
+  }
+
+  .hljs-string,
+  .hljs-symbol,
+  .hljs-bullet {
+    color: hsl(var(--code-string));
+  }
+
+  .hljs-title,
+  .hljs-section {
+    color: hsl(var(--code-title));
+  }
+
+  .hljs-keyword,
+  .hljs-selector-tag {
+    color: hsl(var(--code-keyword));
+  }
+
+  .hljs-emphasis {
+    font-style: italic;
+  }
+
+  .hljs-strong {
+    font-weight: 700;
+  }
+}
+
+/* Styles for Firefox */
+.custom-slider-thumb::-moz-range-thumb {
+  width: 30px;
+  height: 30px;
+  background-color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Styles for Webkit browsers (Chrome, Safari, Edge) */
+.custom-slider-thumb::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  margin-top: 0px; /* Adjust vertical alignment for Webkit */
+  /* This value often needs to be negative half the difference
+                        between thumb height and track height, approximately. */
+  width: 30px;
+  height: 30px;
+  background-color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
