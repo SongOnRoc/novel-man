@@ -1,0 +1,55 @@
+{
+    "name": "@novel-man/card-system",
+    "version": "0.1.0",
+    "private": true,
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "sideEffects": false,
+    "license": "MIT",
+    "files": [
+        "dist/**"
+    ],
+    "scripts": {
+        "build": "tsup src/index.ts --format esm,cjs --dts --external react",
+        "dev": "tsup src/index.ts --format esm,cjs --watch --dts --external react",
+        "lint": "eslint src/*.ts* --fix",
+        "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+        "test": "jest",
+        "test:watch": "jest --watch"
+    },
+    "dependencies": {
+        "react-dnd": "^16.0.1",
+        "react-dnd-html5-backend": "^16.0.1",
+        "react-dnd-touch-backend": "^16.0.1",
+        "uuid": "^9.0.1"
+    },
+    "devDependencies": {
+        "@testing-library/jest-dom": "^6.1.4",
+        "@testing-library/react": "^14.0.0",
+        "@testing-library/user-event": "^14.5.1",
+        "@types/jest": "^29.5.6",
+        "@types/react": "^18.2.31",
+        "@types/react-dom": "^18.2.14",
+        "@types/uuid": "^9.0.6",
+        "eslint": "^8.52.0",
+        "eslint-config-custom": "*",
+        "jest": "^29.7.0",
+        "jest-environment-jsdom": "^29.7.0",
+        "react": "^18.2.0",
+        "react-dnd-test-backend": "^16.0.1",
+        "react-dnd-test-utils": "^16.0.1",
+        "react-dom": "^18.2.0",
+        "ts-jest": "^29.1.1",
+        "tsconfig": "*",
+        "tsup": "^7.2.0",
+        "typescript": "^5.2.2"
+    },
+    "peerDependencies": {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}

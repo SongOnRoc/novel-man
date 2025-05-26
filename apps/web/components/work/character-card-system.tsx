@@ -6,9 +6,8 @@ import {
   CharacterDialog,
   ContentDialog,
 } from "@/components/dialogs/character-dialogs";
+import { type BaseCardProps, CardContainerType, CardSystem } from "@novel-man/card-system";
 import { useCallback, useState } from "react";
-import { CardComponent, CardContainerType, CardSystem } from "./base-card-system";
-import type { BaseCardProps } from "./base-card-system";
 
 // 角色卡片系统属性
 interface CharacterCardSystemProps {
@@ -46,39 +45,30 @@ export function CharacterCardSystem({
 
   // 更新卡片
   const handleUpdateCard = useCallback((id: string, updates: Partial<BaseCardProps>) => {
-    setCards((prev) =>
-      prev.map((card) => {
-        // 更新主卡片
-        if (card.id === id) {
-          return { ...card, ...updates };
-        }
+    setCards((prev) => {
+      // 使用辅助函数更新卡片数组中的指定卡片
+      function updateCardInArray(cards: BaseCardProps[]): BaseCardProps[] {
+        return cards.map((card) => {
+          if (card.id === id) {
+            return { ...card, ...updates };
+          }
 
-        // 如果是集合类卡片，检查其子卡片
-        if (card.containerType === CardContainerType.COLLECTION && card.childCards) {
-          const updatedChildCards = card.childCards.map((childCard) => {
-            if (childCard.id === id) {
-              return { ...childCard, ...updates };
-            }
+          if (card.childCards) {
+            return {
+              ...card,
+              childCards: updateCardInArray(card.childCards),
+            };
+          }
 
-            // 检查三级卡片（子卡片的子卡片）
-            if (childCard.containerType === CardContainerType.COLLECTION && childCard.childCards) {
-              const updatedGrandChildCards = childCard.childCards.map((grandChildCard) =>
-                grandChildCard.id === id ? { ...grandChildCard, ...updates } : grandChildCard,
-              );
-              return { ...childCard, childCards: updatedGrandChildCards };
-            }
+          return card;
+        });
+      }
 
-            return childCard;
-          });
-          return { ...card, childCards: updatedChildCards };
-        }
-
-        return card;
-      }),
-    );
+      return updateCardInArray(prev);
+    });
   }, []);
 
-  // 通用的子卡片添加函数，不依赖其他复杂函数
+  // 通用的子卡片添加函数
   const addChildCardToParent = useCallback((parentId: string, childCard: BaseCardProps) => {
     setCards((prev) => {
       const updateCardWithChild = (cards: BaseCardProps[]): BaseCardProps[] => {
@@ -204,13 +194,64 @@ export function CharacterCardSystem({
     [currentCardId, handleUpdateCard],
   );
 
-  // 处理关联功能
-  const handleRelateCard = useCallback((id: string) => {
-    // 标记正在关联的卡片ID
-    setCurrentCardId(id);
-  }, []);
+  // 添加子卡片
+  const handleAddChildCard = useCallback(
+    (parentId: string, containerType: CardContainerType, title?: string, hideTitle?: boolean) => {
+      // 如果是角色卡片，打开属性对话框
+      const parentCard = findParentCard(cards, parentId);
+      if (parentCard?.tag === "role") {
+        setCurrentParentId(parentId);
+        setAttributeDialogOpen(true);
+        return;
+      }
 
-  // 处理解除关联
+      // 否则，直接添加内容卡片
+      const newChildCard: BaseCardProps = {
+        id: `content-${Date.now()}`,
+        title: title || "内容",
+        content: "",
+        isCollapsed: false,
+        containerType,
+        hideTitle,
+        showEditButton: true,
+        showAddButton: false,
+        showDeleteButton: true,
+        showRelateButton: true,
+      };
+
+      addChildCardToParent(parentId, newChildCard);
+    },
+    [cards, addChildCardToParent],
+  );
+
+  // 查找父卡片
+  const findParentCard = (cardsToSearch: BaseCardProps[], cardId: string): BaseCardProps | null => {
+    for (const card of cardsToSearch) {
+      if (card.id === cardId) {
+        return card;
+      }
+
+      if (card.childCards && card.childCards.length > 0) {
+        const foundInChildren = findParentCard(card.childCards, cardId);
+        if (foundInChildren) {
+          return foundInChildren;
+        }
+      }
+    }
+
+    return null;
+  };
+
+  // 关联卡片
+  const handleRelateCard = useCallback(
+    (id: string) => {
+      setCurrentCardId(id);
+      setContentDialogOpen(true);
+    },
+    [setCurrentCardId, setContentDialogOpen],
+  );
+
+  // 解除关联
   const handleUnrelateCard = useCallback(
     (id: string) => {
       handleUpdateCard(id, { relatedItem: undefined });
@@ -218,371 +259,107 @@ export function CharacterCardSystem({
     [handleUpdateCard],
   );
 
-  // 获取可关联的项目
-  const availableRelateItems = availableChapters.map((chapter) => ({
-    id: chapter.id,
-    title: chapter.title,
-    type: "chapter",
-  }));
-
-  // 添加子卡片 - 移动到这里，确保在使用前声明
-  const handleAddChildCard = useCallback(
-    (parentId: string, containerType: CardContainerType, title?: string, hideTitle = false) => {
-      console.log("CHARACTER handleAddChildCard called:", { parentId, containerType, title, hideTitle });
-
-      // 查找父卡片以获取其标签
-      const findParentCard = (cardsToSearch: BaseCardProps[]): BaseCardProps | null => {
-        for (const card of cardsToSearch) {
-          if (card.id === parentId) return card;
-
-          if (card.containerType === CardContainerType.COLLECTION && card.childCards) {
-            const found = findParentCard(card.childCards);
-            if (found) return found;
-          }
-        }
-        return null;
-      };
-
-      const parentCard = findParentCard(cards);
-      if (!parentCard) {
-        console.error("Parent card not found:", parentId);
-        return;
-      }
-
-      console.log("Parent card found:", parentCard);
-      setCurrentParentId(parentId);
-
-      if (containerType === CardContainerType.EDITOR) {
-        // 如果是编辑器类卡片
-        const newCardId = `${Date.now()}-editor`;
-        let newCard: BaseCardProps;
-
-        // 创建编辑器卡片，根据hideTitle参数决定是否隐藏标题
-        const attributeType = title
-          ? attributeOptions.find((opt) => opt.label === title)?.value || "custom"
-          : "content";
-
-        newCard = {
-          id: `${attributeType}-editor-${Date.now()}`,
-          title: title || "内容卡片", // 即使隐藏标题也设置一个默认标题
-          content: "",
-          type: "content",
-          tag: `role-${attributeType}-editor`, // 标签基于属性类型
-          isCollapsed: false,
-          containerType: CardContainerType.EDITOR,
-          hideTitle: hideTitle, // 根据参数决定是否隐藏标题
-          showEditButton: !hideTitle, // 如果显示标题则显示编辑按钮
-          showAddButton: false,
-          showDeleteButton: true,
-          showRelateButton: true,
-        };
-
-        console.log("Creating editor card:", { hideTitle, newCard });
-
-        // 添加卡片
-        console.log("Before adding card to parent, cards:", cards);
-        addChildCardToParent(parentId, newCard);
-        console.log("After adding card to parent, currentCardId will be set to:", newCard.id);
-
-        // 创建完卡片后打开内容对话框
-        setCurrentCardId(newCard.id);
-        setContentDialogOpen(true);
-      } else if (containerType === CardContainerType.COLLECTION) {
-        // 如果父卡片标签是role且选择的是集合类卡片，打开属性对话框
-        if (parentCard.tag === "role") {
-          console.log("Opening attribute dialog for role parent");
-          setAttributeDialogOpen(true);
-        } else {
-          // 其他情况下的集合类卡片
-          const newChildCard: BaseCardProps = {
-            id: `${parentCard.tag}-collection-${Date.now()}`,
-            title: title || "集合卡片",
-            content: "",
-            type: "collection",
-            tag: `${parentCard.tag}-collection`,
-            isCollapsed: false,
-            containerType: CardContainerType.COLLECTION,
-            childCards: [],
-            showEditButton: true,
-            showAddButton: true,
-            showDeleteButton: true,
-            showRelateButton: false,
-          };
-
-          console.log("Creating collection card:", newChildCard);
-          addChildCardToParent(parentId, newChildCard);
-        }
-      }
-    },
-    [
-      cards,
-      attributeOptions,
-      addChildCardToParent,
-      setContentDialogOpen,
-      setAttributeDialogOpen,
-      setCurrentCardId,
-      setCurrentParentId,
-    ],
-  );
-
-  // 处理渲染自定义卡片
-  const renderCustomCard = useCallback(
-    (card: BaseCardProps, index: number) => {
-      return (
-        <CardComponent
-          key={card.id}
-          card={card}
-          onUpdate={handleUpdateCard}
-          onDelete={handleDeleteCard}
-          onAddChild={handleAddChildCard}
-          onRelate={handleRelateCard}
-          onUnrelate={handleUnrelateCard}
-          index={index}
-          buttonsConfig={{
-            showEditButton: card.showEditButton !== false,
-            showAddButton: card.showAddButton !== false,
-            showDeleteButton: card.showDeleteButton !== false,
-            showRelateButton: card.showRelateButton || false,
-          }}
-          attributeOptions={attributeOptions}
-          availableRelateItems={availableRelateItems}
-        />
-      );
-    },
-    [
-      handleUpdateCard,
-      handleDeleteCard,
-      handleAddChildCard,
-      handleRelateCard,
-      handleUnrelateCard,
-      attributeOptions,
-      availableRelateItems,
-    ],
-  );
-
-  // 对话框关闭时清除当前状态
-  const _handleDialogClose = useCallback((setter: React.Dispatch<React.SetStateAction<boolean>>) => {
-    setter(false);
-    setCurrentCardId(null);
-    setCurrentParentId(null);
-  }, []);
-
-  // 查找卡片的辅助函数
-  const findCardById = useCallback((id: string, cardsToSearch: BaseCardProps[]): BaseCardProps | null => {
-    for (const card of cardsToSearch) {
-      if (card.id === id) return card;
-
-      if (card.containerType === CardContainerType.COLLECTION && card.childCards) {
-        const found = findCardById(id, card.childCards);
-        if (found) return found;
-      }
-    }
-    return null;
-  }, []);
-
-  // 确认添加内容 - 放在最后避免依赖问题
-  const _handleAddContent = useCallback(
-    (data: {
-      content: string;
-      relatedChapter?: { id: string; title: string; isExternal?: boolean };
-    }) => {
-      console.log("_handleAddContent called:", { data, currentParentId, currentCardId });
-
-      if (!currentParentId && !currentCardId) {
-        console.error("No current parent or card ID set");
-        return;
-      }
-
-      // 如果是已经创建的卡片，更新其内容
-      if (currentCardId) {
-        console.log("Updating existing card:", currentCardId);
-        handleUpdateCard(currentCardId, {
-          content: data.content,
-          relatedItem: data.relatedChapter
-            ? {
-                id: data.relatedChapter.id,
-                title: data.relatedChapter.title,
-                type: "chapter",
-                isExternal: data.relatedChapter.isExternal,
-              }
-            : undefined,
+  // 处理卡片移动
+  const handleMoveCard = useCallback(
+    (dragIndex: number, hoverIndex: number, dragParentId?: string, hoverParentId?: string) => {
+      if (!dragParentId && !hoverParentId) {
+        // 顶级卡片移动
+        setCards((prevCards) => {
+          const newCards = [...prevCards];
+          const [removed] = newCards.splice(dragIndex, 1);
+          newCards.splice(hoverIndex, 0, removed);
+          return newCards;
         });
         return;
       }
 
-      // 查找父卡片以获取其标签
-      const findParentCard = (cards: BaseCardProps[]): BaseCardProps | null => {
-        for (const card of cards) {
-          if (card.id === currentParentId) return card;
+      if (dragParentId && hoverParentId && dragParentId === hoverParentId) {
+        // 同一父卡片下的子卡片移动
+        setCards((prevCards) => {
+          // 查找父卡片并更新其子卡片顺序
+          const findParentCard = (cards: BaseCardProps[]): BaseCardProps[] => {
+            return cards.map((card) => {
+              if (card.id === dragParentId) {
+                const newChildCards = [...(card.childCards || [])];
+                const [removed] = newChildCards.splice(dragIndex, 1);
+                newChildCards.splice(hoverIndex, 0, removed);
+                return { ...card, childCards: newChildCards };
+              }
 
-          if (card.containerType === CardContainerType.COLLECTION && card.childCards) {
-            const found = findParentCard(card.childCards);
-            if (found) return found;
-          }
-        }
-        return null;
-      };
+              if (card.childCards) {
+                return { ...card, childCards: findParentCard(card.childCards) };
+              }
 
-      const parentCard = findParentCard(cards);
-      if (!parentCard) {
-        console.error("Parent card not found in _handleAddContent");
+              return card;
+            });
+          };
+
+          return findParentCard(prevCards);
+        });
         return;
       }
 
-      console.log("Creating content card for parent:", parentCard);
-
-      // 创建内容卡片，标签基于父卡片标签
-      const newContentCard: BaseCardProps = {
-        id: `${parentCard.tag}-editor-${Date.now()}`,
-        title: "详细内容", // 即使隐藏标题，也需要设置一个标题
-        content: data.content,
-        type: "content",
-        tag: `${parentCard.tag}-editor`, // 标签为父标签-editor
-        isCollapsed: false,
-        containerType: CardContainerType.EDITOR, // 内容卡片是编辑器类卡片
-        hideTitle: true, // 默认隐藏标题
-        showEditButton: false,
-        showAddButton: false,
-        showDeleteButton: true,
-        showRelateButton: true,
-        relatedItem: data.relatedChapter
-          ? {
-              id: data.relatedChapter.id,
-              title: data.relatedChapter.title,
-              type: "chapter",
-              isExternal: data.relatedChapter.isExternal,
-            }
-          : undefined,
-      };
-
-      console.log("Adding new content card:", newContentCard);
-      addChildCardToParent(currentParentId, newContentCard);
-    },
-    [currentParentId, currentCardId, cards, handleUpdateCard, addChildCardToParent],
-  );
-
-  // 移动卡片
-  const _handleMoveCard = useCallback(
-    (dragIndex: number, hoverIndex: number, dragParentId?: string, hoverParentId?: string) => {
-      console.log("Moving card:", { dragIndex, hoverIndex, dragParentId, hoverParentId });
-
-      setCards((prevCards) => {
-        // 创建卡片的深拷贝
-        const newCards = JSON.parse(JSON.stringify(prevCards));
-
-        // 如果是同一容器内的拖拽
-        if (!dragParentId || !hoverParentId || dragParentId === hoverParentId) {
-          // 顶级卡片移动
-          if (dragParentId === "root" && hoverParentId === "root") {
-            const [removed] = newCards.splice(dragIndex, 1);
-            newCards.splice(hoverIndex, 0, removed);
-            return newCards;
-          }
-
-          // 子卡片在同一父容器内移动
-          const moveInSameContainer = (cards: BaseCardProps[], parentId: string): boolean => {
-            for (const card of cards) {
-              if (card.id === parentId && card.childCards) {
-                const [removed] = card.childCards.splice(dragIndex, 1);
-                card.childCards.splice(hoverIndex, 0, removed);
-                return true;
-              }
-
-              if (card.containerType === CardContainerType.COLLECTION && card.childCards) {
-                if (moveInSameContainer(card.childCards, parentId)) {
-                  return true;
-                }
-              }
-            }
-            return false;
-          };
-
-          if (dragParentId && dragParentId !== "root") {
-            moveInSameContainer(newCards, dragParentId);
-          }
-        }
-        // 跨容器拖拽
-        else {
-          // 从源容器中提取卡片
-          let extractedCard: BaseCardProps | undefined;
-
-          // 如果是从根容器拖拽
-          if (dragParentId === "root") {
-            extractedCard = newCards[dragIndex];
-            newCards.splice(dragIndex, 1);
-          }
-          // 从子容器拖拽
-          else {
-            const extractFromContainer = (cards: BaseCardProps[], parentId: string): BaseCardProps | undefined => {
+      // 跨容器拖拽
+      if (dragParentId && hoverParentId && dragParentId !== hoverParentId) {
+        setCards((prevCards) => {
+          // 复杂的跨容器拖拽逻辑
+          const moveCardBetweenContainers = (cards: BaseCardProps[]): BaseCardProps[] => {
+            // 在源容器中移除卡片
+            const moveInSameContainer = (cards: BaseCardProps[], parentId: string): boolean => {
               for (let i = 0; i < cards.length; i++) {
-                const card = cards[i];
-                if (card.id === parentId && card.childCards) {
-                  if (dragIndex < card.childCards.length) {
-                    const [removed] = card.childCards.splice(dragIndex, 1);
-                    return removed;
-                  }
-                  return undefined;
-                }
+                if (cards[i].id === parentId) {
+                  if (cards[i].childCards && cards[i].childCards.length > dragIndex) {
+                    // 执行移动
+                    const newChildCards = [...cards[i].childCards];
+                    const [removed] = newChildCards.splice(dragIndex, 1);
+                    cards[i] = { ...cards[i], childCards: newChildCards };
 
-                if (card.containerType === CardContainerType.COLLECTION && card.childCards) {
-                  const extracted = extractFromContainer(card.childCards, parentId);
-                  if (extracted) return extracted;
-                }
-              }
-              return undefined;
-            };
+                    // 找到目标容器并添加卡片
+                    const addToTargetContainer = (cards: BaseCardProps[], targetParentId: string): boolean => {
+                      for (let j = 0; j < cards.length; j++) {
+                        if (cards[j].id === targetParentId) {
+                          const targetChildCards = [...(cards[j].childCards || [])];
+                          targetChildCards.splice(hoverIndex, 0, removed);
+                          cards[j] = { ...cards[j], childCards: targetChildCards };
+                          return true;
+                        }
 
-            extractedCard = extractFromContainer(newCards, dragParentId);
-          }
+                        if (cards[j].childCards) {
+                          if (addToTargetContainer(cards[j].childCards, targetParentId)) {
+                            return true;
+                          }
+                        }
+                      }
+                      return false;
+                    };
 
-          // 将提取的卡片添加到目标容器
-          if (extractedCard) {
-            // 添加到根容器
-            if (hoverParentId === "root") {
-              newCards.splice(hoverIndex, 0, extractedCard);
-            }
-            // 添加到子容器
-            else {
-              const addToContainer = (cards: BaseCardProps[], parentId: string, card: BaseCardProps): boolean => {
-                for (let i = 0; i < cards.length; i++) {
-                  const containerCard = cards[i];
-                  if (containerCard.id === parentId && containerCard.childCards) {
-                    containerCard.childCards.splice(hoverIndex, 0, card);
+                    addToTargetContainer(cards, hoverParentId);
                     return true;
                   }
+                }
 
-                  if (containerCard.containerType === CardContainerType.COLLECTION && containerCard.childCards) {
-                    if (addToContainer(containerCard.childCards, parentId, card)) {
-                      return true;
-                    }
+                if (cards[i].childCards) {
+                  if (moveInSameContainer(cards[i].childCards, parentId)) {
+                    return true;
                   }
                 }
-                return false;
-              };
+              }
+              return false;
+            };
 
-              addToContainer(newCards, hoverParentId, extractedCard);
-            }
-          }
-        }
+            moveInSameContainer(cards, dragParentId);
+            return [...cards];
+          };
 
-        return newCards;
-      });
+          return moveCardBetweenContainers(prevCards);
+        });
+      }
     },
     [],
   );
 
-  // 处理章节点击
-  const _handleChapterClick = useCallback(
-    (chapterId: string) => {
-      if (onChapterClick) {
-        onChapterClick(chapterId);
-      }
-    },
-    [onChapterClick],
-  );
-
   return (
-    <div className="w-full">
+    <div className="p-4">
       <CardSystem
         cards={cards}
         title="角色管理"
@@ -592,18 +369,21 @@ export function CharacterCardSystem({
         onAddChildCard={handleAddChildCard}
         onRelateCard={handleRelateCard}
         onUnrelateCard={handleUnrelateCard}
-        moveCard={_handleMoveCard}
-        renderCard={renderCustomCard}
+        moveCard={handleMoveCard}
+        isMobile={isMobile}
         buttonsConfig={{
           showEditButton: true,
           showAddButton: true,
           showDeleteButton: true,
           showRelateButton: true,
         }}
-        isMobile={isMobile}
         addButtonText="添加角色"
         attributeOptions={attributeOptions}
-        availableRelateItems={availableRelateItems}
+        availableRelateItems={availableChapters.map((chapter) => ({
+          id: chapter.id,
+          title: chapter.title,
+          type: "chapter",
+        }))}
       />
 
       {/* 角色创建对话框 */}
@@ -613,7 +393,7 @@ export function CharacterCardSystem({
         onConfirm={handleAddCharacter}
       />
 
-      {/* 属性创建对话框 */}
+      {/* 属性添加对话框 */}
       <AttributeDialog
         open={attributeDialogOpen}
         onClose={() => setAttributeDialogOpen(false)}
@@ -624,27 +404,20 @@ export function CharacterCardSystem({
       {/* 内容编辑对话框 */}
       <ContentDialog
         open={contentDialogOpen}
-        onClose={() => {
-          console.log("ContentDialog onClose called");
-          setContentDialogOpen(false);
-          setCurrentCardId(null);
-          setCurrentParentId(null);
-        }}
-        onConfirm={(data) => {
-          console.log("ContentDialog onConfirm called with data:", data);
-          if (currentCardId) {
-            // 如果是更新现有卡片
-            console.log("Updating existing card:", currentCardId);
-            handleUpdateContent(data);
-          } else if (currentParentId) {
-            // 如果是创建新卡片
-            console.log("Creating new card for parent:", currentParentId);
-            _handleAddContent(data);
-          } else {
-            console.error("No currentCardId or currentParentId set");
-          }
-        }}
-        defaultContent={currentCardId ? findCardById(currentCardId, cards)?.content || "" : ""}
+        onClose={() => setContentDialogOpen(false)}
+        onConfirm={handleUpdateContent}
+        availableChapters={availableChapters}
+        onChapterClick={onChapterClick}
+        initialContent={currentCardId ? findParentCard(cards, currentCardId)?.content || "" : ""}
+        initialRelatedChapter={
+          currentCardId && findParentCard(cards, currentCardId)?.relatedItem
+            ? {
+                id: findParentCard(cards, currentCardId)?.relatedItem?.id || "",
+                title: findParentCard(cards, currentCardId)?.relatedItem?.title || "",
+                isExternal: findParentCard(cards, currentCardId)?.relatedItem?.isExternal,
+              }
+            : undefined
+        }
       />
     </div>
   );

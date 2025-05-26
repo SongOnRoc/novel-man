@@ -1,62 +1,59 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter 
-} from "@/components/tailwind/ui/dialog";
 import { Button } from "@/components/tailwind/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/tailwind/ui/dialog";
 import { Input } from "@/components/tailwind/ui/input";
 import { Label } from "@/components/tailwind/ui/label";
-import { Textarea } from "@/components/tailwind/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/tailwind/ui/select";
+import { Textarea } from "@/components/tailwind/ui/textarea";
+import { useEffect, useState } from "react";
 
-// 角色创建对话框
+// 角色类型
+export const ATTRIBUTE_TYPES = [
+  { value: "description", label: "外貌描述" },
+  { value: "personality", label: "性格特点" },
+  { value: "background", label: "背景故事" },
+  { value: "ability", label: "能力特长" },
+  { value: "relationship", label: "人际关系" },
+  { value: "custom", label: "自定义属性" },
+];
+
+// 角色对话框属性
 interface CharacterDialogProps {
   open: boolean;
   onClose: () => void;
   onConfirm: (data: { name: string; role: string }) => void;
 }
 
+// 角色对话框
 export function CharacterDialog({ open, onClose, onConfirm }: CharacterDialogProps) {
   const [name, setName] = useState("");
-  const [role, setRole] = useState("配角");
+  const [role, setRole] = useState("主角");
 
-  const handleConfirm = () => {
+  // 重置表单
+  useEffect(() => {
+    if (open) {
+      setName("");
+      setRole("主角");
+    }
+  }, [open]);
+
+  const handleSubmit = () => {
     if (!name.trim()) return;
     onConfirm({ name, role });
-    setName("");
     onClose();
   };
 
-  // 处理键盘事件
-  const handleKeyDown = (e: React.KeyboardEvent, callback: () => void) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      callback();
-    }
-  };
-
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      if (!isOpen) onClose();
-    }}>
-      <DialogContent className="sm:max-w-[425px]" aria-describedby="character-description">
+    <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>创建角色</DialogTitle>
+          <DialogTitle>添加角色</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label htmlFor="name">角色名称</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="请输入角色名称"
-            />
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="请输入角色名称" />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="role">角色类型</Label>
@@ -68,24 +65,25 @@ export function CharacterDialog({ open, onClose, onConfirm }: CharacterDialogPro
                 <SelectItem value="主角">主角</SelectItem>
                 <SelectItem value="配角">配角</SelectItem>
                 <SelectItem value="反派">反派</SelectItem>
-                <SelectItem value="路人">路人</SelectItem>
+                <SelectItem value="龙套">龙套</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <p id="character-description" className="sr-only">请输入角色信息</p>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} onKeyDown={(e) => handleKeyDown(e, onClose)}>
+          <Button type="button" variant="outline" onClick={onClose}>
             取消
           </Button>
-          <Button onClick={handleConfirm} onKeyDown={(e) => handleKeyDown(e, handleConfirm)}>确认</Button>
+          <Button type="button" onClick={handleSubmit}>
+            确认
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-// 角色属性创建对话框
+// 属性对话框属性
 interface AttributeDialogProps {
   open: boolean;
   onClose: () => void;
@@ -93,38 +91,27 @@ interface AttributeDialogProps {
   attributeTypes?: Array<{ value: string; label: string }>;
 }
 
-// 预定义的属性类型
-export const ATTRIBUTE_TYPES = [
-  { value: "description", label: "角色描述" },
-  { value: "ability", label: "角色能力" },
-  { value: "experience", label: "角色经历" },
-  { value: "relationship", label: "人际关系" },
-  { value: "custom", label: "自定义" },
-];
-
+// 属性对话框
 export function AttributeDialog({ open, onClose, onConfirm, attributeTypes = ATTRIBUTE_TYPES }: AttributeDialogProps) {
-  const [type, setType] = useState("description");
+  const [type, setType] = useState(attributeTypes[0]?.value || "");
 
-  const handleConfirm = () => {
+  // 重置表单
+  useEffect(() => {
+    if (open && attributeTypes.length > 0) {
+      setType(attributeTypes[0].value);
+    }
+  }, [open, attributeTypes]);
+
+  const handleSubmit = () => {
     onConfirm({ type });
     onClose();
   };
 
-  // 处理键盘事件
-  const handleKeyDown = (e: React.KeyboardEvent, callback: () => void) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      callback();
-    }
-  };
-
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      if (!isOpen) onClose();
-    }}>
-      <DialogContent className="sm:max-w-[425px]" aria-describedby="attribute-description">
+    <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>创建属性</DialogTitle>
+          <DialogTitle>添加属性</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
@@ -142,86 +129,133 @@ export function AttributeDialog({ open, onClose, onConfirm, attributeTypes = ATT
               </SelectContent>
             </Select>
           </div>
-          <p id="attribute-description" className="sr-only">请选择角色属性类型</p>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} onKeyDown={(e) => handleKeyDown(e, onClose)}>
+          <Button type="button" variant="outline" onClick={onClose}>
             取消
           </Button>
-          <Button onClick={handleConfirm} onKeyDown={(e) => handleKeyDown(e, handleConfirm)}>确认</Button>
+          <Button type="button" onClick={handleSubmit}>
+            确认
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-// 内容创建对话框
+// 内容对话框属性
 interface ContentDialogProps {
   open: boolean;
   onClose: () => void;
-  onConfirm: (data: { content: string; }) => void;
-  defaultContent?: string;
+  onConfirm: (data: {
+    content: string;
+    relatedChapter?: { id: string; title: string; isExternal?: boolean };
+  }) => void;
+  availableChapters?: Array<{ id: string; title: string }>;
+  onChapterClick?: (chapterId: string) => void;
+  initialContent?: string;
+  initialRelatedChapter?: { id: string; title: string; isExternal?: boolean };
 }
 
-export function ContentDialog({ open, onClose, onConfirm, defaultContent = "" }: ContentDialogProps) {
-  const [content, setContent] = useState(defaultContent);
+// 内容对话框
+export function ContentDialog({
+  open,
+  onClose,
+  onConfirm,
+  availableChapters = [],
+  onChapterClick,
+  initialContent = "",
+  initialRelatedChapter,
+}: ContentDialogProps) {
+  const [content, setContent] = useState(initialContent);
+  const [selectedChapter, setSelectedChapter] = useState<
+    { id: string; title: string; isExternal?: boolean } | undefined
+  >(initialRelatedChapter);
 
-  // 当对话框打开或defaultContent变化时更新内容
+  // 当对话框打开时重置内容
   useEffect(() => {
     if (open) {
-      console.log("ContentDialog opened with defaultContent:", defaultContent);
-      setContent(defaultContent);
+      setContent(initialContent);
+      setSelectedChapter(initialRelatedChapter);
     }
-  }, [open, defaultContent]);
+  }, [open, initialContent, initialRelatedChapter]);
 
-  const handleConfirm = () => {
-    console.log("ContentDialog handleConfirm called with content:", content);
-    if (!content.trim()) return;
-    onConfirm({ content });
-    handleClose();
-  };
-
-  const handleClose = () => {
-    console.log("ContentDialog handleClose called");
-    setContent("");
+  const handleSubmit = () => {
+    onConfirm({
+      content,
+      relatedChapter: selectedChapter,
+    });
     onClose();
   };
 
-  // 处理键盘事件
-  const handleKeyDown = (e: React.KeyboardEvent, callback: () => void) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      callback();
+  const handleChapterClick = (chapter: { id: string; title: string }) => {
+    setSelectedChapter({ id: chapter.id, title: chapter.title });
+    if (onChapterClick) {
+      onChapterClick(chapter.id);
     }
   };
 
+  const handleRemoveChapter = () => {
+    setSelectedChapter(undefined);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      console.log("ContentDialog onOpenChange:", isOpen);
-      if (!isOpen) handleClose();
-    }}>
-      <DialogContent className="sm:max-w-[500px]" aria-describedby="content-description">
+    <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>编辑内容</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="content">内容</Label>
+        <div className="grid gap-4 py-4">
+          <div>
+            <Label className="mb-2 block">内容</Label>
             <Textarea
-              id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="请输入内容..."
-              className="min-h-[100px]"
+              placeholder="详细描述内容..."
+              rows={10}
+              className="min-h-[200px]"
             />
-            <p id="content-description" className="sr-only">请在此输入卡片内容</p>
           </div>
+
+          {availableChapters.length > 0 && (
+            <div>
+              <Label className="mb-2 block">关联章节</Label>
+              {selectedChapter ? (
+                <div className="flex items-center justify-between p-2 bg-gray-100 rounded">
+                  <span>{selectedChapter.title}</span>
+                  <Button type="button" variant="ghost" size="sm" onClick={handleRemoveChapter}>
+                    移除关联
+                  </Button>
+                </div>
+              ) : (
+                <div className="max-h-[200px] overflow-y-auto border rounded p-2">
+                  <div className="text-sm text-gray-500 mb-2">选择要关联的章节：</div>
+                  <div className="space-y-1">
+                    {availableChapters.map((chapter) => (
+                      <button
+                        key={chapter.id}
+                        type="button"
+                        className="p-2 hover:bg-gray-100 cursor-pointer rounded w-full text-left"
+                        onClick={() => handleChapterClick(chapter)}
+                      >
+                        {chapter.title}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose} onKeyDown={(e) => handleKeyDown(e, handleClose)}>取消</Button>
-          <Button onClick={handleConfirm} onKeyDown={(e) => handleKeyDown(e, handleConfirm)} disabled={!content.trim()}>确定</Button>
+          <Button type="button" variant="outline" onClick={onClose}>
+            取消
+          </Button>
+          <Button type="button" onClick={handleSubmit}>
+            确认
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-} 
+}

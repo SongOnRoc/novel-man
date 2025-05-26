@@ -13,7 +13,7 @@ import { Input } from "@/components/tailwind/ui/input";
 import { Label } from "@/components/tailwind/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/tailwind/ui/select";
 import { Textarea } from "@/components/tailwind/ui/textarea";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // 大纲类型
 export type OutlineType = "总纲" | "分卷大纲" | "章节细纲";
@@ -478,6 +478,123 @@ export function ContentEditDialog({
         </div>
         <DialogFooter>
           <Button onClick={handleConfirm} disabled={!content.trim()}>
+            确认
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// 大纲内容对话框属性
+interface OutlineContentDialogProps {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: (data: {
+    content: string;
+    relatedChapter?: { id: string; title: string; isExternal?: boolean };
+  }) => void;
+  availableChapters?: Array<{ id: string; title: string }>;
+  onChapterClick?: (chapterId: string) => void;
+  initialContent?: string;
+  initialRelatedChapter?: { id: string; title: string; isExternal?: boolean };
+}
+
+// 大纲内容对话框
+export function OutlineContentDialog({
+  open,
+  onClose,
+  onConfirm,
+  availableChapters = [],
+  onChapterClick,
+  initialContent = "",
+  initialRelatedChapter,
+}: OutlineContentDialogProps) {
+  const [content, setContent] = useState(initialContent);
+  const [selectedChapter, setSelectedChapter] = useState<
+    { id: string; title: string; isExternal?: boolean } | undefined
+  >(initialRelatedChapter);
+
+  // 当对话框打开时重置内容
+  useEffect(() => {
+    if (open) {
+      setContent(initialContent);
+      setSelectedChapter(initialRelatedChapter);
+    }
+  }, [open, initialContent, initialRelatedChapter]);
+
+  const handleSubmit = () => {
+    onConfirm({
+      content,
+      relatedChapter: selectedChapter,
+    });
+    onClose();
+  };
+
+  const handleChapterClick = (chapter: { id: string; title: string }) => {
+    setSelectedChapter({ id: chapter.id, title: chapter.title });
+    if (onChapterClick) {
+      onChapterClick(chapter.id);
+    }
+  };
+
+  const handleRemoveChapter = () => {
+    setSelectedChapter(undefined);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>编辑大纲内容</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div>
+            <Label className="mb-2 block">内容</Label>
+            <Textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="详细描述该大纲内容..."
+              rows={10}
+              className="min-h-[200px]"
+            />
+          </div>
+
+          {availableChapters.length > 0 && (
+            <div>
+              <Label className="mb-2 block">关联章节</Label>
+              {selectedChapter ? (
+                <div className="flex items-center justify-between p-2 bg-gray-100 rounded">
+                  <span>{selectedChapter.title}</span>
+                  <Button type="button" variant="ghost" size="sm" onClick={handleRemoveChapter}>
+                    移除关联
+                  </Button>
+                </div>
+              ) : (
+                <div className="max-h-[200px] overflow-y-auto border rounded p-2">
+                  <div className="text-sm text-gray-500 mb-2">选择要关联的章节：</div>
+                  <div className="space-y-1">
+                    {availableChapters.map((chapter) => (
+                      <button
+                        key={chapter.id}
+                        type="button"
+                        className="p-2 hover:bg-gray-100 cursor-pointer rounded w-full text-left"
+                        onClick={() => handleChapterClick(chapter)}
+                      >
+                        {chapter.title}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>
+            取消
+          </Button>
+          <Button type="button" onClick={handleSubmit}>
             确认
           </Button>
         </DialogFooter>
