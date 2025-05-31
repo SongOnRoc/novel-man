@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { DraggableCard } from '../draggable-card';
+import { DraggableCard } from '../components/draggable-card';
 
 describe('DraggableCard', () => {
   const mockMoveCard = jest.fn();

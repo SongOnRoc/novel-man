@@ -1,25 +1,34 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { CardComponent } from "../card-component";
-import { type BaseCardProps, CardContainerType } from "../types";
+import { type BaseCardProps, CardContainerType, CollectionLayoutStyle } from "../types";
 
 // 模拟对话框组件
-jest.mock("../dialogs", () => ({
+jest.mock("../components/dialogs", () => ({
   AddCardDialog: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
     open ? (
       <div data-testid="add-dialog">
-        Add Dialog <button type="button" onClick={onClose}>Close</button>
+        Add Dialog{" "}
+        <button type="button" onClick={onClose}>
+          Close
+        </button>
       </div>
     ) : null,
   RelateDialog: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
     open ? (
       <div data-testid="relate-dialog">
-        Relate Dialog <button type="button" onClick={onClose}>Close</button>
+        Relate Dialog{" "}
+        <button type="button" onClick={onClose}>
+          Close
+        </button>
       </div>
     ) : null,
   LayoutStyleDialog: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
     open ? (
       <div data-testid="layout-dialog">
-        Layout Dialog <button type="button" onClick={onClose}>Close</button>
+        Layout Dialog{" "}
+        <button type="button" onClick={onClose}>
+          Close
+        </button>
       </div>
     ) : null,
 }));
@@ -138,8 +147,8 @@ describe("CardComponent", () => {
     const layoutButton = screen.getByTitle("更改布局样式");
     fireEvent.click(layoutButton);
 
-    // 验证对话框已显示
-    expect(screen.getByTestId("layout-dialog")).toBeInTheDocument();
+    // 验证布局变更函数被调用
+    expect(mockChangeLayoutStyle).toHaveBeenCalledWith("collection-card", CollectionLayoutStyle.ADAPTIVE);
   });
 
   test("deletes card when delete button is clicked", () => {

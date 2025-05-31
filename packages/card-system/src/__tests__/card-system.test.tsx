@@ -1,85 +1,97 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { CardSystem } from "../card-system";
 import { type BaseCardProps, CardContainerType, CollectionLayoutStyle } from "../types";
 
 // Mock implementations
-jest.mock("../dialogs", () => ({
-  AddCardDialog: ({ open, onClose, onAddEditorCard, onAddCollectionCard, parentTag, attributeOptions }: {
+jest.mock("../components/dialogs", () => ({
+  AddCardDialog: ({
+    open,
+    onClose,
+    onAddEditorCard,
+    onAddCollectionCard,
+    parentTag,
+    attributeOptions,
+  }: {
     open: boolean;
     onClose: () => void;
     onAddEditorCard: (title: string, hideTitle: boolean) => void;
     onAddCollectionCard: (title: string) => void;
     parentTag?: string;
     attributeOptions?: Array<{ value: string; label: string }>;
-  }) => open ? (
-    <div data-testid="add-dialog">
-      <button type="button" onClick={() => onAddEditorCard("Editor Card", false)}>Add Editor</button>
-      <button type="button" onClick={() => onAddCollectionCard("Collection Card")}>Add Collection</button>
-      {parentTag && <div>Parent: {parentTag}</div>}
-    </div>
-  ) : null
+  }) =>
+    open ? (
+      <div data-testid="add-dialog">
+        <button type="button" onClick={() => onAddEditorCard("Editor Card", false)}>
+          Add Editor
+        </button>
+        <button type="button" onClick={() => onAddCollectionCard("Collection Card")}>
+          Add Collection
+        </button>
+        {parentTag && <div>Parent: {parentTag}</div>}
+      </div>
+    ) : null,
 }));
 
 jest.mock("../card-component", () => {
   const original = jest.requireActual("../card-component");
   return {
     ...original,
-    CardComponent: jest.fn(({ card, onUpdateCard, onChangeLayoutStyle, onAddChildCard, onOpenAddDialog }: {
-      card: BaseCardProps;
-      onUpdateCard?: (id: string, updates: Partial<BaseCardProps>) => void;
-      onChangeLayoutStyle?: (id: string, style: CollectionLayoutStyle) => void;
-      onAddChildCard?: (parentId: string, containerType: CardContainerType, title?: string, hideTitle?: boolean) => void;
-      onOpenAddDialog?: (parentId: string) => void;
-    }) => {
-      const handleCollapse = () => {
-        onUpdateCard?.(card.id, { isCollapsed: !card.isCollapsed });
-      };
-      
-      const handleLayoutChange = () => {
-        onChangeLayoutStyle?.(card.id, CollectionLayoutStyle.ADAPTIVE);
-      };
+    CardComponent: jest.fn(
+      ({
+        card,
+        onUpdateCard,
+        onChangeLayoutStyle,
+        onAddChildCard,
+        onOpenAddDialog,
+      }: {
+        card: BaseCardProps;
+        onUpdateCard?: (id: string, updates: Partial<BaseCardProps>) => void;
+        onChangeLayoutStyle?: (id: string, style: CollectionLayoutStyle) => void;
+        onAddChildCard?: (
+          parentId: string,
+          containerType: CardContainerType,
+          title?: string,
+          hideTitle?: boolean,
+        ) => void;
+        onOpenAddDialog?: (parentId: string) => void;
+      }) => {
+        const handleCollapse = () => {
+          onUpdateCard?.(card.id, { isCollapsed: !card.isCollapsed });
+        };
 
-      const handleAddChild = () => {
-        if (onOpenAddDialog) {
-          onOpenAddDialog(card.id);
-        } else if (onAddChildCard) {
-          onAddChildCard(card.id, CardContainerType.EDITOR, "Editor Card", false);
-        }
-      };
+        const handleLayoutChange = () => {
+          onChangeLayoutStyle?.(card.id, CollectionLayoutStyle.ADAPTIVE);
+        };
 
-      return (
-        <div data-testid={`card-${card.id}`}>
-          {card.title}
-          {card.content && <div>{card.content}</div>}
-          <button
-            type="button"
-            data-testid="collapse-button"
-            onClick={handleCollapse}
-          >
-            折叠
-          </button>
-          {card.containerType === CardContainerType.COLLECTION && (
-            <>
-              <button
-                type="button"
-                data-testid="layout-button"
-                onClick={handleLayoutChange}
-              >
-                布局
-              </button>
-              <button
-                type="button"
-                data-testid="add-child-button"
-                onClick={handleAddChild}
-              >
-                添加子卡片
-              </button>
-            </>
-          )}
-        </div>
-      );
-    })
+        const handleAddChild = () => {
+          if (onOpenAddDialog) {
+            onOpenAddDialog(card.id);
+          } else if (onAddChildCard) {
+            onAddChildCard(card.id, CardContainerType.EDITOR, "Editor Card", false);
+          }
+        };
+
+        return (
+          <div data-testid={`card-${card.id}`}>
+            {card.title}
+            {card.content && <div>{card.content}</div>}
+            <button type="button" data-testid="collapse-button" onClick={handleCollapse}>
+              折叠
+            </button>
+            {card.containerType === CardContainerType.COLLECTION && (
+              <>
+                <button type="button" data-testid="layout-button" onClick={handleLayoutChange}>
+                  布局
+                </button>
+                <button type="button" data-testid="add-child-button" onClick={handleAddChild}>
+                  添加子卡片
+                </button>
+              </>
+            )}
+          </div>
+        );
+      },
+    ),
   };
 });
 
@@ -113,7 +125,7 @@ describe("CardSystem - Full Requirements", () => {
         id: "editor1",
         title: "Editor Card",
         containerType: CardContainerType.EDITOR,
-        isCollapsed: false
+        isCollapsed: false,
       };
 
       render(<CardSystem cards={[editorCard]} title="Test" {...baseProps} />);
@@ -125,7 +137,7 @@ describe("CardSystem - Full Requirements", () => {
         id: "collection1",
         title: "Collection Card",
         containerType: CardContainerType.COLLECTION,
-        isCollapsed: false
+        isCollapsed: false,
       };
 
       render(<CardSystem cards={[collectionCard]} title="Test" {...baseProps} />);
@@ -139,7 +151,7 @@ describe("CardSystem - Full Requirements", () => {
         id: "card1",
         title: "Test Card",
         containerType: CardContainerType.EDITOR,
-        isCollapsed: false
+        isCollapsed: false,
       };
 
       render(<CardSystem cards={[card]} title="Test" {...baseProps} />);
@@ -152,7 +164,7 @@ describe("CardSystem - Full Requirements", () => {
         id: "collection1",
         title: "Collection Card",
         containerType: CardContainerType.COLLECTION,
-        isCollapsed: false
+        isCollapsed: false,
       };
 
       render(<CardSystem cards={[card]} title="Test" {...baseProps} />);
@@ -167,7 +179,7 @@ describe("CardSystem - Full Requirements", () => {
         id: "card1",
         title: "Test Card",
         containerType: CardContainerType.EDITOR,
-        isCollapsed: false
+        isCollapsed: false,
       };
 
       render(<CardSystem cards={[card]} title="Test" {...baseProps} />);
@@ -186,28 +198,30 @@ describe("CardSystem - Full Requirements", () => {
         tag: "parent",
         containerType: CardContainerType.COLLECTION,
         props: [{ name: "test", value: "Test" }],
-        isCollapsed: false
+        isCollapsed: false,
       };
 
       render(<CardSystem cards={[parentCard]} title="Test" {...baseProps} />);
-      
+
       // 点击父卡片内的添加按钮
       fireEvent.click(screen.getByTestId("add-child-button"));
-      
+
       // 等待对话框出现
       await waitFor(() => {
         expect(screen.getByTestId("add-dialog")).toBeInTheDocument();
       });
-      
+
       fireEvent.click(screen.getByText("Add Editor"));
-      
+
       await waitFor(() => {
         expect(mockAddChildCard).toHaveBeenCalledWith(
           "parent",
           CardContainerType.EDITOR,
-          "Editor Card",
-          false,
-          expect.any(Number)
+          {
+            title: "Editor Card",
+            hideTitle: false,
+            parentCardCount: expect.any(Number)
+          }
         );
       });
     });
@@ -219,7 +233,7 @@ describe("CardSystem - Full Requirements", () => {
         id: "collection1",
         title: "Collection Card",
         containerType: CardContainerType.COLLECTION,
-        isCollapsed: false
+        isCollapsed: false,
       };
 
       render(<CardSystem cards={[card]} title="Test" {...baseProps} />);

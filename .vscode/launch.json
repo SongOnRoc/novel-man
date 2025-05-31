@@ -75,6 +75,16 @@
       "program": "${workspaceFolder}/packages/card-system/run-tests.js",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "调试卡片系统演示",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["run", "demo", "--port", "3002"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "cwd": "${workspaceFolder}/packages/card-system"
     }
   ]
 }

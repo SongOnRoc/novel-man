@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { CollectionLayoutStyle } from "./types";
-import type { AddCardDialogProps, CardProperty, LayoutStyleDialogProps, RelateDialogProps } from "./types";
+import { CollectionLayoutStyle } from "../types";
+import type { AddCardDialogProps, CardProperty, LayoutStyleDialogProps, RelateDialogProps } from "../types";
 
 // 添加卡片对话框组件
 export function AddCardDialog({
@@ -61,7 +61,7 @@ export function AddCardDialog({
     // 根据选择的属性生成tag
     let tag = "";
     if (selectedAttribute) {
-      tag = selectedAttribute.replace(/\s+/g, '-').toLowerCase();
+      tag = selectedAttribute.replace(/\s+/g, "-").toLowerCase();
     }
     onAddCollectionCard(title, [...props, { name: "tag", value: tag }]);
     resetForm();

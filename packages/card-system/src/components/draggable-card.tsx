@@ -1,17 +1,14 @@
 import type { Identifier } from "dnd-core";
 import { useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
-
-// 统一的卡片类型
-export const ItemTypes = {
-  CARD: "card",
-};
+import { ItemTypes } from "./drag-item-types"; // 从新文件导入
 
 interface DragItem {
   index: number;
   id: string;
   parentId?: string;
   type: string;
+  targetParentId?: string; // 添加目标容器ID属性
 }
 
 interface DraggableCardProps {
@@ -20,9 +17,10 @@ interface DraggableCardProps {
   moveCard: (dragIndex: number, hoverIndex: number, dragParentId?: string, hoverParentId?: string) => void;
   children: React.ReactNode;
   parentId?: string;
+  layoutStyle?: string; // 添加布局样式属性
 }
 
-export function DraggableCard({ id, index, moveCard, children, parentId }: DraggableCardProps) {
+export function DraggableCard({ id, index, moveCard, children, parentId, layoutStyle }: DraggableCardProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const [{ handlerId }, drop] = useDrop<DragItem, void, { handlerId: Identifier | null }>({
@@ -51,6 +49,7 @@ export function DraggableCard({ id, index, moveCard, children, parentId }: Dragg
 
       // 获取垂直中点
       const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+      const hoverMiddleX = (hoverBoundingRect.right - hoverBoundingRect.left) / 2;
 
       // 确定鼠标位置
       const clientOffset = monitor.getClientOffset();
@@ -58,29 +57,33 @@ export function DraggableCard({ id, index, moveCard, children, parentId }: Dragg
         return;
       }
       const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+      const hoverClientX = clientOffset.x - hoverBoundingRect.left;
 
-      // 跨容器拖拽的情况
-      if (dragParentId !== hoverParentId) {
-        // 不需要判断越过一半的逻辑，直接执行移动
-        console.log(
-          `跨容器拖拽: 从 ${dragParentId || "root"}[${dragIndex}] 到 ${hoverParentId || "root"}[${hoverIndex}]`,
-        );
-        moveCard(dragIndex, hoverIndex, dragParentId, hoverParentId);
-
-        // 更新拖拽项的索引和父ID
-        item.index = hoverIndex;
-        item.parentId = hoverParentId;
-        return;
-      }
-
-      // 只有当鼠标越过目标卡片的一半时才执行移动
-      // 向下拖动
-      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
-        return;
-      }
-      // 向上拖动
-      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
-        return;
+      // 根据布局样式限制拖动方向
+      if (layoutStyle === "VERTICAL") {
+        // 上下排列：只允许垂直方向移动
+        if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
+          return;
+        }
+        if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
+          return;
+        }
+      } else if (layoutStyle === "HORIZONTAL") {
+        // 左右排列：只允许水平方向移动
+        if (dragIndex < hoverIndex && hoverClientX < hoverMiddleX) {
+          return;
+        }
+        if (dragIndex > hoverIndex && hoverClientX > hoverMiddleX) {
+          return;
+        }
+      } else {
+        // 自适应排列：同时考虑水平和垂直方向
+        if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY && hoverClientX < hoverMiddleX) {
+          return;
+        }
+        if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY && hoverClientX > hoverMiddleX) {
+          return;
+        }
       }
 
       // 执行移动
@@ -89,6 +92,19 @@ export function DraggableCard({ id, index, moveCard, children, parentId }: Dragg
 
       // 更新拖拽项的索引
       item.index = hoverIndex;
+    },
+    drop(item: DragItem, monitor) {
+      // 处理跨容器拖拽
+      const dragParentId = item.parentId;
+      const hoverParentId = parentId;
+      
+      if (dragParentId !== hoverParentId) {
+        console.log(
+          `跨容器放置: 从 ${dragParentId || "root"} 到 ${hoverParentId || "root"}`
+        );
+        // 存储目标容器ID用于end回调
+        item.targetParentId = hoverParentId;
+      }
     },
   });
 
@@ -101,11 +117,16 @@ export function DraggableCard({ id, index, moveCard, children, parentId }: Dragg
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-    end: (item, monitor) => {
-      if (!monitor.didDrop()) {
-        console.log(`拖拽取消: ${id}`);
+    end: (item: DragItem, monitor) => {
+      if (monitor.didDrop()) {
+        if (item.targetParentId && item.targetParentId !== item.parentId) {
+          console.log(`卡片 ${item.id} 移动到新容器 ${item.targetParentId}`);
+        } else {
+          console.log(`拖拽完成: ${item.id}`);
+        }
       } else {
-        console.log(`拖拽完成: ${id}`);
+        console.log(`拖拽取消: ${item.id}, 回弹到原位置`);
+        // 回弹逻辑：通知父组件恢复位置（需在父组件实现）
       }
     },
   });

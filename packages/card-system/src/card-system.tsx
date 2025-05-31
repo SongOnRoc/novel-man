@@ -3,9 +3,9 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
 import { CardComponent } from "./card-component";
-import { AddCardDialog } from "./dialogs";
-import { DraggableCard } from "./draggable-card";
-import { type BaseCardProps, type CardButtonsConfig, CardContainerType, type CollectionLayoutStyle } from "./types";
+import { AddCardDialog } from "./components/dialogs";
+import { DraggableCard } from "./components/draggable-card";
+import { type BaseCardProps, type CardButtonsConfig, CardContainerType, type CollectionLayoutStyle, type CardProperty } from "./types";
 
 interface CardSystemProps {
   cards: BaseCardProps[];
@@ -13,7 +13,16 @@ interface CardSystemProps {
   onAddCard: (containerType: CardContainerType, title?: string, hideTitle?: boolean) => void;
   onUpdateCard: (id: string, updates: Partial<BaseCardProps>) => void;
   onDeleteCard?: (id: string) => void;
-  onAddChildCard?: (parentId: string, containerType: CardContainerType, title?: string, hideTitle?: boolean, parentCardCount?: number) => void;
+  onAddChildCard?: <T extends number | CardProperty[] = CardProperty[]>(
+    parentId: string,
+    containerType: CardContainerType,
+    options?: {
+      title?: string;
+      hideTitle?: boolean;
+      props?: T extends CardProperty[] ? T : never;
+      parentCardCount?: T extends number ? T : never;
+    }
+  ) => void;
   onRelateCard?: (id: string) => void;
   onUnrelateCard?: (id: string) => void;
   onChangeLayoutStyle?: (id: string, style: CollectionLayoutStyle) => void;
@@ -109,7 +118,7 @@ export function CardSystem({
         buttonsConfig={cardButtonsConfig}
         attributeOptions={attributeOptions}
         availableRelateItems={availableRelateItems}
-        onOpenAddDialog={(parentId) => {
+        onOpenAddDialog={(parentId: string) => {
           setCurrentParentId(parentId);
           setIsAddDialogOpen(true);
         }}
@@ -119,7 +128,14 @@ export function CardSystem({
     // 如果提供了moveCard函数，则使用DraggableCard包装
     if (moveCard) {
       return (
-        <DraggableCard key={card.id} id={card.id} index={index} moveCard={handleMoveCard} parentId={parentId}>
+        <DraggableCard
+          key={card.id}
+          id={card.id}
+          index={index}
+          moveCard={handleMoveCard}
+          parentId={parentId}
+          layoutStyle={card.layoutStyle} // 传递布局样式
+        >
           {cardContent}
         </DraggableCard>
       );
@@ -147,10 +163,12 @@ export function CardSystem({
               setCurrentParentId(null);
               setIsAddDialogOpen(true);
             }}
-            onKeyDown={(e) => handleKeyDown(e, () => {
-              setCurrentParentId(null);
-              setIsAddDialogOpen(true);
-            })}
+            onKeyDown={(e) =>
+              handleKeyDown(e, () => {
+                setCurrentParentId(null);
+                setIsAddDialogOpen(true);
+              })
+            }
             aria-label={`${addButtonText}`}
           >
             {/* 添加图标 */}
@@ -175,14 +193,18 @@ export function CardSystem({
             setCurrentParentId(null);
             setIsAddDialogOpen(false);
           }}
-          onAddEditorCard={(title, hideTitle) => {
+          onAddEditorCard={(title?: string, hideTitle?: boolean) => {
             console.log("Add Editor Card clicked", { currentParentId, title, hideTitle });
             if (currentParentId && onAddChildCard) {
               console.log("Calling onAddChildCard");
               // 获取父容器中的子卡片数量
-              const parentCard = cards.find(c => c.id === currentParentId);
+              const parentCard = cards.find((c) => c.id === currentParentId);
               const childCount = parentCard?.childCards?.length || 0;
-              onAddChildCard(currentParentId, CardContainerType.EDITOR, title, hideTitle, childCount);
+              onAddChildCard(currentParentId, CardContainerType.EDITOR, {
+                title: title || '',
+                hideTitle: hideTitle || false,
+                parentCardCount: childCount
+              });
             } else {
               console.log("Calling onAddCard");
               onAddCard(CardContainerType.EDITOR, title, hideTitle);
@@ -190,12 +212,16 @@ export function CardSystem({
             setCurrentParentId(null);
             setIsAddDialogOpen(false);
           }}
-          onAddCollectionCard={(title) => {
+          onAddCollectionCard={(title?: string, props: CardProperty[] = []) => {
             if (currentParentId && onAddChildCard) {
               // 获取父容器中的子卡片数量
-              const parentCard = cards.find(c => c.id === currentParentId);
+              const parentCard = cards.find((c) => c.id === currentParentId);
               const childCount = parentCard?.childCards?.length || 0;
-              onAddChildCard(currentParentId, CardContainerType.COLLECTION, title, false, childCount);
+              onAddChildCard(currentParentId, CardContainerType.COLLECTION, {
+                title: title || '',
+                hideTitle: false,
+                parentCardCount: childCount
+              });
             } else {
               onAddCard(CardContainerType.COLLECTION, title);
             }

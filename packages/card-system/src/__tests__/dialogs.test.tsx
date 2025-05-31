@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { AddCardDialog, LayoutStyleDialog, RelateDialog } from "../dialogs";
+import { AddCardDialog, LayoutStyleDialog, RelateDialog } from "../components/dialogs";
 import { CollectionLayoutStyle } from "../types";
 
 describe("AddCardDialog", () => {
