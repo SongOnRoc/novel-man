@@ -81,7 +81,7 @@
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["run", "demo", "--port", "3002"],
+      "runtimeArgs": ["run", "demo", "--port", "3002", "--host", "0.0.0.0"],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "cwd": "${workspaceFolder}/packages/card-system"

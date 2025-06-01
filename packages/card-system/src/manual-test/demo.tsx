@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { DefaultCardFactory } from "../card-factory";
 import { CardSystem } from "../card-system";
-import { CardContainerType, type CollectionLayoutStyle } from "../types";
-import type { BaseCardProps, CardProperty } from "../types";
+import { CardContainerType } from "../types";
+import type { BaseCardProps } from "../types";
 
 // 创建卡片工厂实例
 const cardFactory = new DefaultCardFactory();
@@ -58,185 +58,27 @@ const exampleContentCard: BaseCardProps = cardFactory.createCard({
 exampleContentCard.content =
   "这是一个编辑器类型的卡片，您可以在这里编辑文本内容。\n\n可以尝试编辑标题、折叠卡片、删除卡片等操作。";
 
+// 初始卡片数据
+const initialCards = [exampleRoleCard, exampleSceneCard, exampleContentCard];
+
 // 演示组件
 export const CardSystemDemo: React.FC = () => {
   // 状态管理
-  const [cards, setCards] = useState<BaseCardProps[]>([exampleRoleCard, exampleSceneCard, exampleContentCard]);
+  const [cards, setCards] = useState<BaseCardProps[]>(initialCards);
 
-  // 添加卡片
-  const handleAddCard = (
-    containerType: CardContainerType,
-    title?: string,
-    hideTitle?: boolean,
-    props?: CardProperty[],
-  ) => {
-    const newCard = cardFactory.createCard({
-      title: title || (containerType === CardContainerType.EDITOR ? "新建编辑器" : "新建集合"),
-      containerType,
-      hideTitle,
-      props,
-      isCollapsed: true,
-    });
-
-    setCards([...cards, newCard]);
-  };
-
-  // 更新卡片
-  const handleUpdateCard = (id: string, updates: Partial<BaseCardProps>) => {
-    setCards(
-      cards.map((card) => {
-        if (card.id === id) {
-          return { ...card, ...updates };
-        }
-
-        // 如果卡片有子卡片，递归更新
-        if (card.childCards && card.childCards.length > 0) {
-          const updatedChildCards = card.childCards.map((childCard: BaseCardProps) => {
-            if (childCard.id === id) {
-              return { ...childCard, ...updates };
-            }
-            return childCard;
-          });
-
-          return { ...card, childCards: updatedChildCards };
-        }
-
-        return card;
-      }),
-    );
-  };
-
-  // 删除卡片
-  const handleDeleteCard = (id: string) => {
-    // 递归函数，用于从卡片树中删除指定ID的卡片
-    const removeCardById = (cardsArray: BaseCardProps[]): BaseCardProps[] => {
-      return cardsArray.filter((card) => {
-        if (card.id === id) return false;
-
-        if (card.childCards && card.childCards.length > 0) {
-          card.childCards = removeCardById(card.childCards);
-        }
-
-        return true;
-      });
-    };
-
-    setCards(removeCardById(cards));
-  };
-
-  // 添加子卡片
-  const handleAddChildCard = (
-    parentId: string,
-    containerType: CardContainerType,
-    title?: string,
-    hideTitle?: boolean,
-    parentCardCount?: number,
-  ) => {
-    // 递归函数，用于向指定ID的父卡片添加子卡片
-    const addChildToParent = (cardsArray: BaseCardProps[]): BaseCardProps[] => {
-      return cardsArray.map((card) => {
-        if (card.id === parentId) {
-          // 创建子卡片
-          const childCard = cardFactory.createCard({
-            title: title || (containerType === CardContainerType.EDITOR ? "新建编辑器" : "新建集合"),
-            containerType,
-            hideTitle,
-            parent: parentId,
-            tag: card.tag ? `${card.tag}-child-${(card.childCards?.length || 0) + 1}` : undefined,
-            isCollapsed: true,
-          });
-
-          // 更新父卡片的子卡片列表
-          return {
-            ...card,
-            childCards: [...(card.childCards || []), childCard],
-            isCollapsed: false, // 展开父卡片
-          };
-        }
-
-        // 如果当前卡片有子卡片，递归查找
-        if (card.childCards && card.childCards.length > 0) {
-          return {
-            ...card,
-            childCards: addChildToParent(card.childCards),
-          };
-        }
-
-        return card;
-      });
-    };
-
-    setCards(addChildToParent(cards));
-  };
-
-  // 关联卡片
-  const handleRelateCard = (id: string) => {
-    // 在实际应用中，这里应该打开一个对话框让用户选择要关联的项目
-    console.log(`关联卡片: ${id}`);
-  };
-
-  // 解除关联
-  const handleUnrelateCard = (id: string) => {
-    handleUpdateCard(id, { relatedItem: undefined });
-  };
-
-  // 更改布局样式
-  const handleChangeLayoutStyle = (id: string, style: CollectionLayoutStyle) => {
-    handleUpdateCard(id, { layoutStyle: style });
-  };
-
-  // 移动卡片
-  const handleMoveCard = (dragIndex: number, hoverIndex: number, dragParentId?: string, hoverParentId?: string) => {
-    // 如果是在同一个父容器内移动
-    if (dragParentId === hoverParentId) {
-      // 如果是根级别的卡片
-      if (!dragParentId || dragParentId === "root") {
-        const dragCard = cards[dragIndex];
-        const newCards = [...cards];
-        newCards.splice(dragIndex, 1);
-        newCards.splice(hoverIndex, 0, dragCard);
-        setCards(newCards);
-      } else {
-        // 在子卡片中移动
-        setCards((prevCards) => {
-          return prevCards.map((card) => {
-            // 递归查找父卡片
-            const findAndUpdateParent = (parentCard: BaseCardProps): BaseCardProps => {
-              if (parentCard.id === dragParentId && parentCard.childCards) {
-                const dragCard = parentCard.childCards[dragIndex];
-                const newChildCards = [...parentCard.childCards];
-                newChildCards.splice(dragIndex, 1);
-                newChildCards.splice(hoverIndex, 0, dragCard);
-                return { ...parentCard, childCards: newChildCards };
-              }
-
-              if (parentCard.childCards) {
-                return {
-                  ...parentCard,
-                  childCards: parentCard.childCards.map(findAndUpdateParent),
-                };
-              }
-
-              return parentCard;
-            };
-
-            return findAndUpdateParent(card);
-          });
-        });
-      }
-    } else {
-      // 跨容器拖拽的情况
-      console.log("跨容器拖拽暂未实现");
-      // 实际应用中需要实现从一个父容器移动到另一个父容器的逻辑
-    }
+  // 当卡片系统内部状态变化时的回调函数
+  const handleCardsChange = (updatedCards: BaseCardProps[]) => {
+    setCards(updatedCards);
+    // 这里可以添加其他需要的操作，比如保存到本地存储、发送到服务器等
+    console.log("卡片状态已更新:", updatedCards);
   };
 
   return (
     <div className="p-4 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6" style={{ color: "red" }}>
-        卡片系统演示
-      </h1>
-      <div className="mb-8">
+      {/* <h1 className="text-2xl font-bold mb-6" style={{ color: "bg-white" }}>
+        卡片演示
+      </h1> */}
+      {/* <div className="mb-8">
         <h2 className="text-xl font-semibold mb-2">功能说明</h2>
         <ul className="list-disc pl-5 space-y-1">
           <li>支持两种类型卡片：编辑器类和集合类</li>
@@ -244,20 +86,16 @@ export const CardSystemDemo: React.FC = () => {
           <li>集合类卡片支持三种布局样式：上下排列、左右排列、自适应排列</li>
           <li>支持卡片拖拽排序</li>
           <li>支持关联功能</li>
+          <li>卡片系统内部管理状态，无需外部实现处理函数</li>
         </ul>
-      </div>
+      </div> */}
+      
 
       <CardSystem
-        cards={cards}
-        title="卡片系统演示"
-        onAddCard={handleAddCard}
-        onUpdateCard={handleUpdateCard}
-        onDeleteCard={handleDeleteCard}
-        onAddChildCard={handleAddChildCard}
-        onRelateCard={handleRelateCard}
-        onUnrelateCard={handleUnrelateCard}
-        onChangeLayoutStyle={handleChangeLayoutStyle}
-        moveCard={handleMoveCard}
+        initialCards={cards}
+        // title="卡片演示"
+        title=""
+        onCardsChange={handleCardsChange}
         attributeOptions={attributeOptions}
         availableRelateItems={availableRelateItems}
         addButtonText="添加新卡片"

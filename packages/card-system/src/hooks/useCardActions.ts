@@ -3,12 +3,18 @@ import { type BaseCardProps, type CardCallbacks, CardContainerType, type Collect
 
 export function useCardActions(card: BaseCardProps, callbacks: CardCallbacks) {
   const handleAddButtonClick = useCallback(() => {
-    if (card.containerType === CardContainerType.EDITOR) {
-      callbacks.onAddChildCard?.(card.id, CardContainerType.EDITOR);
-    } else {
-      callbacks.onAddChildCard?.(card.id, CardContainerType.COLLECTION);
+    // 如果卡片是折叠的，先展开卡片
+    if (card.isCollapsed) {
+      callbacks.onUpdateCard?.(card.id, { isCollapsed: false });
     }
-  }, [card.id, card.containerType, callbacks]);
+
+    // 然后处理添加子卡片
+    if (card.containerType === CardContainerType.EDITOR) {
+      callbacks.onAddCard?.(CardContainerType.EDITOR, { parentId: card.id });
+    } else {
+      callbacks.onAddCard?.(CardContainerType.COLLECTION, { parentId: card.id });
+    }
+  }, [card.id, card.containerType, card.isCollapsed, callbacks]);
 
   const handleDeleteButtonClick = useCallback(() => {
     callbacks.onDeleteCard?.(card.id);

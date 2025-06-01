@@ -36,7 +36,6 @@ jest.mock("../components/dialogs", () => ({
 describe("CardComponent", () => {
   const mockUpdateCard = jest.fn();
   const mockDeleteCard = jest.fn();
-  const mockAddChildCard = jest.fn();
   const mockRelateCard = jest.fn();
   const mockUnrelateCard = jest.fn();
   const mockChangeLayoutStyle = jest.fn();
@@ -89,13 +88,7 @@ describe("CardComponent", () => {
       showAddButton: true,
     };
 
-    render(
-      <CardComponent
-        card={collectionCardWithButtons}
-        onUpdateCard={mockUpdateCard}
-        onAddChildCard={mockAddChildCard}
-      />,
-    );
+    render(<CardComponent card={collectionCardWithButtons} onUpdateCard={mockUpdateCard} />);
 
     // 找到添加按钮并点击
     const addButton = screen.getByTitle("添加子卡片");

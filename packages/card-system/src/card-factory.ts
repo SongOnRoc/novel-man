@@ -28,7 +28,7 @@ export class DefaultCardFactory implements CardFactory {
       props = [],
       hideTitle = false,
       isCollapsed = true,
-      parentCardCount
+      parentCardCount,
     } = options;
 
     // 生成卡片ID
@@ -80,11 +80,13 @@ export class DefaultCardFactory implements CardFactory {
       card.showAddButton = true;
       card.showLayoutStyleButton = true;
       card.showRelateButton = false;
+      card.showVisibilityButton = true;
     } else if (containerType === CardContainerType.EDITOR) {
       card.content = "";
       card.showAddButton = false;
       card.showLayoutStyleButton = false;
       card.showRelateButton = true;
+      card.showVisibilityButton = false;
     }
 
     return card;

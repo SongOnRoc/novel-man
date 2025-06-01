@@ -15,6 +15,7 @@ interface TitleBarProps {
   onUnrelateItem: () => void;
   onLayoutStyleChange: ((style: CollectionLayoutStyle) => void) | undefined;
   onOpenAddDialog?: (parentId: string) => void;
+  onToggleVisibility?: (id: string) => void;
 }
 
 export function TitleBar({
@@ -30,6 +31,7 @@ export function TitleBar({
   onUnrelateItem,
   onLayoutStyleChange,
   onOpenAddDialog,
+  onToggleVisibility,
 }: TitleBarProps) {
   const config = buttonsConfig || {
     showEditButton: true,
@@ -37,6 +39,7 @@ export function TitleBar({
     showDeleteButton: true,
     showRelateButton: false,
     showLayoutStyleButton: false,
+    showVisibilityButton: false,
   };
 
   const showEditButton = card.showEditButton ?? config.showEditButton;
@@ -44,6 +47,7 @@ export function TitleBar({
   const showDeleteButton = card.showDeleteButton ?? config.showDeleteButton;
   const showRelateButton = card.showRelateButton ?? config.showRelateButton;
   const showLayoutStyleButton = card.showLayoutStyleButton ?? config.showLayoutStyleButton;
+  const showVisibilityButton = card.showVisibilityButton ?? config.showVisibilityButton;
 
   const {
     handleAddButtonClick,
@@ -53,8 +57,16 @@ export function TitleBar({
     handleUnrelateItem,
     handleLayoutStyleConfirm,
   } = useCardActions(card, {
-    onAddChildCard: onAddButtonClick,
-    onUpdateCard: onTitleEdit,
+    onAddCard: (containerType, options) => onAddButtonClick(),
+    onUpdateCard: (id, updates) => {
+      // 如果是更新折叠状态，调用onToggleCollapse
+      if (updates.isCollapsed !== undefined) {
+        onToggleCollapse();
+      } else {
+        // 否则调用onTitleEdit
+        onTitleEdit();
+      }
+    },
     onDeleteCard,
     onRelateCard: onRelateItem,
     onUnrelateCard: onUnrelateItem,
@@ -237,7 +249,8 @@ export function TitleBar({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              handleLayoutStyleConfirm(CollectionLayoutStyle.ADAPTIVE);
+              // 通知父组件打开布局样式对话框
+              onLayoutStyleChange(CollectionLayoutStyle.ADAPTIVE);
             }}
             style={{ ...buttonStyle, color: "#6b7280" }}
             aria-label="更改布局样式"
@@ -248,6 +261,24 @@ export function TitleBar({
               <rect x="14" y="3" width="7" height="7" />
               <rect x="14" y="14" width="7" height="7" />
               <rect x="3" y="14" width="7" height="7" />
+            </svg>
+          </button>
+        )}
+
+        {showVisibilityButton && isCollectionCard && onToggleVisibility && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleVisibility(card.id);
+            }}
+            style={{ ...buttonStyle, color: "#6b7280" }}
+            aria-label="切换可见性"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <title>切换可见性</title>
+              <path d="M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16z" />
+              <path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20z" />
             </svg>
           </button>
         )}

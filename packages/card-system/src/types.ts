@@ -47,6 +47,7 @@ export interface BaseCardProps {
   showDeleteButton?: boolean;
   showRelateButton?: boolean;
   showLayoutStyleButton?: boolean;
+  showVisibilityButton?: boolean; // 添加显示/隐藏按钮配置
 }
 
 export interface CardButtonsConfig {
@@ -55,20 +56,20 @@ export interface CardButtonsConfig {
   showDeleteButton?: boolean;
   showRelateButton?: boolean;
   showLayoutStyleButton?: boolean;
+  showVisibilityButton?: boolean;
 }
 
 export interface CardCallbacks {
   onUpdateCard: (id: string, updates: Partial<BaseCardProps>) => void;
   onDeleteCard?: (id: string) => void;
-  onAddChildCard?: <T extends CardProperty[] | number = CardProperty[]>(
-    parentId: string,
+  onAddCard?: (
     containerType: CardContainerType,
     options?: {
       title?: string;
       hideTitle?: boolean;
-      props?: T extends CardProperty[] ? T : never;
-      parentCardCount?: T extends number ? T : never;
-    }
+      props?: CardProperty[];
+      parentId?: string | null;
+    },
   ) => void;
   onRelateCard?: (id: string) => void;
   onUnrelateCard?: (id: string) => void;
@@ -101,15 +102,14 @@ export interface CardComponentProps extends CardCallbacks, CardCommonProps {
   onOpenAddDialog?: (parentId: string) => void;
 }
 
-export interface CardSystemProps extends CardCallbacks, CardCommonProps {
-  cards: BaseCardProps[];
+export interface CardSystemProps extends CardCommonProps {
+  // 初始卡片数据，可选
+  initialCards?: BaseCardProps[];
+  // 卡片系统标题
   title: string;
-  onAddCard: (containerType: CardContainerType, options?: {
-    title?: string;
-    hideTitle?: boolean;
-    props?: CardProperty[];
-  }) => void;
-  moveCard?: (dragIndex: number, hoverIndex: number, dragParentId?: string, hoverParentId?: string) => void;
+  // 外部状态同步回调，可选
+  onCardsChange?: (cards: BaseCardProps[]) => void;
+  // 可选配置
   addButtonText?: string;
   defaultCollapsed?: boolean;
 }

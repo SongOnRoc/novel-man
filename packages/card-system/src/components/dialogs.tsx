@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
+import { Z_INDEX } from "../constants";
 import { CollectionLayoutStyle } from "../types";
 import type { AddCardDialogProps, CardProperty, LayoutStyleDialogProps, RelateDialogProps } from "../types";
 
@@ -63,14 +65,19 @@ export function AddCardDialog({
     if (selectedAttribute) {
       tag = selectedAttribute.replace(/\s+/g, "-").toLowerCase();
     }
-    onAddCollectionCard(title, [...props, { name: "tag", value: tag }]);
+
+    // 添加tag属性
+    const finalProps = tag ? [...props, { name: "tag", value: tag }] : props;
+
+    // 只传递标题和属性数组
+    onAddCollectionCard(title, finalProps);
     handleClose();
   };
 
   if (!open) return null;
 
-  // 使用固定定位的模态对话框
-  return (
+  // 创建对话框内容
+  const dialogContent = (
     <div
       style={{
         position: "fixed",
@@ -82,8 +89,9 @@ export function AddCardDialog({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        zIndex: 1000,
+        zIndex: Z_INDEX.DIALOG,
       }}
+      className="dialog-overlay"
     >
       <div
         style={{
@@ -229,31 +237,32 @@ export function AddCardDialog({
       </div>
     </div>
   );
+
+  // 使用Portal将对话框渲染到document.body
+  return createPortal(dialogContent, document.body);
 }
 
-// 关联项对话框组件
+// 关联对话框组件
 export function RelateDialog({ open, onClose, onConfirm, availableItems = [] }: RelateDialogProps) {
-  const [selectedItemId, setSelectedItemId] = useState("");
+  const [selectedItem, setSelectedItem] = useState<string>("");
 
   const handleConfirm = () => {
-    if (selectedItemId) {
-      const selectedItem = availableItems.find((item) => item.id === selectedItemId);
-      if (selectedItem) {
-        onConfirm(selectedItem.id, selectedItem.title, selectedItem.type);
-      }
+    const item = availableItems.find((item) => item.id === selectedItem);
+    if (item) {
+      onConfirm(item.id, item.title, item.type);
     }
-    setSelectedItemId("");
     onClose();
   };
 
   const handleClose = () => {
-    setSelectedItemId("");
+    setSelectedItem("");
     onClose();
   };
 
   if (!open) return null;
 
-  return (
+  // 创建对话框内容
+  const dialogContent = (
     <div
       style={{
         position: "fixed",
@@ -265,8 +274,9 @@ export function RelateDialog({ open, onClose, onConfirm, availableItems = [] }: 
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        zIndex: 1000,
+        zIndex: Z_INDEX.DIALOG,
       }}
+      className="dialog-overlay"
     >
       <div
         style={{
@@ -281,23 +291,21 @@ export function RelateDialog({ open, onClose, onConfirm, availableItems = [] }: 
           overflow: "hidden",
         }}
       >
-        <h3 style={{ fontSize: "18px", fontWeight: 500, marginBottom: "16px" }}>关联项目</h3>
+        <h3 style={{ fontSize: "18px", fontWeight: 500, marginBottom: "16px" }}>关联内容</h3>
 
-        <div style={{ marginBottom: "16px" }}>
-          {availableItems.length === 0 ? (
-            <p style={{ color: "#6b7280" }}>没有可关联的项目</p>
-          ) : (
+        {availableItems.length > 0 ? (
+          <div style={{ marginBottom: "16px" }}>
             <div style={{ marginBottom: "12px" }}>
               <label
                 htmlFor="relate-item"
                 style={{ display: "block", fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}
               >
-                选择要关联的项目
+                选择要关联的内容
               </label>
               <select
                 id="relate-item"
-                value={selectedItemId}
-                onChange={(e) => setSelectedItemId(e.target.value)}
+                value={selectedItem}
+                onChange={(e) => setSelectedItem(e.target.value)}
                 style={{
                   width: "100%",
                   padding: "8px 12px",
@@ -315,8 +323,12 @@ export function RelateDialog({ open, onClose, onConfirm, availableItems = [] }: 
                 ))}
               </select>
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div style={{ marginBottom: "16px", color: "#6b7280" }}>
+            <p>没有可关联的内容。</p>
+          </div>
+        )}
 
         <div
           style={{
@@ -343,23 +355,26 @@ export function RelateDialog({ open, onClose, onConfirm, availableItems = [] }: 
           <button
             type="button"
             onClick={handleConfirm}
-            disabled={!selectedItemId}
+            disabled={!selectedItem}
             style={{
               padding: "8px 16px",
-              backgroundColor: selectedItemId ? "#3b82f6" : "#d1d5db",
-              color: selectedItemId ? "white" : "#6b7280",
+              backgroundColor: selectedItem ? "#3b82f6" : "#9ca3af",
+              color: "white",
               border: "none",
               borderRadius: "4px",
-              cursor: selectedItemId ? "pointer" : "not-allowed",
+              cursor: selectedItem ? "pointer" : "not-allowed",
               minWidth: "80px",
             }}
           >
-            确认关联
+            确认
           </button>
         </div>
       </div>
     </div>
   );
+
+  // 使用Portal将对话框渲染到document.body
+  return createPortal(dialogContent, document.body);
 }
 
 // 布局样式选择对话框组件
@@ -383,7 +398,8 @@ export function LayoutStyleDialog({
 
   if (!open) return null;
 
-  return (
+  // 创建对话框内容
+  const dialogContent = (
     <div
       style={{
         position: "fixed",
@@ -395,8 +411,9 @@ export function LayoutStyleDialog({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        zIndex: 1000,
+        zIndex: Z_INDEX.DIALOG,
       }}
+      className="dialog-overlay"
     >
       <div
         style={{
@@ -411,45 +428,35 @@ export function LayoutStyleDialog({
           overflow: "hidden",
         }}
       >
-        <h3 style={{ fontSize: "18px", fontWeight: 500, marginBottom: "16px" }}>选择布局样式</h3>
+        <h3 style={{ fontSize: "18px", fontWeight: 500, marginBottom: "16px" }}>设置布局样式</h3>
 
         <div style={{ marginBottom: "16px" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <label style={{ display: "flex", alignItems: "center" }}>
-              <input
-                type="radio"
-                name="layout-style"
-                value={CollectionLayoutStyle.VERTICAL}
-                checked={selectedStyle === CollectionLayoutStyle.VERTICAL}
-                onChange={() => setSelectedStyle(CollectionLayoutStyle.VERTICAL)}
-                style={{ marginRight: "8px" }}
-              />
-              上下排列 - 卡片固定宽度，垂直滚动
+          <div style={{ marginBottom: "12px" }}>
+            <label
+              htmlFor="layout-style"
+              style={{ display: "block", fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}
+            >
+              选择布局样式
             </label>
-
-            <label style={{ display: "flex", alignItems: "center" }}>
-              <input
-                type="radio"
-                name="layout-style"
-                value={CollectionLayoutStyle.HORIZONTAL}
-                checked={selectedStyle === CollectionLayoutStyle.HORIZONTAL}
-                onChange={() => setSelectedStyle(CollectionLayoutStyle.HORIZONTAL)}
-                style={{ marginRight: "8px" }}
-              />
-              左右排列 - 卡片固定高度，水平滚动
-            </label>
-
-            <label style={{ display: "flex", alignItems: "center" }}>
-              <input
-                type="radio"
-                name="layout-style"
-                value={CollectionLayoutStyle.ADAPTIVE}
-                checked={selectedStyle === CollectionLayoutStyle.ADAPTIVE}
-                onChange={() => setSelectedStyle(CollectionLayoutStyle.ADAPTIVE)}
-                style={{ marginRight: "8px" }}
-              />
-              自适应排列 - 根据空间自动换行
-            </label>
+            <select
+              id="layout-style"
+              value={selectedStyle}
+              onChange={(e) => setSelectedStyle(e.target.value as CollectionLayoutStyle)}
+              style={{
+                width: "100%",
+                padding: "8px 12px",
+                border: "1px solid #d1d5db",
+                borderRadius: "4px",
+                fontSize: "14px",
+                boxSizing: "border-box",
+              }}
+            >
+              <option value={CollectionLayoutStyle.VERTICAL}>垂直布局</option>
+              <option value={CollectionLayoutStyle.HORIZONTAL}>水平布局</option>
+              <option value={CollectionLayoutStyle.ADAPTIVE}>自适应布局</option>
+              <option value={CollectionLayoutStyle.GRID}>网格布局</option>
+              <option value={CollectionLayoutStyle.LIST}>列表布局</option>
+            </select>
           </div>
         </div>
 
@@ -494,4 +501,7 @@ export function LayoutStyleDialog({
       </div>
     </div>
   );
+
+  // 使用Portal将对话框渲染到document.body
+  return createPortal(dialogContent, document.body);
 }
