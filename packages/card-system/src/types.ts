@@ -9,6 +9,8 @@ export enum CollectionLayoutStyle {
   VERTICAL = "vertical",
   HORIZONTAL = "horizontal",
   ADAPTIVE = "adaptive",
+  GRID = "grid",
+  LIST = "list",
 }
 
 export interface CardProperty {
@@ -26,6 +28,7 @@ export interface BaseCardProps {
   isEditing?: boolean;
   isVisible?: boolean;
   hideTitle?: boolean;
+  hideBorder?: boolean; // 新增：控制是否隐藏边框
   containerType: CardContainerType;
   childCards?: BaseCardProps[];
   layoutStyle?: CollectionLayoutStyle;

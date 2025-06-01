@@ -17,7 +17,7 @@ interface ContainerProps {
       hideTitle?: boolean;
       props?: T extends CardProperty[] ? T : never;
       parentCardCount?: T extends number ? T : never;
-    }
+    },
   ) => void;
   onRelateCard?: (id: string) => void;
   onUnrelateCard?: (id: string) => void;
@@ -61,8 +61,7 @@ export function Container({
   // 处理内容编辑
   const handleContentEdit = () => setIsEditingContent(true);
   const handleContentChange = (value: string) => onUpdateCard(card.id, { content: value });
-  const handleContentInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => 
-    handleContentChange(e.target.value);
+  const handleContentInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => handleContentChange(e.target.value);
   const handleContentSave = () => setIsEditingContent(false);
 
   // 处理点击外部关闭编辑器
@@ -77,23 +76,58 @@ export function Container({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isEditingContent]);
 
+  // 容器基础样式
+  const containerStyle = {
+    border: "1px solid #ccc",
+    borderTop: "none", // 移除顶部边框，避免与标题栏边框重叠
+    width: "100%",
+    padding: "16px",
+    boxSizing: "border-box" as const,
+  };
+
+  // 编辑器容器样式
+  const editorContainerStyle = {
+    ...containerStyle,
+  };
+
+  // 集合容器样式
+  const collectionContainerStyle = {
+    ...containerStyle,
+    padding: "8px",
+  };
+
   // 渲染编辑器容器
   if (containerType === CardContainerType.EDITOR) {
     return (
-      <div className="p-4" ref={containerRef}>
+      <div style={editorContainerStyle} ref={containerRef}>
         {isEditingContent ? (
           <textarea
             ref={contentTextareaRef}
             value={card.content || ""}
             onChange={handleContentInputChange}
-            className="w-full p-2 border rounded min-h-[100px] focus:outline-none focus:ring-1 focus:ring-blue-500"
+            style={{
+              width: "100%",
+              padding: "8px",
+              border: "1px solid #d1d5db",
+              borderRadius: "4px",
+              minHeight: "100px",
+              outline: "none",
+            }}
             placeholder="在此输入内容..."
           />
         ) : (
           <button
             type="button"
             onClick={handleContentEdit}
-            className="w-full text-left min-h-[40px] p-2 hover:bg-gray-50 rounded"
+            style={{
+              width: "100%",
+              textAlign: "left",
+              minHeight: "40px",
+              padding: "8px",
+              background: "none",
+              border: "none",
+              cursor: "text",
+            }}
           >
             {card.content || "点击添加内容"}
           </button>
@@ -104,39 +138,59 @@ export function Container({
 
   // 渲染集合容器
   if (containerType === CardContainerType.COLLECTION) {
-    // 根据布局样式设置容器类名
-    let layoutClassName = "flex flex-col gap-4 p-2 overflow-y-auto max-h-[500px]";
+    // 根据布局样式设置容器样式
+    let contentLayoutStyle: React.CSSProperties = {
+      display: "flex",
+      flexDirection: "column",
+      gap: "16px",
+      overflowY: "auto",
+      maxHeight: "500px",
+    };
+
     if (layoutStyle === CollectionLayoutStyle.HORIZONTAL) {
-      layoutClassName = "flex overflow-x-auto gap-4 py-2";
+      contentLayoutStyle = {
+        display: "flex",
+        flexDirection: "row",
+        gap: "16px",
+        overflowX: "auto",
+        maxHeight: "none",
+      };
     } else if (layoutStyle === CollectionLayoutStyle.ADAPTIVE) {
-      layoutClassName = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-2";
+      contentLayoutStyle = {
+        display: "grid",
+        gap: "16px",
+        gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+        maxHeight: "none",
+      };
     }
 
     return (
-      <div className={`bg-white ${layoutClassName}`}>
-        {card.childCards && card.childCards.length > 0 ? (
-          card.childCards
-            .filter((childCard) => childCard.isVisible !== false)
-            .map((childCard) => (
-              <div key={childCard.id} className="min-w-[250px]">
-                <CardComponent
-                  card={childCard}
-                  onUpdateCard={onUpdateCard}
-                  onDeleteCard={onDeleteCard}
-                  onAddChildCard={onAddChildCard}
-                  onRelateCard={onRelateCard}
-                  onUnrelateCard={onUnrelateCard}
-                  onChangeLayoutStyle={onChangeLayoutStyle}
-                  buttonsConfig={buttonsConfig}
-                  attributeOptions={attributeOptions}
-                  availableRelateItems={availableRelateItems}
-                  layoutStyle={layoutStyle}
-                />
-              </div>
-            ))
-        ) : (
-          <div className="p-4 text-center text-gray-500">点击"+"按钮添加卡片</div>
-        )}
+      <div style={collectionContainerStyle}>
+        <div style={contentLayoutStyle}>
+          {card.childCards && card.childCards.length > 0 ? (
+            card.childCards
+              .filter((childCard) => childCard.isVisible !== false)
+              .map((childCard) => (
+                <div key={childCard.id} style={{ width: "100%" }}>
+                  <CardComponent
+                    card={childCard}
+                    onUpdateCard={onUpdateCard}
+                    onDeleteCard={onDeleteCard}
+                    onAddChildCard={onAddChildCard}
+                    onRelateCard={onRelateCard}
+                    onUnrelateCard={onUnrelateCard}
+                    onChangeLayoutStyle={onChangeLayoutStyle}
+                    buttonsConfig={buttonsConfig}
+                    attributeOptions={attributeOptions}
+                    availableRelateItems={availableRelateItems}
+                    layoutStyle={layoutStyle}
+                  />
+                </div>
+              ))
+          ) : (
+            <div style={{ padding: "16px", textAlign: "center", color: "#6b7280" }}>点击"+"按钮添加卡片</div>
+          )}
+        </div>
       </div>
     );
   }

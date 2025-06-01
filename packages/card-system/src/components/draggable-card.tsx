@@ -97,11 +97,9 @@ export function DraggableCard({ id, index, moveCard, children, parentId, layoutS
       // 处理跨容器拖拽
       const dragParentId = item.parentId;
       const hoverParentId = parentId;
-      
+
       if (dragParentId !== hoverParentId) {
-        console.log(
-          `跨容器放置: 从 ${dragParentId || "root"} 到 ${hoverParentId || "root"}`
-        );
+        console.log(`跨容器放置: 从 ${dragParentId || "root"} 到 ${hoverParentId || "root"}`);
         // 存储目标容器ID用于end回调
         item.targetParentId = hoverParentId;
       }
@@ -140,7 +138,7 @@ export function DraggableCard({ id, index, moveCard, children, parentId, layoutS
       ref={ref}
       style={{ opacity }}
       data-handler-id={handlerId}
-      className={`cursor-move ${isDragging ? "dragging" : ""}`}
+      className={`cursor-move border-2 border-gray-300 rounded-lg bg-white shadow-sm ${isDragging ? "dragging" : ""}`}
       data-card-id={id}
       data-card-index={index}
       data-parent-id={parentId || "root"}

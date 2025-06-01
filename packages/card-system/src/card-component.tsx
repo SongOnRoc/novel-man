@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
+import { Container } from "./components/container";
 import { AddCardDialog, LayoutStyleDialog, RelateDialog } from "./components/dialogs";
 import { TitleBar } from "./components/title-bar";
-import { Container } from "./components/container";
-import { type BaseCardProps, type CardButtonsConfig, CardContainerType, CollectionLayoutStyle } from "./types";
+import { CardContainerType, CollectionLayoutStyle } from "./types";
 import type { CardComponentProps } from "./types";
 
 // 基础卡片组件
@@ -91,7 +91,7 @@ export function CardComponent({
         onAddChildCard(card.id, CardContainerType.EDITOR, {
           title,
           hideTitle,
-          props: []
+          props: [],
         });
 
         // 添加卡片后自动展开当前卡片
@@ -108,7 +108,7 @@ export function CardComponent({
       if (onAddChildCard) {
         onAddChildCard(card.id, CardContainerType.COLLECTION, {
           title,
-          props: []
+          props: [],
         });
 
         // 添加卡片后自动展开当前卡片
@@ -143,8 +143,19 @@ export function CardComponent({
     }
   };
 
+  // 卡片的主样式
+  const cardStyle = {
+    border: card.hideBorder ? "none" : "1px solid #ccc",
+    borderRadius: "4px",
+    overflow: "hidden",
+    width: "100%",
+    display: "flex",
+    flexDirection: "column" as const,
+    boxSizing: "border-box" as const,
+  };
+
   return (
-    <div className="border rounded-md overflow-hidden shadow-sm">
+    <div style={cardStyle}>
       {/* 标题栏 */}
       {!card.hideTitle && (
         <TitleBar

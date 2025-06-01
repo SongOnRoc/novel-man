@@ -53,7 +53,7 @@ export function AddCardDialog({
 
   const handleAddEditor = () => {
     onAddEditorCard(title, hideTitle, generateProps());
-    resetForm();
+    handleClose();
   };
 
   const handleAddCollection = () => {
@@ -64,19 +64,48 @@ export function AddCardDialog({
       tag = selectedAttribute.replace(/\s+/g, "-").toLowerCase();
     }
     onAddCollectionCard(title, [...props, { name: "tag", value: tag }]);
-    resetForm();
+    handleClose();
   };
 
   if (!open) return null;
 
+  // 使用固定定位的模态对话框
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-4 w-96 space-y-4">
-        <h3 className="text-lg font-medium">添加新卡片</h3>
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: "white",
+          borderRadius: "8px",
+          padding: "16px",
+          width: "400px",
+          maxWidth: "90%",
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+          position: "relative",
+          boxSizing: "border-box",
+          overflow: "hidden",
+        }}
+      >
+        <h3 style={{ fontSize: "18px", fontWeight: 500, marginBottom: "16px" }}>添加新卡片</h3>
 
-        <div className="space-y-3">
-          <div>
-            <label htmlFor="card-title" className="block text-sm font-medium">
+        <div style={{ marginBottom: "16px" }}>
+          <div style={{ marginBottom: "12px" }}>
+            <label
+              htmlFor="card-title"
+              style={{ display: "block", fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}
+            >
               卡片标题
             </label>
             <input
@@ -84,64 +113,115 @@ export function AddCardDialog({
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+              style={{
+                width: "100%",
+                padding: "8px 12px",
+                border: "1px solid #d1d5db",
+                borderRadius: "4px",
+                fontSize: "14px",
+                boxSizing: "border-box",
+              }}
               placeholder="输入卡片标题"
             />
           </div>
 
           {/* 属性选择 */}
           {attributeOptions.length > 0 && (
-            <div>
-              <label htmlFor="card-attribute" className="block text-sm font-medium">
+            <div style={{ marginBottom: "12px" }}>
+              <label
+                htmlFor="card-attribute"
+                style={{ display: "block", fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}
+              >
                 选择属性
               </label>
               <select
                 id="card-attribute"
                 value={selectedAttribute}
                 onChange={(e) => handleAttributeSelect(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                  boxSizing: "border-box",
+                }}
               >
-                <option value="">不指定属性</option>
+                <option value="custom">不指定</option>
                 {attributeOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
                 ))}
-                <option value="custom">自定义属性</option>
+                <option value="custom">自定义</option>
               </select>
             </div>
           )}
 
           {/* 隐藏标题选项 */}
-          <div className="flex items-center">
+          <div style={{ display: "flex", alignItems: "center" }}>
             <input
               id="hide-title"
               type="checkbox"
               checked={hideTitle}
               onChange={(e) => setHideTitle(e.target.checked)}
-              className="rounded border-gray-300"
+              style={{ marginRight: "8px" }}
             />
-            <label htmlFor="hide-title" className="ml-2 block text-sm">
+            <label htmlFor="hide-title" style={{ fontSize: "14px" }}>
               隐藏卡片标题
             </label>
           </div>
         </div>
 
-        <div className="flex justify-end gap-2">
-          <button type="button" onClick={handleClose} className="px-4 py-2 border rounded-md hover:bg-gray-50">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: "8px",
+            flexWrap: "wrap",
+          }}
+        >
+          <button
+            type="button"
+            onClick={handleClose}
+            style={{
+              padding: "8px 16px",
+              border: "1px solid #d1d5db",
+              borderRadius: "4px",
+              backgroundColor: "white",
+              cursor: "pointer",
+              minWidth: "80px",
+            }}
+          >
             取消
           </button>
           <button
             type="button"
             onClick={handleAddEditor}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            style={{
+              padding: "8px 16px",
+              backgroundColor: "#3b82f6",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+              minWidth: "120px",
+            }}
           >
             添加编辑器卡片
           </button>
           <button
             type="button"
             onClick={handleAddCollection}
-            className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+            style={{
+              padding: "8px 16px",
+              backgroundColor: "#10b981",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+              minWidth: "120px",
+            }}
           >
             添加集合卡片
           </button>
@@ -174,23 +254,58 @@ export function RelateDialog({ open, onClose, onConfirm, availableItems = [] }: 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-4 w-96 space-y-4">
-        <h3 className="text-lg font-medium">关联项目</h3>
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: "white",
+          borderRadius: "8px",
+          padding: "16px",
+          width: "400px",
+          maxWidth: "90%",
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+          position: "relative",
+          boxSizing: "border-box",
+          overflow: "hidden",
+        }}
+      >
+        <h3 style={{ fontSize: "18px", fontWeight: 500, marginBottom: "16px" }}>关联项目</h3>
 
-        <div className="space-y-3">
+        <div style={{ marginBottom: "16px" }}>
           {availableItems.length === 0 ? (
-            <p className="text-gray-500">没有可关联的项目</p>
+            <p style={{ color: "#6b7280" }}>没有可关联的项目</p>
           ) : (
-            <div>
-              <label htmlFor="relate-item" className="block text-sm font-medium">
+            <div style={{ marginBottom: "12px" }}>
+              <label
+                htmlFor="relate-item"
+                style={{ display: "block", fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}
+              >
                 选择要关联的项目
               </label>
               <select
                 id="relate-item"
                 value={selectedItemId}
                 onChange={(e) => setSelectedItemId(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                  boxSizing: "border-box",
+                }}
               >
                 <option value="">请选择</option>
                 {availableItems.map((item) => (
@@ -203,19 +318,41 @@ export function RelateDialog({ open, onClose, onConfirm, availableItems = [] }: 
           )}
         </div>
 
-        <div className="flex justify-end gap-2">
-          <button type="button" onClick={handleClose} className="px-4 py-2 border rounded-md hover:bg-gray-50">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: "8px",
+            flexWrap: "wrap",
+          }}
+        >
+          <button
+            type="button"
+            onClick={handleClose}
+            style={{
+              padding: "8px 16px",
+              border: "1px solid #d1d5db",
+              borderRadius: "4px",
+              backgroundColor: "white",
+              cursor: "pointer",
+              minWidth: "80px",
+            }}
+          >
             取消
           </button>
           <button
             type="button"
             onClick={handleConfirm}
             disabled={!selectedItemId}
-            className={`px-4 py-2 rounded-md ${
-              selectedItemId
-                ? "bg-blue-500 text-white hover:bg-blue-600"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
-            }`}
+            style={{
+              padding: "8px 16px",
+              backgroundColor: selectedItemId ? "#3b82f6" : "#d1d5db",
+              color: selectedItemId ? "white" : "#6b7280",
+              border: "none",
+              borderRadius: "4px",
+              cursor: selectedItemId ? "pointer" : "not-allowed",
+              minWidth: "80px",
+            }}
           >
             确认关联
           </button>
@@ -247,58 +384,109 @@ export function LayoutStyleDialog({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-4 w-96 space-y-4">
-        <h3 className="text-lg font-medium">选择布局样式</h3>
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: "white",
+          borderRadius: "8px",
+          padding: "16px",
+          width: "400px",
+          maxWidth: "90%",
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+          position: "relative",
+          boxSizing: "border-box",
+          overflow: "hidden",
+        }}
+      >
+        <h3 style={{ fontSize: "18px", fontWeight: 500, marginBottom: "16px" }}>选择布局样式</h3>
 
-        <div className="space-y-3">
-          <div className="flex flex-col gap-3">
-            <label className="flex items-center">
+        <div style={{ marginBottom: "16px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <label style={{ display: "flex", alignItems: "center" }}>
               <input
                 type="radio"
                 name="layout-style"
                 value={CollectionLayoutStyle.VERTICAL}
                 checked={selectedStyle === CollectionLayoutStyle.VERTICAL}
                 onChange={() => setSelectedStyle(CollectionLayoutStyle.VERTICAL)}
-                className="mr-2"
+                style={{ marginRight: "8px" }}
               />
               上下排列 - 卡片固定宽度，垂直滚动
             </label>
 
-            <label className="flex items-center">
+            <label style={{ display: "flex", alignItems: "center" }}>
               <input
                 type="radio"
                 name="layout-style"
                 value={CollectionLayoutStyle.HORIZONTAL}
                 checked={selectedStyle === CollectionLayoutStyle.HORIZONTAL}
                 onChange={() => setSelectedStyle(CollectionLayoutStyle.HORIZONTAL)}
-                className="mr-2"
+                style={{ marginRight: "8px" }}
               />
               左右排列 - 卡片固定高度，水平滚动
             </label>
 
-            <label className="flex items-center">
+            <label style={{ display: "flex", alignItems: "center" }}>
               <input
                 type="radio"
                 name="layout-style"
                 value={CollectionLayoutStyle.ADAPTIVE}
                 checked={selectedStyle === CollectionLayoutStyle.ADAPTIVE}
                 onChange={() => setSelectedStyle(CollectionLayoutStyle.ADAPTIVE)}
-                className="mr-2"
+                style={{ marginRight: "8px" }}
               />
               自适应排列 - 根据空间自动换行
             </label>
           </div>
         </div>
 
-        <div className="flex justify-end gap-2">
-          <button type="button" onClick={handleClose} className="px-4 py-2 border rounded-md hover:bg-gray-50">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: "8px",
+            flexWrap: "wrap",
+          }}
+        >
+          <button
+            type="button"
+            onClick={handleClose}
+            style={{
+              padding: "8px 16px",
+              border: "1px solid #d1d5db",
+              borderRadius: "4px",
+              backgroundColor: "white",
+              cursor: "pointer",
+              minWidth: "80px",
+            }}
+          >
             取消
           </button>
           <button
             type="button"
             onClick={handleConfirm}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            style={{
+              padding: "8px 16px",
+              backgroundColor: "#3b82f6",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+              minWidth: "80px",
+            }}
           >
             确认
           </button>
