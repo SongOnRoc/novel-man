@@ -82,7 +82,7 @@
       "request": "launch",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["run", "demo", "--port", "3002", "--host", "0.0.0.0"],
-      "console": "integratedTerminal",
+      "console": "internalConsole",
       "internalConsoleOptions": "neverOpen",
       "cwd": "${workspaceFolder}/packages/card-system"
     }
