@@ -4,6 +4,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
 import { CardComponent } from "./card-component";
 import { DefaultCardFactory } from "./card-factory";
+import { CardSystemDndKit } from "./card-system-dndkit";
 import { AddCardDialog } from "./components/dialogs";
 import { DraggableCard } from "./components/draggable-card";
 import {
@@ -28,27 +29,38 @@ interface CardSystemProps {
   attributeOptions?: Array<{ value: string; label: string }>;
   availableRelateItems?: Array<{ id: string; title: string; type: string }>;
   defaultCollapsed?: boolean;
+  // 新增: 是否使用dnd-kit
+  useDndKit?: boolean;
 }
 
 // 卡片系统组件
-export function CardSystem({
-  initialCards = [],
-  title,
-  onCardsChange,
-  isMobile = false,
-  buttonsConfig = {
-    showEditButton: true,
-    showAddButton: true,
-    showDeleteButton: true,
-    showRelateButton: false,
-    showLayoutStyleButton: true,
-  },
-  addButtonText = "添加卡片",
-  attributeOptions = [],
-  availableRelateItems = [],
-  defaultCollapsed = true,
-}: CardSystemProps) {
+export function CardSystem(props: CardSystemProps) {
+  // 如果使用dnd-kit，则使用dnd-kit版本的实现
+  const { useDndKit = true, ...otherProps } = props;
+
+  if (useDndKit) {
+    return <CardSystemDndKit {...otherProps} />;
+  }
+
   // 内部状态管理
+  const {
+    initialCards = [],
+    title,
+    onCardsChange,
+    isMobile = false,
+    buttonsConfig = {
+      showEditButton: true,
+      showAddButton: true,
+      showDeleteButton: true,
+      showRelateButton: false,
+      showLayoutStyleButton: true,
+    },
+    addButtonText = "添加卡片",
+    attributeOptions = [],
+    availableRelateItems = [],
+    defaultCollapsed = true,
+  } = props;
+
   const [cards, setCards] = useState<BaseCardProps[]>(initialCards);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [currentParentId, setCurrentParentId] = useState<string | null>(null);

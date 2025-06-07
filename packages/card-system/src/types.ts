@@ -100,6 +100,7 @@ export interface CardComponentProps extends CardCallbacks, CardCommonProps {
   parentId?: string;
   layoutStyle?: CollectionLayoutStyle;
   onOpenAddDialog?: (parentId: string) => void;
+  useDndKit?: boolean; // 是否使用dnd-kit拖拽库
 }
 
 export interface CardSystemProps extends CardCommonProps {

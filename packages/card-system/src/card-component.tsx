@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { Container } from "./components/container";
+import { ContainerDndKit } from "./components/container-dndkit";
 import { AddCardDialog, LayoutStyleDialog, RelateDialog } from "./components/dialogs";
 import { TitleBar } from "./components/title-bar";
 import { type CardComponentProps, CardContainerType, type CardProperty, CollectionLayoutStyle } from "./types";
@@ -26,6 +27,7 @@ export function CardComponent({
   layoutStyle = CollectionLayoutStyle.VERTICAL,
   onOpenAddDialog,
   moveCard,
+  useDndKit = false,
 }: CardComponentProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -68,8 +70,10 @@ export function CardComponent({
 
     // 然后打开添加对话框
     if (onOpenAddDialog) {
+      // 优先使用外部提供的对话框打开函数
       onOpenAddDialog(card.id);
     } else {
+      // 只有在没有外部对话框时才使用内部状态
       setIsAddDialogOpen(true);
     }
   };
@@ -192,23 +196,41 @@ export function CardComponent({
       )}
 
       {/* 容器内容 */}
-      {!card.isCollapsed && (
-        <Container
-          card={card}
-          containerType={card.containerType}
-          layoutStyle={card.layoutStyle || layoutStyle}
-          onUpdateCard={onUpdateCard}
-          onDeleteCard={onDeleteCard}
-          onAddCard={onAddCard}
-          onRelateCard={onRelateCard}
-          onUnrelateCard={onUnrelateCard}
-          onChangeLayoutStyle={onChangeLayoutStyle}
-          buttonsConfig={buttonsConfig}
-          attributeOptions={attributeOptions}
-          availableRelateItems={availableRelateItems}
-          moveCard={moveCard}
-        />
-      )}
+      {!card.isCollapsed &&
+        (useDndKit ? (
+          <ContainerDndKit
+            card={card}
+            containerType={card.containerType}
+            layoutStyle={card.layoutStyle || layoutStyle}
+            onUpdateCard={onUpdateCard}
+            onDeleteCard={onDeleteCard}
+            onAddCard={onAddCard}
+            onRelateCard={onRelateCard}
+            onUnrelateCard={onUnrelateCard}
+            onChangeLayoutStyle={onChangeLayoutStyle}
+            buttonsConfig={buttonsConfig}
+            attributeOptions={attributeOptions}
+            availableRelateItems={availableRelateItems}
+            moveCard={moveCard}
+            useDndKit={true}
+          />
+        ) : (
+          <Container
+            card={card}
+            containerType={card.containerType}
+            layoutStyle={card.layoutStyle || layoutStyle}
+            onUpdateCard={onUpdateCard}
+            onDeleteCard={onDeleteCard}
+            onAddCard={onAddCard}
+            onRelateCard={onRelateCard}
+            onUnrelateCard={onUnrelateCard}
+            onChangeLayoutStyle={onChangeLayoutStyle}
+            buttonsConfig={buttonsConfig}
+            attributeOptions={attributeOptions}
+            availableRelateItems={availableRelateItems}
+            moveCard={moveCard}
+          />
+        ))}
 
       {/* 添加卡片对话框 */}
       <AddCardDialog
