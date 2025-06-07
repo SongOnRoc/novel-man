@@ -1,12 +1,12 @@
+import { useDroppable } from "@dnd-kit/core";
+import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import { useDrop } from "react-dnd";
 import { CardComponent } from "../card-component";
 import type { BaseCardProps, CardButtonsConfig, CardProperty } from "../types";
 import { CardContainerType, CollectionLayoutStyle } from "../types";
-import { ItemTypes } from "./drag-item-types";
-import { DraggableCard } from "./draggable-card";
+import { DraggableCard } from "./draggable-card"; // 更新导入
 
-interface ContainerProps {
+interface ContainerProps { // 重命名接口以匹配文件名
   card: BaseCardProps;
   containerType: CardContainerType;
   layoutStyle?: CollectionLayoutStyle;
@@ -28,16 +28,15 @@ interface ContainerProps {
   attributeOptions?: Array<{ value: string; label: string }>;
   availableRelateItems?: Array<{ id: string; title: string; type: string }>;
   moveCard?: (dragIndex: number, hoverIndex: number, dragParentId?: string, hoverParentId?: string) => void;
+  useDndKit?: boolean; // 此属性将不再需要，但暂时保留以避免破坏性更改，后续移除
 }
 
-interface DropItem {
-  id: string;
-  parentId?: string;
-  index: number;
-  type: string;
-}
-
-export function Container({
+/**
+ * 卡片容器组件 - dnd-kit版本
+ * 根据卡片类型渲染不同的内容区域
+ * 对于集合类型的卡片，容器内部是可放置区域
+ */
+export function Container({ // 重命名组件以匹配文件名
   card,
   containerType,
   layoutStyle = CollectionLayoutStyle.VERTICAL,
@@ -47,509 +46,237 @@ export function Container({
   onRelateCard,
   onUnrelateCard,
   onChangeLayoutStyle,
-  buttonsConfig = {
-    showEditButton: true,
-    showAddButton: true,
-    showDeleteButton: true,
-    showRelateButton: false,
-    showLayoutStyleButton: false,
-  },
-  attributeOptions = [],
-  availableRelateItems = [],
+  buttonsConfig,
+  attributeOptions,
+  availableRelateItems,
   moveCard,
+  useDndKit, // 此属性将不再需要
 }: ContainerProps) {
+  // 编辑器类型卡片的内容编辑
   const [isEditingContent, setIsEditingContent] = useState(false);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
   const [isOver, setIsOver] = useState(false);
-  const [isOverContainer, setIsOverContainer] = useState(false);
-  const [dropErrorMessage, setDropErrorMessage] = useState<string | null>(null);
-  const [isOverEmpty, setIsOverEmpty] = useState(false);
-  const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const emptyAreaRef = useRef<HTMLDivElement | null>(null);
 
-  // 编辑器获取焦点
+  // 只有集合类型卡片才可以接收拖拽
+  const isCollection = containerType === CardContainerType.COLLECTION;
+
+  // 使用dnd-kit的useDroppable hook设置可放置区域
+  const { setNodeRef, isOver: isDndOver } = useDroppable({
+    id: `container-${card.id}`,
+    data: {
+      type: "container",
+      acceptCards: isCollection,
+      containerId: card.id,
+    },
+    disabled: !isCollection,
+  });
+
+  // 监听拖拽状态变化
   useEffect(() => {
-    if (isEditingContent && contentTextareaRef.current) {
-      contentTextareaRef.current.focus();
+    setIsOver(isDndOver);
+  }, [isDndOver]);
+
+  // 处理卡片内容的变更
+  const handleContentChange = (value: string) => {
+    onUpdateCard(card.id, { content: value });
+  };
+
+  // 对于编辑器类型的卡片，支持点击内容区域直接进入编辑状态
+  const handleContentClick = () => {
+    if (containerType === CardContainerType.EDITOR && !isEditingContent) {
+      setIsEditingContent(true);
+    }
+  };
+
+  // 处理键盘事件，支持键盘访问
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (containerType === CardContainerType.EDITOR && !isEditingContent) {
+        setIsEditingContent(true);
+      }
+    }
+  };
+
+  // 内容编辑器获得焦点时，自动聚焦到末尾
+  useEffect(() => {
+    if (isEditingContent && contentRef.current) {
+      const textarea = contentRef.current;
+      textarea.focus();
+      textarea.selectionStart = textarea.value.length;
+      textarea.selectionEnd = textarea.value.length;
     }
   }, [isEditingContent]);
 
-  // 处理内容编辑
-  const handleContentEdit = () => setIsEditingContent(true);
-  const handleContentChange = (value: string) => onUpdateCard(card.id, { content: value });
-  const handleContentInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => handleContentChange(e.target.value);
-  const handleContentSave = () => setIsEditingContent(false);
-
-  // 处理点击外部关闭编辑器
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (isEditingContent && containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsEditingContent(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isEditingContent]);
-
-  // 错误提示消失
-  useEffect(() => {
-    if (dropErrorMessage) {
-      const timer = setTimeout(() => setDropErrorMessage(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [dropErrorMessage]);
-
-  // 设置容器为可放置区域，用于接收拖拽的卡片
-  const [{ isOver: isOverCurrent }, drop] = useDrop<DropItem, unknown, { isOver: boolean }>({
-    accept: ItemTypes.CARD,
-    collect: (monitor) => ({
-      isOver: monitor.isOver({ shallow: true }),
-    }),
-    hover: (item, monitor) => {
-      // 只在状态变化时更新isOver，避免频繁重渲染
-      const isCurrentlyOver = monitor.isOver({ shallow: true });
-
-      // 从同一父容器拖拽的卡片不处理hover事件 - 这是排序操作
-      if (item.parentId === card.id) {
-        return;
-      }
-
-      // 编辑器类卡片不接受其他卡片
-      if (containerType === CardContainerType.EDITOR) {
-        setIsOver(false);
-        return;
-      }
-
-      // 防止卡片拖入自己的容器（避免循环引用）
-      if (item.id === card.id) {
-        setIsOver(false);
-        return;
-      }
-
-      if (isOver !== isCurrentlyOver) {
-        setIsOver(isCurrentlyOver);
-      }
-
-      // 增强跨容器拖拽体验：当悬停在容器上时，增加视觉反馈
-      if (isCurrentlyOver && item.parentId !== card.id) {
-        // 添加强调样式，通过状态控制
-        setIsOverContainer(true);
-      } else {
-        setIsOverContainer(false);
-      }
-    },
-    drop: (item: DropItem, monitor) => {
-      // 如果不是直接放置在当前容器上，则忽略
-      if (!monitor.isOver({ shallow: true })) {
-        return;
-      }
-
-      // 从同一父容器拖拽的卡片不处理drop事件 - 这是排序操作
-      if (item.parentId === card.id) {
-        return;
-      }
-
-      // 编辑器类卡片不能接收其他卡片
-      if (containerType === CardContainerType.EDITOR) {
-        setDropErrorMessage("编辑器卡片不能包含其他卡片");
-        return {
-          containerId: card.id,
-          success: false,
-          error: "编辑器卡片不能包含其他卡片",
-        };
-      }
-
-      // 防止卡片拖入自己的容器（避免循环引用）
-      if (item.id === card.id) {
-        console.error(`禁止将卡片拖入自己的容器中: 卡片ID=${item.id}`);
-        setDropErrorMessage("不能将卡片拖入自己的容器中");
-        return {
-          containerId: card.id,
-          success: false,
-          error: "不能将卡片拖入自己的容器中",
-        };
-      }
-
-      // 处理跨容器拖拽 - 这是放入容器操作
-      console.log(`卡片 ${item.id} 被拖放到容器 ${card.id}`);
-
-      // 触发跨容器拖拽，将卡片移动到新容器
-      if (moveCard) {
-        try {
-          // 目标容器中的第一个位置（索引0）
-          const targetIndex = 0;
-          moveCard(item.index, targetIndex, item.parentId, card.id);
-
-          // 添加成功反馈
-          setIsOverContainer(false);
-          // 添加成功动画效果
-          const containerElement = containerRef.current;
-          if (containerElement) {
-            containerElement.classList.add("drop-success");
-            setTimeout(() => {
-              containerElement.classList.remove("drop-success");
-            }, 500);
-          }
-        } catch (error) {
-          console.error("跨容器拖拽错误:", error);
-          setDropErrorMessage("拖拽操作失败");
-          return {
-            containerId: card.id,
-            success: false,
-            error: "拖拽操作失败",
-          };
-        }
-      }
-
-      return { containerId: card.id, success: true };
-    },
-  });
-
-  // 为空区域添加单独的拖放处理，增强拖入体验
-  const [{ isOver: isOverEmptyArea }, dropEmpty] = useDrop<DropItem, unknown, { isOver: boolean }>({
-    accept: ItemTypes.CARD,
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-    }),
-    hover: (item, monitor) => {
-      // 编辑器类卡片不接受其他卡片
-      if (containerType === CardContainerType.EDITOR) {
-        return;
-      }
-
-      // 防止卡片拖入自己的容器（避免循环引用）
-      if (item.id === card.id) {
-        return;
-      }
-
-      // 从同一父容器拖拽的卡片不处理hover事件 - 这是排序操作
-      if (item.parentId === card.id) {
-        return;
-      }
-    },
-    drop: (item: DropItem, monitor) => {
-      // 编辑器类卡片不能接收其他卡片
-      if (containerType === CardContainerType.EDITOR) {
-        setDropErrorMessage("编辑器卡片不能包含其他卡片");
-        return {
-          containerId: card.id,
-          success: false,
-          error: "编辑器卡片不能包含其他卡片",
-        };
-      }
-
-      // 防止卡片拖入自己的容器（避免循环引用）
-      if (item.id === card.id) {
-        setDropErrorMessage("不能将卡片拖入自己的容器中");
-        return {
-          containerId: card.id,
-          success: false,
-          error: "不能将卡片拖入自己的容器中",
-        };
-      }
-
-      // 处理跨容器拖拽 - 这是放入容器操作
-      console.log(`卡片 ${item.id} 被拖放到容器空白区域 ${card.id}`);
-
-      // 触发跨容器拖拽，将卡片移动到新容器
-      if (moveCard) {
-        try {
-          // 目标容器中的最后一个位置
-          const targetIndex = card.childCards?.length || 0;
-          moveCard(item.index, targetIndex, item.parentId, card.id);
-
-          // 添加成功动画效果
-          const emptyElement = emptyAreaRef.current;
-          if (emptyElement) {
-            emptyElement.classList.add("drop-success");
-            setTimeout(() => {
-              emptyElement.classList.remove("drop-success");
-            }, 500);
-          }
-        } catch (error) {
-          console.error("跨容器拖拽错误:", error);
-          setDropErrorMessage("拖拽操作失败");
-          return {
-            containerId: card.id,
-            success: false,
-            error: "拖拽操作失败",
-          };
-        }
-      }
-
-      return { containerId: card.id, success: true };
-    },
-  });
-
-  // 处理子卡片移动
-  const handleMoveCard = (dragIndex: number, hoverIndex: number, dragParentId?: string, hoverParentId?: string) => {
-    if (moveCard) {
-      moveCard(dragIndex, hoverIndex, dragParentId, hoverParentId);
-    }
-  };
-
-  // 容器基础样式
-  const containerStyle = {
-    border: "1px solid #ccc",
-    borderTop: "none", // 移除顶部边框，避免与标题栏边框重叠
-    width: "100%",
-    padding: "16px",
-    boxSizing: "border-box" as const,
-    transition: "background-color 0.2s",
-    backgroundColor: isOver ? "rgba(59, 130, 246, 0.05)" : "transparent", // 拖拽悬停时显示背景色
-  };
-
-  // 编辑器容器样式
-  const editorContainerStyle = {
-    ...containerStyle,
-  };
-
-  // 集合容器样式
-  const collectionContainerStyle = {
-    ...containerStyle,
-    padding: "12px",
-  };
-
-  // 成功拖放动画样式
-  const dropSuccessStyle = `
-    .drop-success {
-      animation: pulse-success 0.5s ease-in-out;
-    }
-    
-    @keyframes pulse-success {
-      0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
-      50% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
-    }
-    
-    .drop-zone {
-      position: relative;
-    }
-    
-    .drop-zone::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      border: 2px dashed transparent;
-      border-radius: 0.5rem;
-      pointer-events: none;
-      transition: all 0.2s ease-in-out;
-    }
-    
-    .drop-zone.active::after {
-      border-color: #3b82f6;
-      background-color: rgba(59, 130, 246, 0.05);
-    }
-  `;
-
-  // 应用拖放引用
-  drop(containerRef);
-
-  // 渲染编辑器容器
+  // 编辑器类型卡片的渲染
   if (containerType === CardContainerType.EDITOR) {
+    let content = card.content || "";
+
+    // 如果有关联的项目，显示关联信息
+    if (card.relatedItem) {
+      content = `关联到: ${card.relatedItem.title} (${card.relatedItem.type})\n\n${content}`;
+    }
+
     return (
-      <div style={editorContainerStyle} ref={containerRef}>
-        {dropErrorMessage && <div className="bg-red-100 text-red-700 p-2 mb-2 rounded text-sm">{dropErrorMessage}</div>}
+      <div
+        className="editor-container"
+        style={{
+          borderTop: "none",
+          borderRight: "1px solid rgba(204, 204, 204, 0.5)",
+          borderBottom: "1px solid rgba(204, 204, 204, 0.5)",
+          borderLeft: "1px solid rgba(204, 204, 204, 0.5)",
+          width: "100%",
+          padding: "16px",
+          boxSizing: "border-box",
+          backgroundColor: "rgba(250, 250, 250, 0.3)",
+          borderRadius: "0 0 4px 4px",
+          transition: "all 0.2s ease",
+        }}
+      >
         {isEditingContent ? (
           <textarea
-            ref={contentTextareaRef}
+            ref={contentRef}
             value={card.content || ""}
-            onChange={handleContentInputChange}
+            onChange={(e) => handleContentChange(e.target.value)}
+            onBlur={() => setIsEditingContent(false)}
             style={{
               width: "100%",
-              padding: "8px",
-              border: "1px solid #d1d5db",
-              borderRadius: "4px",
               minHeight: "100px",
+              padding: "12px",
+              border: "1px solid rgba(209, 213, 219, 0.5)",
+              borderRadius: "4px",
+              resize: "vertical",
+              fontFamily: "inherit",
+              fontSize: "inherit",
+              boxSizing: "border-box",
               outline: "none",
+              boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05) inset",
             }}
-            placeholder="在此输入内容..."
           />
         ) : (
           <button
             type="button"
-            onClick={handleContentEdit}
+            onClick={handleContentClick}
+            onKeyDown={handleKeyDown}
+            aria-label="点击编辑内容"
             style={{
               width: "100%",
+              minHeight: "24px",
+              whiteSpace: "pre-wrap",
+              cursor: "text",
               textAlign: "left",
-              minHeight: "40px",
-              padding: "8px",
               background: "none",
               border: "none",
-              cursor: "text",
+              padding: "8px",
+              fontFamily: "inherit",
+              fontSize: "inherit",
+              color: content ? "#333" : "#6B7280",
             }}
           >
-            {card.content || "点击添加内容"}
+            {content || "点击添加内容..."}
           </button>
         )}
       </div>
     );
   }
 
-  // 渲染集合容器
-  if (containerType === CardContainerType.COLLECTION) {
-    // 根据布局样式设置容器样式
-    let contentLayoutStyle: React.CSSProperties = {
-      display: "flex",
-      flexDirection: "column",
-      gap: "16px",
-      overflowY: "auto",
-      maxHeight: "500px",
-    };
-
-    if (layoutStyle === CollectionLayoutStyle.HORIZONTAL) {
-      contentLayoutStyle = {
-        display: "flex",
-        flexDirection: "row",
-        gap: "16px",
-        overflowX: "auto",
-        maxHeight: "none",
-      };
-    } else if (layoutStyle === CollectionLayoutStyle.ADAPTIVE) {
-      contentLayoutStyle = {
-        display: "grid",
-        gap: "16px",
-        gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-        maxHeight: "none",
-      };
-    }
-
-    // 添加拖拽相关的样式
-    const dropZoneClass = isOverCurrent ? "border-2 border-dashed border-blue-400 bg-blue-50" : "";
-    const emptyDropZoneClass = isOverEmptyArea ? "border-blue-400 bg-blue-50" : "";
-
-    // 检查是否有可见的子卡片
-    const childCards = card.childCards || [];
-    const hasChildCards = childCards.filter((child) => child && child.isVisible !== false).length > 0;
-
-    // 添加全局样式到文档
-    useEffect(() => {
-      // 创建样式元素
-      const styleElement = document.createElement("style");
-      styleElement.textContent = dropSuccessStyle;
-      document.head.appendChild(styleElement);
-
-      // 清理函数
-      return () => {
-        document.head.removeChild(styleElement);
-      };
-    }, []);
-
-    return (
+  // 集合类型卡片的渲染 - 需要设置为可放置区域
+  return (
+    <div
+      ref={setNodeRef}
+      className={`collection-container ${isOver ? "drop-active" : ""}`}
+      style={{
+        borderTop: "none",
+        borderRight: "1px solid rgba(204, 204, 204, 0.5)",
+        borderBottom: "1px solid rgba(204, 204, 204, 0.5)",
+        borderLeft: "1px solid rgba(204, 204, 204, 0.5)",
+        width: "100%",
+        padding: "16px",
+        boxSizing: "border-box",
+        backgroundColor: isOver ? "rgba(74, 144, 226, 0.05)" : "rgba(250, 250, 250, 0.3)",
+        outline: isOver ? "2px dashed #4a90e2" : "none",
+        minHeight: "80px",
+        position: "relative",
+        transition: "all 0.2s ease",
+        borderRadius: "0 0 4px 4px",
+        boxShadow: isOver ? "0 2px 8px rgba(0, 0, 0, 0.05)" : "none",
+      }}
+      data-container-id={card.id}
+      data-accepts-cards={isCollection ? "true" : "false"}
+    >
       <div
-        style={collectionContainerStyle}
-        ref={containerRef}
-        className={`transition-all duration-200 drop-zone ${isOverCurrent || isOverContainer ? "active" : ""} ${dropZoneClass} ${isOverContainer ? "ring-2 ring-blue-500" : ""}`}
-        title={isOverCurrent || isOverContainer ? "放置卡片到此容器" : ""}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "16px",
+          overflowY: "auto",
+          maxHeight: "500px",
+        }}
+        className="collection-content"
       >
-        {dropErrorMessage && <div className="bg-red-100 text-red-700 p-2 mb-2 rounded text-sm">{dropErrorMessage}</div>}
-        <div style={contentLayoutStyle}>
-          {hasChildCards ? (
-            childCards
-              .filter((childCard) => childCard && childCard.isVisible !== false)
-              .map((childCard, index) => (
-                <DraggableCard
-                  key={childCard.id}
-                  id={childCard.id}
-                  index={index}
-                  moveCard={handleMoveCard}
-                  parentId={card.id}
-                  layoutStyle={layoutStyle}
-                >
-                  <CardComponent
-                    card={childCard}
-                    onUpdateCard={onUpdateCard}
-                    onDeleteCard={onDeleteCard}
-                    onAddCard={onAddCard}
-                    onRelateCard={onRelateCard}
-                    onUnrelateCard={onUnrelateCard}
-                    onChangeLayoutStyle={onChangeLayoutStyle}
-                    buttonsConfig={buttonsConfig}
-                    attributeOptions={attributeOptions}
-                    availableRelateItems={availableRelateItems}
-                    layoutStyle={layoutStyle}
-                    moveCard={moveCard}
-                  />
-                </DraggableCard>
-              ))
-          ) : (
-            <div
-              ref={dropEmpty}
-              style={{
-                padding: "16px",
-                textAlign: "center",
-                color: "#6b7280",
-                border: "1px dashed #d1d5db",
-                borderRadius: "4px",
-                backgroundColor: isOverEmptyArea ? "rgba(59, 130, 246, 0.1)" : "transparent",
-                transition: "all 0.2s",
-                minHeight: "100px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              className={`${emptyDropZoneClass} min-h-[100px] drop-zone ${isOverEmptyArea ? "active" : ""}`}
-              title="拖拽卡片到此处"
-            >
-              <div className="flex flex-col items-center">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="mb-2 text-gray-400"
-                >
-                  <title>拖拽提示图标</title>
-                  <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor" />
-                </svg>
-                点击"+"按钮添加卡片或拖拽卡片到此处
-              </div>
-            </div>
-          )}
-        </div>
+        {card.childCards?.map((childCard, index) => (
+          <DraggableCard
+            key={childCard.id}
+            id={childCard.id}
+            index={index}
+            moveCard={moveCard || (() => {})}
+            parentId={card.id}
+            layoutStyle={layoutStyle}
+          >
+            <CardComponent
+              card={childCard}
+              onUpdateCard={onUpdateCard}
+              onDeleteCard={onDeleteCard}
+              onAddCard={onAddCard}
+              onRelateCard={onRelateCard}
+              onUnrelateCard={onUnrelateCard}
+              onChangeLayoutStyle={onChangeLayoutStyle}
+              buttonsConfig={buttonsConfig}
+              attributeOptions={attributeOptions}
+              availableRelateItems={availableRelateItems}
+              moveCard={moveCard}
+              layoutStyle={layoutStyle}
+              useDndKit={useDndKit}
+            />
+          </DraggableCard>
+        ))}
 
-        {/* 额外的空白拖拽区域，只在拖拽悬停时显示 */}
-        {hasChildCards && (
+        {/* 空容器提示 */}
+        {(!card.childCards || card.childCards.length === 0) && (
           <div
-            ref={dropEmpty}
-            className={`border-0 overflow-hidden transition-all duration-500 ease-in-out ${isOverEmptyArea ? "mt-3 border border-dashed rounded text-center border-blue-400 bg-blue-50 drop-zone active" : "drop-zone"}`}
+            className="empty-container"
             style={{
-              height: isOverEmptyArea ? "50px" : "0px", // 增加高度，更容易拖入
-              opacity: isOverEmptyArea ? 1 : 0,
-              padding: isOverEmptyArea ? "5px 8px" : "0px",
+              padding: "24px",
+              textAlign: "center",
+              color: "#6B7280",
+              border: "1px dashed #D1D5DB",
+              borderRadius: "6px",
+              backgroundColor: "rgba(249, 250, 251, 0.8)",
+              minHeight: "100px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              transform: isOverEmptyArea ? "translateY(0)" : "translateY(-10px)",
+              transition: "all 0.2s ease",
             }}
-            title="拖拽卡片到此处"
           >
-            {isOverEmptyArea && (
-              <div className="flex items-center text-xs text-blue-500 transition-opacity duration-300">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="mr-1"
-                >
-                  <title>拖拽提示图标</title>
-                  <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor" />
-                </svg>
-                将卡片拖放到这里
-              </div>
-            )}
+            <div className="flex flex-col items-center">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="mb-3 text-gray-400"
+                style={{ opacity: 0.7 }}
+              >
+                <title>拖拽提示图标</title>
+                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor" />
+              </svg>
+              <span style={{ fontSize: "0.9rem", fontWeight: 500 }}>点击"+"按钮添加卡片或拖拽卡片到此处</span>
+            </div>
           </div>
         )}
       </div>
-    );
-  }
-
-  return null;
+    </div>
+  );
 }

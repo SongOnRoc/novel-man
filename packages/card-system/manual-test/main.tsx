@@ -1,45 +1,18 @@
-import React, { useState } from "react";
+import React from "react";
 import ReactDOM from "react-dom/client";
-import { CardSystemDemo } from "../src/manual-test/demo";
+// CardSystemDemo is no longer needed as react-dnd is removed.
+// DndKitToggleDemo is the main demo now.
 import { DndKitToggleDemo } from "../src/manual-test/demo-dndkit-toggle";
 
-// 主应用组件，提供切换功能
+// 主应用组件
 const App = () => {
-  const [showDndKitDemo, setShowDndKitDemo] = useState(false);
-
+  // The toggle logic between react-dnd and dnd-kit is no longer needed.
+  // DndKitToggleDemo itself handles the mobile/PC toggle.
   return (
     <div>
-      <div style={{ padding: "10px", marginBottom: "20px", borderBottom: "1px solid #ccc" }}>
-        <button
-          type="button"
-          style={{
-            padding: "8px 16px",
-            marginRight: "10px",
-            backgroundColor: !showDndKitDemo ? "#4CAF50" : "#f0f0f0",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-          onClick={() => setShowDndKitDemo(false)}
-        >
-          原始 React-DnD 演示
-        </button>
-        <button
-          type="button"
-          style={{
-            padding: "8px 16px",
-            backgroundColor: showDndKitDemo ? "#2196F3" : "#f0f0f0",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-          onClick={() => setShowDndKitDemo(true)}
-        >
-          DnD-Kit 演示
-        </button>
-      </div>
-
-      {showDndKitDemo ? <DndKitToggleDemo initialUseDndKit={true} /> : <CardSystemDemo />}
+      {/* The library toggle buttons are removed. */}
+      {/* DndKitToggleDemo is rendered directly. initialUseDndKit prop is also removed from DndKitToggleDemo */}
+      <DndKitToggleDemo />
     </div>
   );
 };

@@ -1,6 +1,6 @@
 //  DndKitToggleDemo
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DefaultCardFactory } from "../card-factory";
 import { CardSystem } from "../card-system";
 import { CardContainerType } from "../types";
@@ -65,14 +65,28 @@ const initialCards = [exampleRoleCard, exampleSceneCard, exampleContentCard];
 
 // 演示组件
 interface DndKitToggleDemoProps {
-  initialUseDndKit?: boolean;
+  // initialUseDndKit 不再需要，默认为 true
 }
 
-export const DndKitToggleDemo: React.FC<DndKitToggleDemoProps> = ({ initialUseDndKit = false }) => {
+export const DndKitToggleDemo: React.FC<DndKitToggleDemoProps> = () => {
   // 状态管理
   const [cards, setCards] = useState<BaseCardProps[]>(initialCards);
-  const [useDndKit, setUseDndKit] = useState<boolean>(initialUseDndKit);
+  // useDndKit 状态不再需要，默认为 true
   const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkDevice = () => {
+      // 根据窗口宽度判断设备类型，阈值可调整
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkDevice(); // 组件加载时检查一次
+    window.addEventListener("resize", checkDevice); // 窗口大小变化时检查
+
+    return () => {
+      window.removeEventListener("resize", checkDevice); // 组件卸载时移除监听器
+    };
+  }, []); // 空依赖数组确保 effect 只在挂载和卸载时运行
 
   // 当卡片系统内部状态变化时的回调函数
   const handleCardsChange = (updatedCards: BaseCardProps[]) => {
@@ -81,61 +95,17 @@ export const DndKitToggleDemo: React.FC<DndKitToggleDemoProps> = ({ initialUseDn
     console.log("卡片状态已更新:", updatedCards);
   };
 
-  // 切换拖拽库
-  const toggleDndKit = () => {
-    setUseDndKit(!useDndKit);
-  };
-
-  // 切换设备模式
-  const toggleMobile = () => {
-    setIsMobile(!isMobile);
-  };
-
   return (
     <div className="p-4 max-w-6xl mx-auto">
       <div className="mb-4 flex justify-between items-center">
         <h1 className="text-2xl font-bold">卡片系统演示</h1>
-        <div>
-          <button
-            type="button"
-            onClick={toggleDndKit}
-            style={{
-              backgroundColor: useDndKit ? "#4CAF50" : "#2196F3",
-              color: "white",
-              padding: "8px 16px",
-              borderRadius: "4px",
-              border: "none",
-              cursor: "pointer",
-              marginRight: "10px",
-            }}
-          >
-            {useDndKit ? "使用 dnd-kit" : "使用 react-dnd"}
-          </button>
-          <button
-            type="button"
-            onClick={toggleMobile}
-            style={{
-              backgroundColor: isMobile ? "#9C27B0" : "#673AB7",
-              color: "white",
-              padding: "8px 16px",
-              borderRadius: "4px",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            {isMobile ? "移动端模式" : "PC端模式"}
-          </button>
-        </div>
+        {/* 移除了手动切换按钮 */}
       </div>
 
-      <div style={{ backgroundColor: "#FFF9C4", padding: "10px", borderRadius: "4px", marginBottom: "20px" }}>
+      <div style={{ backgroundColor: "#E3F2FD", padding: "2px", borderRadius: "4px", marginBottom: "20px" }}>
         <p>
-          当前设置：
-          <strong>{useDndKit ? "DnD-Kit" : "React-DnD"}</strong> +
-          <strong>{isMobile ? "移动端模式" : "PC端模式"}</strong>
-        </p>
-        <p style={{ marginTop: "8px", fontSize: "14px" }}>
-          提示：DnD-Kit 在移动端有更好的表现，React-DnD 在 PC 端更稳定
+          当前设备:
+          <strong>{isMobile ? "移动端" : "桌面端"}</strong>
         </p>
       </div>
 
@@ -148,7 +118,6 @@ export const DndKitToggleDemo: React.FC<DndKitToggleDemoProps> = ({ initialUseDn
         addButtonText="添加新卡片"
         defaultCollapsed={true}
         isMobile={isMobile}
-        useDndKit={useDndKit}
       />
     </div>
   );

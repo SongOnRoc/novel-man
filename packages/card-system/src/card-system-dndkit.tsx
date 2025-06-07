@@ -16,7 +16,7 @@ import { CardComponent } from "./card-component";
 import { DefaultCardFactory } from "./card-factory";
 import { AddCardDialog } from "./components/dialogs";
 import { DndAdapter } from "./components/dnd-adapter";
-import { DraggableCardDndKit } from "./components/draggable-card-dndkit";
+import { DraggableCard } from "./components/draggable-card";
 import {
   type BaseCardProps,
   type CardButtonsConfig,
@@ -77,11 +77,11 @@ export function CardSystemDndKit({
       },
     }),
     useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 100, // 短暂延迟以区分点击和拖拽
-        tolerance: 5, // 触摸移动容差
-      },
-    }),
+          activationConstraint: {
+            delay: 100, // 短暂延迟以区分点击和拖拽
+            tolerance: 5, // 触摸移动容差
+          },
+        }),
   );
 
   // 获取所有卡片ID
@@ -500,7 +500,7 @@ export function CardSystemDndKit({
 
     // 每个卡片都包含在一个可拖拽的容器中
     return (
-      <DraggableCardDndKit
+      <DraggableCard // Ensured JSX tag is DraggableCard
         key={card.id}
         id={card.id}
         index={index}
@@ -527,9 +527,9 @@ export function CardSystemDndKit({
             setIsAddDialogOpen(true);
           }}
           moveCard={handleMoveCard}
-          useDndKit={true}
+          useDndKit={true} // This prop is no longer strictly necessary in CardComponent but kept for now
         />
-      </DraggableCardDndKit>
+      </DraggableCard> // Ensured JSX closing tag is DraggableCard
     );
   };
 
@@ -578,11 +578,7 @@ export function CardSystemDndKit({
               <div className="grid gap-4">
                 {cards.map((card, index) => {
                   if (!card) return null; // 添加空值检查
-
-                  const renderedCard = renderCard(card, index);
-
-                  // 不要在外层添加子卡片的渲染部分，子卡片的渲染应该由ContainerDndKit内部完成
-                  return renderedCard;
+                  return renderCard(card, index);
                 })}
               </div>
             )}
@@ -594,44 +590,22 @@ export function CardSystemDndKit({
                 setIsAddDialogOpen(false);
               }}
               onAddEditorCard={(title?: string, hideTitle?: boolean, props?: CardProperty[]) => {
-                // 只有当currentParentId有值时才添加，避免重复添加
-                if (currentParentId) {
-                  handleAddCard(CardContainerType.EDITOR, {
-                    title: title || "",
-                    hideTitle: hideTitle || false,
-                    props: props || [],
-                    parentId: currentParentId,
-                  });
-                } else {
-                  // 添加到根级别
-                  handleAddCard(CardContainerType.EDITOR, {
-                    title: title || "",
-                    hideTitle: hideTitle || false,
-                    props: props || [],
-                    parentId: null,
-                  });
-                }
+                handleAddCard(CardContainerType.EDITOR, {
+                  title: title || "",
+                  hideTitle: hideTitle || false,
+                  props: props || [],
+                  parentId: currentParentId,
+                });
                 setCurrentParentId(null);
                 setIsAddDialogOpen(false);
               }}
               onAddCollectionCard={(title?: string, props: CardProperty[] = []) => {
-                // 只有当currentParentId有值时才添加，避免重复添加
-                if (currentParentId) {
-                  handleAddCard(CardContainerType.COLLECTION, {
-                    title: title || "",
-                    hideTitle: false,
-                    props: props,
-                    parentId: currentParentId,
-                  });
-                } else {
-                  // 添加到根级别
-                  handleAddCard(CardContainerType.COLLECTION, {
-                    title: title || "",
-                    hideTitle: false,
-                    props: props,
-                    parentId: null,
-                  });
-                }
+                handleAddCard(CardContainerType.COLLECTION, {
+                  title: title || "",
+                  hideTitle: false,
+                  props: props,
+                  parentId: currentParentId,
+                });
                 setCurrentParentId(null);
                 setIsAddDialogOpen(false);
               }}
