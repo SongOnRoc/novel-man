@@ -8,14 +8,17 @@ interface TitleBarProps {
   isEditorCard: boolean;
   isCollectionCard: boolean;
   onToggleCollapse: () => void;
-  onTitleEdit: () => void;
+  onTitleEdit: () => void; // This triggers the editing mode
   onAddButtonClick: () => void;
   onDeleteCard: ((id: string) => void) | undefined;
   onRelateItem: () => void;
   onUnrelateItem: () => void;
-  onLayoutStyleChange: ((style: CollectionLayoutStyle) => void) | undefined;
+  onLayoutStyleChange: (() => void) | undefined; // Changed to simple callback
   onOpenAddDialog?: (parentId: string) => void;
   onToggleVisibility?: (id: string) => void;
+  isEditingTitle?: boolean; // New prop to indicate if title is being edited
+  onTitleInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void; // New prop for title input change
+  onTitleInputSave?: () => void; // New prop for saving title changes
 }
 
 export function TitleBar({
@@ -32,6 +35,9 @@ export function TitleBar({
   onLayoutStyleChange,
   onOpenAddDialog,
   onToggleVisibility,
+  isEditingTitle,
+  onTitleInputChange,
+  onTitleInputSave,
 }: TitleBarProps) {
   const config = buttonsConfig || {
     showEditButton: true,
@@ -70,7 +76,7 @@ export function TitleBar({
     onDeleteCard,
     onRelateCard: onRelateItem,
     onUnrelateCard: onUnrelateItem,
-    onChangeLayoutStyle: onLayoutStyleChange ? (id, style) => onLayoutStyleChange(style) : undefined,
+    onChangeLayoutStyle: undefined, // Corrected: TitleBar's onLayoutStyleChange is for opening dialog, not applying style here.
   });
 
   // 标题栏样式
@@ -98,6 +104,7 @@ export function TitleBar({
     flexShrink: 1,
     flexWrap: "nowrap" as const,
     overflow: "hidden",
+    paddingLeft: "10px", // 为拖拽手柄留出空间
   };
 
   // 右侧区域样式
@@ -140,11 +147,11 @@ export function TitleBar({
         <button
           type="button"
           onClick={onToggleCollapse}
-          style={{ ...buttonStyle, marginRight: "8px", color: "#6b7280" }}
+          style={{ ...buttonStyle, marginRight: "12px", color: "#6b7280" }}
           aria-label={card.isCollapsed ? "展开卡片" : "折叠卡片"}
         >
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-            <title>{card.isCollapsed ? "展开卡片" : "折叠卡片"}</title>
+          <svg width="16" height="16" viewBox="2 2 10 10" fill="currentColor">
+            <title>{card.isCollapsed ? "展开卡片"    : "折叠卡片"}</title>
             {card.isCollapsed ? (
               <path d="M5.25 4.5l5.5 3.5-5.5 3.5V4.5z" />
             ) : (
@@ -153,16 +160,42 @@ export function TitleBar({
           </svg>
         </button>
 
-        {card.relatedItem ? (
+        {isEditingTitle && onTitleInputChange && onTitleInputSave ? (
+          <input
+            type="text"
+            value={card.title}
+            onChange={onTitleInputChange}
+            onBlur={onTitleInputSave}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                onTitleInputSave();
+              } else if (e.key === "Escape") {
+                // Optionally, handle Esc to cancel editing, though onBlur handles saving
+                onTitleInputSave(); // For now, Esc also saves
+              }
+            }}
+            autoFocus
+            style={{
+              ...titleTextStyle,
+              border: "1px solid #ccc",
+              padding: "2px 4px",
+              flexGrow: 1,
+              minWidth: "50px",
+            }}
+          />
+        ) : card.relatedItem ? (
           <button
             type="button"
-            onClick={() => console.log(`跳转到关联内容: ${card.relatedItem?.id}`)}
-            style={{ ...buttonStyle, ...titleTextStyle, color: "#3b82f6" }}
+            onClick={() => alert(`需要实现跳转到关联内容: ${card.relatedItem?.id} (类型: ${card.relatedItem?.type})`)}
+            style={{ ...buttonStyle, ...titleTextStyle, color: "#3b82f6", textAlign: "left" }}
+            title={card.relatedItem.title}
           >
-            {card.title}
+            {card.relatedItem.title}
           </button>
         ) : (
-          <span style={titleTextStyle}>{card.title}</span>
+          <span style={titleTextStyle} title={card.title}>
+            {card.title}
+          </span>
         )}
       </div>
 
@@ -249,8 +282,9 @@ export function TitleBar({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              // 通知父组件打开布局样式对话框
-              onLayoutStyleChange(CollectionLayoutStyle.ADAPTIVE);
+              if (onLayoutStyleChange) {
+                onLayoutStyleChange(); // Removed unused @ts-expect-error
+              }
             }}
             style={{ ...buttonStyle, color: "#6b7280" }}
             aria-label="更改布局样式"

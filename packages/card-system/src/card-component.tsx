@@ -189,9 +189,12 @@ export function CardComponent({
           onDeleteCard={onDeleteCard}
           onRelateItem={handleRelateItem}
           onUnrelateItem={handleUnrelateItem}
-          onLayoutStyleChange={showLayoutStyleButton ? handleLayoutStyleConfirm : undefined}
+          onLayoutStyleChange={showLayoutStyleButton ? handleLayoutStyleChange : undefined}
           onOpenAddDialog={onOpenAddDialog}
           onToggleVisibility={handleToggleVisibility}
+          isEditingTitle={isEditingTitle}
+          onTitleInputChange={handleTitleChange}
+          onTitleInputSave={handleTitleSave}
         />
       )}
 

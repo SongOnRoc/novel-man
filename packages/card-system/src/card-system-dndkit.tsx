@@ -221,20 +221,31 @@ export function CardSystemDndKit({
 
   // 删除卡片
   const handleDeleteCard = useCallback(
-    (id: string) => {
-      const removeCardById = (cardsArray: BaseCardProps[]): BaseCardProps[] => {
-        return cardsArray.filter((card) => {
-          if (card.id === id) return false;
+    (idToDelete: string) => {
+      const removeCardRecursive = (cardsArray: BaseCardProps[]): BaseCardProps[] => {
+        return cardsArray
+          .map(card => {
+            if (card.id === idToDelete) {
+              return null; // Mark for removal
+            }
 
-          if (card.childCards && card.childCards.length > 0) {
-            card.childCards = removeCardById(card.childCards);
-          }
-
-          return true;
-        });
+            if (card.childCards && card.childCards.length > 0) {
+              const newChildCards = removeCardRecursive(card.childCards);
+              // If the children array instance has changed, or length changed,
+              // it means a deletion (or modification) happened deeper.
+              // Thus, we must return a new card object for the current 'card'
+              // to ensure immutability up the chain.
+              if (newChildCards.length !== card.childCards.length || newChildCards !== card.childCards) {
+                return { ...card, childCards: newChildCards.filter(c => c !== null) as BaseCardProps[] };
+              }
+            }
+            // If no changes to this card or its children (relevant to deletion), return original.
+            return card;
+          })
+          .filter(card => card !== null) as BaseCardProps[]; // Filter out cards marked for removal (nulls)
       };
 
-      const newCards = removeCardById(cards);
+      const newCards = removeCardRecursive(cards);
       updateCards(newCards);
     },
     [cards, updateCards],
