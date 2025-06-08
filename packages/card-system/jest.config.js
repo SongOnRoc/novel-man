@@ -8,7 +8,7 @@ module.exports = {
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!@testing-library|react-dnd|dnd-core|react-dnd-html5-backend)'
+    'node_modules/(?!@testing-library)'
   ],
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {

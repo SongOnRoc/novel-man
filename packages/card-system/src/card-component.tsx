@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { Container } from "./components/container";
-import { ContainerDndKit } from "./components/container-dndkit";
+// ContainerDndKit is no longer needed as its logic is merged into Container
 import { AddCardDialog, LayoutStyleDialog, RelateDialog } from "./components/dialogs";
 import { TitleBar } from "./components/title-bar";
 import { type CardComponentProps, CardContainerType, type CardProperty, CollectionLayoutStyle } from "./types";
@@ -27,7 +27,7 @@ export function CardComponent({
   layoutStyle = CollectionLayoutStyle.VERTICAL,
   onOpenAddDialog,
   moveCard,
-  useDndKit = false,
+  // useDndKit prop is no longer needed, defaulting to dnd-kit behavior
 }: CardComponentProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -196,41 +196,24 @@ export function CardComponent({
       )}
 
       {/* 容器内容 */}
-      {!card.isCollapsed &&
-        (useDndKit ? (
-          <ContainerDndKit
-            card={card}
-            containerType={card.containerType}
-            layoutStyle={card.layoutStyle || layoutStyle}
-            onUpdateCard={onUpdateCard}
-            onDeleteCard={onDeleteCard}
-            onAddCard={onAddCard}
-            onRelateCard={onRelateCard}
-            onUnrelateCard={onUnrelateCard}
-            onChangeLayoutStyle={onChangeLayoutStyle}
-            buttonsConfig={buttonsConfig}
-            attributeOptions={attributeOptions}
-            availableRelateItems={availableRelateItems}
-            moveCard={moveCard}
-            useDndKit={true}
-          />
-        ) : (
-          <Container
-            card={card}
-            containerType={card.containerType}
-            layoutStyle={card.layoutStyle || layoutStyle}
-            onUpdateCard={onUpdateCard}
-            onDeleteCard={onDeleteCard}
-            onAddCard={onAddCard}
-            onRelateCard={onRelateCard}
-            onUnrelateCard={onUnrelateCard}
-            onChangeLayoutStyle={onChangeLayoutStyle}
-            buttonsConfig={buttonsConfig}
-            attributeOptions={attributeOptions}
-            availableRelateItems={availableRelateItems}
-            moveCard={moveCard}
-          />
-        ))}
+      {!card.isCollapsed && (
+        <Container
+          card={card}
+          containerType={card.containerType}
+          layoutStyle={card.layoutStyle || layoutStyle}
+          onUpdateCard={onUpdateCard}
+          onDeleteCard={onDeleteCard}
+          onAddCard={onAddCard}
+          onRelateCard={onRelateCard}
+          onUnrelateCard={onUnrelateCard}
+          onChangeLayoutStyle={onChangeLayoutStyle}
+          buttonsConfig={buttonsConfig}
+          attributeOptions={attributeOptions}
+          availableRelateItems={availableRelateItems}
+          moveCard={moveCard}
+          // useDndKit prop is removed from Container as well
+        />
+      )}
 
       {/* 添加卡片对话框 */}
       <AddCardDialog
