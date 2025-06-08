@@ -214,15 +214,11 @@ describe("CardSystem - Full Requirements", () => {
       fireEvent.click(screen.getByText("Add Editor"));
 
       await waitFor(() => {
-        expect(mockAddChildCard).toHaveBeenCalledWith(
-          "parent",
-          CardContainerType.EDITOR,
-          {
-            title: "Editor Card",
-            hideTitle: false,
-            parentCardCount: expect.any(Number)
-          }
-        );
+        expect(mockAddChildCard).toHaveBeenCalledWith("parent", CardContainerType.EDITOR, {
+          title: "Editor Card",
+          hideTitle: false,
+          parentCardCount: expect.any(Number),
+        });
       });
     });
   });

@@ -73,9 +73,7 @@ describe("AddCardDialog", () => {
     // 点击添加集合卡片按钮
     fireEvent.click(screen.getByText("添加集合卡片"));
 
-    expect(mockAddCollectionCard).toHaveBeenCalledWith("Test Title", [
-      { name: "tag", value: "" }
-    ]);
+    expect(mockAddCollectionCard).toHaveBeenCalledWith("Test Title", [{ name: "tag", value: "" }]);
     expect(mockClose).not.toHaveBeenCalled(); // 对话框应该由调用者关闭
   });
 

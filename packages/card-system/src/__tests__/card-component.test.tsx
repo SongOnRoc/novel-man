@@ -37,7 +37,7 @@ describe("CardComponent", () => {
   const mockUpdateCard = jest.fn();
   const mockDeleteCard = jest.fn();
   const mockRelateCard = jest.fn();
-  const mockUnrelateCard = jest.fn();
+  const _mockUnrelateCard = jest.fn();
   const mockChangeLayoutStyle = jest.fn();
 
   const editorCard: BaseCardProps = {

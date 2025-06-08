@@ -1,10 +1,5 @@
 import { CardSystemDndKit } from "./card-system-dndkit";
-import {
-  type BaseCardProps,
-  type CardButtonsConfig,
-  type CardProperty,
-  type CollectionLayoutStyle,
-} from "./types";
+import type { BaseCardProps, CardButtonsConfig } from "./types";
 
 interface CardSystemProps {
   // 初始卡片数据，可选

@@ -35,10 +35,10 @@ export function CardComponent({
   const [isLayoutStyleDialogOpen, setIsLayoutStyleDialogOpen] = useState(false);
 
   // 使用用户提供的按钮配置，如果没有则使用默认值
-  const showEditButton = card.showEditButton ?? buttonsConfig.showEditButton;
-  const showAddButton = card.showAddButton ?? buttonsConfig.showAddButton;
-  const showDeleteButton = card.showDeleteButton ?? buttonsConfig.showDeleteButton;
-  const showRelateButton = card.showRelateButton ?? buttonsConfig.showRelateButton;
+  const _showEditButton = card.showEditButton ?? buttonsConfig.showEditButton;
+  const _showAddButton = card.showAddButton ?? buttonsConfig.showAddButton;
+  const _showDeleteButton = card.showDeleteButton ?? buttonsConfig.showDeleteButton;
+  const _showRelateButton = card.showRelateButton ?? buttonsConfig.showRelateButton;
   const showLayoutStyleButton = card.showLayoutStyleButton ?? buttonsConfig.showLayoutStyleButton;
 
   // 是否为编辑器类型卡片
@@ -189,9 +189,12 @@ export function CardComponent({
           onDeleteCard={onDeleteCard}
           onRelateItem={handleRelateItem}
           onUnrelateItem={handleUnrelateItem}
-          onLayoutStyleChange={showLayoutStyleButton ? handleLayoutStyleConfirm : undefined}
+          onLayoutStyleChange={showLayoutStyleButton ? handleLayoutStyleChange : undefined}
           onOpenAddDialog={onOpenAddDialog}
           onToggleVisibility={handleToggleVisibility}
+          isEditingTitle={isEditingTitle}
+          onTitleInputChange={handleTitleChange}
+          onTitleInputSave={handleTitleSave}
         />
       )}
 

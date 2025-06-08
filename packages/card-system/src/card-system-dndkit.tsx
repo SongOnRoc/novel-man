@@ -63,7 +63,7 @@ export function CardSystemDndKit({
   const [cards, setCards] = useState<BaseCardProps[]>(initialCards);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [currentParentId, setCurrentParentId] = useState<string | null>(null);
-  const [activeId, setActiveId] = useState<string | number | null>(null);
+  const [_activeId, setActiveId] = useState<string | number | null>(null);
   const [overContainerId, setOverContainerId] = useState<string | null>(null);
 
   // 创建卡片工厂实例
@@ -77,11 +77,11 @@ export function CardSystemDndKit({
       },
     }),
     useSensor(TouchSensor, {
-          activationConstraint: {
-            delay: 100, // 短暂延迟以区分点击和拖拽
-            tolerance: 5, // 触摸移动容差
-          },
-        }),
+      activationConstraint: {
+        delay: 100, // 短暂延迟以区分点击和拖拽
+        tolerance: 5, // 触摸移动容差
+      },
+    }),
   );
 
   // 获取所有卡片ID
@@ -154,7 +154,7 @@ export function CardSystemDndKit({
           return cardsArray.map((card) => {
             if (card.id === parentId) {
               // 获取父卡片中的子卡片数量，用于生成tag
-              const childCount = card.childCards?.length || 0;
+              const _childCount = card.childCards?.length || 0;
 
               // 更新卡片的parentCardCount属性
               const updatedNewCard = {
@@ -221,32 +221,43 @@ export function CardSystemDndKit({
 
   // 删除卡片
   const handleDeleteCard = useCallback(
-    (id: string) => {
-      const removeCardById = (cardsArray: BaseCardProps[]): BaseCardProps[] => {
-        return cardsArray.filter((card) => {
-          if (card.id === id) return false;
+    (idToDelete: string) => {
+      const removeCardRecursive = (cardsArray: BaseCardProps[]): BaseCardProps[] => {
+        return cardsArray
+          .map((card) => {
+            if (card.id === idToDelete) {
+              return null; // Mark for removal
+            }
 
-          if (card.childCards && card.childCards.length > 0) {
-            card.childCards = removeCardById(card.childCards);
-          }
-
-          return true;
-        });
+            if (card.childCards && card.childCards.length > 0) {
+              const newChildCards = removeCardRecursive(card.childCards);
+              // If the children array instance has changed, or length changed,
+              // it means a deletion (or modification) happened deeper.
+              // Thus, we must return a new card object for the current 'card'
+              // to ensure immutability up the chain.
+              if (newChildCards.length !== card.childCards.length || newChildCards !== card.childCards) {
+                return { ...card, childCards: newChildCards.filter((c) => c !== null) as BaseCardProps[] };
+              }
+            }
+            // If no changes to this card or its children (relevant to deletion), return original.
+            return card;
+          })
+          .filter((card) => card !== null) as BaseCardProps[]; // Filter out cards marked for removal (nulls)
       };
 
-      const newCards = removeCardById(cards);
+      const newCards = removeCardRecursive(cards);
       updateCards(newCards);
     },
     [cards, updateCards],
   );
 
   // 关联卡片
-  const handleRelateCard = useCallback((id: string) => {
+  const handleRelateCard = useCallback((_id: string) => {
     // 关联操作已在 CardComponent 中处理
   }, []);
 
   // 取消关联卡片
-  const handleUnrelateCard = useCallback((id: string) => {
+  const handleUnrelateCard = useCallback((_id: string) => {
     // 取消关联操作已在 CardComponent 中处理
   }, []);
 
@@ -534,7 +545,7 @@ export function CardSystemDndKit({
   };
 
   // 渲染子卡片
-  const renderChildCards = (childCards: BaseCardProps[], parentId: string) => {
+  const _renderChildCards = (childCards: BaseCardProps[], parentId: string) => {
     // 直接返回子卡片的映射结果
     return childCards.map((childCard, index) => renderCard(childCard, index, parentId));
   };

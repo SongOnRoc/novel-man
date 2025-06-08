@@ -1,6 +1,6 @@
 //  DndKitToggleDemo
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { DefaultCardFactory } from "../card-factory";
 import { CardSystem } from "../card-system";
 import { CardContainerType } from "../types";
@@ -64,9 +64,7 @@ exampleContentCard.content =
 const initialCards = [exampleRoleCard, exampleSceneCard, exampleContentCard];
 
 // 演示组件
-interface DndKitToggleDemoProps {
-  // initialUseDndKit 不再需要，默认为 true
-}
+type DndKitToggleDemoProps = Record<string, never>;
 
 export const DndKitToggleDemo: React.FC<DndKitToggleDemoProps> = () => {
   // 状态管理
@@ -97,12 +95,11 @@ export const DndKitToggleDemo: React.FC<DndKitToggleDemoProps> = () => {
 
   return (
     <div className="p-4 max-w-6xl mx-auto">
-      <div className="mb-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold">卡片系统演示</h1>
-        {/* 移除了手动切换按钮 */}
-      </div>
+      {/* <div className="mb-4 flex justify-between items-center">
+        <h1 className="text-xl font-bold">卡片系统演示</h1>
+      </div> */}
 
-      <div style={{ backgroundColor: "#E3F2FD", padding: "2px", borderRadius: "4px", marginBottom: "20px" }}>
+      <div style={{ backgroundColor: "#E3F2FD", padding: "0px", borderRadius: "2px", marginBottom: "20px" }}>
         <p>
           当前设备:
           <strong>{isMobile ? "移动端" : "桌面端"}</strong>

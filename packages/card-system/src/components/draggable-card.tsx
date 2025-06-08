@@ -3,7 +3,8 @@ import { CSS } from "@dnd-kit/utilities";
 import type React from "react";
 import { ItemTypes } from "./drag-item-types";
 
-interface DraggableCardProps { // 重命名接口以匹配文件名
+interface DraggableCardProps {
+  // 重命名接口以匹配文件名
   id: string;
   index: number;
   moveCard: (dragIndex: number, hoverIndex: number, dragParentId?: string, hoverParentId?: string) => void;
@@ -16,7 +17,8 @@ interface DraggableCardProps { // 重命名接口以匹配文件名
  * 可拖拽卡片组件
  * 将卡片包装为可拖拽元素，提供拖拽手柄和必要的事件处理
  */
-export function DraggableCard({ // 重命名组件以匹配文件名
+export function DraggableCard({
+  // 重命名组件以匹配文件名
   id,
   index,
   moveCard, // 此属性在dnd-kit中通常由SortableContext处理，但暂时保留

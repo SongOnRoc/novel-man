@@ -11,7 +11,7 @@ describe("DefaultCardFactory", () => {
 
   beforeAll(() => {
     jest.useFakeTimers();
-    jest.setSystemTime(new Date('2021-01-01'));
+    jest.setSystemTime(new Date("2021-01-01"));
   });
 
   beforeEach(() => {

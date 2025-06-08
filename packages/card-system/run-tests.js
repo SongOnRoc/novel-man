@@ -1,5 +1,5 @@
 const { execSync } = require("node:child_process");
-const path = require("node:path");
+const _path = require("node:path");
 
 // 获取当前目录
 const currentDir = __dirname;

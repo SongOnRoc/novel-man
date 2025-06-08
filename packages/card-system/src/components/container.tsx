@@ -6,7 +6,8 @@ import type { BaseCardProps, CardButtonsConfig, CardProperty } from "../types";
 import { CardContainerType, CollectionLayoutStyle } from "../types";
 import { DraggableCard } from "./draggable-card"; // 更新导入
 
-interface ContainerProps { // 重命名接口以匹配文件名
+interface ContainerProps {
+  // 重命名接口以匹配文件名
   card: BaseCardProps;
   containerType: CardContainerType;
   layoutStyle?: CollectionLayoutStyle;
@@ -36,7 +37,8 @@ interface ContainerProps { // 重命名接口以匹配文件名
  * 根据卡片类型渲染不同的内容区域
  * 对于集合类型的卡片，容器内部是可放置区域
  */
-export function Container({ // 重命名组件以匹配文件名
+export function Container({
+  // 重命名组件以匹配文件名
   card,
   containerType,
   layoutStyle = CollectionLayoutStyle.VERTICAL,
