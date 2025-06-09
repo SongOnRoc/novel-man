@@ -18,7 +18,7 @@ const attributeOptions = [
 
 // 示例可关联项
 const availableRelateItems = [
-  { id: "chapter1", title: "第一章", type: "chapter" },
+  { id: "chapter1", title: "第一章 你好", type: "chapter" },
   { id: "chapter2", title: "第二章", type: "chapter" },
   { id: "volume1", title: "第一卷", type: "volume" },
 ];

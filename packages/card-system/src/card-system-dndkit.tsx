@@ -257,9 +257,13 @@ export function CardSystemDndKit({
   }, []);
 
   // 取消关联卡片
-  const handleUnrelateCard = useCallback((_id: string) => {
-    // 取消关联操作已在 CardComponent 中处理
-  }, []);
+  const handleUnrelateCard = useCallback(
+    (id: string) => {
+      // 更新卡片，清除关联信息
+      handleUpdateCard(id, { relatedItem: undefined });
+    },
+    [handleUpdateCard],
+  );
 
   // 更改布局样式
   const handleChangeLayoutStyle = useCallback(
@@ -583,16 +587,26 @@ export function CardSystemDndKit({
               </button>
             </div>
 
-            {cards.length === 0 ? (
-              <div className="text-center py-8 border rounded-lg">暂无内容，点击"{addButtonText}"按钮创建</div>
-            ) : (
-              <div className="grid gap-4">
-                {cards.map((card, index) => {
-                  if (!card) return null; // 添加空值检查
-                  return renderCard(card, index);
-                })}
-              </div>
-            )}
+            <div
+              style={{
+                border: "1px dashed #ccc",
+                borderRadius: "8px",
+                padding: "16px",
+                backgroundColor: "rgba(249, 250, 251, 0.8)",
+                minHeight: "200px",
+              }}
+            >
+              {cards.length === 0 ? (
+                <div className="text-center py-8 border rounded-lg">暂无内容，点击"{addButtonText}"按钮创建</div>
+              ) : (
+                <div className="grid gap-4">
+                  {cards.map((card, index) => {
+                    if (!card) return null; // 添加空值检查
+                    return renderCard(card, index);
+                  })}
+                </div>
+              )}
+            </div>
 
             <AddCardDialog
               open={isAddDialogOpen}
@@ -610,10 +624,10 @@ export function CardSystemDndKit({
                 setCurrentParentId(null);
                 setIsAddDialogOpen(false);
               }}
-              onAddCollectionCard={(title?: string, props: CardProperty[] = []) => {
+              onAddCollectionCard={(title?: string, props: CardProperty[] = [], hideTitle?: boolean) => {
                 handleAddCard(CardContainerType.COLLECTION, {
                   title: title || "",
-                  hideTitle: false,
+                  hideTitle: hideTitle || false,
                   props: props,
                   parentId: currentParentId,
                 });

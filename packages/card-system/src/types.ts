@@ -37,7 +37,7 @@ export interface BaseCardProps {
     title: string;
     type: string;
     isExternal?: boolean;
-  };
+  } | null;
   parent?: string;
   props?: CardProperty[];
   createdAt?: Date;
@@ -69,6 +69,7 @@ export interface CardCallbacks {
       hideTitle?: boolean;
       props?: CardProperty[];
       parentId?: string | null;
+      isCollapsed?: boolean;
     },
   ) => void;
   onRelateCard?: (id: string) => void;
@@ -101,6 +102,7 @@ export interface CardComponentProps extends CardCallbacks, CardCommonProps {
   layoutStyle?: CollectionLayoutStyle;
   onOpenAddDialog?: (parentId: string) => void;
   useDndKit?: boolean; // 是否使用dnd-kit拖拽库
+  onNavigateToRelated?: (id?: string) => void; // 导航到关联内容
 }
 
 export interface CardSystemProps extends CardCommonProps {
@@ -119,7 +121,7 @@ export interface AddCardDialogProps {
   open: boolean;
   onClose: () => void;
   onAddEditorCard: (title?: string, hideTitle?: boolean, props?: CardProperty[]) => void;
-  onAddCollectionCard: (title?: string, props?: CardProperty[]) => void;
+  onAddCollectionCard: (title?: string, props?: CardProperty[], hideTitle?: boolean) => void;
   defaultTitle?: string;
   parentTag?: string;
   parentProps?: CardProperty[];

@@ -69,8 +69,8 @@ export function AddCardDialog({
     // 添加tag属性
     const finalProps = tag ? [...props, { name: "tag", value: tag }] : props;
 
-    // 只传递标题和属性数组
-    onAddCollectionCard(title, finalProps);
+    // 传递标题、属性数组和hideTitle参数
+    onAddCollectionCard(title, finalProps, hideTitle);
     handleClose();
   };
 
@@ -167,7 +167,17 @@ export function AddCardDialog({
           )}
 
           {/* 隐藏标题选项 */}
-          <div style={{ display: "flex", alignItems: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              marginBottom: "12px",
+              padding: "8px",
+              backgroundColor: hideTitle ? "rgba(59, 130, 246, 0.1)" : "transparent",
+              border: "1px solid #d1d5db",
+              borderRadius: "4px",
+            }}
+          >
             <input
               id="hide-title"
               type="checkbox"
@@ -175,9 +185,14 @@ export function AddCardDialog({
               onChange={(e) => setHideTitle(e.target.checked)}
               style={{ marginRight: "8px" }}
             />
-            <label htmlFor="hide-title" style={{ fontSize: "14px" }}>
-              隐藏卡片标题
-            </label>
+            <div>
+              <label htmlFor="hide-title" style={{ fontSize: "14px", fontWeight: "500" }}>
+                创建无头卡片（隐藏标题栏）
+              </label>
+              <p style={{ fontSize: "12px", color: "#6b7280", margin: "4px 0 0 0" }}>
+                无头卡片只显示容器部分，隐藏标题栏。适用于需要简洁界面或作为其他卡片的容器。
+              </p>
+            </div>
           </div>
         </div>
 

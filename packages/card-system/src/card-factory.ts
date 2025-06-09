@@ -81,12 +81,23 @@ export class DefaultCardFactory implements CardFactory {
       card.showLayoutStyleButton = true;
       card.showRelateButton = false;
       card.showVisibilityButton = true;
+
+      // 如果是无头卡片，设置特殊样式
+      if (hideTitle) {
+        card.isCollapsed = false; // 无头卡片默认展开
+        card.hideBorder = false; // 保留边框，但样式会在Container中特殊处理
+      }
     } else if (containerType === CardContainerType.EDITOR) {
       card.content = "";
       card.showAddButton = false;
       card.showLayoutStyleButton = false;
       card.showRelateButton = true;
       card.showVisibilityButton = false;
+
+      // 如果是无头编辑器卡片，设置特殊样式
+      if (hideTitle) {
+        card.isCollapsed = false; // 无头卡片默认展开
+      }
     }
 
     return card;

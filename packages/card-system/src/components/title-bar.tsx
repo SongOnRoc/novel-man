@@ -10,14 +10,17 @@ interface TitleBarProps {
   onTitleEdit: () => void; // This triggers the editing mode
   onAddButtonClick: () => void;
   onDeleteCard: ((id: string) => void) | undefined;
-  onRelateItem: () => void;
-  onUnrelateItem: () => void;
+  onRelateItem: (id: string) => void;
+  onUnrelateItem: (id: string) => void;
   onLayoutStyleChange: (() => void) | undefined; // Changed to simple callback
+  onNavigateToRelated?: (id?: string) => void; // 新增：跳转到关联内容
   onOpenAddDialog?: (parentId: string) => void;
   onToggleVisibility?: (id: string) => void;
   isEditingTitle?: boolean; // New prop to indicate if title is being edited
   onTitleInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void; // New prop for title input change
   onTitleInputSave?: () => void; // New prop for saving title changes
+  isTemporaryVisible?: boolean; // 新增：无头卡片折叠时临时显示标题栏
+  hasToggleButton?: boolean; // 新增：是否有标题栏切换按钮
 }
 
 export function TitleBar({
@@ -32,11 +35,14 @@ export function TitleBar({
   onRelateItem,
   onUnrelateItem,
   onLayoutStyleChange,
+  onNavigateToRelated, // 添加解构
   onOpenAddDialog,
   onToggleVisibility,
   isEditingTitle,
   onTitleInputChange,
   onTitleInputSave,
+  isTemporaryVisible = false, // 默认为false
+  hasToggleButton = false, // 默认为false
 }: TitleBarProps) {
   const config = buttonsConfig || {
     showEditButton: true,
@@ -85,13 +91,15 @@ export function TitleBar({
     justifyContent: "space-between",
     alignItems: "center",
     padding: "6px 10px", // 减小内边距
-    backgroundColor: "#f3f4f6",
-    border: "1px solid #ccc",
+    paddingRight: hasToggleButton ? "36px" : "10px", // 如果有切换按钮，增加右侧内边距
+    backgroundColor: isTemporaryVisible ? "rgba(243, 244, 246, 0.9)" : "#f3f4f6", // 临时显示时略透明
+    border: isTemporaryVisible ? "1px dashed #ccc" : "1px solid #ccc", // 临时显示时使用虚线边框
     width: "100%",
     whiteSpace: "nowrap" as const,
     overflow: "hidden",
     boxSizing: "border-box" as const,
     minHeight: "32px", // 确保标题栏有足够的高度
+    position: "relative" as React.CSSProperties["position"], // 添加相对定位，为绝对定位的子元素提供参考
   };
 
   // 左侧区域样式
@@ -115,6 +123,15 @@ export function TitleBar({
     flexShrink: 0,
     marginLeft: "10px",
     flexWrap: "nowrap" as const,
+    position: "relative" as React.CSSProperties["position"], // 添加相对定位
+    zIndex: 1, // 确保按钮在最上层
+  };
+
+  // 根据是否有切换按钮动态调整标题栏样式
+  const dynamicTitleBarStyle = {
+    ...titleBarStyle,
+    // 只有当标题栏不是临时显示的情况下才应用额外的右侧内边距
+    paddingRight: hasToggleButton && !isTemporaryVisible ? "36px" : "10px",
   };
 
   // 按钮基础样式
@@ -140,7 +157,7 @@ export function TitleBar({
   };
 
   return (
-    <div style={titleBarStyle}>
+    <div style={dynamicTitleBarStyle}>
       {/* 左侧区域 - 折叠按钮和标题 */}
       <div style={leftSideStyle}>
         <button
@@ -182,14 +199,18 @@ export function TitleBar({
             }}
           />
         ) : card.relatedItem ? (
-          <button
-            type="button"
-            onClick={() => alert(`需要实现跳转到关联内容: ${card.relatedItem?.id} (类型: ${card.relatedItem?.type})`)}
-            style={{ ...buttonStyle, ...titleTextStyle, color: "#3b82f6", textAlign: "left" }}
+          <a
+            href={`#${card.relatedItem?.id}`}
+            onClick={(e) => {
+              e.preventDefault();
+              // 实际跳转逻辑将在父组件实现
+              onNavigateToRelated?.(card.relatedItem?.id);
+            }}
+            style={{ ...titleTextStyle, color: "#3b82f6", textDecoration: "underline", cursor: "pointer" }}
             title={card.relatedItem.title}
           >
             {card.relatedItem.title}
-          </button>
+          </a>
         ) : (
           <span style={titleTextStyle} title={card.title}>
             {card.title}
@@ -214,7 +235,7 @@ export function TitleBar({
           </button>
         )}
 
-        {showAddButton && isCollectionCard && (
+        {showAddButton && (
           <button
             type="button"
             onClick={onAddButtonClick}
@@ -244,35 +265,32 @@ export function TitleBar({
           </button>
         )}
 
-        {showRelateButton && isEditorCard && (
-          <>
-            {card.relatedItem ? (
-              <button
-                type="button"
-                onClick={handleUnrelateItem}
-                style={{ ...buttonStyle, color: "#3b82f6" }}
-                aria-label="解除关联"
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <title>解除关联</title>
-                  <path d="M15 7h2a5 5 0 0 1 0 10h-2m-6 0H7A5 5 0 0 1 7 7h2" />
-                </svg>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleRelateItem}
-                style={{ ...buttonStyle, color: "#6b7280" }}
-                aria-label="关联内容"
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <title>关联内容</title>
-                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                </svg>
-              </button>
-            )}
-          </>
+        {showRelateButton && isEditorCard && card.relatedItem && (
+          <button
+            type="button"
+            onClick={handleUnrelateItem}
+            style={{ ...buttonStyle, color: "#3b82f6" }}
+            aria-label="解除关联"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <title>解除关联</title>
+              <path d="M15 7h2a5 5 0 0 1 0 10h-2m-6 0H7A5 5 0 0 1 7 7h2" />
+            </svg>
+          </button>
+        )}
+        {showRelateButton && isEditorCard && !card.relatedItem && (
+          <button
+            type="button"
+            onClick={handleRelateItem}
+            style={{ ...buttonStyle, color: "#6b7280" }}
+            aria-label="关联内容"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <title>关联内容</title>
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+            </svg>
+          </button>
         )}
 
         {showLayoutStyleButton && isCollectionCard && onLayoutStyleChange && (

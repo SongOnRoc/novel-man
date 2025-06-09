@@ -27,6 +27,7 @@ export function CardComponent({
   layoutStyle = CollectionLayoutStyle.VERTICAL,
   onOpenAddDialog,
   moveCard,
+  onNavigateToRelated,
   // useDndKit prop is no longer needed, defaulting to dnd-kit behavior
 }: CardComponentProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -80,7 +81,15 @@ export function CardComponent({
 
   const handleUnrelateItem = () => {
     if (onUnrelateCard) {
+      // 先更新卡片，清除关联信息
+      onUpdateCard(card.id, {
+        relatedItem: undefined,
+        isEditing: false, // 确保不进入编辑状态
+      });
+      // 然后调用解除关联回调
       onUnrelateCard(card.id);
+      // 确保标题不处于编辑状态
+      setIsEditingTitle(false);
     }
   };
 
@@ -176,8 +185,8 @@ export function CardComponent({
 
   return (
     <div style={cardStyle}>
-      {/* 标题栏 */}
-      {!card.hideTitle && (
+      {/* 标题栏 - 显示条件：有标题栏或者无头卡片处于折叠状态 */}
+      {(!card.hideTitle || (card.hideTitle && card.isCollapsed)) && (
         <TitleBar
           card={card}
           buttonsConfig={buttonsConfig}
@@ -195,6 +204,9 @@ export function CardComponent({
           isEditingTitle={isEditingTitle}
           onTitleInputChange={handleTitleChange}
           onTitleInputSave={handleTitleSave}
+          onNavigateToRelated={onNavigateToRelated}
+          isTemporaryVisible={card.hideTitle && card.isCollapsed} // 添加临时可见标记，用于无头卡片折叠状态
+          hasToggleButton={card.hideTitle} // 添加标题栏切换按钮标记
         />
       )}
 
@@ -214,7 +226,14 @@ export function CardComponent({
           attributeOptions={attributeOptions}
           availableRelateItems={availableRelateItems}
           moveCard={moveCard}
-          // useDndKit prop is removed from Container as well
+          onNavigateToRelated={onNavigateToRelated}
+          onToggleCollapse={handleToggleCollapse}
+          onTitleEdit={handleTitleEdit}
+          onAddButtonClick={handleAddButtonClick}
+          isEditingTitle={isEditingTitle}
+          onTitleInputChange={handleTitleChange}
+          onTitleInputSave={handleTitleSave}
+          useDndKit={true}
         />
       )}
 

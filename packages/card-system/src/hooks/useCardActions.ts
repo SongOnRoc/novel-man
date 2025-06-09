@@ -1,19 +1,18 @@
 import { useCallback } from "react";
-import { type BaseCardProps, type CardCallbacks, CardContainerType, type CollectionLayoutStyle } from "../types";
+import type { BaseCardProps, CardCallbacks, CollectionLayoutStyle } from "../types";
 
 export function useCardActions(card: BaseCardProps, callbacks: CardCallbacks) {
   const handleAddButtonClick = useCallback(() => {
-    // 如果卡片是折叠的，先展开卡片
+    // 确保父卡片展开
     if (card.isCollapsed) {
       callbacks.onUpdateCard?.(card.id, { isCollapsed: false });
     }
 
-    // 然后处理添加子卡片
-    if (card.containerType === CardContainerType.EDITOR) {
-      callbacks.onAddCard?.(CardContainerType.EDITOR, { parentId: card.id });
-    } else {
-      callbacks.onAddCard?.(CardContainerType.COLLECTION, { parentId: card.id });
-    }
+    // 添加新卡片并设置默认折叠
+    callbacks.onAddCard?.(card.containerType, {
+      parentId: card.id,
+      isCollapsed: true, // 新卡片默认折叠
+    });
   }, [card.id, card.containerType, card.isCollapsed, callbacks]);
 
   const handleDeleteButtonClick = useCallback(() => {
@@ -29,6 +28,8 @@ export function useCardActions(card: BaseCardProps, callbacks: CardCallbacks) {
   }, [callbacks, card.id]);
 
   const handleUnrelateItem = useCallback(() => {
+    // 解除关联时清除卡片的relatedItem
+    callbacks.onUpdateCard?.(card.id, { relatedItem: undefined });
     callbacks.onUnrelateCard?.(card.id);
   }, [callbacks, card.id]);
 
