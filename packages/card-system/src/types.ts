@@ -29,6 +29,7 @@ export interface BaseCardProps {
   isVisible?: boolean;
   hideTitle?: boolean;
   hideBorder?: boolean; // 新增：控制是否隐藏边框
+  themeColor?: string; // 新增：卡片主题颜色
   containerType: CardContainerType;
   childCards?: BaseCardProps[];
   layoutStyle?: CollectionLayoutStyle;
@@ -103,6 +104,7 @@ export interface CardComponentProps extends CardCallbacks, CardCommonProps {
   onOpenAddDialog?: (parentId: string) => void;
   useDndKit?: boolean; // 是否使用dnd-kit拖拽库
   onNavigateToRelated?: (id?: string) => void; // 导航到关联内容
+  onBatchUpdateCards?: (updates: Array<{ id: string; updates: Partial<BaseCardProps> }>) => void; // 批量更新卡片
 }
 
 export interface CardSystemProps extends CardCommonProps {
@@ -131,8 +133,8 @@ export interface AddCardDialogProps {
 export interface RelateDialogProps {
   open: boolean;
   onClose: () => void;
-  onConfirm: (itemId: string, itemTitle: string, itemType: string) => void;
-  availableItems?: Array<{ id: string; title: string; type: string }>;
+  onRelateItem: (itemId: string, itemTitle: string, itemType: string) => void;
+  availableRelateItems?: Array<{ id: string; title: string; type: string }>;
 }
 
 export interface LayoutStyleDialogProps {
