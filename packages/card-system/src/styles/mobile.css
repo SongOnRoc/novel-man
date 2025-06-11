@@ -1,0 +1,647 @@
+/* 移动端适配样式 */
+
+/* 基础样式重置 */
+@media (max-width: 768px) {
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent; /* 移除iOS点击高亮 */
+  }
+
+  body {
+    overscroll-behavior: contain; /* 防止页面过度滚动 */
+  }
+
+  /* 卡片组件适配 */
+  .draggable-card {
+    width: 100% !important;
+    margin-bottom: 12px;
+    border-radius: 12px !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  .draggable-card:active {
+    transform: scale(0.98) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  }
+
+  /* 隐藏拖拽手柄，在移动端使用长按触发拖拽 */
+  .drag-handle {
+    opacity: 0.3 !important;
+    transform: scale(0.8);
+    left: -4px !important;
+    top: 6px !important;
+  }
+
+  /* 标题栏适配 */
+  .title-bar-button {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 6px !important;
+    border-radius: 8px !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  /* 为按钮添加涟漪效果 */
+  .title-bar-button::after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 70%);
+    transform: scale(0);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.5s ease;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .title-bar-button:active::after {
+    transform: scale(3);
+    opacity: 1;
+    transition: 0s;
+  }
+
+  /* 移动端按钮间距调整，确保按钮不会太拥挤 */
+  .title-bar-button + .title-bar-button {
+    margin-left: 4px !important;
+  }
+
+  /* 移动端标题文本样式调整 */
+  .title-text {
+    font-size: 15px !important;
+    max-width: calc(100% - 120px) !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  /* 移动端更多按钮菜单样式 */
+  .more-menu {
+    position: fixed !important;
+    background-color: white !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1), 0 2px 10px rgba(0, 0, 0, 0.07) !important;
+    padding: 8px 6px !important;
+    z-index: 9999 !important;
+    min-width: 190px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    max-height: 70vh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    border: 1px solid rgba(226, 232, 240, 0.5) !important;
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out !important;
+  }
+
+  /* 现代风格菜单 */
+  .modern-menu {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
+  }
+
+  /* 移除默认的滚动条样式 */
+  .more-menu::-webkit-scrollbar {
+    width: 5px !important;
+  }
+
+  .more-menu::-webkit-scrollbar-thumb {
+    background-color: rgba(203, 213, 225, 0.5) !important;
+    border-radius: 10px !important;
+  }
+
+  /* 显示菜单的类名 */
+  .more-menu.show {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateZ(0) scale(1) !important;
+    pointer-events: auto !important;
+  }
+
+  /* 菜单项样式 */
+  .menu-item {
+    display: flex !important;
+    align-items: center !important;
+    padding: 10px 14px !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    color: #334155 !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    gap: 10px !important;
+    transition: all 0.15s ease !important;
+    background-color: transparent !important;
+    border: none !important;
+    width: 100% !important;
+    text-align: left !important;
+    min-height: 42px !important;
+    -webkit-tap-highlight-color: transparent !important;
+    margin-bottom: 1px !important;
+  }
+
+  .menu-item:active {
+    background-color: rgba(241, 245, 249, 0.8) !important;
+    transform: scale(0.98) !important;
+  }
+
+  /* 菜单项图标 */
+  .menu-item svg {
+    flex-shrink: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
+    color: #64748b !important;
+  }
+
+  .menu-item:active svg {
+    color: #334155 !important;
+  }
+
+  /* 确保菜单在最顶层显示 */
+  .title-bar-buttons {
+    position: relative !important;
+    z-index: 101 !important;
+  }
+
+  /* 为更多按钮添加激活状态 */
+  .more-button:active,
+  .more-button.active {
+    background-color: rgba(226, 232, 240, 0.6) !important;
+  }
+
+  /* 菜单分隔线 */
+  .menu-divider {
+    height: 1px !important;
+    background-color: rgba(226, 232, 240, 0.8) !important;
+    margin: 4px 0 !important;
+  }
+
+  /* 移动端卡片容器样式调整 */
+  .collection-container {
+    padding: 12px !important;
+    gap: 12px !important;
+  }
+
+  /* 编辑器容器适配 */
+  .editor-container textarea {
+    font-size: 16px !important; /* 16px是iOS上不会自动缩放的最小字体大小 */
+    line-height: 1.5 !important;
+    padding: 14px !important;
+    min-height: 120px !important;
+    border-radius: 8px !important;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  /* 编辑器输入增强 */
+  .editor-container textarea:focus {
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05), 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+  }
+
+  /* 适配横向滚动容器 */
+  .horizontal-scroll-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 8px !important; /* 增加底部内边距，方便滚动 */
+    scroll-snap-type: x mandatory !important; /* 添加滚动捕捉 */
+    scrollbar-width: none !important; /* 隐藏Firefox滚动条 */
+    margin: 0 -12px !important; /* 负边距补偿内边距 */
+    padding-left: 12px !important; /* 左侧内边距 */
+    padding-right: 12px !important; /* 右侧内边距 */
+  }
+
+  .horizontal-scroll-container::-webkit-scrollbar {
+    display: none !important; /* 隐藏WebKit滚动条 */
+  }
+
+  /* 横向滚动时的卡片样式 */
+  .horizontal-scroll-container .draggable-card {
+    min-width: 260px !important;
+    max-width: 85vw !important;
+    margin-right: 12px !important;
+    scroll-snap-align: start !important; /* 滚动捕捉对齐 */
+    flex-shrink: 0 !important;
+  }
+
+  /* 横向滚动指示器 */
+  .horizontal-scroll-indicator {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+    z-index: 2;
+  }
+
+  .horizontal-scroll-indicator-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: rgba(203, 213, 225, 0.8);
+    transition: all 0.2s ease;
+  }
+
+  .horizontal-scroll-indicator-dot.active {
+    background-color: rgba(59, 130, 246, 0.8);
+    width: 16px;
+    border-radius: 3px;
+  }
+
+  /* 网格布局适配 */
+  .grid-layout {
+    grid-template-columns: repeat(auto-fill, minmax(100%, 1fr)) !important;
+  }
+
+  /* 自适应布局在移动端默认为垂直布局 */
+  .adaptive-layout {
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+  }
+
+  /* 对话框适配 */
+  .dialog-content {
+    width: 92vw !important;
+    max-width: 400px !important;
+    padding: 18px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+    animation: dialog-slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  @keyframes dialog-slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .dialog-backdrop {
+    backdrop-filter: blur(4px) !important;
+    background-color: rgba(0, 0, 0, 0.4) !important;
+    animation: backdrop-fade 0.2s ease !important;
+  }
+
+  @keyframes backdrop-fade {
+    from {
+      opacity: 0;
+      backdrop-filter: blur(0px);
+    }
+    to {
+      opacity: 1;
+      backdrop-filter: blur(4px);
+    }
+  }
+
+  /* 对话框按钮样式增强 */
+  .dialog-primary-button,
+  .dialog-secondary-button {
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .dialog-primary-button {
+    background-color: #3b82f6 !important;
+    color: white !important;
+  }
+
+  .dialog-secondary-button {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+  }
+
+  .dialog-primary-button:active {
+    background-color: #2563eb !important;
+    transform: scale(0.97) !important;
+  }
+
+  .dialog-secondary-button:active {
+    background-color: #e2e8f0 !important;
+    transform: scale(0.97) !important;
+  }
+
+  /* 按钮图标 */
+  .dialog-button-icon {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  /* 小屏幕下隐藏按钮文字 */
+  @media (max-width: 480px) {
+    .dialog-button-text {
+      display: none !important;
+    }
+
+    .dialog-button-icon {
+      margin: 0 !important;
+    }
+
+    .dialog-primary-button,
+    .dialog-secondary-button {
+      width: 40px !important;
+      min-width: 40px !important;
+      padding: 8px !important;
+    }
+  }
+
+  /* 按钮触摸区域优化 */
+  button {
+    min-height: 40px !important; /* 确保按钮高度足够大，方便点击 */
+    touch-action: manipulation !important; /* 优化触摸体验 */
+    border-radius: 8px !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  /* 添加卡片空状态适配 */
+  .empty-state {
+    padding: 28px 16px !important;
+    border-radius: 12px !important;
+    background-color: rgba(249, 250, 251, 0.8) !important;
+    backdrop-filter: blur(8px) !important;
+    text-align: center !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03) !important;
+    margin: 0 auto !important;
+    max-width: 90% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+  }
+
+  .empty-state-icon {
+    width: 48px !important;
+    height: 48px !important;
+    color: #64748b !important;
+    margin-bottom: 4px !important;
+  }
+
+  .empty-state-title {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+    margin-bottom: 4px !important;
+  }
+
+  .empty-state-message {
+    font-size: 14px !important;
+    color: #64748b !important;
+    line-height: 1.5 !important;
+  }
+
+  /* 移动端折叠动画优化 */
+  .collapse-transition {
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    overflow: hidden !important;
+  }
+
+  /* 移动端阴影效果优化 */
+  .card-shadow {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  .card-shadow-sm {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  /* 移动端触摸反馈 */
+  .touch-feedback:active {
+    transform: scale(0.97) !important;
+    opacity: 0.9 !important;
+  }
+
+  /* 表单元素适配 */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important; /* 防止iOS自动缩放 */
+    padding: 12px !important;
+    border-radius: 8px !important;
+    appearance: none !important; /* 移除默认样式 */
+    border: 1px solid #e2e8f0 !important;
+    background-color: #fff !important;
+    transition: all 0.2s ease !important;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+    outline: none !important;
+  }
+
+  /* 列表样式适配 */
+  .list-layout .draggable-card {
+    margin-bottom: 8px !important;
+    border-radius: 10px !important;
+  }
+
+  /* 卡片间距优化 */
+  .card-gap {
+    gap: 12px !important;
+  }
+
+  /* 改进的滚动体验 */
+  .smooth-scroll {
+    scroll-behavior: smooth !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* 移动端卡片标题栏 */
+  .mobile-title-bar {
+    padding: 12px 14px !important;
+    min-height: 48px !important;
+    background-color: rgba(248, 250, 252, 0.9) !important;
+    backdrop-filter: blur(8px) !important;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  /* 移动端图标大小 */
+  .mobile-icon {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  /* 移动端长按提示 */
+  .long-press-hint {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: #64748b;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    background-color: rgba(248, 250, 252, 0.9);
+    padding: 4px 8px;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .draggable-card:active .long-press-hint {
+    opacity: 1;
+  }
+
+  /* 滑动操作菜单 */
+  .swipe-action-wrapper {
+    position: relative !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    border-radius: 12px !important;
+  }
+
+  .swipe-action-content {
+    width: 100% !important;
+    transition: transform 0.3s ease !important;
+  }
+
+  .swipe-action-menu {
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: stretch !important;
+    transform: translateX(100%) !important;
+  }
+
+  .swipe-action-button {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 60px !important;
+    padding: 0 !important;
+    border: none !important;
+    color: white !important;
+    font-size: 14px !important;
+  }
+
+  .swipe-action-delete {
+    background-color: #ef4444 !important;
+  }
+
+  .swipe-action-edit {
+    background-color: #3b82f6 !important;
+  }
+}
+
+/* 小屏幕手机适配 (小于375px) */
+@media (max-width: 375px) {
+  .title-bar-button {
+    width: 28px !important;
+    height: 28px !important;
+    padding: 4px !important;
+  }
+
+  .title-text {
+    max-width: calc(100% - 100px) !important;
+    font-size: 14px !important;
+  }
+
+  .collection-container {
+    padding: 8px !important;
+  }
+
+  .dialog-content {
+    padding: 16px !important;
+  }
+
+  .horizontal-scroll-container .draggable-card {
+    min-width: 240px !important;
+  }
+}
+
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+  .draggable-card {
+    background-color: rgba(30, 41, 59, 0.8) !important;
+    border-color: rgba(71, 85, 105, 0.3) !important;
+  }
+
+  .title-text {
+    color: rgba(248, 250, 252, 0.9) !important;
+  }
+
+  .mobile-title-bar {
+    background-color: rgba(30, 41, 59, 0.9) !important;
+    border-bottom: 1px solid rgba(71, 85, 105, 0.3) !important;
+  }
+
+  .editor-container textarea {
+    background-color: rgba(30, 41, 59, 0.7) !important;
+    color: rgba(248, 250, 252, 0.9) !important;
+    border-color: rgba(71, 85, 105, 0.4) !important;
+  }
+
+  .dialog-content {
+    background-color: rgba(30, 41, 59, 0.95) !important;
+    color: rgba(248, 250, 252, 0.9) !important;
+  }
+
+  .empty-state {
+    background-color: rgba(30, 41, 59, 0.5) !important;
+    color: rgba(248, 250, 252, 0.7) !important;
+  }
+
+  .dialog-secondary-button {
+    background-color: rgba(51, 65, 85, 0.8) !important;
+    color: rgba(248, 250, 252, 0.9) !important;
+  }
+
+  .empty-state-title {
+    color: rgba(248, 250, 252, 0.9) !important;
+  }
+
+  .empty-state-message {
+    color: rgba(148, 163, 184, 0.9) !important;
+  }
+
+  .long-press-hint {
+    background-color: rgba(30, 41, 59, 0.9) !important;
+    color: rgba(148, 163, 184, 0.9) !important;
+  }
+
+  input,
+  select,
+  textarea {
+    background-color: rgba(30, 41, 59, 0.7) !important;
+    border-color: rgba(71, 85, 105, 0.4) !important;
+    color: rgba(248, 250, 252, 0.9) !important;
+  }
+
+  .more-menu {
+    background-color: rgba(30, 41, 59, 0.95) !important;
+    border: 1px solid rgba(71, 85, 105, 0.3) !important;
+  }
+
+  .menu-item {
+    color: rgba(248, 250, 252, 0.9) !important;
+  }
+
+  .menu-item:active {
+    background-color: rgba(51, 65, 85, 0.6) !important;
+  }
+
+  .menu-divider {
+    background-color: rgba(71, 85, 105, 0.4) !important;
+  }
+}

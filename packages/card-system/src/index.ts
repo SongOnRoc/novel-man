@@ -10,3 +10,22 @@ export { AddCardDialog, RelateDialog, LayoutStyleDialog } from "./components/dia
 export { DndAdapter } from "./components/dnd-adapter";
 export { DefaultCardFactory } from "./card-factory";
 export { CardSystemDndKit } from "./card-system-dndkit";
+
+// 导出类型定义
+export type {
+  BaseCardProps,
+  CardProperty,
+  CardButtonsConfig,
+  CardComponentProps,
+  CardSystemProps,
+} from "./types";
+
+// 导出枚举
+export { CardContainerType, CollectionLayoutStyle } from "./types";
+
+// 导出移动端工具函数和钩子
+export { isMobileDevice, isTouchDevice, getDeviceType } from "./utils/mobile-utils";
+export { useResponsive, getResponsiveStyles, getResponsiveValue } from "./hooks/useResponsive";
+
+// 导入样式文件
+import "./styles/mobile.css";

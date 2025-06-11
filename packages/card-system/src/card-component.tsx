@@ -1,8 +1,10 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Container } from "./components/container";
 // ContainerDndKit is no longer needed as its logic is merged into Container
 import { AddCardDialog, LayoutStyleDialog, RelateDialog } from "./components/dialogs";
 import { TitleBar } from "./components/title-bar";
+import { useResponsive } from "./hooks/useResponsive";
+import { getResponsiveValue } from "./hooks/useResponsive";
 import { type CardComponentProps, CardContainerType, type CardProperty, CollectionLayoutStyle } from "./types";
 
 // 基础卡片组件
@@ -28,12 +30,20 @@ export function CardComponent({
   onOpenAddDialog,
   moveCard,
   onNavigateToRelated,
+  onBatchUpdateCards,
   // useDndKit prop is no longer needed, defaulting to dnd-kit behavior
 }: CardComponentProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isRelateDialogOpen, setIsRelateDialogOpen] = useState(false);
   const [isLayoutStyleDialogOpen, setIsLayoutStyleDialogOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false); // 添加悬停状态
+
+  // 使用响应式钩子获取设备信息
+  const { isMobile: isAutoDetectedMobile, deviceType } = useResponsive();
+
+  // 优先使用传入的isMobile参数，如果没有则使用自动检测的结果
+  const isMobileDevice = isMobile || isAutoDetectedMobile;
 
   // 使用用户提供的按钮配置，如果没有则使用默认值
   const _showEditButton = card.showEditButton ?? buttonsConfig.showEditButton;
@@ -46,6 +56,16 @@ export function CardComponent({
   const isEditorCard = card.containerType === CardContainerType.EDITOR;
   // 是否为集合类型卡片
   const isCollectionCard = card.containerType === CardContainerType.COLLECTION;
+
+  // 为移动端优化按钮配置
+  useEffect(() => {
+    if (isMobileDevice && isCollectionCard) {
+      // 在移动端，如果是集合类型卡片，优先使用垂直或列表布局
+      if (card.layoutStyle === CollectionLayoutStyle.ADAPTIVE || card.layoutStyle === CollectionLayoutStyle.GRID) {
+        onUpdateCard(card.id, { layoutStyle: CollectionLayoutStyle.VERTICAL });
+      }
+    }
+  }, [isMobileDevice, isCollectionCard, card.id, card.layoutStyle, onUpdateCard]);
 
   const handleToggleCollapse = () => {
     onUpdateCard(card.id, { isCollapsed: !card.isCollapsed });
@@ -124,10 +144,11 @@ export function CardComponent({
   );
 
   const handleAddCollectionCard = useCallback(
-    (title?: string, props?: CardProperty[]) => {
+    (title?: string, props?: CardProperty[], hideTitle?: boolean) => {
       if (onAddCard) {
         onAddCard(CardContainerType.COLLECTION, {
           title,
+          hideTitle,
           props: props || [],
           parentId: card.id,
         });
@@ -171,20 +192,98 @@ export function CardComponent({
     }
   }, [card.id, card.isVisible, onUpdateCard]);
 
+  // 一键折叠所有子卡片
+  const handleCollapseAllCards = useCallback(
+    (parentId: string) => {
+      // 检查是否有子卡片
+      if (card.childCards && card.childCards.length > 0) {
+        // 如果有批量更新函数，使用批量更新
+        if (onBatchUpdateCards) {
+          // 准备批量更新数据
+          const updates = card.childCards
+            .filter((childCard) => !childCard.isCollapsed)
+            .map((childCard) => ({
+              id: childCard.id,
+              updates: { isCollapsed: true },
+            }));
+
+          // 如果有需要更新的卡片，执行批量更新
+          if (updates.length > 0) {
+            onBatchUpdateCards(updates);
+          }
+        } else {
+          // 如果没有批量更新函数，使用单个更新
+          card.childCards
+            .filter((childCard) => !childCard.isCollapsed)
+            .forEach((childCard) => {
+              onUpdateCard(childCard.id, { isCollapsed: true });
+            });
+        }
+      }
+    },
+    [card.childCards, onUpdateCard, onBatchUpdateCards],
+  );
+
+  // 获取卡片类型对应的主题颜色
+  const getCardThemeColor = () => {
+    if (card.themeColor) return card.themeColor;
+    return isEditorCard ? "#3b82f6" : "#6366f1";
+  };
+
+  // 根据设备类型获取响应式内边距
+  const getCardPadding = () => {
+    return getResponsiveValue(
+      "12px 16px", // 移动端
+      "14px 18px", // 平板
+      "16px 20px", // 桌面端
+    );
+  };
+
   // 卡片的主样式
   const cardStyle = {
-    border: card.hideBorder ? "none" : "1px solid #ccc",
-    borderRadius: "4px",
+    border: card.hideBorder ? "none" : "1px solid rgba(203, 213, 225, 0.3)",
+    borderRadius: isMobileDevice ? "12px" : "16px",
     overflow: "hidden",
     width: "100%",
     display: "flex",
     flexDirection: "column" as const,
     boxSizing: "border-box" as const,
     opacity: card.isVisible === false ? 0.5 : 1, // 根据可见性设置透明度
+    boxShadow: isHovered
+      ? isMobileDevice
+        ? "0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03)"
+        : "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+      : isMobileDevice
+        ? "0 2px 4px -1px rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02)"
+        : "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)",
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    background: "#ffffff",
+    position: "relative" as const,
+    transform: isHovered && !isMobileDevice ? "translateY(-4px)" : "translateY(0)",
+    backfaceVisibility: "hidden" as const, // 防止变换时出现锯齿
+    maxWidth: "100%", // 确保卡片不会超出容器宽度
   };
 
+  // 移动端特定的类名
+  const mobileClassName = isMobileDevice ? "mobile-card" : "";
+
   return (
-    <div style={cardStyle}>
+    <div
+      style={cardStyle}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`card-component ${mobileClassName} ${isEditorCard ? "editor-card" : "collection-card"}`}
+    >
+      {/* 卡片顶部彩色指示条 */}
+      <div
+        style={{
+          height: isMobileDevice ? "4px" : "6px",
+          background: `linear-gradient(90deg, ${getCardThemeColor()} 0%, ${getCardThemeColor()}CC 100%)`,
+          width: "100%",
+          transition: "background 0.3s ease",
+        }}
+      />
+
       {/* 标题栏 - 显示条件：有标题栏或者无头卡片处于折叠状态 */}
       {(!card.hideTitle || (card.hideTitle && card.isCollapsed)) && (
         <TitleBar
@@ -207,35 +306,52 @@ export function CardComponent({
           onNavigateToRelated={onNavigateToRelated}
           isTemporaryVisible={card.hideTitle && card.isCollapsed} // 添加临时可见标记，用于无头卡片折叠状态
           hasToggleButton={card.hideTitle} // 添加标题栏切换按钮标记
+          onUpdateCard={onUpdateCard}
+          onCollapseAllCards={handleCollapseAllCards} // 添加一键折叠所有子卡片的回调
+          isMobile={isMobileDevice} // 传递移动端标志
         />
       )}
 
-      {/* 容器内容 */}
-      {!card.isCollapsed && (
-        <Container
-          card={card}
-          containerType={card.containerType}
-          layoutStyle={card.layoutStyle || layoutStyle}
-          onUpdateCard={onUpdateCard}
-          onDeleteCard={onDeleteCard}
-          onAddCard={onAddCard}
-          onRelateCard={onRelateCard}
-          onUnrelateCard={onUnrelateCard}
-          onChangeLayoutStyle={onChangeLayoutStyle}
-          buttonsConfig={buttonsConfig}
-          attributeOptions={attributeOptions}
-          availableRelateItems={availableRelateItems}
-          moveCard={moveCard}
-          onNavigateToRelated={onNavigateToRelated}
-          onToggleCollapse={handleToggleCollapse}
-          onTitleEdit={handleTitleEdit}
-          onAddButtonClick={handleAddButtonClick}
-          isEditingTitle={isEditingTitle}
-          onTitleInputChange={handleTitleChange}
-          onTitleInputSave={handleTitleSave}
-          useDndKit={true}
-        />
-      )}
+      {/* 容器内容 - 添加折叠/展开动画 */}
+      <div
+        style={{
+          maxHeight: card.isCollapsed ? "0" : "2000px",
+          overflow: "hidden",
+          transition: isMobileDevice
+            ? "max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+            : "max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+          opacity: card.isCollapsed ? 0 : 1,
+        }}
+        className="collapse-transition"
+      >
+        {!card.isCollapsed && (
+          <Container
+            card={card}
+            containerType={card.containerType}
+            layoutStyle={card.layoutStyle || layoutStyle}
+            onUpdateCard={onUpdateCard}
+            onDeleteCard={onDeleteCard}
+            onAddCard={onAddCard}
+            onRelateCard={onRelateCard}
+            onUnrelateCard={onUnrelateCard}
+            onChangeLayoutStyle={onChangeLayoutStyle}
+            buttonsConfig={buttonsConfig}
+            attributeOptions={attributeOptions}
+            availableRelateItems={availableRelateItems}
+            moveCard={moveCard}
+            onNavigateToRelated={onNavigateToRelated}
+            onToggleCollapse={handleToggleCollapse}
+            onTitleEdit={handleTitleEdit}
+            onAddButtonClick={handleAddButtonClick}
+            isEditingTitle={isEditingTitle}
+            onTitleInputChange={handleTitleChange}
+            onTitleInputSave={handleTitleSave}
+            useDndKit={true}
+            onBatchUpdateCards={onBatchUpdateCards}
+            isMobile={isMobileDevice} // 传递移动端标志
+          />
+        )}
+      </div>
 
       {/* 添加卡片对话框 */}
       <AddCardDialog
@@ -244,14 +360,16 @@ export function CardComponent({
         onAddEditorCard={handleAddEditorCard}
         onAddCollectionCard={handleAddCollectionCard}
         attributeOptions={attributeOptions}
+        isMobile={isMobileDevice} // 传递移动端标志
       />
 
       {/* 关联对话框 */}
       <RelateDialog
         open={isRelateDialogOpen}
         onClose={() => setIsRelateDialogOpen(false)}
-        onConfirm={handleRelateItemConfirm}
-        availableItems={availableRelateItems}
+        onRelateItem={handleRelateItemConfirm}
+        availableRelateItems={availableRelateItems || []}
+        isMobile={isMobileDevice} // 传递移动端标志
       />
 
       {/* 布局样式对话框 */}
@@ -260,6 +378,7 @@ export function CardComponent({
         onClose={() => setIsLayoutStyleDialogOpen(false)}
         onConfirm={handleLayoutStyleConfirm}
         currentStyle={card.layoutStyle || layoutStyle}
+        isMobile={isMobileDevice} // 传递移动端标志
       />
     </div>
   );

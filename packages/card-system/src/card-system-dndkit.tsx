@@ -543,6 +543,7 @@ export function CardSystemDndKit({
           }}
           moveCard={handleMoveCard}
           useDndKit={true} // This prop is no longer strictly necessary in CardComponent but kept for now
+          onBatchUpdateCards={handleBatchUpdateCards} // 传递批量更新函数
         />
       </DraggableCard> // Ensured JSX closing tag is DraggableCard
     );
@@ -553,6 +554,45 @@ export function CardSystemDndKit({
     // 直接返回子卡片的映射结果
     return childCards.map((childCard, index) => renderCard(childCard, index, parentId));
   };
+
+  // 批量更新多张卡片
+  const handleBatchUpdateCards = useCallback(
+    (updates: Array<{ id: string; updates: Partial<BaseCardProps> }>) => {
+      // 创建一个新的卡片数组副本
+      let newCards = [...cards];
+
+      // 定义递归函数来更新卡片数组中的特定卡片
+      const updateCardInArray = (
+        cardsArray: BaseCardProps[],
+        cardId: string,
+        cardUpdates: Partial<BaseCardProps>,
+      ): BaseCardProps[] => {
+        return cardsArray.map((card) => {
+          if (card.id === cardId) {
+            return { ...card, ...cardUpdates };
+          }
+
+          if (card.childCards && card.childCards.length > 0) {
+            return {
+              ...card,
+              childCards: updateCardInArray(card.childCards, cardId, cardUpdates),
+            };
+          }
+
+          return card;
+        });
+      };
+
+      // 应用所有更新
+      updates.forEach(({ id, updates: cardUpdates }) => {
+        newCards = updateCardInArray(newCards, id, cardUpdates);
+      });
+
+      // 一次性更新状态
+      updateCards(newCards);
+    },
+    [cards, updateCards],
+  );
 
   // 返回整个卡片系统
   return (
