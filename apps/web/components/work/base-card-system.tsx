@@ -998,7 +998,7 @@ export function CardSystem({
             暂无内容，点击"{addButtonText}"按钮创建
           </div>
         ) : (
-          <div className="grid gap-4 px-4 sm:px-0">
+          <div className="grid gap-4 px-4 sm:px-0" style={{ width: "100%", maxWidth: "100%", overflow: "hidden" }}>
             {cards.map((card, index) => {
               if (!card) return null; // 添加空值检查
               return renderCard ? (

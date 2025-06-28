@@ -20,6 +20,33 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
   }
 
+  /* 防止内容溢出 */
+  .card-component,
+  .card-editor-container,
+  .card-collection-container,
+  .card-children-container,
+  .card-empty-container,
+  .card-editor-textarea,
+  .card-editor-textarea-readonly,
+  .card-editor-placeholder,
+  .card-empty-title,
+  .card-empty-description,
+  .card-empty-add-button {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    word-wrap: break-word !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 确保所有内容元素都不会溢出 */
+  .card-component *,
+  .card-editor-container *,
+  .card-collection-container * {
+    max-width: 100% !important;
+    overflow-wrap: break-word !important;
+    box-sizing: border-box !important;
+  }
+
   .draggable-card:active {
     transform: scale(0.98) !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;

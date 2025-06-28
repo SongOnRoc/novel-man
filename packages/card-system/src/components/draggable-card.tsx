@@ -49,7 +49,7 @@ export function DraggableCard({
   const getDragHandleIcon = () => {
     return (
       <div
-        className="drag-handle"
+        className="drag-handle card-drag-handle"
         style={{
           position: "absolute",
           top: "8px",
@@ -76,6 +76,7 @@ export function DraggableCard({
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
           role="img"
+          className="drag-handle-icon"
         >
           <title>拖拽手柄图标</title>
           <path d="M8 6H10V8H8V6Z" fill="currentColor" />
@@ -93,7 +94,9 @@ export function DraggableCard({
     <div
       ref={setNodeRef} // 将可排序节点的引用附加到主div
       style={style}
-      className={`draggable-card ${isDragging ? "is-dragging" : ""}`}
+      className={`draggable-card card-draggable-container ${isDragging ? "is-dragging" : ""} ${
+        layoutStyle ? `layout-${layoutStyle.toLowerCase().replace(/_/g, "-")}` : ""
+      }`}
       data-card-id={id}
       data-card-index={index}
       data-parent-id={parentId || "root"}

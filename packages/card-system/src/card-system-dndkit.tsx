@@ -605,9 +605,9 @@ export function CardSystemDndKit({
         autoScroll={true}
       >
         <SortableContext items={getAllCardIds()} strategy={rectSortingStrategy}>
-          <div className="space-y-4 max-w-full">
-            <div className="flex flex-wrap justify-between items-center gap-2">
-              <h3 className="text-lg font-medium">{title}</h3>
+          <div className="space-y-4 max-w-full card-system-container">
+            <div className="flex flex-wrap justify-between items-center gap-2 card-system-header">
+              <h3 className="text-lg font-medium card-system-title">{title}</h3>
               <button
                 type="button"
                 onClick={() => {
@@ -621,9 +621,10 @@ export function CardSystemDndKit({
                   })
                 }
                 aria-label={`${addButtonText}`}
+                className="card-system-add-button"
               >
                 {/* 添加图标 */}
-                <span>➕</span> {addButtonText}
+                <span className="card-system-add-icon">➕</span> {addButtonText}
               </button>
             </div>
 
@@ -635,11 +636,14 @@ export function CardSystemDndKit({
                 backgroundColor: "rgba(249, 250, 251, 0.8)",
                 minHeight: "200px",
               }}
+              className="card-system-content-container"
             >
               {cards.length === 0 ? (
-                <div className="text-center py-8 border rounded-lg">暂无内容，点击"{addButtonText}"按钮创建</div>
+                <div className="text-center py-8 border rounded-lg card-system-empty-state">
+                  暂无内容，点击"{addButtonText}"按钮创建
+                </div>
               ) : (
-                <div className="grid gap-4">
+                <div className="grid gap-4 card-system-cards-grid">
                   {cards.map((card, index) => {
                     if (!card) return null; // 添加空值检查
                     return renderCard(card, index);

@@ -277,11 +277,12 @@ export function CardComponent({
       {/* 卡片顶部彩色指示条 */}
       <div
         style={{
-          height: isMobileDevice ? "4px" : "6px",
+          height: isMobileDevice ? "1px" : "1px",
           background: `linear-gradient(90deg, ${getCardThemeColor()} 0%, ${getCardThemeColor()}CC 100%)`,
           width: "100%",
           transition: "background 0.3s ease",
         }}
+        className="card-indicator-bar"
       />
 
       {/* 标题栏 - 显示条件：有标题栏或者无头卡片处于折叠状态 */}
@@ -322,7 +323,7 @@ export function CardComponent({
             : "max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
           opacity: card.isCollapsed ? 0 : 1,
         }}
-        className="collapse-transition"
+        className={`collapse-transition card-content-container ${card.isCollapsed ? "card-collapsed" : "card-expanded"}`}
       >
         {!card.isCollapsed && (
           <Container

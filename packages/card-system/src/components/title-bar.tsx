@@ -605,9 +605,15 @@ export function TitleBar({
   }, [showMoreMenu]);
 
   return (
-    <div style={dynamicTitleBarStyle} className={isMobile ? "mobile-title-bar" : ""}>
+    <div
+      style={dynamicTitleBarStyle}
+      className={`title-bar ${isMobile ? "mobile-title-bar" : ""} ${isTemporaryVisible ? "temporary-visible-title-bar" : ""} ${
+        isEditorCard ? "editor-title-bar" : "collection-title-bar"
+      }`}
+    >
       {/* 左侧区域 - 折叠按钮和标题 */}
-      <div style={leftSideStyle} className="title-left-side">
+      <div style={leftSideStyle} className="title-bar-left-side">
+        {/* 折叠按钮 */}
         <button
           type="button"
           onClick={onToggleCollapse}
@@ -618,6 +624,7 @@ export function TitleBar({
           <CollapseIcon isMobile={isMobile} isCollapsed={card.isCollapsed} />
         </button>
 
+        {/* 标题文本或输入框 */}
         {isEditingTitle && onTitleInputChange && onTitleInputSave ? (
           <input
             type="text"
@@ -644,7 +651,7 @@ export function TitleBar({
               fontSize: isMobile ? "14px" : "15px",
               transition: "all 0.2s ease",
             }}
-            className="title-text"
+            className="title-input"
           />
         ) : card.relatedItem ? (
           <a
@@ -667,7 +674,7 @@ export function TitleBar({
               borderBottom: `1px dashed ${getCardThemeColor()}50`,
             }}
             title={card.relatedItem.title}
-            className="title-text"
+            className="title-text title-text-link"
           >
             <RelateIcon isMobile={isMobile} />
             {card.relatedItem.title}
@@ -680,7 +687,7 @@ export function TitleBar({
       </div>
 
       {/* 右侧区域 - 功能按钮 */}
-      <div style={rightSideStyle} className="title-bar-buttons">
+      <div style={rightSideStyle} className="title-bar-right-side title-bar-buttons">
         {/* 移动端直接显示的按钮 */}
         {buttonVisibility.showAddDirectly && (
           <button
@@ -986,6 +993,9 @@ export function TitleBar({
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
+            className="title-toggle-icon"
+            role="img"
+            aria-label={card.hideTitle ? "显示标题栏图标" : "隐藏标题栏图标"}
           >
             <title>{card.hideTitle ? "显示标题栏" : "隐藏标题栏"}</title>
             {card.hideTitle ? <polyline points="6 9 12 15 18 9" /> : <polyline points="18 15 12 9 6 15" />}

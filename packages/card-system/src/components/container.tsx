@@ -240,6 +240,8 @@ export function Container({
     backdropFilter: "blur(8px)",
     cursor: containerType === CardContainerType.EDITOR && !isEditingContent ? "pointer" : "default",
     transition: "background-color 0.2s ease",
+    maxWidth: "100%", // 确保不超出父容器宽度
+    overflow: "hidden", // 防止内容溢出
   };
 
   // 编辑器文本区域样式
@@ -257,6 +259,10 @@ export function Container({
     boxShadow: "inset 0 2px 4px rgba(0, 0, 0, 0.04)",
     transition: "border-color 0.3s ease, box-shadow 0.3s ease",
     fontFamily: "inherit",
+    boxSizing: "border-box" as const,
+    maxWidth: "100%",
+    overflowWrap: "break-word" as const,
+    wordBreak: "break-word" as const,
   };
 
   // 获取布局的Flex方向
@@ -293,13 +299,14 @@ export function Container({
         : ("nowrap" as const),
     overflow: layoutStyle === CollectionLayoutStyle.HORIZONTAL ? "auto hidden" : "visible",
     alignItems: "flex-start",
+    maxWidth: "100%", // 确保不超出父容器宽度
   };
 
   // 编辑器类型卡片的渲染
   if (containerType === CardContainerType.EDITOR) {
     return (
       <div
-        className={`editor-container ${isMobile ? "mobile-editor-container" : ""}`}
+        className={`editor-container card-editor-container ${isMobile ? "mobile-editor-container" : ""}`}
         style={editorContainerStyle}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -401,6 +408,7 @@ export function Container({
             onBlur={() => setIsEditingContent(false)}
             style={textareaStyle}
             placeholder="在此输入内容..."
+            className="card-editor-textarea"
           />
         ) : (
           <textarea
@@ -410,11 +418,13 @@ export function Container({
             style={textareaStyle}
             aria-label="点击编辑内容"
             value={card.content || ""}
+            className="card-editor-textarea-readonly"
           />
         )}
 
         {!card.content && !isEditingContent && (
           <div
+            className="card-editor-placeholder"
             style={{
               display: "flex",
               flexDirection: "column",
@@ -432,6 +442,9 @@ export function Container({
               pointerEvents: "none",
               backgroundColor: "rgba(249, 250, 251, 0.5)",
               borderRadius: isHeadless ? "8px" : "0 0 12px 12px",
+              boxSizing: "border-box",
+              maxWidth: "100%",
+              overflow: "hidden",
             }}
           >
             <svg
@@ -465,7 +478,7 @@ export function Container({
   return (
     <div
       ref={setNodeRef}
-      className={`collection-container ${isMobile ? "mobile-collection-container" : ""} ${
+      className={`collection-container card-collection-container ${isMobile ? "mobile-collection-container" : ""} ${
         layoutStyle === CollectionLayoutStyle.HORIZONTAL ? "horizontal-scroll-container" : ""
       } ${layoutStyle === CollectionLayoutStyle.GRID ? "grid-layout" : ""} ${
         layoutStyle === CollectionLayoutStyle.ADAPTIVE ? "adaptive-layout" : ""
@@ -528,6 +541,7 @@ export function Container({
       {/* 集合内容区域 */}
       {card.childCards && card.childCards.length > 0 ? (
         <div
+          className="card-children-container"
           style={{
             display: layoutStyle === CollectionLayoutStyle.GRID ? "grid" : "flex",
             gridTemplateColumns:
@@ -539,6 +553,9 @@ export function Container({
             flexWrap: layoutStyle === CollectionLayoutStyle.ADAPTIVE ? "wrap" : "nowrap",
             gap: layoutStyle === CollectionLayoutStyle.LIST ? "8px" : "16px",
             width: "100%",
+            boxSizing: "border-box",
+            maxWidth: "100%",
+            overflow: "hidden",
             transition: "all 0.3s ease",
           }}
         >
@@ -577,6 +594,7 @@ export function Container({
         </div>
       ) : (
         <div
+          className="card-empty-container"
           style={{
             display: "flex",
             flexDirection: "column",
@@ -587,11 +605,14 @@ export function Container({
             textAlign: "center",
             minHeight: "180px",
             width: "100%",
+            boxSizing: "border-box",
             backgroundColor: "rgba(249, 250, 251, 0.7)",
             borderRadius: "12px",
             border: "1px dashed #cbd5e1",
             backdropFilter: "blur(4px)",
             boxShadow: "inset 0 2px 4px 0 rgba(0, 0, 0, 0.02)",
+            maxWidth: "100%",
+            overflow: "hidden",
           }}
         >
           <svg
@@ -606,16 +627,27 @@ export function Container({
             style={{
               opacity: 0.6,
             }}
+            className="card-empty-icon"
           >
             <title>添加卡片</title>
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
             <line x1="8" y1="12" x2="16" y2="12" />
             <line x1="12" y1="8" x2="12" y2="16" />
           </svg>
-          <p style={{ marginTop: "16px", fontSize: "16px", fontWeight: 500 }}>
+          <p style={{ marginTop: "16px", fontSize: "16px", fontWeight: 500 }} className="card-empty-title">
             {isCollection ? "此集合中还没有卡片" : "点击此处开始编辑内容"}
           </p>
-          <p style={{ fontSize: "14px", opacity: 0.8, maxWidth: "300px", margin: "8px 0 0 0" }}>
+          <p
+            style={{
+              fontSize: "14px",
+              opacity: 0.8,
+              maxWidth: "100%",
+              margin: "8px 0 0 0",
+              overflowWrap: "break-word",
+              wordBreak: "break-word",
+            }}
+            className="card-empty-description"
+          >
             {isCollection ? "拖动卡片到此处或点击添加按钮创建新卡片" : "您可以在这里添加文本、笔记或任何需要的内容"}
           </p>
           {isCollection && onAddButtonClick && (
@@ -637,7 +669,11 @@ export function Container({
                 gap: "8px",
                 boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
                 transition: "all 0.2s ease",
+                boxSizing: "border-box",
+                maxWidth: "100%",
+                overflow: "hidden",
               }}
+              className="card-empty-add-button"
             >
               <svg
                 width="16"
@@ -648,6 +684,7 @@ export function Container({
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                className="card-empty-add-button-icon"
               >
                 <title>添加卡片</title>
                 <line x1="12" y1="5" x2="12" y2="19" />
