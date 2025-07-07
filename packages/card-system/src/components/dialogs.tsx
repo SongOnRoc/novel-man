@@ -761,8 +761,6 @@ export function LayoutStyleDialog({
     { value: CollectionLayoutStyle.VERTICAL, label: "垂直排列", icon: "↓" },
     { value: CollectionLayoutStyle.HORIZONTAL, label: "水平排列", icon: "→" },
     { value: CollectionLayoutStyle.ADAPTIVE, label: "自适应排列", icon: "⇲" },
-    { value: CollectionLayoutStyle.GRID, label: "网格排列", icon: "⊞" },
-    { value: CollectionLayoutStyle.LIST, label: "列表排列", icon: "≡" },
   ];
 
   // 确定是否为小屏幕设备

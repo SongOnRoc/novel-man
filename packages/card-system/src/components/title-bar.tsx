@@ -26,6 +26,8 @@ interface TitleBarProps {
   onUpdateCard?: (id: string, updates: Partial<BaseCardProps>) => void; // 添加更新卡片属性的回调
   onCollapseAllCards?: (id: string) => void; // 新增：一键折叠所有子卡片的回调
   isMobile?: boolean; // 新增：移动端标志
+  useCompactButtons?: boolean; // New prop for compact buttons
+  minTitleBarWidth?: number; // New prop for minimum title bar width
 }
 
 // 添加图标组件
@@ -247,11 +249,50 @@ export function TitleBar({
   onUpdateCard, // 添加解构
   onCollapseAllCards, // 添加解构
   isMobile = false, // 默认为false
+  useCompactButtons = false, // 新增：是否使用紧凑按钮模式
 }: TitleBarProps) {
   // 添加折叠菜单状态
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null); // 添加菜单引用
   const buttonRef = useRef<HTMLButtonElement>(null); // 添加按钮引用
+  const titleBarRef = useRef<HTMLDivElement>(null); // 添加标题栏引用
+  const titleTextRef = useRef<HTMLDivElement>(null); // 添加标题文本引用
+  const buttonsContainerRef = useRef<HTMLDivElement>(null); // 添加按钮容器引用
+
+  // 添加自适应按钮状态
+  const [shouldUseCompactButtons, setShouldUseCompactButtons] = useState(useCompactButtons || isMobile);
+  const [lastWidth, setLastWidth] = useState(0); // 添加上次宽度记录，避免频繁切换
+
+  // 强制刷新标志，用于处理编辑器卡片的特殊情况
+  useEffect(() => {
+    // 当卡片类型或标题变化时，重新检查宽度
+    if (titleBarRef.current && titleTextRef.current && buttonsContainerRef.current) {
+      // 获取当前宽度
+      const titleBarWidth = titleBarRef.current.clientWidth || 0;
+      const allButtonsWidth = buttonsContainerRef.current.scrollWidth || 0;
+      const titleWidth = titleTextRef.current.scrollWidth || 0;
+
+      // 计算左侧区域宽度
+      const leftSideExtraWidth = 50;
+
+      // 计算右侧区域最小宽度（两个主要按钮）
+      const minRightSideWidth = 80;
+
+      // 计算中间间隔区域的初始宽度
+      const initialMiddleGap = 20;
+
+      // 计算总内容宽度
+      const totalContentWidth = titleWidth + allButtonsWidth + leftSideExtraWidth + initialMiddleGap;
+
+      // 检查是否需要使用紧凑模式
+      const shouldCompact = totalContentWidth > titleBarWidth;
+
+      // 如果需要使用紧凑模式，立即更新状态
+      if (shouldCompact) {
+        setShouldUseCompactButtons(true);
+      }
+    }
+  }, [isEditorCard, isCollectionCard, card.title, card.id]);
 
   // 添加菜单位置状态
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
@@ -276,60 +317,65 @@ export function TitleBar({
 
   // 根据卡片类型确定哪些按钮直接显示，哪些放入更多菜单
   const getButtonVisibility = () => {
-    // 非移动端模式下所有按钮都直接显示
-    if (!isMobile) {
+    // 如果宽度足够，显示所有按钮，不使用"更多"菜单
+    if (!shouldUseCompactButtons) {
       return {
         showAddDirectly: showAddButton,
         showEditDirectly: showEditButton,
         showRelateDirectly: showRelateButton,
         showDeleteDirectly: showDeleteButton && !!onDeleteCard,
-        hasMoreMenu: false,
+        showLayoutStyleDirectly: showLayoutStyleButton,
+        showVisibilityDirectly: showVisibilityButton,
+        showCollapseAllDirectly: showCollapseAllButton,
+        hasMoreMenu: false, // 不显示更多菜单
       };
     }
 
-    // 移动端模式下的按钮显示逻辑
-    if (isCollectionCard) {
-      // 容器类卡片：只直接显示添加和删除按钮
+    // 宽度不够时，根据卡片类型优先显示最重要的按钮
+    if (isEditorCard) {
+      // 编辑器类卡片：优先显示编辑按钮
       return {
-        showAddDirectly: showAddButton,
-        showEditDirectly: false,
+        showAddDirectly: false,
+        showEditDirectly: showEditButton,
         showRelateDirectly: false,
-        showDeleteDirectly: showDeleteButton && !!onDeleteCard,
+        showDeleteDirectly: false,
+        showLayoutStyleDirectly: false,
+        showVisibilityDirectly: false,
+        showCollapseAllDirectly: false,
         hasMoreMenu: [
-          showEditButton,
+          showAddButton,
+          showDeleteButton && !!onDeleteCard,
           showRelateButton,
           showLayoutStyleButton,
           showVisibilityButton,
-          showCollapseAllButton,
         ].some(Boolean),
       };
     }
 
-    if (isEditorCard) {
-      // 编辑器类卡片：只直接显示关联和删除按钮
-      return {
-        showAddDirectly: false,
-        showEditDirectly: false,
-        showRelateDirectly: showRelateButton,
-        showDeleteDirectly: showDeleteButton && !!onDeleteCard,
-        hasMoreMenu: [showAddButton, showEditButton, showLayoutStyleButton, showVisibilityButton].some(Boolean),
-      };
-    }
-
-    // 默认卡片：保留添加、编辑和删除按钮
+    // 集合类卡片或其他类型：优先显示添加按钮
     return {
       showAddDirectly: showAddButton,
-      showEditDirectly: showEditButton,
+      showEditDirectly: false,
       showRelateDirectly: false,
-      showDeleteDirectly: showDeleteButton && !!onDeleteCard,
-      hasMoreMenu: [showRelateButton, showLayoutStyleButton, showVisibilityButton, showCollapseAllButton].some(Boolean),
+      showDeleteDirectly: false,
+      showLayoutStyleDirectly: false,
+      showVisibilityDirectly: false,
+      showCollapseAllDirectly: false,
+      hasMoreMenu: [
+        showEditButton,
+        showDeleteButton && !!onDeleteCard,
+        showRelateButton,
+        showLayoutStyleButton,
+        showVisibilityButton,
+        showCollapseAllButton,
+      ].some(Boolean),
     };
   };
 
   const buttonVisibility = getButtonVisibility();
 
   // 计算是否需要显示更多按钮
-  const shouldShowMoreButton = isMobile && buttonVisibility.hasMoreMenu;
+  const shouldShowMoreButton = buttonVisibility.hasMoreMenu;
 
   const {
     handleAddButtonClick,
@@ -361,21 +407,6 @@ export function TitleBar({
     return isEditorCard ? "#3b82f6" : "#6366f1";
   };
 
-  // 标题文本样式
-  const titleTextStyle = {
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap" as const,
-    fontSize: isMobile ? "15px" : "15px",
-    fontWeight: 600,
-    color: "#334155",
-    letterSpacing: "-0.01em",
-    flexShrink: 1,
-    flexGrow: 1, // 让标题尽可能占据更多空间
-    minWidth: "0",
-    maxWidth: "100%",
-  };
-
   // 左侧区域样式
   const leftSideStyle = {
     display: "flex",
@@ -394,6 +425,22 @@ export function TitleBar({
     flexShrink: 0,
     marginLeft: "auto", // 将按钮推到最右侧
     position: "relative" as const, // 添加定位以支持下拉菜单
+  };
+
+  // 标题文本样式
+  const titleTextStyle = {
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap" as const,
+    fontSize: isMobile ? "15px" : "15px",
+    fontWeight: 600,
+    color: "#334155",
+    letterSpacing: "-0.01em",
+    flexShrink: 1,
+    flexGrow: 1, // 允许标题区域增长占据可用空间
+    minWidth: "50px", // 确保至少显示最小字符数
+    width: "auto", // 让宽度自适应内容
+    boxSizing: "border-box" as React.CSSProperties["boxSizing"],
   };
 
   // 标题栏样式
@@ -598,14 +645,146 @@ export function TitleBar({
     paddingRight: hasToggleButton && !isTemporaryVisible ? (isMobile ? "36px" : "40px") : isMobile ? "14px" : "18px",
   };
 
-  // 添加渲染调试信息
+  // // 添加渲染调试信息
+  // useEffect(() => {
+  //   console.log("菜单显示状态:", showMoreMenu);
+  //   console.log("菜单样式:", moreMenuStyle);
+  // }, [showMoreMenu]);
+
+  // 监听标题栏宽度变化
   useEffect(() => {
-    console.log("菜单显示状态:", showMoreMenu);
-    console.log("菜单样式:", moreMenuStyle);
-  }, [showMoreMenu]);
+    if (!titleBarRef.current || !titleTextRef.current || !buttonsContainerRef.current) return;
+
+    // 创建检查宽度的函数
+    const checkWidth = () => {
+      // 如果明确指定了useCompactButtons或isMobile，则使用紧凑模式
+      if (useCompactButtons || isMobile) {
+        setShouldUseCompactButtons(true);
+        return;
+      }
+
+      // 获取当前宽度
+      const titleBarWidth = titleBarRef.current?.clientWidth || 0; // 卡片固定宽度
+      const allButtonsWidth = buttonsContainerRef.current?.scrollWidth || 0; // 所有按钮宽度
+      const titleWidth = titleTextRef.current?.scrollWidth || 0; // 标题文本宽度
+
+      // 计算左侧区域（折叠按钮+间隔）宽度
+      const leftSideExtraWidth = 50; // 折叠按钮宽度+间隔
+
+      // 计算右侧区域最小宽度（更多按钮+主要按钮+间隔）
+      // 根据卡片类型选择主要按钮：编辑器卡片是编辑按钮，其他是添加按钮
+      const minRightSideWidth = 80; // 两个按钮的宽度+间隔
+
+      // 计算中间间隔区域的初始宽度（可以被压缩）
+      const initialMiddleGap = 20; // 初始中间间隔宽度
+
+      // 计算标题栏中总内容宽度（标题+所有按钮+左侧区域+初始中间间隔）
+      const totalContentWidth = titleWidth + allButtonsWidth + leftSideExtraWidth + initialMiddleGap;
+
+      // 步骤1：检查是否需要折叠部分按钮到"更多"菜单
+      const shouldCompact = totalContentWidth > titleBarWidth;
+
+      // 步骤2：检查是否需要缩减中间间隔区域
+      // 计算使用紧凑模式后的内容宽度（标题+两个主要按钮+左侧区域+初始中间间隔）
+      const compactContentWidth = titleWidth + minRightSideWidth + leftSideExtraWidth + initialMiddleGap;
+
+      // 步骤3：检查是否需要省略标题文本（只有当中间间隔完全消失后）
+      // 计算使用紧凑模式且无中间间隔的内容宽度
+      const compactNoGapContentWidth = titleWidth + minRightSideWidth + leftSideExtraWidth;
+
+      // 需要省略标题文本的条件：即使使用紧凑模式且无中间间隔，内容宽度仍超过卡片宽度
+      const shouldTruncateTitle = compactNoGapContentWidth > titleBarWidth;
+
+      // 计算可用的间隔宽度
+      const availableGap = Math.max(0, titleBarWidth - titleWidth - minRightSideWidth - leftSideExtraWidth);
+
+      // console.log(`标题栏检测 [${card.id}:${card.title}]:`, {
+      //   titleBarWidth,
+      //   allButtonsWidth,
+      //   titleWidth,
+      //   leftSideExtraWidth,
+      //   minRightSideWidth,
+      //   initialMiddleGap,
+      //   totalContentWidth,
+      //   compactContentWidth,
+      //   compactNoGapContentWidth,
+      //   availableGap,
+      //   shouldCompact,
+      //   shouldTruncateTitle,
+      //   isEditorCard,
+      //   isCollectionCard,
+      // });
+
+      // 更新紧凑模式状态
+      if (shouldCompact !== shouldUseCompactButtons && Math.abs(titleBarWidth - lastWidth) > 10) {
+        setShouldUseCompactButtons(shouldCompact);
+        setLastWidth(titleBarWidth);
+      }
+
+      // 处理标题文本样式
+      if (titleTextRef.current) {
+        if (shouldTruncateTitle) {
+          // 需要省略标题文本时，计算标题文本最大可用宽度
+          const maxTitleWidth = titleBarWidth - leftSideExtraWidth - minRightSideWidth;
+
+          // 设置标题文本最大宽度，启用省略
+          titleTextRef.current.style.maxWidth = `${maxTitleWidth}px`;
+          titleTextRef.current.style.textOverflow = "ellipsis";
+        } else {
+          // 不需要省略标题文本，使用自然宽度
+          titleTextRef.current.style.maxWidth = "none";
+          titleTextRef.current.style.textOverflow = "clip";
+        }
+
+        // 始终确保基本样式
+        titleTextRef.current.style.overflow = "hidden";
+        titleTextRef.current.style.whiteSpace = "nowrap";
+      }
+
+      // 处理中间间隔区域
+      if (shouldCompact && !shouldTruncateTitle && compactContentWidth > titleBarWidth) {
+        // 需要缩减中间间隔，计算可用的间隔宽度
+
+        // 应用动态间隔
+        if (buttonsContainerRef.current) {
+          buttonsContainerRef.current.style.marginLeft = `${availableGap}px`;
+        }
+      } else {
+        // 恢复默认间隔
+        if (buttonsContainerRef.current) {
+          buttonsContainerRef.current.style.marginLeft = "auto";
+        }
+      }
+    };
+
+    // 初始检查
+    checkWidth();
+
+    // 创建ResizeObserver监听尺寸变化
+    const resizeObserver = new ResizeObserver(() => {
+      checkWidth();
+    });
+
+    // 监听标题栏的尺寸变化
+    resizeObserver.observe(titleBarRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [
+    useCompactButtons,
+    isMobile,
+    shouldUseCompactButtons,
+    lastWidth,
+    isEditorCard,
+    card.title,
+    card.id,
+    isCollectionCard,
+  ]);
 
   return (
     <div
+      ref={titleBarRef}
       style={dynamicTitleBarStyle}
       className={`title-bar ${isMobile ? "mobile-title-bar" : ""} ${isTemporaryVisible ? "temporary-visible-title-bar" : ""} ${
         isEditorCard ? "editor-title-bar" : "collection-title-bar"
@@ -680,15 +859,15 @@ export function TitleBar({
             {card.relatedItem.title}
           </a>
         ) : (
-          <span style={titleTextStyle} title={card.title} className="title-text">
+          <div ref={titleTextRef} style={titleTextStyle} title={card.title} className="title-text">
             {card.title}
-          </span>
+          </div>
         )}
       </div>
 
       {/* 右侧区域 - 功能按钮 */}
-      <div style={rightSideStyle} className="title-bar-right-side title-bar-buttons">
-        {/* 移动端直接显示的按钮 */}
+      <div ref={buttonsContainerRef} style={rightSideStyle} className="title-bar-right-side title-bar-buttons">
+        {/* 直接显示的按钮 - 根据卡片类型显示主要按钮 */}
         {buttonVisibility.showAddDirectly && (
           <button
             type="button"
@@ -725,7 +904,7 @@ export function TitleBar({
           </button>
         )}
 
-        {/* 移动端显示更多按钮 */}
+        {/* 显示更多按钮 */}
         {shouldShowMoreButton && (
           <button
             ref={buttonRef}
@@ -774,7 +953,7 @@ export function TitleBar({
               }}
               className="more-menu show"
             >
-              {/* 菜单项内容不变 */}
+              {/* 菜单项内容 - 只显示未直接显示的按钮 */}
               {showAddButton && !buttonVisibility.showAddDirectly && (
                 <button
                   type="button"
@@ -823,7 +1002,7 @@ export function TitleBar({
                 </button>
               )}
 
-              {showLayoutStyleButton && onLayoutStyleChange && (
+              {showLayoutStyleButton && onLayoutStyleChange && !buttonVisibility.showLayoutStyleDirectly && (
                 <button
                   type="button"
                   onClick={(e) => {
@@ -839,7 +1018,7 @@ export function TitleBar({
                 </button>
               )}
 
-              {showVisibilityButton && onToggleVisibility && (
+              {showVisibilityButton && onToggleVisibility && !buttonVisibility.showVisibilityDirectly && (
                 <button
                   type="button"
                   onClick={(e) => {
@@ -855,7 +1034,7 @@ export function TitleBar({
                 </button>
               )}
 
-              {showCollapseAllButton && (
+              {showCollapseAllButton && !buttonVisibility.showCollapseAllDirectly && (
                 <button
                   type="button"
                   onClick={(e) => {
@@ -869,80 +1048,64 @@ export function TitleBar({
                   <span style={{ marginLeft: "8px" }}>折叠所有子卡片</span>
                 </button>
               )}
+
+              {showDeleteButton && onDeleteCard && !buttonVisibility.showDeleteDirectly && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteCard(card.id);
+                    closeMoreMenu();
+                  }}
+                  style={menuItemStyle}
+                  className="menu-item"
+                >
+                  <DeleteIcon isMobile={true} />
+                  <span style={{ marginLeft: "8px" }}>删除卡片</span>
+                </button>
+              )}
             </div>,
             document.body,
           )}
 
-        {/* 非移动端显示所有按钮 */}
-        {!isMobile && (
-          <>
-            {/* 在非移动端模式下，只有当buttonVisibility.showRelateDirectly为false时才显示关联按钮 */}
-            {showRelateButton && !buttonVisibility.showRelateDirectly && (
-              <>
-                {card.relatedItem ? (
-                  <button
-                    type="button"
-                    onClick={() => onUnrelateItem(card.id)}
-                    style={buttonStyle}
-                    aria-label="解除关联"
-                    className="title-bar-button"
-                  >
-                    <RelateIcon isMobile={isMobile} />
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => onRelateItem(card.id)}
-                    style={buttonStyle}
-                    aria-label="关联内容"
-                    className="title-bar-button"
-                  >
-                    <RelateIcon isMobile={isMobile} />
-                  </button>
-                )}
-              </>
-            )}
-
-            {showLayoutStyleButton && onLayoutStyleChange && (
-              <button
-                type="button"
-                onClick={onLayoutStyleChange}
-                style={buttonStyle}
-                aria-label="布局样式"
-                className="title-bar-button"
-              >
-                <LayoutIcon isMobile={isMobile} />
-              </button>
-            )}
-
-            {showVisibilityButton && onToggleVisibility && (
-              <button
-                type="button"
-                onClick={() => onToggleVisibility(card.id)}
-                style={buttonStyle}
-                aria-label={card.isVisible === false ? "显示卡片" : "隐藏卡片"}
-                className="title-bar-button"
-              >
-                <VisibilityIcon isMobile={isMobile} isVisible={card.isVisible !== false} />
-              </button>
-            )}
-
-            {showCollapseAllButton && (
-              <button
-                type="button"
-                onClick={handleCollapseAllCards}
-                style={buttonStyle}
-                aria-label="折叠所有子卡片"
-                className="title-bar-button"
-                title="折叠所有子卡片"
-              >
-                <CollapseAllIcon isMobile={isMobile} />
-              </button>
-            )}
-          </>
+        {/* 显示其他直接按钮 */}
+        {buttonVisibility.showLayoutStyleDirectly && onLayoutStyleChange && (
+          <button
+            type="button"
+            onClick={onLayoutStyleChange}
+            style={buttonStyle}
+            aria-label="布局样式"
+            className="title-bar-button"
+          >
+            <LayoutIcon isMobile={isMobile} />
+          </button>
         )}
 
-        {/* 删除按钮始终显示在最后 */}
+        {buttonVisibility.showVisibilityDirectly && onToggleVisibility && (
+          <button
+            type="button"
+            onClick={() => onToggleVisibility(card.id)}
+            style={buttonStyle}
+            aria-label={card.isVisible === false ? "显示卡片" : "隐藏卡片"}
+            className="title-bar-button"
+          >
+            <VisibilityIcon isMobile={isMobile} isVisible={card.isVisible !== false} />
+          </button>
+        )}
+
+        {buttonVisibility.showCollapseAllDirectly && showCollapseAllButton && (
+          <button
+            type="button"
+            onClick={handleCollapseAllCards}
+            style={buttonStyle}
+            aria-label="折叠所有子卡片"
+            className="title-bar-button"
+            title="折叠所有子卡片"
+          >
+            <CollapseAllIcon isMobile={isMobile} />
+          </button>
+        )}
+
         {buttonVisibility.showDeleteDirectly && onDeleteCard && (
           <button
             type="button"

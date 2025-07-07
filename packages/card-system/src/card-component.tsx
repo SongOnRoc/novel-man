@@ -57,6 +57,10 @@ export function CardComponent({
   // 是否为集合类型卡片
   const isCollectionCard = card.containerType === CardContainerType.COLLECTION;
 
+  // 检测是否为暗色模式
+  const isDarkMode =
+    typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+
   // 为移动端优化按钮配置
   useEffect(() => {
     if (isMobileDevice && isCollectionCard) {
@@ -241,8 +245,10 @@ export function CardComponent({
 
   // 卡片的主样式
   const cardStyle = {
-    border: card.hideBorder ? "none" : "1px solid rgba(203, 213, 225, 0.3)",
-    borderRadius: isMobileDevice ? "12px" : "16px",
+    border: card.hideBorder
+      ? "none"
+      : `1px solid ${card.themeColor ? `${card.themeColor}20` : "var(--card-border-color)"}`,
+    borderRadius: isMobileDevice ? "16px" : "18px",
     overflow: "hidden",
     width: "100%",
     display: "flex",
@@ -251,17 +257,18 @@ export function CardComponent({
     opacity: card.isVisible === false ? 0.5 : 1, // 根据可见性设置透明度
     boxShadow: isHovered
       ? isMobileDevice
-        ? "0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03)"
-        : "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+        ? "0 12px 20px -3px rgba(0, 0, 0, 0.1), 0 6px 8px -2px rgba(0, 0, 0, 0.05)"
+        : "0 22px 28px -5px rgba(0, 0, 0, 0.12), 0 12px 14px -5px rgba(0, 0, 0, 0.06)"
       : isMobileDevice
-        ? "0 2px 4px -1px rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02)"
-        : "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)",
+        ? "0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -1px rgba(0, 0, 0, 0.03)"
+        : "0 6px 10px -1px rgba(0, 0, 0, 0.08), 0 3px 6px -1px rgba(0, 0, 0, 0.05)",
     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    background: "#ffffff",
+    background: isDarkMode ? "#1e293b" : "#ffffff",
     position: "relative" as const,
     transform: isHovered && !isMobileDevice ? "translateY(-4px)" : "translateY(0)",
     backfaceVisibility: "hidden" as const, // 防止变换时出现锯齿
     maxWidth: "100%", // 确保卡片不会超出容器宽度
+    marginBottom: "var(--card-spacing)", // 添加卡片间距
   };
 
   // 移动端特定的类名
@@ -322,6 +329,9 @@ export function CardComponent({
             ? "max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
             : "max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
           opacity: card.isCollapsed ? 0 : 1,
+          backgroundColor: isDarkMode ? "#0f172a" : "#fafafa",
+          margin: "0.5rem",
+          borderRadius: "12px",
         }}
         className={`collapse-transition card-content-container ${card.isCollapsed ? "card-collapsed" : "card-expanded"}`}
       >

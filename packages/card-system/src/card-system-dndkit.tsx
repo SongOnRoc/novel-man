@@ -316,7 +316,7 @@ export function CardSystemDndKit({
       }
 
       // 处理跨容器拖拽
-      console.log(`跨容器拖拽: 从${dragParentId || "root"}到${hoverParentId || "root"}`);
+      // console.log(`跨容器拖拽: 从${dragParentId || "root"}到${hoverParentId || "root"}`);
 
       // 查找被拖拽的卡片
       let dragCard: BaseCardProps | undefined;
@@ -400,9 +400,9 @@ export function CardSystemDndKit({
 
         newCards = addCardToTarget(newCards, updatedDragCard);
         updateCards(newCards);
-        console.log(`跨容器拖拽成功完成: 卡片ID=${updatedDragCard.id}, 目标容器=${hoverParentId}`);
+        // console.log(`跨容器拖拽成功完成: 卡片ID=${updatedDragCard.id}, 目标容器=${hoverParentId}`);
       } else {
-        console.error("跨容器拖拽失败: 无法获取拖拽的卡片");
+        // console.error("跨容器拖拽失败: 无法获取拖拽的卡片");
       }
     },
     [cards, updateCards],
@@ -635,6 +635,7 @@ export function CardSystemDndKit({
                 padding: "16px",
                 backgroundColor: "rgba(249, 250, 251, 0.8)",
                 minHeight: "200px",
+                overflow: "visible", // 改为visible，让内部容器控制滚动
               }}
               className="card-system-content-container"
             >
@@ -643,7 +644,15 @@ export function CardSystemDndKit({
                   暂无内容，点击"{addButtonText}"按钮创建
                 </div>
               ) : (
-                <div className="grid gap-4 card-system-cards-grid">
+                <div
+                  className="grid gap-4 card-system-cards-grid"
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "var(--card-spacing, 1rem)",
+                    width: "100%",
+                  }}
+                >
                   {cards.map((card, index) => {
                     if (!card) return null; // 添加空值检查
                     return renderCard(card, index);
@@ -654,31 +663,28 @@ export function CardSystemDndKit({
 
             <AddCardDialog
               open={isAddDialogOpen}
-              onClose={() => {
-                setCurrentParentId(null);
-                setIsAddDialogOpen(false);
-              }}
-              onAddEditorCard={(title?: string, hideTitle?: boolean, props?: CardProperty[]) => {
+              onClose={() => setIsAddDialogOpen(false)}
+              onAddEditorCard={(title, hideTitle, props) => {
                 handleAddCard(CardContainerType.EDITOR, {
-                  title: title || "",
-                  hideTitle: hideTitle || false,
-                  props: props || [],
+                  title,
+                  hideTitle,
+                  props,
                   parentId: currentParentId,
                 });
-                setCurrentParentId(null);
                 setIsAddDialogOpen(false);
               }}
-              onAddCollectionCard={(title?: string, props: CardProperty[] = [], hideTitle?: boolean) => {
+              onAddCollectionCard={(title, props, hideTitle) => {
                 handleAddCard(CardContainerType.COLLECTION, {
-                  title: title || "",
-                  hideTitle: hideTitle || false,
-                  props: props,
+                  title,
+                  hideTitle,
+                  props,
                   parentId: currentParentId,
                 });
-                setCurrentParentId(null);
                 setIsAddDialogOpen(false);
               }}
+              parentTag={currentParentId || ""}
               attributeOptions={attributeOptions}
+              isMobile={isMobile}
             />
           </div>
         </SortableContext>

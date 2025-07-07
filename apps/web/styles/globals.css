@@ -34,13 +34,6 @@
 
     --radius: 0.5rem;
 
-    /* 卡片系统相关变量 */
-    --card-container-padding: 0.5rem;
-    --card-spacing: 0rem;
-    --card-border-color: hsl(214.3 31.8% 91.4%);
-    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    --card-hover-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --card-dragging-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 
     --novel-highlight-default: #ffffff;
     --novel-highlight-purple: #f6f3f8;
@@ -129,10 +122,10 @@
     --ring: 212.7 26.8% 83.9%;
 
     /* 卡片系统相关变量 - 暗色模式 */
-    --card-border-color: hsl(217.2 32.6% 17.5%);
-    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    --card-hover-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
-    --card-dragging-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+    --card-border-color: rgba(217, 217, 217, 0.1);
+    --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    --card-hover-shadow: 0 8px 16px rgba(0, 0, 0, 0.45);
+    --card-dragging-shadow: 0 12px 24px rgba(0, 0, 0, 0.55);
 
     --novel-highlight-default: #000000;
     --novel-highlight-purple: #3f2c4b;
@@ -175,39 +168,6 @@
   }
 }
 
-/* 卡片系统相关样式 */
-.collection-card {
-  transition: box-shadow 0.2s ease;
-}
-
-.collection-card:hover {
-  box-shadow: var(--card-hover-shadow);
-}
-
-/* 卡片拖拽时的样式 */
-[data-handler-id]:hover {
-  cursor: grab;
-}
-
-[data-handler-id]:active {
-  cursor: grabbing;
-  box-shadow: var(--card-dragging-shadow);
-}
-
-/* 卡片容器内的卡片样式 */
-.space-y-4 > * {
-  margin-top: 0;
-  margin-bottom: 0;
-}
-
-.space-y-4 > * + * {
-  margin-top: 1rem;
-}
-
-/* 确保卡片容器有足够的内边距 */
-.collection-card > div > div {
-  padding: var(--card-container-padding);
-}
 
 @layer utilities {
   @keyframes progress {

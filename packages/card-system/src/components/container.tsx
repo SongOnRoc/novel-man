@@ -2,6 +2,18 @@ import { useDroppable } from "@dnd-kit/core";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { CardComponent } from "../card-component";
+import {
+  getCardChildrenContainerStyle,
+  getContainerBorderStyle,
+  getContainerStyleByLayout,
+  getEditorContainerStyle,
+  getEmptyButtonStyle,
+  getEmptyContainerStyle,
+  getFloatingTitleBarStyle,
+  getTextareaStyle,
+  getTitleBarToggleButtonStyle,
+} from "../styles/cardStyles"; // 更新导入，引入所有样式函数
+import { getScrollbarStyles } from "../styles/cardStyles";
 import type { BaseCardProps, CardButtonsConfig, CardProperty } from "../types";
 import { CardContainerType, CollectionLayoutStyle } from "../types";
 import { DraggableCard } from "./draggable-card"; // 更新导入
@@ -79,6 +91,7 @@ export function Container({
   const [isOver, setIsOver] = useState(false);
   const [isHovered, setIsHovered] = useState(false); // 添加悬浮状态
   const [showTitleBar, setShowTitleBar] = useState(false); // 添加是否显示标题栏的状态
+  const [containerNode, setContainerNode] = useState<HTMLDivElement | null>(null); // 存储容器节点
 
   // 只有集合类型卡片才可以接收拖拽
   const isCollection = containerType === CardContainerType.COLLECTION;
@@ -96,6 +109,12 @@ export function Container({
     },
     disabled: !isCollection,
   });
+
+  // 设置节点引用，同时保存到state中
+  const setNodeRefWithSave = (node: HTMLElement | null) => {
+    setNodeRef(node);
+    setContainerNode(node as HTMLDivElement | null);
+  };
 
   // 监听拖拽状态变化
   useEffect(() => {
@@ -148,67 +167,10 @@ export function Container({
     }
   }, [isEditingContent]);
 
-  // 根据是否为无头卡片设置容器样式
-  const containerBorderStyle = isHeadless
-    ? {
-        border: isOver ? "2px dashed #4a90e2" : "1px solid rgba(226, 232, 240, 0.8)",
-        borderRadius: isMobile ? "10px" : "12px",
-        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-        boxShadow: isOver ? "0 0 0 2px rgba(74, 144, 226, 0.2)" : "none",
-      }
-    : {
-        borderTop: "none",
-        borderRight: "1px solid rgba(226, 232, 240, 0.8)",
-        borderBottom: "1px solid rgba(226, 232, 240, 0.8)",
-        borderLeft: "1px solid rgba(226, 232, 240, 0.8)",
-        borderRadius: isMobile ? "0 0 10px 10px" : "0 0 16px 16px",
-        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-      };
-
-  // 无头卡片的悬浮标题栏样式
-  const floatingTitleBarStyle = {
-    position: "absolute" as const,
-    top: "0",
-    left: "0",
-    right: "0",
-    zIndex: showTitleBar ? 10 : -1, // 当隐藏时，将z-index设置为-1，使其位于容器底部
-    opacity: showTitleBar ? 1 : 0, // 根据showTitleBar状态决定是否显示
-    transition: "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderBottom: "1px solid #e5e7eb",
-    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
-    borderRadius: isMobile ? "10px 10px 0 0" : "12px 12px 0 0",
-    pointerEvents: showTitleBar ? "auto" : ("none" as React.CSSProperties["pointerEvents"]), // 当隐藏时，禁用鼠标事件
-  };
-
   // 获取卡片类型对应的主题颜色
   const getCardThemeColor = () => {
     if (card.themeColor) return card.themeColor;
     return containerType === CardContainerType.EDITOR ? "#3b82f6" : "#6366f1";
-  };
-
-  // 标题栏切换按钮样式
-  const titleBarToggleButtonStyle = {
-    position: "absolute" as const,
-    top: isMobile ? "6px" : "8px",
-    right: isMobile ? "6px" : "8px",
-    width: isMobile ? "32px" : "28px",
-    height: isMobile ? "32px" : "28px",
-    borderRadius: "50%",
-    backgroundColor: showTitleBar ? getCardThemeColor() : "rgba(255, 255, 255, 0.9)",
-    color: showTitleBar ? "white" : "#64748b",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    border: "none",
-    cursor: "pointer",
-    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
-    zIndex: 15, // 确保按钮始终位于最上层
-    transition: "background-color 0.3s ease, transform 0.3s ease",
-    transform: showTitleBar ? "rotate(180deg)" : "rotate(0deg)",
-    padding: "0",
-    outline: "none",
-    touchAction: "manipulation", // 优化移动端触摸体验
   };
 
   // 标题栏切换按钮图标
@@ -228,86 +190,12 @@ export function Container({
     </svg>
   );
 
-  // 编辑器容器样式
-  const editorContainerStyle = {
-    padding: isMobile ? "12px" : "16px",
-    backgroundColor: "rgba(255, 255, 255, 0.6)",
-    borderRadius: isHeadless ? (isMobile ? "10px" : "12px") : isMobile ? "0 0 10px 10px" : "0 0 16px 16px",
-    minHeight: "120px",
-    width: "100%",
-    boxSizing: "border-box" as const,
-    position: "relative" as const,
-    backdropFilter: "blur(8px)",
-    cursor: containerType === CardContainerType.EDITOR && !isEditingContent ? "pointer" : "default",
-    transition: "background-color 0.2s ease",
-    maxWidth: "100%", // 确保不超出父容器宽度
-    overflow: "hidden", // 防止内容溢出
-  };
-
-  // 编辑器文本区域样式
-  const textareaStyle = {
-    width: "100%",
-    minHeight: "100px",
-    padding: isMobile ? "12px" : "16px",
-    border: "1px solid #e2e8f0",
-    borderRadius: isMobile ? "8px" : "10px",
-    resize: "vertical" as const,
-    outline: "none",
-    fontSize: isMobile ? "16px" : "15px", // 移动端使用16px避免iOS缩放
-    lineHeight: "1.5",
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-    boxShadow: "inset 0 2px 4px rgba(0, 0, 0, 0.04)",
-    transition: "border-color 0.3s ease, box-shadow 0.3s ease",
-    fontFamily: "inherit",
-    boxSizing: "border-box" as const,
-    maxWidth: "100%",
-    overflowWrap: "break-word" as const,
-    wordBreak: "break-word" as const,
-  };
-
-  // 获取布局的Flex方向
-  const getFlexDirection = (): React.CSSProperties["flexDirection"] => {
-    switch (layoutStyle) {
-      case CollectionLayoutStyle.HORIZONTAL:
-        return "row";
-      case CollectionLayoutStyle.GRID:
-        return "row";
-      case CollectionLayoutStyle.ADAPTIVE:
-        return isMobile ? "column" : "row";
-      default:
-        return "column";
-    }
-  };
-
-  // 集合容器样式
-  const collectionContainerStyle: React.CSSProperties = {
-    padding: isMobile ? "12px" : "16px",
-    display: "flex",
-    flexDirection: getFlexDirection(),
-    gap: isMobile ? "12px" : "16px",
-    minHeight: "50px",
-    width: "100%",
-    boxSizing: "border-box",
-    backgroundColor: "rgba(255, 255, 255, 0.4)",
-    borderRadius: isHeadless ? (isMobile ? "10px" : "12px") : isMobile ? "0 0 10px 10px" : "0 0 16px 16px",
-    position: "relative",
-    backdropFilter: "blur(4px)",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    flexWrap:
-      layoutStyle === CollectionLayoutStyle.ADAPTIVE || layoutStyle === CollectionLayoutStyle.GRID
-        ? ("wrap" as const)
-        : ("nowrap" as const),
-    overflow: layoutStyle === CollectionLayoutStyle.HORIZONTAL ? "auto hidden" : "visible",
-    alignItems: "flex-start",
-    maxWidth: "100%", // 确保不超出父容器宽度
-  };
-
   // 编辑器类型卡片的渲染
   if (containerType === CardContainerType.EDITOR) {
     return (
       <div
         className={`editor-container card-editor-container ${isMobile ? "mobile-editor-container" : ""}`}
-        style={editorContainerStyle}
+        style={getEditorContainerStyle(isHeadless, isMobile)}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -317,7 +205,7 @@ export function Container({
             type="button"
             onClick={handleToggleTitleBar}
             onKeyDown={handleToggleTitleBarKeyDown}
-            style={titleBarToggleButtonStyle}
+            style={getTitleBarToggleButtonStyle(showTitleBar, getCardThemeColor(), isMobile)}
             aria-label={showTitleBar ? "隐藏标题栏" : "显示标题栏"}
             title={showTitleBar ? "隐藏标题栏" : "显示标题栏"}
           >
@@ -327,7 +215,7 @@ export function Container({
 
         {/* 无头卡片的悬浮标题栏 */}
         {isHeadless && onToggleCollapse && onTitleEdit && onAddButtonClick && (
-          <div style={floatingTitleBarStyle}>
+          <div style={getFloatingTitleBarStyle(showTitleBar, isMobile)}>
             <TitleBar
               card={card}
               buttonsConfig={buttonsConfig}
@@ -406,7 +294,7 @@ export function Container({
             value={card.content || ""}
             onChange={(e) => handleContentChange(e.target.value)}
             onBlur={() => setIsEditingContent(false)}
-            style={textareaStyle}
+            style={getTextareaStyle(isMobile)}
             placeholder="在此输入内容..."
             className="card-editor-textarea"
           />
@@ -415,7 +303,7 @@ export function Container({
             readOnly
             onClick={handleContentClick}
             onKeyDown={handleKeyDown}
-            style={textareaStyle}
+            style={getTextareaStyle(isMobile)}
             aria-label="点击编辑内容"
             value={card.content || ""}
             className="card-editor-textarea-readonly"
@@ -477,13 +365,15 @@ export function Container({
   // 集合类型卡片的渲染
   return (
     <div
-      ref={setNodeRef}
+      ref={setNodeRefWithSave}
       className={`collection-container card-collection-container ${isMobile ? "mobile-collection-container" : ""} ${
         layoutStyle === CollectionLayoutStyle.HORIZONTAL ? "horizontal-scroll-container" : ""
       } ${layoutStyle === CollectionLayoutStyle.GRID ? "grid-layout" : ""} ${
         layoutStyle === CollectionLayoutStyle.ADAPTIVE ? "adaptive-layout" : ""
+      } ${layoutStyle === CollectionLayoutStyle.VERTICAL ? "vertical-scroll-container" : ""} ${
+        layoutStyle === CollectionLayoutStyle.LIST ? "list-scroll-container" : ""
       }`}
-      style={collectionContainerStyle}
+      style={getContainerStyleByLayout(layoutStyle)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -493,7 +383,7 @@ export function Container({
           type="button"
           onClick={handleToggleTitleBar}
           onKeyDown={handleToggleTitleBarKeyDown}
-          style={titleBarToggleButtonStyle}
+          style={getTitleBarToggleButtonStyle(showTitleBar, getCardThemeColor(), isMobile)}
           aria-label={showTitleBar ? "隐藏标题栏" : "显示标题栏"}
         >
           <svg
@@ -514,7 +404,7 @@ export function Container({
 
       {/* 无头卡片的悬浮标题栏 */}
       {isHeadless && onToggleCollapse && onTitleEdit && onAddButtonClick && (
-        <div style={floatingTitleBarStyle}>
+        <div style={getFloatingTitleBarStyle(showTitleBar, isMobile)}>
           <TitleBar
             card={card}
             buttonsConfig={buttonsConfig}
@@ -541,23 +431,14 @@ export function Container({
       {/* 集合内容区域 */}
       {card.childCards && card.childCards.length > 0 ? (
         <div
-          className="card-children-container"
-          style={{
-            display: layoutStyle === CollectionLayoutStyle.GRID ? "grid" : "flex",
-            gridTemplateColumns:
-              layoutStyle === CollectionLayoutStyle.GRID ? "repeat(auto-fill, minmax(280px, 1fr))" : "none",
-            flexDirection:
-              layoutStyle === CollectionLayoutStyle.VERTICAL || layoutStyle === CollectionLayoutStyle.LIST
-                ? "column"
-                : "row",
-            flexWrap: layoutStyle === CollectionLayoutStyle.ADAPTIVE ? "wrap" : "nowrap",
-            gap: layoutStyle === CollectionLayoutStyle.LIST ? "8px" : "16px",
-            width: "100%",
-            boxSizing: "border-box",
-            maxWidth: "100%",
-            overflow: "hidden",
-            transition: "all 0.3s ease",
-          }}
+          className={`card-children-container ${
+            layoutStyle === CollectionLayoutStyle.HORIZONTAL ? "horizontal-cards" : ""
+          } ${layoutStyle === CollectionLayoutStyle.GRID ? "grid-cards" : ""} ${
+            layoutStyle === CollectionLayoutStyle.ADAPTIVE ? "adaptive-cards" : ""
+          } ${layoutStyle === CollectionLayoutStyle.VERTICAL ? "vertical-cards" : ""} ${
+            layoutStyle === CollectionLayoutStyle.LIST ? "list-cards" : ""
+          }`}
+          style={getCardChildrenContainerStyle(layoutStyle)}
         >
           {card.childCards.map((childCard, index) => {
             if (childCard.isVisible === false) {
@@ -573,48 +454,30 @@ export function Container({
                 moveCard={moveCard ? moveCard : () => {}}
                 layoutStyle={layoutStyle}
               >
-                <CardComponent
-                  card={childCard}
-                  onUpdateCard={onUpdateCard}
-                  onDeleteCard={onDeleteCard}
-                  onAddCard={onAddCard}
-                  onRelateCard={onRelateCard}
-                  onUnrelateCard={onUnrelateCard}
-                  onChangeLayoutStyle={onChangeLayoutStyle}
-                  buttonsConfig={buttonsConfig}
-                  attributeOptions={attributeOptions}
-                  availableRelateItems={availableRelateItems}
-                  onNavigateToRelated={onNavigateToRelated}
-                  layoutStyle={layoutStyle}
-                  onBatchUpdateCards={onBatchUpdateCards}
-                />
+                <div style={getContainerBorderStyle(layoutStyle, isMobile, containerNode)}>
+                  <CardComponent
+                    card={childCard}
+                    onUpdateCard={onUpdateCard}
+                    onDeleteCard={onDeleteCard}
+                    onAddCard={onAddCard}
+                    onRelateCard={onRelateCard}
+                    onUnrelateCard={onUnrelateCard}
+                    onChangeLayoutStyle={onChangeLayoutStyle}
+                    buttonsConfig={buttonsConfig}
+                    attributeOptions={attributeOptions}
+                    availableRelateItems={availableRelateItems}
+                    onNavigateToRelated={onNavigateToRelated}
+                    layoutStyle={layoutStyle}
+                    onBatchUpdateCards={onBatchUpdateCards}
+                    isMobile={isMobile}
+                  />
+                </div>
               </DraggableCard>
             );
           })}
         </div>
       ) : (
-        <div
-          className="card-empty-container"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "40px 16px",
-            color: "#64748b",
-            textAlign: "center",
-            minHeight: "180px",
-            width: "100%",
-            boxSizing: "border-box",
-            backgroundColor: "rgba(249, 250, 251, 0.7)",
-            borderRadius: "12px",
-            border: "1px dashed #cbd5e1",
-            backdropFilter: "blur(4px)",
-            boxShadow: "inset 0 2px 4px 0 rgba(0, 0, 0, 0.02)",
-            maxWidth: "100%",
-            overflow: "hidden",
-          }}
-        >
+        <div className="card-empty-container" style={getEmptyContainerStyle()}>
           <svg
             width="40"
             height="40"
@@ -654,25 +517,7 @@ export function Container({
             <button
               type="button"
               onClick={onAddButtonClick}
-              style={{
-                marginTop: "20px",
-                padding: "8px 16px",
-                backgroundColor: getCardThemeColor(),
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: 500,
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                transition: "all 0.2s ease",
-                boxSizing: "border-box",
-                maxWidth: "100%",
-                overflow: "hidden",
-              }}
+              style={getEmptyButtonStyle(getCardThemeColor())}
               className="card-empty-add-button"
             >
               <svg
@@ -696,12 +541,48 @@ export function Container({
         </div>
       )}
 
-      {/* 添加拖拽提示 */}
+      {/* 添加拖拽提示和滚动条样式 */}
       <style>
         {`
           .collection-container.is-over {
             background-color: rgba(243, 244, 246, 0.9);
             border: 2px dashed #4a90e2;
+          }
+          
+          ${getScrollbarStyles()}
+          
+          /* 确保垂直滚动容器正常工作 */
+          .vertical-scroll-container, .list-scroll-container {
+            overflow-y: auto;
+            overflow-x: hidden;
+          }
+
+          /* 水平布局卡片样式 */
+          .horizontal-cards {
+            padding-bottom: 8px; /* 为滚动条留出空间 */
+          }
+
+          /* 网格布局卡片样式 */
+          .grid-cards {
+            padding-right: 8px; /* 为滚动条留出空间 */
+            width: 100%;
+          }
+
+          /* 垂直布局卡片样式 */
+          .vertical-cards, .list-cards {
+            padding-right: 8px; /* 为滚动条留出空间 */
+            width: 100%;
+          }
+          
+          /* 自适应布局卡片样式 */
+          .adaptive-cards {
+            padding-right: 8px; /* 为滚动条留出空间 */
+            width: 100%;
+          }
+          
+          /* 确保卡片在垂直布局中宽度一致 */
+          .vertical-cards > *, .list-cards > * {
+            width: 100% !important;
           }
         `}
       </style>

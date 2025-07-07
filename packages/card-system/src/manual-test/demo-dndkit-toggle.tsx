@@ -90,7 +90,7 @@ export const DndKitToggleDemo: React.FC<DndKitToggleDemoProps> = () => {
   const handleCardsChange = (updatedCards: BaseCardProps[]) => {
     setCards(updatedCards);
     // 这里可以添加其他需要的操作，比如保存到本地存储、发送到服务器等
-    console.log("卡片状态已更新:", updatedCards);
+    // console.log("卡片状态已更新:", updatedCards);
   };
 
   return (
