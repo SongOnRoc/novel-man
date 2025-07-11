@@ -17,6 +17,7 @@ import {
   defaultEditorSettings,
 } from "@/types/editor";
 import { BookmarkExtension } from "@/lib/editor/BookmarkExtension";
+import { AIFloatingButton } from "@/components/ai-assistant/AIFloatingButton";
 
 // Tiptap编辑器属性
 interface TiptapEditorProps {
@@ -173,6 +174,38 @@ export function TiptapEditor({
     }
   };
 
+  // ai助手功能函数
+  const getSelectedText = () => {
+    if (!editor) return "";
+
+    // 检查是否有选中内容
+    if (editor.state.selection.empty) {
+      return "";
+    }
+
+    // 获取选中的文本内容
+    const { from, to } = editor.state.selection;
+
+    // 使用编辑器的textBetween方法获取选中的文本
+    const selectedText = editor.state.doc.textBetween(from, to, " ");
+    return selectedText;
+  };
+
+  const applyTextToEditor = (text: string) => {
+    // 将生成的文本应用到编辑器
+    // 如果有选中内容，则替换选中内容；否则在光标位置插入
+    if (editor) {
+      if (editor.state.selection.empty) {
+        // 没有选中内容，在当前位置插入
+        editor.commands.insertContent(text);
+      } else {
+        // 替换选中内容
+        editor.commands.deleteSelection();
+        editor.commands.insertContent(text);
+      }
+    }
+  };
+
   // 自动保存（根据设置的间隔）
   useEffect(() => {
     if (!editor || !onSave || !settings.enableAutoSave) return;
@@ -245,6 +278,13 @@ export function TiptapEditor({
       >
         <EditorContent editor={editor} className="min-h-[300px] outline-none" />
       </div>
+
+      {/* AI悬浮按钮 */}
+      <AIFloatingButton
+        getSelectedText={getSelectedText}
+        applyTextToEditor={applyTextToEditor}
+        context={`标题：${title || "未命名"}`}
+      />
 
       {/* 编辑器样式 */}
       <style jsx global>{`
