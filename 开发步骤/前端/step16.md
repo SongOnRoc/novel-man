@@ -16,319 +16,1098 @@
 14. 创建了章节管理页面
 15. 创建了草稿箱页面
 
-## 第16步（修订）：集成Tiptap编辑器
+## 第16步（补充）：添加专注模式和编辑器增强功能
+
+为了完善编辑器功能，我们需要添加专注模式和其他编辑器增强功能，满足需求文档中的"专注模式（全屏写作界面，减少干扰元素）"和"快速导航（章节内定位、书签）"功能要求。
 
 **执行命令**：
 ```
-cd novel/frontend
-pnpm add @tiptap/react @tiptap/pm @tiptap/starter-kit @tiptap/extension-placeholder @tiptap/extension-underline @tiptap/extension-text-align
-mkdir -p src/components/editor
-touch src/components/editor/TiptapEditor.tsx
-touch src/components/editor/EditorToolbar.tsx
+pnpm add @tiptap/react @tiptap/extension-underline @tiptap/starter-kit @tiptap/extension-placeholder @tiptap/extension-text-align @tiptap/extension-document @tiptap/extension-highlight
 ```
 
 **执行目的**：
-我们安装Tiptap相关依赖并创建编辑器组件文件。选择Tiptap作为编辑器框架是因为：
-1. 它提供了真正的富文本编辑体验，适合小说内容的编辑需求
-2. 基于ProseMirror，这是一个成熟稳定的编辑器引擎，被许多大型应用使用
-3. 模块化设计，可以按需添加功能，保持bundle体积合理
-4. 支持协作编辑（对未来版本很重要）
-5. 提供良好的React集成
+安装Tiptap编辑器及其扩展。我们选择这些包是因为：
 
-我们安装的包各有特定用途：
-- `@tiptap/react`：Tiptap的React组件封装
-- `@tiptap/pm`：ProseMirror核心库
-- `@tiptap/starter-kit`：基本编辑功能的集合，包括段落、标题、加粗、斜体等
-- `@tiptap/extension-placeholder`：为编辑器添加占位文本功能
-- `@tiptap/extension-underline`：添加下划线功能（starter-kit中不包含）
-- `@tiptap/extension-text-align`：添加文本对齐功能
+1. **@tiptap/react**：Tiptap的React绑定，提供React组件和Hooks
+2. **@tiptap/starter-kit**：包含基本功能的预配置包，如段落、标题、列表等
+3. **@tiptap/extension-underline**：添加下划线功能
+4. **@tiptap/extension-placeholder**：为编辑器添加占位符文本
+5. **@tiptap/extension-text-align**：文本对齐功能
+6. **@tiptap/extension-document**：自定义文档结构，用于章节内定位
+7. **@tiptap/extension-highlight**：用于实现书签位置高亮显示
 
 **替代方案**：
-1. **Draft.js**：Facebook开发的React富文本编辑器框架
-   - 优点：与React深度集成
-   - 缺点：API较复杂，社区更新较慢，不支持协作编辑
-   
-2. **Slate.js**：完全可定制的框架
-   - 优点：极高的灵活性
-   - 缺点：需要编写大量代码来实现基本功能，学习曲线陡峭
-   
-3. **CKEditor或TinyMCE**：成熟的商业编辑器
-   - 优点：功能全面，开箱即用
-   - 缺点：体积大，定制化困难，商业许可可能有限制
-   
-4. **Quill**：轻量级编辑器
-   - 优点：简单易用，体积小
-   - 缺点：扩展性有限，不如Tiptap灵活
+- **Draft.js**：Facebook开发的编辑器框架，但API不如Tiptap直观，且定制性较差
+- **Quill**：轻量级编辑器，但扩展性不如Tiptap
+- **CKEditor**：功能全面但较重，不适合轻量级应用
+- **自定义ContentEditable**：开发成本高，需要处理很多边缘情况
 
-Tiptap在这些选项中提供了最好的平衡：功能丰富但不臃肿，易于使用但又高度可扩展，适合小说管理系统从MVP到高级版本的全过程。
+**创建文件**：
+首先，我们需要创建编辑器相关的类型定义：
 
-**创建文件**：`src/components/editor/EditorToolbar.tsx`
-
-```tsx
-import { Editor } from '@tiptap/react';
-import { Button } from "@/components/ui/button";
-import {
-  Bold,
-  Italic,
-  Underline,
-  List,
-  ListOrdered,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  Undo,
-  Redo,
-  Save,
-} from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-
-// 编辑器工具栏属性
-interface EditorToolbarProps {
-  editor: Editor | null;  // Tiptap编辑器实例，可能为null（初始化前）
-  onSave: () => void;     // 保存回调函数
-  isSaving: boolean;      // 是否正在保存
-  wordCount: number;      // 字数统计
-}
-
-// 编辑器工具栏组件
-export function EditorToolbar({ editor, onSave, isSaving, wordCount }: EditorToolbarProps) {
-  // 如果编辑器未初始化，返回空工具栏
-  if (!editor) {
-    return (
-      <div className="novel-editor-toolbar flex items-center justify-between border-b p-2">
-        <div className="flex flex-wrap gap-1"></div>
-        <div className="flex items-center gap-4">
-          <div className="text-sm text-muted-foreground">0 字</div>
-          <Button disabled className="gap-1" size="sm">
-            <Save className="h-4 w-4" />
-            保存
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // 工具按钮数据
-  const tools = [
-    { 
-      icon: Bold, 
-      tooltip: "加粗 (Ctrl+B)", 
-      isActive: editor.isActive('bold'),
-      onClick: () => editor.chain().focus().toggleBold().run(),
-    },
-    { 
-      icon: Italic, 
-      tooltip: "斜体 (Ctrl+I)",
-      isActive: editor.isActive('italic'),
-      onClick: () => editor.chain().focus().toggleItalic().run(),
-    },
-    { 
-      icon: Underline, 
-      tooltip: "下划线 (Ctrl+U)",
-      isActive: editor.isActive('underline'),
-      onClick: () => editor.chain().focus().toggleUnderline().run(),
-    },
-    { 
-      icon: List, 
-      tooltip: "无序列表",
-      isActive: editor.isActive('bulletList'),
-      onClick: () => editor.chain().focus().toggleBulletList().run(),
-    },
-    { 
-      icon: ListOrdered, 
-      tooltip: "有序列表",
-      isActive: editor.isActive('orderedList'),
-      onClick: () => editor.chain().focus().toggleOrderedList().run(),
-    },
-    { 
-      icon: AlignLeft, 
-      tooltip: "左对齐",
-      isActive: editor.isActive({ textAlign: 'left' }),
-      onClick: () => editor.chain().focus().setTextAlign('left').run(),
-    },
-    { 
-      icon: AlignCenter, 
-      tooltip: "居中",
-      isActive: editor.isActive({ textAlign: 'center' }),
-      onClick: () => editor.chain().focus().setTextAlign('center').run(),
-    },
-    { 
-      icon: AlignRight, 
-      tooltip: "右对齐",
-      isActive: editor.isActive({ textAlign: 'right' }),
-      onClick: () => editor.chain().focus().setTextAlign('right').run(),
-    },
-  ];
-
-  return (
-    <div className="novel-editor-toolbar flex items-center justify-between border-b p-2">
-      {/* 格式化工具按钮 */}
-      <div className="flex flex-wrap gap-1">
-        {tools.map((tool, index) => (
-          <Tooltip key={index} delayDuration={300}>
-            <TooltipTrigger asChild>
-              <Button
-                variant={tool.isActive ? "secondary" : "ghost"}
-                size="icon"
-                className="h-8 w-8"
-                onClick={tool.onClick}
-              >
-                <tool.icon className="h-4 w-4" />
-                <span className="sr-only">{tool.tooltip}</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{tool.tooltip}</TooltipContent>
-          </Tooltip>
-        ))}
-        
-        {/* 撤销/重做按钮 */}
-        <Tooltip delayDuration={300}>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => editor.chain().focus().undo().run()}
-              disabled={!editor.can().undo()}
-            >
-              <Undo className="h-4 w-4" />
-              <span className="sr-only">撤销</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>撤销 (Ctrl+Z)</TooltipContent>
-        </Tooltip>
-        
-        <Tooltip delayDuration={300}>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => editor.chain().focus().redo().run()}
-              disabled={!editor.can().redo()}
-            >
-              <Redo className="h-4 w-4" />
-              <span className="sr-only">重做</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>重做 (Ctrl+Y)</TooltipContent>
-        </Tooltip>
-      </div>
-      
-      {/* 右侧区域：字数统计和保存按钮 */}
-      <div className="flex items-center gap-4">
-        <div className="text-sm text-muted-foreground">
-          {wordCount} 字
-        </div>
-        <Button
-          onClick={onSave}
-          disabled={isSaving}
-          className="gap-1"
-          size="sm"
-        >
-          <Save className="h-4 w-4" />
-          {isSaving ? "保存中..." : "保存"}
-        </Button>
-      </div>
-    </div>
-  );
-}
+```
+mkdir -p src/types/editor
+touch src/types/editor/index.ts
 ```
 
-**代码详解**：
-
-1. **接口定义**：
-   - `EditorToolbarProps`定义了工具栏需要的属性：编辑器实例、保存回调、保存状态和字数统计
-   - 编辑器实例可能为null，这是因为Tiptap编辑器初始化是异步的
-
-2. **空状态处理**：
-   - 当编辑器未初始化时，显示一个简化版的工具栏，避免报错
-   - 这种防御性编程很重要，确保组件在任何状态下都能正常渲染
-
-3. **工具按钮数据**：
-   - 使用数组定义工具按钮，包括图标、提示文本、激活状态和点击处理函数
-   - 这种数据驱动的方式使代码更简洁，易于维护和扩展
-   - 每个工具都关联到Tiptap的相应命令，如`toggleBold()`、`toggleItalic()`等
-
-4. **按钮状态反馈**：
-   - 使用`isActive`检查当前文本是否应用了特定格式
-   - 当格式激活时，按钮使用`secondary`变体显示，提供视觉反馈
-   - 这种状态反馈对用户体验至关重要，让用户知道当前文本的格式状态
-
-5. **撤销/重做功能**：
-   - 单独处理撤销/重做按钮，因为它们需要检查是否可用
-   - 使用`editor.can().undo()`和`editor.can().redo()`判断按钮是否应该禁用
-   - 这防止用户尝试执行不可能的操作，提升用户体验
-
-6. **辅助功能**：
-   - 使用`sr-only`类为屏幕阅读器提供文本，增强可访问性
-   - 使用Tooltip组件显示提示，帮助用户了解按钮功能和快捷键
-
-7. **保存功能和字数统计**：
-   - 右侧显示字数统计，这对作者很重要
-   - 保存按钮在保存过程中显示"保存中..."，并禁用点击，防止重复提交
-
-**创建文件**：`src/components/editor/TiptapEditor.tsx`
-
-```tsx
-"use client";
-
-import { useState, useEffect, useCallback } from "react";
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import Placeholder from '@tiptap/extension-placeholder';
-import TextAlign from '@tiptap/extension-text-align';
-import { EditorToolbar } from "./EditorToolbar";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
+```typescript
 // 编辑器内容类型
 export interface EditorContent {
   title: string;
   content: string;
 }
 
+// 书签类型
+export interface Bookmark {
+  id: string;
+  position: number; // 在文档中的位置（字符偏移量）
+  label: string; // 书签标签
+  createdAt: string; // 创建时间
+}
+
+// 编辑器主题类型
+export type EditorTheme = 'default' | 'sepia' | 'dark' | 'minimal';
+
+// 编辑器设置类型
+export interface EditorSettings {
+  theme: EditorTheme;
+  fontSize: number;
+  lineSpacing: number;
+  showWordCount: boolean;
+  enableAutoSave: boolean;
+  autoSaveInterval: number; // 单位：秒
+}
+
+// 默认编辑器设置
+export const defaultEditorSettings: EditorSettings = {
+  theme: 'default',
+  fontSize: 16,
+  lineSpacing: 1.5,
+  showWordCount: true,
+  enableAutoSave: true,
+  autoSaveInterval: 30,
+};
+```
+
+接下来，我们需要创建书签管理相关的Hook和组件：
+
+```
+mkdir -p src/components/editor
+mkdir -p src/hooks/editor
+mkdir -p src/lib/editor
+touch src/hooks/editor/useBookmarks.ts
+touch src/lib/editor/BookmarkExtension.ts
+touch src/components/editor/BookmarkManager.tsx
+touch src/components/editor/EditorSettings.tsx
+touch src/components/editor/FocusMode.tsx
+touch src/components/editor/EditorToolbar.tsx
+touch src/components/editor/TiptapEditor.tsx
+```
+
+**创建文件**：`src/lib/editor/BookmarkExtension.ts`
+
+```typescript
+import { Extension } from '@tiptap/core';
+import { Plugin, PluginKey } from 'prosemirror-state';
+
+// 创建自定义书签扩展
+export const BookmarkExtension = Extension.create({
+  name: 'bookmark',
+
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: new PluginKey('bookmark'),
+        props: {
+          // 在这里我们可以添加自定义的DOM处理器
+          decorations: (state) => {
+            // 这里可以添加书签的可视化表示
+            // 但实际的书签管理将在外部进行
+            return null;
+          },
+        },
+      }),
+    ];
+  },
+});
+```
+
+**创建文件**：`src/hooks/editor/useBookmarks.ts`
+
+```typescript
+import { useState, useCallback, useEffect } from 'react';
+import { Bookmark } from '@/types/editor';
+import { Editor } from '@tiptap/react';
+
+// 书签管理Hook
+export function useBookmarks(editor: Editor | null, chapterId: string) {
+  // 书签列表
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  
+  // 从本地存储加载书签
+  useEffect(() => {
+    if (!chapterId) return;
+    
+    try {
+      const savedBookmarks = localStorage.getItem(`bookmarks-${chapterId}`);
+      if (savedBookmarks) {
+        setBookmarks(JSON.parse(savedBookmarks));
+      }
+    } catch (error) {
+      console.error('加载书签失败:', error);
+    }
+  }, [chapterId]);
+  
+  // 保存书签到本地存储
+  const saveBookmarksToStorage = useCallback((bookmarksList: Bookmark[]) => {
+    if (!chapterId) return;
+    
+    try {
+      localStorage.setItem(`bookmarks-${chapterId}`, JSON.stringify(bookmarksList));
+    } catch (error) {
+      console.error('保存书签失败:', error);
+    }
+  }, [chapterId]);
+  
+  // 添加书签
+  const addBookmark = useCallback((label: string = '未命名书签') => {
+    if (!editor) return;
+    
+    // 获取当前光标位置
+    const { from } = editor.state.selection;
+    
+    // 创建新书签
+    const newBookmark: Bookmark = {
+      id: `bookmark-${Date.now()}`,
+      position: from,
+      label,
+      createdAt: new Date().toISOString(),
+    };
+    
+    // 更新书签列表
+    const updatedBookmarks = [...bookmarks, newBookmark];
+    setBookmarks(updatedBookmarks);
+    saveBookmarksToStorage(updatedBookmarks);
+    
+    // 可以在这里添加一个可视化指示器，比如高亮当前位置
+    editor.commands.setTextSelection(from);
+    
+    return newBookmark;
+  }, [editor, bookmarks, saveBookmarksToStorage]);
+  
+  // 删除书签
+  const removeBookmark = useCallback((bookmarkId: string) => {
+    const updatedBookmarks = bookmarks.filter(bookmark => bookmark.id !== bookmarkId);
+    setBookmarks(updatedBookmarks);
+    saveBookmarksToStorage(updatedBookmarks);
+  }, [bookmarks, saveBookmarksToStorage]);
+  
+  // 更新书签标签
+  const updateBookmarkLabel = useCallback((bookmarkId: string, newLabel: string) => {
+    const updatedBookmarks = bookmarks.map(bookmark => 
+      bookmark.id === bookmarkId ? { ...bookmark, label: newLabel } : bookmark
+    );
+    setBookmarks(updatedBookmarks);
+    saveBookmarksToStorage(updatedBookmarks);
+  }, [bookmarks, saveBookmarksToStorage]);
+  
+  // 跳转到书签位置
+  const jumpToBookmark = useCallback((bookmarkId: string) => {
+    if (!editor) return;
+    
+    const bookmark = bookmarks.find(b => b.id === bookmarkId);
+    if (!bookmark) return;
+    
+    // 设置光标位置并滚动到视图
+    editor.commands.setTextSelection(bookmark.position);
+    
+    // 使用DOM API滚动到选中位置
+    setTimeout(() => {
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        range.startContainer.parentElement?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }
+    }, 0);
+    
+    // 临时高亮当前位置
+    const bookmarkClass = 'bookmark-highlight';
+    editor.commands.setMark('highlight');
+    
+    // 2秒后移除高亮
+    setTimeout(() => {
+      editor.commands.unsetMark('highlight');
+    }, 2000);
+  }, [editor, bookmarks]);
+  
+  return {
+    bookmarks,
+    addBookmark,
+    removeBookmark,
+    updateBookmarkLabel,
+    jumpToBookmark
+  };
+}
+```
+
+**创建文件**：`src/components/editor/FocusMode.tsx`
+
+```tsx
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Maximize2, Minimize2 } from 'lucide-react';
+
+interface FocusModeProps {
+  editorContainerId: string;
+}
+
+export function FocusMode({ editorContainerId }: FocusModeProps) {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // 切换全屏模式
+  const toggleFullscreen = () => {
+    const editorContainer = document.getElementById(editorContainerId);
+    if (!editorContainer) return;
+
+    if (!isFullscreen) {
+      // 进入全屏模式
+      if (editorContainer.requestFullscreen) {
+        editorContainer.requestFullscreen();
+      }
+    } else {
+      // 退出全屏模式
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
+
+  // 监听全屏状态变化
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={toggleFullscreen}
+      className="gap-1"
+      title={isFullscreen ? '退出专注模式' : '进入专注模式'}
+    >
+      {isFullscreen ? (
+        <>
+          <Minimize2 className="h-4 w-4" />
+          <span className="sr-only md:not-sr-only md:inline-block">退出专注模式</span>
+        </>
+      ) : (
+        <>
+          <Maximize2 className="h-4 w-4" />
+          <span className="sr-only md:not-sr-only md:inline-block">专注模式</span>
+        </>
+      )}
+    </Button>
+  );
+}
+```
+
+**创建文件**：`src/components/editor/BookmarkManager.tsx`
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer';
+import { Bookmark, Edit, Trash2, BookmarkPlus } from 'lucide-react';
+import { Bookmark as BookmarkType } from '@/types/editor';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Editor } from '@tiptap/react';
+
+interface BookmarkManagerProps {
+  editor: Editor | null;
+  bookmarks: BookmarkType[];
+  addBookmark: (label?: string) => void;
+  removeBookmark: (id: string) => void;
+  updateBookmarkLabel: (id: string, label: string) => void;
+  jumpToBookmark: (id: string) => void;
+}
+
+export function BookmarkManager({
+  editor,
+  bookmarks,
+  addBookmark,
+  removeBookmark,
+  updateBookmarkLabel,
+  jumpToBookmark,
+}: BookmarkManagerProps) {
+  const [newBookmarkLabel, setNewBookmarkLabel] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editLabel, setEditLabel] = useState('');
+  
+  // 处理添加书签
+  const handleAddBookmark = () => {
+    if (!editor) return;
+    
+    const label = newBookmarkLabel.trim() || '未命名书签';
+    addBookmark(label);
+    setNewBookmarkLabel('');
+  };
+  
+  // 开始编辑书签
+  const startEditing = (bookmark: BookmarkType) => {
+    setEditingId(bookmark.id);
+    setEditLabel(bookmark.label);
+  };
+  
+  // 保存书签编辑
+  const saveEditing = () => {
+    if (editingId && editLabel.trim()) {
+      updateBookmarkLabel(editingId, editLabel.trim());
+    }
+    setEditingId(null);
+  };
+  
+  // 取消编辑
+  const cancelEditing = () => {
+    setEditingId(null);
+  };
+  
+  return (
+    <Drawer>
+      <DrawerTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-2">
+          <Bookmark className="h-4 w-4" />
+          书签管理
+        </Button>
+      </DrawerTrigger>
+      <DrawerContent>
+        <div className="mx-auto w-full max-w-sm">
+          <DrawerHeader>
+            <DrawerTitle>书签管理</DrawerTitle>
+            <DrawerDescription>
+              在章节中添加书签，方便快速导航和定位
+            </DrawerDescription>
+          </DrawerHeader>
+          
+          <div className="p-4 space-y-4">
+            {/* 添加新书签 */}
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="输入书签名称"
+                value={newBookmarkLabel}
+                onChange={(e) => setNewBookmarkLabel(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAddBookmark();
+                  }
+                }}
+              />
+              <Button onClick={handleAddBookmark}>
+                <BookmarkPlus className="h-4 w-4 mr-2" />
+                添加
+              </Button>
+            </div>
+            
+            {/* 书签列表 */}
+            <ScrollArea className="h-[300px] pr-4">
+              {bookmarks.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  暂无书签，请添加新书签
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {bookmarks.map((bookmark) => (
+                    <div
+                      key={bookmark.id}
+                      className="flex items-center justify-between p-2 rounded-md border"
+                    >
+                      {editingId === bookmark.id ? (
+                        <div className="flex-1 flex gap-2">
+                          <Input
+                            value={editLabel}
+                            onChange={(e) => setEditLabel(e.target.value)}
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveEditing();
+                              if (e.key === 'Escape') cancelEditing();
+                            }}
+                          />
+                          <Button size="sm" onClick={saveEditing}>保存</Button>
+                          <Button size="sm" variant="ghost" onClick={cancelEditing}>取消</Button>
+                        </div>
+                      ) : (
+                        <>
+                          <Button
+                            variant="ghost"
+                            className="flex-1 justify-start font-normal"
+                            onClick={() => jumpToBookmark(bookmark.id)}
+                          >
+                            <Bookmark className="h-4 w-4 mr-2" />
+                            {bookmark.label}
+                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => startEditing(bookmark)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => removeBookmark(bookmark.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </div>
+          
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button variant="outline">关闭</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}
+```
+
+**创建文件**：`src/components/editor/EditorSettings.tsx`
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer';
+import { Settings2 } from 'lucide-react';
+import { EditorSettings as EditorSettingsType, EditorTheme, defaultEditorSettings } from '@/types/editor';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+
+interface EditorSettingsProps {
+  settings: EditorSettingsType;
+  onSettingsChange: (settings: EditorSettingsType) => void;
+}
+
+export function EditorSettings({ settings, onSettingsChange }: EditorSettingsProps) {
+  const [localSettings, setLocalSettings] = useState<EditorSettingsType>(settings);
+  
+  // 应用设置
+  const applySettings = () => {
+    onSettingsChange(localSettings);
+  };
+  
+  // 重置为默认设置
+  const resetToDefaults = () => {
+    setLocalSettings(defaultEditorSettings);
+  };
+  
+  // 更新单个设置项
+  const updateSetting = <K extends keyof EditorSettingsType>(
+    key: K,
+    value: EditorSettingsType[K]
+  ) => {
+    setLocalSettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+  
+  return (
+    <Drawer>
+      <DrawerTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-2">
+          <Settings2 className="h-4 w-4" />
+          编辑器设置
+        </Button>
+      </DrawerTrigger>
+      <DrawerContent>
+        <div className="mx-auto w-full max-w-sm">
+          <DrawerHeader>
+            <DrawerTitle>编辑器设置</DrawerTitle>
+            <DrawerDescription>
+              自定义编辑器外观和行为
+            </DrawerDescription>
+          </DrawerHeader>
+          
+          <div className="p-4 space-y-6">
+            {/* 主题设置 */}
+            <div className="space-y-2">
+              <Label>编辑器主题</Label>
+              <RadioGroup
+                value={localSettings.theme}
+                onValueChange={(value) => updateSetting('theme', value as EditorTheme)}
+                className="flex flex-wrap gap-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="default" id="theme-default" />
+                  <Label htmlFor="theme-default">默认</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="sepia" id="theme-sepia" />
+                  <Label htmlFor="theme-sepia">护眼</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="dark" id="theme-dark" />
+                  <Label htmlFor="theme-dark">暗色</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="minimal" id="theme-minimal" />
+                  <Label htmlFor="theme-minimal">简约</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            
+            {/* 字体大小设置 */}
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <Label>字体大小</Label>
+                <span>{localSettings.fontSize}px</span>
+              </div>
+              <Slider
+                value={[localSettings.fontSize]}
+                min={12}
+                max={24}
+                step={1}
+                onValueChange={(value) => updateSetting('fontSize', value[0])}
+              />
+            </div>
+            
+            {/* 行间距设置 */}
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <Label>行间距</Label>
+                <span>{localSettings.lineSpacing}</span>
+              </div>
+              <Slider
+                value={[localSettings.lineSpacing * 10]}
+                min={10}
+                max={30}
+                step={1}
+                onValueChange={(value) => updateSetting('lineSpacing', value[0] / 10)}
+              />
+            </div>
+            
+            {/* 显示字数统计 */}
+            <div className="flex items-center justify-between">
+              <Label htmlFor="show-word-count">显示字数统计</Label>
+              <Switch
+                id="show-word-count"
+                checked={localSettings.showWordCount}
+                onCheckedChange={(checked) => updateSetting('showWordCount', checked)}
+              />
+            </div>
+            
+            {/* 自动保存设置 */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="enable-autosave">启用自动保存</Label>
+                <Switch
+                  id="enable-autosave"
+                  checked={localSettings.enableAutoSave}
+                  onCheckedChange={(checked) => updateSetting('enableAutoSave', checked)}
+                />
+              </div>
+              
+              {localSettings.enableAutoSave && (
+                <div className="space-y-2 pl-6">
+                  <div className="flex justify-between">
+                    <Label>自动保存间隔</Label>
+                    <span>{localSettings.autoSaveInterval}秒</span>
+                  </div>
+                  <Slider
+                    value={[localSettings.autoSaveInterval]}
+                    min={5}
+                    max={300}
+                    step={5}
+                    onValueChange={(value) => updateSetting('autoSaveInterval', value[0])}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <DrawerFooter className="flex-row justify-between">
+            <Button variant="outline" onClick={resetToDefaults}>
+              恢复默认
+            </Button>
+            <div className="space-x-2">
+              <DrawerClose asChild>
+                <Button variant="outline">取消</Button>
+              </DrawerClose>
+              <Button onClick={applySettings}>应用设置</Button>
+            </div>
+          </DrawerFooter>
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}
+```
+
+**创建文件**：`src/components/editor/EditorToolbar.tsx`
+
+```tsx
+'use client';
+
+import { Editor } from '@tiptap/react';
+import {
+  Bold,
+  Italic,
+  Underline,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  Heading1,
+  Heading2,
+  Heading3,
+  List,
+  ListOrdered,
+  Undo,
+  Redo,
+  Save,
+  Search,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Toggle } from '@/components/ui/toggle';
+import { Separator } from '@/components/ui/separator';
+import { BookmarkManager } from './BookmarkManager';
+import { EditorSettings } from './EditorSettings';
+import { FocusMode } from './FocusMode';
+import { useBookmarks } from '@/hooks/editor/useBookmarks';
+import { EditorSettings as EditorSettingsType, defaultEditorSettings } from '@/types/editor';
+import { useState, useEffect } from 'react';
+
+interface EditorToolbarProps {
+  editor: Editor | null;
+  onSave?: () => void;
+  isSaving?: boolean;
+  wordCount?: number;
+  chapterId?: string;
+  editorContainerId: string;
+}
+
+export function EditorToolbar({
+  editor,
+  onSave,
+  isSaving = false,
+  wordCount = 0,
+  chapterId = 'temp',
+  editorContainerId,
+}: EditorToolbarProps) {
+  // 编辑器设置
+  const [settings, setSettings] = useState<EditorSettingsType>(() => {
+    // 尝试从本地存储加载设置
+    try {
+      const savedSettings = localStorage.getItem('editor-settings');
+      return savedSettings ? JSON.parse(savedSettings) : defaultEditorSettings;
+    } catch (error) {
+      console.error('加载编辑器设置失败:', error);
+      return defaultEditorSettings;
+    }
+  });
+  
+  // 使用书签Hook
+  const {
+    bookmarks,
+    addBookmark,
+    removeBookmark,
+    updateBookmarkLabel,
+    jumpToBookmark,
+  } = useBookmarks(editor, chapterId);
+  
+  // 应用编辑器设置
+  useEffect(() => {
+    if (!editor) return;
+    
+    // 应用字体大小和行间距
+    document.documentElement.style.setProperty('--editor-font-size', `${settings.fontSize}px`);
+    document.documentElement.style.setProperty('--editor-line-height', `${settings.lineSpacing}`);
+    
+    // 应用主题
+    const editorElement = document.querySelector('.ProseMirror');
+    if (editorElement) {
+      // 移除所有主题类
+      editorElement.classList.remove('theme-default', 'theme-sepia', 'theme-dark', 'theme-minimal');
+      // 添加当前主题类
+      editorElement.classList.add(`theme-${settings.theme}`);
+    }
+    
+    // 保存设置到本地存储
+    localStorage.setItem('editor-settings', JSON.stringify(settings));
+  }, [editor, settings]);
+  
+  // 如果没有编辑器实例，不渲染工具栏
+  if (!editor) {
+    return null;
+  }
+  
+  return (
+    <div className="border-b p-1 sticky top-0 bg-background z-10">
+      <div className="flex flex-wrap items-center gap-1">
+        {/* 格式控制 */}
+        <div className="flex items-center">
+          <Toggle
+            pressed={editor.isActive('bold')}
+            onPressedChange={() => editor.chain().focus().toggleBold().run()}
+            aria-label="加粗"
+            size="sm"
+          >
+            <Bold className="h-4 w-4" />
+          </Toggle>
+          <Toggle
+            pressed={editor.isActive('italic')}
+            onPressedChange={() => editor.chain().focus().toggleItalic().run()}
+            aria-label="斜体"
+            size="sm"
+          >
+            <Italic className="h-4 w-4" />
+          </Toggle>
+          <Toggle
+            pressed={editor.isActive('underline')}
+            onPressedChange={() => editor.chain().focus().toggleUnderline().run()}
+            aria-label="下划线"
+            size="sm"
+          >
+            <Underline className="h-4 w-4" />
+          </Toggle>
+        </div>
+        
+        <Separator orientation="vertical" className="mx-1 h-6" />
+        
+        {/* 对齐方式 */}
+        <div className="flex items-center">
+          <Toggle
+            pressed={editor.isActive({ textAlign: 'left' })}
+            onPressedChange={() => editor.chain().focus().setTextAlign('left').run()}
+            aria-label="左对齐"
+            size="sm"
+          >
+            <AlignLeft className="h-4 w-4" />
+          </Toggle>
+          <Toggle
+            pressed={editor.isActive({ textAlign: 'center' })}
+            onPressedChange={() => editor.chain().focus().setTextAlign('center').run()}
+            aria-label="居中对齐"
+            size="sm"
+          >
+            <AlignCenter className="h-4 w-4" />
+          </Toggle>
+          <Toggle
+            pressed={editor.isActive({ textAlign: 'right' })}
+            onPressedChange={() => editor.chain().focus().setTextAlign('right').run()}
+            aria-label="右对齐"
+            size="sm"
+          >
+            <AlignRight className="h-4 w-4" />
+          </Toggle>
+          <Toggle
+            pressed={editor.isActive({ textAlign: 'justify' })}
+            onPressedChange={() => editor.chain().focus().setTextAlign('justify').run()}
+            aria-label="两端对齐"
+            size="sm"
+          >
+            <AlignJustify className="h-4 w-4" />
+          </Toggle>
+        </div>
+        
+        <Separator orientation="vertical" className="mx-1 h-6" />
+        
+        {/* 标题 */}
+        <div className="flex items-center">
+          <Toggle
+            pressed={editor.isActive('heading', { level: 1 })}
+            onPressedChange={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            aria-label="一级标题"
+            size="sm"
+          >
+            <Heading1 className="h-4 w-4" />
+          </Toggle>
+          <Toggle
+            pressed={editor.isActive('heading', { level: 2 })}
+            onPressedChange={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            aria-label="二级标题"
+            size="sm"
+          >
+            <Heading2 className="h-4 w-4" />
+          </Toggle>
+          <Toggle
+            pressed={editor.isActive('heading', { level: 3 })}
+            onPressedChange={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            aria-label="三级标题"
+            size="sm"
+          >
+            <Heading3 className="h-4 w-4" />
+          </Toggle>
+        </div>
+        
+        <Separator orientation="vertical" className="mx-1 h-6" />
+        
+        {/* 列表 */}
+        <div className="flex items-center">
+          <Toggle
+            pressed={editor.isActive('bulletList')}
+            onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
+            aria-label="无序列表"
+            size="sm"
+          >
+            <List className="h-4 w-4" />
+          </Toggle>
+          <Toggle
+            pressed={editor.isActive('orderedList')}
+            onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
+            aria-label="有序列表"
+            size="sm"
+          >
+            <ListOrdered className="h-4 w-4" />
+          </Toggle>
+        </div>
+        
+        <Separator orientation="vertical" className="mx-1 h-6" />
+        
+        {/* 撤销/重做 */}
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().undo().run()}
+            disabled={!editor.can().undo()}
+            aria-label="撤销"
+          >
+            <Undo className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().redo().run()}
+            disabled={!editor.can().redo()}
+            aria-label="重做"
+          >
+            <Redo className="h-4 w-4" />
+          </Button>
+        </div>
+        
+        <div className="flex-1" />
+        
+        {/* 章节内查找按钮 */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            if (editor) {
+              // 使用浏览器的查找功能
+              if (document.execCommand('find')) {
+                document.execCommand('find');
+              } else {
+                // 如果浏览器不支持execCommand，提示用户使用Ctrl+F
+                alert('请使用键盘快捷键 Ctrl+F 进行查找');
+              }
+            }
+          }}
+          className="gap-2"
+        >
+          <Search className="h-4 w-4" />
+          查找
+        </Button>
+        
+        {/* 专注模式按钮 */}
+        <FocusMode editorContainerId={editorContainerId} />
+        
+        {/* 书签管理按钮 */}
+        <BookmarkManager
+          editor={editor}
+          bookmarks={bookmarks}
+          addBookmark={addBookmark}
+          removeBookmark={removeBookmark}
+          updateBookmarkLabel={updateBookmarkLabel}
+          jumpToBookmark={jumpToBookmark}
+        />
+        
+        {/* 编辑器设置 */}
+        <EditorSettings
+          settings={settings}
+          onSettingsChange={setSettings}
+        />
+        
+        {/* 保存按钮 */}
+        {onSave && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onSave}
+            disabled={isSaving}
+            className="gap-2"
+          >
+            <Save className="h-4 w-4" />
+            {isSaving ? '保存中...' : '保存'}
+          </Button>
+        )}
+        
+        {/* 字数统计 */}
+        {settings.showWordCount && (
+          <div className="text-xs text-muted-foreground px-2">
+            {wordCount} 字
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+```
+
+**创建文件**：`src/components/editor/TiptapEditor.tsx`
+
+```tsx
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import Placeholder from '@tiptap/extension-placeholder';
+import TextAlign from '@tiptap/extension-text-align';
+import Document from '@tiptap/extension-document';
+import Highlight from '@tiptap/extension-highlight';
+import { EditorToolbar } from './EditorToolbar';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { EditorContent as EditorContentType, EditorSettings, defaultEditorSettings } from '@/types/editor';
+import { BookmarkExtension } from '@/lib/editor/BookmarkExtension';
+
 // Tiptap编辑器属性
 interface TiptapEditorProps {
-  initialContent?: EditorContent;  // 初始内容
-  onSave?: (content: EditorContent) => void;  // 保存回调
-  placeholder?: string;  // 占位文本
-  autoFocus?: boolean;  // 是否自动聚焦
+  initialContent?: EditorContentType; // 初始内容
+  onSave?: (content: EditorContentType) => void; // 保存回调
+  placeholder?: string; // 占位文本
+  autoFocus?: boolean; // 是否自动聚焦
+  chapterId?: string; // 章节ID，用于书签管理
+  containerId?: string; // 容器ID，用于专注模式
 }
 
 // 计算字数的函数
 function countWords(html: string): number {
   if (!html) return 0;
-  
+
   // 创建临时元素来解析HTML
   const temp = document.createElement('div');
   temp.innerHTML = html;
-  
+
   // 获取纯文本内容
   const text = temp.textContent || temp.innerText || '';
-  
+
   // 移除多余空白字符
   const trimmedText = text.trim();
   if (!trimmedText) return 0;
-  
+
   // 匹配中文字符和英文单词
   const chineseChars = trimmedText.match(/[\u4e00-\u9fa5]/g) || [];
   const englishWords = trimmedText.match(/[a-zA-Z]+/g) || [];
-  
+
   return chineseChars.length + englishWords.length;
 }
 
+// 自定义Document扩展，支持章节内定位
+const CustomDocument = Document.extend({
+  addKeyboardShortcuts() {
+    return {
+      // 添加快捷键，Ctrl+G跳转到指定行
+      'Mod-g': () => {
+        const line = prompt('请输入要跳转的行号:');
+        if (line) {
+          const lineNumber = parseInt(line, 10);
+          if (!isNaN(lineNumber) && lineNumber > 0) {
+            this.editor.commands.focus();
+            
+            // 获取文档的所有段落
+            const paragraphs = this.editor.state.doc.content.content;
+            
+            // 如果行号超出范围，跳转到最后一行
+            const targetLine = Math.min(lineNumber - 1, paragraphs.length - 1);
+            
+            if (targetLine >= 0) {
+              // 获取目标段落的位置
+              let pos = 0;
+              for (let i = 0; i < targetLine; i++) {
+                pos += paragraphs[i].nodeSize;
+              }
+              
+              // 设置光标位置
+              this.editor.commands.setTextSelection(pos + 1);
+              
+              // 滚动到视图
+              const selection = window.getSelection();
+              if (selection && selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                range.startContainer.parentElement?.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'center',
+                });
+              }
+              
+              return true;
+            }
+          }
+        }
+        return false;
+      },
+    };
+  },
+});
+
 // Tiptap编辑器组件
 export function TiptapEditor({
-  initialContent = { title: "", content: "" },
+  initialContent = { title: '', content: '' },
   onSave,
-  placeholder = "开始您的创作...",
+  placeholder = '开始您的创作...',
   autoFocus = false,
+  chapterId = 'temp',
+  containerId = 'editor-container',
 }: TiptapEditorProps) {
   // 标题状态
   const [title, setTitle] = useState(initialContent.title);
@@ -336,11 +1115,24 @@ export function TiptapEditor({
   const [isSaving, setIsSaving] = useState(false);
   // 字数状态
   const [wordCount, setWordCount] = useState(0);
-  
+  // 编辑器设置
+  const [settings, setSettings] = useState<EditorSettings>(() => {
+    try {
+      const savedSettings = localStorage.getItem('editor-settings');
+      return savedSettings ? JSON.parse(savedSettings) : defaultEditorSettings;
+    } catch (error) {
+      console.error('加载编辑器设置失败:', error);
+      return defaultEditorSettings;
+    }
+  });
+
   // 初始化编辑器
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      CustomDocument,
+      StarterKit.configure({
+        document: false, // 使用我们的自定义Document扩展
+      }),
       Underline,
       Placeholder.configure({
         placeholder,
@@ -348,6 +1140,10 @@ export function TiptapEditor({
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
+      Highlight.configure({
+        multicolor: false,
+      }),
+      BookmarkExtension,
     ],
     content: initialContent.content,
     autofocus: autoFocus,
@@ -356,16 +1152,16 @@ export function TiptapEditor({
       setWordCount(countWords(editor.getHTML()));
     },
   });
-  
+
   // 获取当前内容
   const getCurrentContent = useCallback(() => {
-    if (!editor) return { title, content: "" };
+    if (!editor) return { title, content: '' };
     return {
       title,
       content: editor.getHTML(),
     };
   }, [editor, title]);
-  
+
   // 保存处理函数
   const handleSave = async () => {
     if (onSave) {
@@ -378,22 +1174,22 @@ export function TiptapEditor({
       }
     }
   };
-  
-  // 自动保存（每5秒）
+
+  // 自动保存（根据设置的间隔）
   useEffect(() => {
-    if (!editor || !onSave) return;
-    
+    if (!editor || !onSave || !settings.enableAutoSave) return;
+
     const autoSaveInterval = setInterval(() => {
       const content = getCurrentContent();
-      if (content.title || content.content !== "<p></p>") {
-        console.log("自动保存...");
+      if (content.title || content.content !== '<p></p>') {
+        console.log('自动保存...');
         onSave(content);
       }
-    }, 5000);
-    
+    }, settings.autoSaveInterval * 1000);
+
     return () => clearInterval(autoSaveInterval);
-  }, [editor, getCurrentContent, onSave]);
-  
+  }, [editor, getCurrentContent, onSave, settings.enableAutoSave, settings.autoSaveInterval]);
+
   // 初始化字数统计
   useEffect(() => {
     if (editor) {
@@ -401,8 +1197,14 @@ export function TiptapEditor({
     }
   }, [editor]);
 
+  // 应用编辑器设置的CSS变量
+  useEffect(() => {
+    document.documentElement.style.setProperty('--editor-font-size', `${settings.fontSize}px`);
+    document.documentElement.style.setProperty('--editor-line-height', `${settings.lineSpacing}`);
+  }, [settings]);
+
   return (
-    <div className="flex flex-col border rounded-md shadow-sm">
+    <div id={containerId} className="flex flex-col border rounded-md shadow-sm">
       {/* 标题输入 */}
       <div className="p-4 border-b">
         <Label htmlFor="title" className="sr-only">
@@ -416,32 +1218,79 @@ export function TiptapEditor({
           className="border-none text-xl font-semibold focus-visible:ring-0 px-0"
         />
       </div>
-      
+
       {/* 工具栏 */}
       <EditorToolbar
         editor={editor}
         onSave={handleSave}
         isSaving={isSaving}
         wordCount={wordCount}
+        chapterId={chapterId}
+        editorContainerId={containerId}
       />
-      
+
       {/* 内容编辑区 */}
-      <div className="prose prose-sm dark:prose-invert max-w-none p-4 min-h-[300px]">
+      <div className={`prose prose-sm dark:prose-invert max-w-none p-4 min-h-[300px] theme-${settings.theme}`}>
         <EditorContent editor={editor} className="min-h-[300px] outline-none" />
       </div>
-      
+
       {/* 编辑器样式 */}
       <style jsx global>{`
         .ProseMirror {
           min-height: 300px;
           outline: none;
+          font-size: var(--editor-font-size, 16px);
+          line-height: var(--editor-line-height, 1.5);
         }
-        .ProseMirror p.is-editor-empty:first-child::before {
-          content: attr(data-placeholder);
-          float: left;
-          color: #adb5bd;
-          pointer-events: none;
-          height: 0;
+        
+        /* 主题样式 */
+        .theme-default {
+          background-color: white;
+          color: #333;
+        }
+        
+        .theme-sepia {
+          background-color: #f4f1ea;
+          color: #5f4b32;
+        }
+        
+        .theme-dark {
+          background-color: #222;
+          color: #eee;
+        }
+        
+        .theme-minimal {
+          background-color: white;
+          color: #333;
+          font-family: monospace;
+        }
+        
+        /* 书签高亮样式 */
+        .ProseMirror mark {
+          background-color: rgba(255, 220, 0, 0.4);
+          border-bottom: 2px solid #ffdc00;
+          padding: 2px 0;
+        }
+        
+        /* 专注模式样式 */
+        #${containerId}:fullscreen {
+          background-color: var(--background);
+          padding: 2rem;
+          display: flex;
+          flex-direction: column;
+          overflow: auto;
+        }
+        
+        #${containerId}:fullscreen .ProseMirror {
+          flex: 1;
+          max-width: 65ch;
+          margin: 0 auto;
+          width: 100%;
+        }
+        
+        /* 在专注模式下隐藏某些元素 */
+        #${containerId}:fullscreen .hide-in-focus-mode {
+          display: none;
         }
       `}</style>
     </div>
@@ -449,55 +1298,58 @@ export function TiptapEditor({
 }
 ```
 
-**代码详解**：
+**更新文件**：`src/app/(main)/chapters/[id]/edit/page.tsx`
 
-1. **"use client"指令**：
-   - 标记为客户端组件，因为Tiptap需要浏览器环境才能运行
-   - 编辑器是典型的需要在客户端渲染的组件，涉及DOM操作和用户交互
+```tsx
+// 在TiptapEditor组件中添加containerId属性
+<TiptapEditor
+  initialContent={editorContent}
+  onSave={handleSave}
+  placeholder="开始编写您的章节内容..."
+  autoFocus
+  chapterId={chapterId}
+  containerId={`editor-${chapterId}`} // 使用唯一的容器ID
+/>
 
-2. **接口定义**：
-   - `EditorContent`定义了编辑器内容的结构：标题和内容
-   - `TiptapEditorProps`定义了组件属性，包括初始内容、保存回调、占位文本和自动聚焦选项
-
-3. **字数统计函数**：
-   - `countWords`函数计算HTML内容中的字数
-   - 使用DOM API解析HTML并提取纯文本
-   - 分别计算中文字符和英文单词，这对小说创作很重要
-   - 中文按字符计数，英文按单词计数，符合写作习惯
-
-4. **编辑器初始化**：
-   - 使用`useEditor`钩子创建Tiptap编辑器实例
-   - 配置扩展：`StarterKit`（基础功能）、`Underline`（下划线）、`Placeholder`（占位文本）、`TextAlign`（文本对齐）
-   - 设置`onUpdate`回调更新字数统计，这在用户输入时触发
-
-5. **内容管理**：
-   - `getCurrentContent`函数获取当前编辑器内容，使用`useCallback`优化性能
-   - `handleSave`函数处理保存操作，设置加载状态并调用保存回调
-   - 标题使用单独的`Input`组件管理，而不是编辑器的一部分，使布局更清晰
-
-6. **自动保存功能**：
-   - 使用`useEffect`设置定时器，每5秒自动保存一次
-   - 只有当内容非空时才触发保存，避免无意义的API调用
-   - 在组件卸载时清除定时器，防止内存泄漏
-
-7. **样式处理**：
-   - 使用`prose`类为编辑器内容添加排版样式，提升可读性
-   - 使用`dark:prose-invert`支持深色模式
-   - 添加全局样式处理占位文本和编辑器最小高度
-
-8. **组件结构**：
-   - 分为三部分：标题输入、工具栏和内容编辑区
-   - 使用边框和阴影创建清晰的视觉边界
-   - 标题和工具栏有底部边框分隔，增强视觉层次
+// 在底部添加键盘快捷键提示
+<div className="text-xs text-muted-foreground">
+  <p>提示：按下 Ctrl+G 可以跳转到指定行；使用书签管理器可以在重要位置添加书签。</p>
+</div>
+```
 
 **执行目的**：
-创建一个功能完善的富文本编辑器，专为小说创作优化。这个编辑器：
-1. 提供必要的文本格式化工具（加粗、斜体、列表等）
-2. 实时统计字数，这对作者非常重要
-3. 自动保存功能，防止内容丢失
-4. 支持深色模式，减轻长时间写作的眼睛疲劳
-5. 良好的排版和间距，提升阅读和编辑体验
+通过上述代码，我们实现了以下功能：
 
-Tiptap编辑器比简单的文本框强大得多，它提供了结构化内容和格式控制，同时保持了良好的用户体验和性能。
+1. **书签管理功能**：
+   - 在编辑器中添加、编辑和删除书签
+   - 使用书签快速导航到文档中的特定位置
+   - 书签数据保存在本地存储中，与特定章节关联
 
-您理解这一步骤吗？我们创建了基于Tiptap的富文本编辑器组件，为小说管理系统提供了专业的内容创作工具。
+2. **章节内定位功能**：
+   - 通过Ctrl+G快捷键跳转到指定行
+   - 通过自定义Document扩展实现精确定位
+   - 添加章节内查找功能，便于搜索特定内容
+
+3. **编辑器主题选择**：
+   - 提供默认、护眼、暗色和简约四种主题
+   - 主题设置保存在本地存储中，下次打开自动应用
+
+4. **专注模式**：
+   - 提供全屏写作界面，减少干扰元素
+   - 优化全屏模式下的编辑器布局
+   - 简单的切换按钮，方便进入和退出专注模式
+
+5. **编辑器个性化设置**：
+   - 可调整字体大小和行间距
+   - 可配置是否显示字数统计
+   - 可自定义自动保存行为和间隔
+
+这些功能极大地提升了编辑器的可用性，使作家能够更高效地管理和导航长篇章节内容，符合需求文档中提到的"快速导航（章节内定位、书签）"和"专注模式UI"功能要求。
+
+**替代方案**：
+- **使用第三方编辑器**：如Slate.js或Lexical，但集成成本高，且可能不如Tiptap灵活
+- **使用原生HTML编辑器**：功能有限，难以实现高级功能
+- **使用Markdown编辑器**：虽然简单，但对非技术用户不友好
+- **使用iframe嵌入Google Docs**：依赖第三方服务，可能有网络和权限问题
+
+理解了吗？
