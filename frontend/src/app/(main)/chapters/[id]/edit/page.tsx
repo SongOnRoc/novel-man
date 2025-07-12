@@ -8,7 +8,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { EditorContent } from "@/types/editor";
 import { mockChapters } from "@/lib/mock/chapters-mock-data";
-import { ChapterDraft } from "@/types/outline";
+import { Chapter } from "@/types/work";
 
 // 章节编辑页面组件
 export default function ChapterEditPage() {
@@ -17,10 +17,10 @@ export default function ChapterEditPage() {
   // 获取路由器实例，用于页面导航
   const router = useRouter();
   // 从URL参数中提取章节ID
-  const chapterId = params.id as string;
+  const id = params.id as string;
 
   // 将所有章节相关状态合并到一个对象中
-  const [chapterData, setChapterData] = useState<ChapterDraft | null>(null);
+  const [chapterData, setChapterData] = useState<Chapter | null>(null);
   // 加载状态
   const [isLoading, setIsLoading] = useState(true);
 
@@ -28,32 +28,28 @@ export default function ChapterEditPage() {
   useEffect(() => {
     setIsLoading(true);
     // 从中央mock数据中查找当前章节
-    const currentChapter = mockChapters.find(
-      (chap) => chap.chapterId === chapterId
-    );
+    const currentChapter = mockChapters.find((chap) => chap.id === id);
 
     if (currentChapter) {
       setChapterData(currentChapter);
     } else {
-      console.error(`找不到章节: ${chapterId}`);
+      console.error(`找不到章节: ${id}`);
       // 如果找不到章节，可以重定向或显示错误信息
       // router.push('/chapters');
     }
     setIsLoading(false);
-  }, [chapterId]);
+  }, [id]);
 
   // 保存章节
   const handleSave = async (content: EditorContent) => {
     // 这里将来会调用API保存章节
-    console.log("保存章节:", chapterId, content);
+    console.log("保存章节:", id, content);
 
     // 模拟API调用延迟
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     // 更新中央mock数据
-    const chapterIndex = mockChapters.findIndex(
-      (chap) => chap.chapterId === chapterId
-    );
+    const chapterIndex = mockChapters.findIndex((chap) => chap.id === id);
     if (chapterIndex !== -1) {
       const updatedChapter = {
         ...mockChapters[chapterIndex],
@@ -109,9 +105,9 @@ export default function ChapterEditPage() {
           onSave={handleSave}
           placeholder="开始编写您的章节内容..."
           autoFocus
-          chapterId={chapterData.chapterId}
+          contentId={chapterData.id}
           workId={chapterData.workId}
-          containerId={`editor-${chapterData.chapterId}`} // 使用唯一的容器ID
+          containerId={`editor-${chapterData.id}`} // 使用唯一的容器ID
         />
       )}
 

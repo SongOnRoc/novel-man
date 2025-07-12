@@ -16,19 +16,19 @@ import {
 import { FileText, MoreVertical, Edit, Eye, ArrowUpDown } from "lucide-react";
 import Link from "next/link";
 
-import { ChapterDraft } from "@/types/outline";
+import { Chapter } from "@/types/work";
 import { mockVolumes } from "@/lib/mock/volumes-mock-data";
 
 // 章节列表属性
 interface ChapterListProps {
   workId: string;
-  chapters: ChapterDraft[];
+  chapters: Chapter[];
 }
 
 // 章节列表组件
 export function ChapterList({ workId, chapters }: ChapterListProps) {
   // 按分卷ID对章节进行分组
-  const chaptersByVolume = chapters.reduce<Record<string, ChapterDraft[]>>(
+  const chaptersByVolume = chapters.reduce<Record<string, Chapter[]>>(
     (acc, chapter) => {
       const volumeId = chapter.volumeId || "unclassified";
       if (!acc[volumeId]) {
@@ -42,11 +42,11 @@ export function ChapterList({ workId, chapters }: ChapterListProps) {
 
   const getVolumeTitle = (volumeId: string) => {
     if (volumeId === "unclassified") return "未分卷";
-    const volume = mockVolumes.find((v) => v.volumeId === volumeId);
+    const volume = mockVolumes.find((v) => v.id === volumeId);
     return volume ? volume.title : "未知分卷";
   };
 
-  const getStatusBadge = (status: ChapterDraft["status"]) => {
+  const getStatusBadge = (status: Chapter["status"]) => {
     // ... (getStatusBadge function remains the same)
     switch (status) {
       case "draft":
@@ -98,7 +98,7 @@ export function ChapterList({ workId, chapters }: ChapterListProps) {
                   </h3>
                   {volumeChapters.map((chapter) => (
                     <div
-                      key={chapter.chapterId}
+                      key={chapter.id}
                       className="flex items-center justify-between rounded-lg border p-3 shadow-sm"
                     >
                       <div className="flex items-center gap-3">
@@ -118,7 +118,7 @@ export function ChapterList({ workId, chapters }: ChapterListProps) {
                       </div>
                       <div className="flex items-center gap-2">
                         <Button variant="ghost" size="icon" asChild>
-                          <Link href={`/chapters/${chapter.chapterId}/edit`}>
+                          <Link href={`/chapters/${chapter.id}/edit`}>
                             <Edit className="h-4 w-4" />
                             <span className="sr-only">编辑</span>
                           </Link>

@@ -26,7 +26,7 @@ interface TiptapEditorProps {
   onSave?: (content: EditorContentType) => void; // 保存回调
   placeholder?: string; // 占位文本
   autoFocus?: boolean; // 是否自动聚焦
-  chapterId?: string; // 章节ID，用于书签管理
+  contentId?: string; // 内容ID，用于书签等
   workId?: string; // 作品ID，用于设定速查
   containerId?: string; // 容器ID，用于专注模式
 }
@@ -107,7 +107,7 @@ export function TiptapEditor({
   onSave,
   placeholder = "开始您的创作...",
   autoFocus = false,
-  chapterId = "temp",
+  contentId = "temp",
   workId,
   containerId = "editor-container",
 }: TiptapEditorProps) {
@@ -272,7 +272,7 @@ export function TiptapEditor({
         onSave={handleSave}
         isSaving={isSaving}
         wordCount={wordCount}
-        chapterId={chapterId}
+        contentId={contentId}
         workId={workId}
         editorContainerId={containerId}
       />

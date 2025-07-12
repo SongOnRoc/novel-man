@@ -7,12 +7,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Save, Book, Layers, FileText } from "lucide-react";
 import Link from "next/link";
 import { Work } from "@/types/work";
-import { Outline, VolumeWithChapters, ChapterDraft } from "@/types/outline";
+import { Outline, VolumeWithChapters, Chapter } from "@/types/work";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { mockWorks } from "@/lib/mock/works-mock-data";
-import { mockVolumes } from "@/lib/mock/volumes-mock-data";
-import { mockChapters } from "@/lib/mock/chapters-mock-data";
+import { mockOutlines } from "@/lib/mock/outline-mock-data";
 
 export default function OutlinePage() {
   const router = useRouter();
@@ -30,21 +29,9 @@ export default function OutlinePage() {
       const currentWork = mockWorks.find((w) => w.id === id);
       if (currentWork) {
         setWork(currentWork);
-        const workVolumes = mockVolumes.filter((v) => v.workId === id);
-        const workChapters = mockChapters.filter((c) => c.workId === id);
-
-        const constructedOutline: Outline = {
-          main: currentWork.outline || "暂无总纲",
-          volumes: workVolumes.map(
-            (vol): VolumeWithChapters => ({
-              ...vol,
-              chapters: workChapters.filter(
-                (chap) => chap.volumeId === vol.volumeId
-              ),
-            })
-          ),
-        };
-        setOutline(constructedOutline);
+        // 直接从 mockOutlines 中查找对应的大纲
+        const currentOutline = mockOutlines.find((o) => o.workId === id);
+        setOutline(currentOutline || null);
       }
       setIsLoading(false);
     }
@@ -72,18 +59,18 @@ export default function OutlinePage() {
       newOutline.main = value;
     } else if (type === "volume" && volumeId) {
       const volume = newOutline.volumes.find(
-        (v: VolumeWithChapters) => v.volumeId === volumeId
+        (v: VolumeWithChapters) => v.id === volumeId
       );
       if (volume) {
         volume.outline = value;
       }
     } else if (type === "chapter" && volumeId && chapterId) {
       const volume = newOutline.volumes.find(
-        (v: VolumeWithChapters) => v.volumeId === volumeId
+        (v: VolumeWithChapters) => v.id === volumeId
       );
       if (volume) {
         const chapter = volume.chapters.find(
-          (c: ChapterDraft) => c.chapterId === chapterId
+          (c: Chapter) => c.id === chapterId
         );
         if (chapter) {
           chapter.outline = value;
@@ -160,7 +147,7 @@ export default function OutlinePage() {
         <TabsContent value="volumes">
           <div className="space-y-4">
             {outline.volumes.map((vol) => (
-              <Card key={vol.volumeId}>
+              <Card key={vol.id}>
                 <CardHeader>
                   <CardTitle>{vol.title}</CardTitle>
                 </CardHeader>
@@ -168,11 +155,7 @@ export default function OutlinePage() {
                   <Textarea
                     value={vol.outline}
                     onChange={(e) =>
-                      handleOutlineChange(
-                        "volume",
-                        e.target.value,
-                        vol.volumeId
-                      )
+                      handleOutlineChange("volume", e.target.value, vol.id)
                     }
                     placeholder={`输入 ${vol.title} 的大纲...`}
                     className="min-h-[150px]"
@@ -187,19 +170,17 @@ export default function OutlinePage() {
         <TabsContent value="chapters">
           <div className="space-y-4">
             {outline.volumes.map((vol) => (
-              <Card key={vol.volumeId}>
+              <Card key={vol.id}>
                 <CardHeader>
                   <CardTitle>{vol.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {vol.chapters.map((chap) => (
-                    <div key={chap.chapterId} className="space-y-2">
+                    <div key={chap.id} className="space-y-2">
                       <div className="flex justify-between items-center">
                         <h4 className="font-semibold">{chap.title}</h4>
                         <Button variant="link" size="sm" asChild>
-                          <Link href={`/chapters/${chap.chapterId}/edit`}>
-                            去编辑
-                          </Link>
+                          <Link href={`/chapters/${chap.id}/edit`}>去编辑</Link>
                         </Button>
                       </div>
                       <Textarea
@@ -208,8 +189,8 @@ export default function OutlinePage() {
                           handleOutlineChange(
                             "chapter",
                             e.target.value,
-                            vol.volumeId,
-                            chap.chapterId
+                            vol.id,
+                            chap.id
                           )
                         }
                         placeholder={`输入 ${chap.title} 的细纲...`}

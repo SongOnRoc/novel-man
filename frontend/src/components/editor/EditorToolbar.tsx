@@ -38,7 +38,7 @@ interface EditorToolbarProps {
   onSave?: () => void;
   isSaving?: boolean;
   wordCount?: number;
-  chapterId?: string;
+  contentId?: string;
   workId?: string;
   editorContainerId: string;
 }
@@ -48,7 +48,7 @@ export function EditorToolbar({
   onSave,
   isSaving = false,
   wordCount = 0,
-  chapterId = "temp",
+  contentId = "temp",
   workId,
   editorContainerId,
 }: EditorToolbarProps) {
@@ -71,7 +71,7 @@ export function EditorToolbar({
     removeBookmark,
     updateBookmarkLabel,
     jumpToBookmark,
-  } = useBookmarks(editor, chapterId);
+  } = useBookmarks(editor, contentId);
 
   // 应用编辑器设置
   useEffect(() => {

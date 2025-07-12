@@ -3,39 +3,39 @@ import { Bookmark } from "@/types/editor";
 import { Editor } from "@tiptap/react";
 
 // 书签管理Hook
-export function useBookmarks(editor: Editor | null, chapterId: string) {
+export function useBookmarks(editor: Editor | null, contentId: string) {
   // 书签列表
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
 
   // 从本地存储加载书签
   useEffect(() => {
-    if (!chapterId) return;
+    if (!contentId) return;
 
     try {
-      const savedBookmarks = localStorage.getItem(`bookmarks-${chapterId}`);
+      const savedBookmarks = localStorage.getItem(`bookmarks-${contentId}`);
       if (savedBookmarks) {
         setBookmarks(JSON.parse(savedBookmarks));
       }
     } catch (error) {
       console.error("加载书签失败:", error);
     }
-  }, [chapterId]);
+  }, [contentId]);
 
   // 保存书签到本地存储
   const saveBookmarksToStorage = useCallback(
     (bookmarksList: Bookmark[]) => {
-      if (!chapterId) return;
+      if (!contentId) return;
 
       try {
         localStorage.setItem(
-          `bookmarks-${chapterId}`,
+          `bookmarks-${contentId}`,
           JSON.stringify(bookmarksList)
         );
       } catch (error) {
         console.error("保存书签失败:", error);
       }
     },
-    [chapterId]
+    [contentId]
   );
 
   // 添加书签

@@ -7,7 +7,7 @@ import { FilePlus } from "lucide-react";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mockDrafts } from "@/lib/mock/chapters-mock-data";
-import { ChapterDraft } from "@/types/outline";
+import { Draft } from "@/types/work";
 
 // 草稿类型
 type DraftType = "all" | "chapter" | "note";
@@ -18,7 +18,7 @@ export default function DraftsPage() {
   const [draftType, setDraftType] = useState<DraftType>("all");
 
   // 根据类型筛选草稿
-  const filteredDrafts = mockDrafts.filter((draft: ChapterDraft) => {
+  const filteredDrafts = mockDrafts.filter((draft: Draft) => {
     if (draftType === "all") return true;
     // 'chapter' 类型草稿现在被定义为有关联 workId 的草稿
     if (draftType === "chapter") return !!draft.workId;
@@ -75,7 +75,7 @@ export default function DraftsPage() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {filteredDrafts.map((draft) => (
                 <DraftCard
-                  key={draft.chapterId}
+                  key={draft.id}
                   draft={draft}
                   onDelete={handleDelete}
                   onConvert={handleConvert}
