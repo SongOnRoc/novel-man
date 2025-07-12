@@ -14,33 +14,27 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 
-// 草稿类型定义
-export interface Draft {
-  id: string;
-  title: string;
-  content: string;
-  workTitle?: string;
-  workId?: string;
-  chapterId?: string;
-  createdAt: string;
-  updatedAt: string;
-  wordCount: number;
-}
+import { ChapterDraft } from "@/types/outline";
+import { useWorks } from "@/hooks/useWorks";
 
 // 草稿卡片属性
 interface DraftCardProps {
-  draft: Draft;
+  draft: ChapterDraft;
   onDelete?: (id: string) => void;
   onConvert?: (id: string) => void;
 }
 
 // 草稿卡片组件
 export function DraftCard({ draft, onDelete, onConvert }: DraftCardProps) {
+  const { getWorkNameById } = useWorks();
+
   // 获取草稿内容预览（截取前100个字符）
   const contentPreview =
     draft.content.length > 100
       ? `${draft.content.substring(0, 100)}...`
       : draft.content;
+
+  const workName = draft.workId ? getWorkNameById(draft.workId) : null;
 
   return (
     <Card>
@@ -49,11 +43,9 @@ export function DraftCard({ draft, onDelete, onConvert }: DraftCardProps) {
           <h3 className="text-lg font-semibold leading-tight">
             {draft.title || "无标题草稿"}
           </h3>
-          {draft.workTitle && (
-            <p className="text-sm text-muted-foreground">
-              作品：{draft.workTitle}
-            </p>
-          )}
+          <p className="text-sm text-muted-foreground h-5">
+            {workName ? `作品：${workName}` : <></>}
+          </p>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -64,16 +56,16 @@ export function DraftCard({ draft, onDelete, onConvert }: DraftCardProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link href={`/drafts/${draft.id}/edit`}>编辑草稿</Link>
+              <Link href={`/drafts/${draft.chapterId}/edit`}>编辑草稿</Link>
             </DropdownMenuItem>
             {draft.workId && (
-              <DropdownMenuItem onClick={() => onConvert?.(draft.id)}>
+              <DropdownMenuItem onClick={() => onConvert?.(draft.chapterId)}>
                 转为正式章节
               </DropdownMenuItem>
             )}
             <DropdownMenuItem
               className="text-destructive"
-              onClick={() => onDelete?.(draft.id)}
+              onClick={() => onDelete?.(draft.chapterId)}
             >
               删除草稿
             </DropdownMenuItem>
@@ -94,7 +86,7 @@ export function DraftCard({ draft, onDelete, onConvert }: DraftCardProps) {
           <span>{draft.wordCount} 字</span>
         </div>
         <Button asChild size="sm">
-          <Link href={`/drafts/${draft.id}/edit`}>
+          <Link href={`/drafts/${draft.chapterId}/edit`}>
             <Edit className="mr-2 h-4 w-4" />
             继续编辑
           </Link>

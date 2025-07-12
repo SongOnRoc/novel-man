@@ -16,18 +16,14 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Edit, Trash2, BookOpen } from "lucide-react";
 import { useCharacters } from "@/hooks/character/useCharacters";
 import { Character } from "@/types/character";
-
-// 模拟作品数据 - 实际应用中应从API获取
-const mockWorks = [
-  { id: "work-1", title: "修仙从种田开始" },
-  { id: "work-2", title: "都市之全能高手" },
-  { id: "work-3", title: "星际穿越之旅" },
-];
+import { CharacterRelations } from "@/components/character/CharacterRelations";
+import { useWorks } from "@/hooks/useWorks";
 
 export default function CharacterDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { getCharacter, deleteCharacter } = useCharacters();
+  const { getWorkNameById } = useWorks();
   const [character, setCharacter] = useState<Character | null>(null);
   const [workTitle, setWorkTitle] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
@@ -44,9 +40,6 @@ export default function CharacterDetailPage() {
         const result = await getCharacter(characterId);
         if (result) {
           setCharacter(result);
-          // 查找并设置作品标题
-          const work = mockWorks.find((w) => w.id === result.workId);
-          setWorkTitle(work?.title || "未知作品");
         } else {
           setError("未找到角色信息");
         }
@@ -60,6 +53,14 @@ export default function CharacterDetailPage() {
 
     fetchCharacter();
   }, [params.id, getCharacter]);
+
+  // 当 character 或 getWorkNameById 更新时，更新作品标题
+  useEffect(() => {
+    if (character) {
+      const title = getWorkNameById(character.workId);
+      setWorkTitle(title || "");
+    }
+  }, [character, getWorkNameById]);
 
   // 处理删除角色
   const handleDelete = async () => {
@@ -116,7 +117,13 @@ export default function CharacterDetailPage() {
           返回
         </Button>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              router.push(`/tools/characters/${character.id}/edit`)
+            }
+          >
             <Edit className="mr-2 h-4 w-4" />
             编辑角色
           </Button>
@@ -281,16 +288,7 @@ export default function CharacterDetailPage() {
             </TabsContent>
 
             <TabsContent value="relationships" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>关系网络</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    暂无关系数据，后续版本将添加角色关系图谱可视化功能。
-                  </p>
-                </CardContent>
-              </Card>
+              <CharacterRelations characterId={character.id} />
             </TabsContent>
           </Tabs>
         </div>

@@ -11,24 +11,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Edit, Trash2, Tag, BookOpen } from "lucide-react";
 import { useWorldbuilding } from "@/hooks/worldbuilding/useWorldbuilding";
 import { WorldItem, worldItemTypeOptions } from "@/types/worldbuilding";
-
-// 模拟作品数据 - 实际应用中应从API获取
-const mockWorks = [
-  { id: "work-1", title: "修仙从种田开始" },
-  { id: "work-2", title: "都市之全能高手" },
-  { id: "work-3", title: "星际穿越之旅" },
-];
+import { useWorks } from "@/hooks/useWorks";
 
 export default function WorldItemDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { getWorldItem, deleteWorldItem } = useWorldbuilding();
+  const { getWorkNameById } = useWorks();
   const [worldItem, setWorldItem] = useState<WorldItem | null>(null);
   const [workTitle, setWorkTitle] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
@@ -45,9 +39,6 @@ export default function WorldItemDetailPage() {
         const result = await getWorldItem(itemId);
         if (result) {
           setWorldItem(result);
-          // 查找并设置作品标题
-          const work = mockWorks.find((w) => w.id === result.workId);
-          setWorkTitle(work?.title || "未知作品");
         } else {
           setError("未找到世界观设定信息");
         }
@@ -61,6 +52,14 @@ export default function WorldItemDetailPage() {
 
     fetchWorldItem();
   }, [params.id, getWorldItem]);
+
+  // 当 worldItem 或 getWorkNameById 更新时，更新作品标题
+  useEffect(() => {
+    if (worldItem) {
+      const title = getWorkNameById(worldItem.workId);
+      setWorkTitle(title || "");
+    }
+  }, [worldItem, getWorkNameById]);
 
   // 处理删除世界观设定
   const handleDelete = async () => {

@@ -16,30 +16,21 @@ import {
 import { FileText, MoreVertical, Edit, Eye, ArrowUpDown } from "lucide-react";
 import Link from "next/link";
 
-// 章节类型定义
-export interface Chapter {
-  id: string;
-  title: string;
-  wordCount: number;
-  status: "draft" | "published";
-  updatedAt: string;
-  order: number;
-  volumeId: string;
-  volumeTitle: string;
-}
+import { ChapterDraft } from "@/types/outline";
+import { mockVolumes } from "@/lib/mock/volumes-mock-data";
 
 // 章节列表属性
 interface ChapterListProps {
   workId: string;
-  chapters: Chapter[];
+  chapters: ChapterDraft[];
 }
 
 // 章节列表组件
 export function ChapterList({ workId, chapters }: ChapterListProps) {
   // 按分卷ID对章节进行分组
-  const chaptersByVolume = chapters.reduce<Record<string, Chapter[]>>(
+  const chaptersByVolume = chapters.reduce<Record<string, ChapterDraft[]>>(
     (acc, chapter) => {
-      const { volumeId } = chapter;
+      const volumeId = chapter.volumeId || "unclassified";
       if (!acc[volumeId]) {
         acc[volumeId] = [];
       }
@@ -49,7 +40,13 @@ export function ChapterList({ workId, chapters }: ChapterListProps) {
     {}
   );
 
-  const getStatusBadge = (status: Chapter["status"]) => {
+  const getVolumeTitle = (volumeId: string) => {
+    if (volumeId === "unclassified") return "未分卷";
+    const volume = mockVolumes.find((v) => v.volumeId === volumeId);
+    return volume ? volume.title : "未知分卷";
+  };
+
+  const getStatusBadge = (status: ChapterDraft["status"]) => {
     // ... (getStatusBadge function remains the same)
     switch (status) {
       case "draft":
@@ -97,11 +94,11 @@ export function ChapterList({ workId, chapters }: ChapterListProps) {
               ([volumeId, volumeChapters]) => (
                 <div key={volumeId} className="space-y-4">
                   <h3 className="text-lg font-semibold tracking-tight border-b pb-2">
-                    {volumeChapters[0]?.volumeTitle || "未分卷"}
+                    {getVolumeTitle(volumeId)}
                   </h3>
                   {volumeChapters.map((chapter) => (
                     <div
-                      key={chapter.id}
+                      key={chapter.chapterId}
                       className="flex items-center justify-between rounded-lg border p-3 shadow-sm"
                     >
                       <div className="flex items-center gap-3">
@@ -121,7 +118,7 @@ export function ChapterList({ workId, chapters }: ChapterListProps) {
                       </div>
                       <div className="flex items-center gap-2">
                         <Button variant="ghost" size="icon" asChild>
-                          <Link href={`/chapters/${chapter.id}/edit`}>
+                          <Link href={`/chapters/${chapter.chapterId}/edit`}>
                             <Edit className="h-4 w-4" />
                             <span className="sr-only">编辑</span>
                           </Link>

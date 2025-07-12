@@ -25,21 +25,13 @@ import { useAIAssistant } from "@/hooks/ai/useAIAssistant";
 import { worldItemTypeOptions } from "@/types/worldbuilding";
 import { AIPromptType, promptTypeOptions } from "@/types/ai";
 import { Textarea } from "@/components/ui/textarea";
-
-// 模拟作品数据
-const mockWorks = [
-  { id: "work-1", title: "修仙从种田开始" },
-  { id: "work-2", title: "都市之全能高手" },
-  { id: "work-3", title: "星际穿越之旅" },
-];
+import { useWorks } from "@/hooks/useWorks";
+import { Work } from "@/types/work";
 
 export default function ToolsPage() {
   // 状态
   const [selectedWorkId, setSelectedWorkId] = useState<string>("");
-  const [selectedWork, setSelectedWork] = useState<{
-    id: string;
-    title: string;
-  } | null>(null);
+  const [selectedWork, setSelectedWork] = useState<Work | null>(null);
   const [characters, setCharacters] = useState<any[]>([]);
   const [worldItems, setWorldItems] = useState<any[]>([]);
   const [isLoadingCharacters, setIsLoadingCharacters] = useState(false);
@@ -57,6 +49,7 @@ export default function ToolsPage() {
   } = useAIAssistant();
 
   // Hooks
+  const { works } = useWorks();
   const { getCharactersByWorkId } = useCharacters();
   const { getWorldItemsByWorkId } = useWorldbuilding();
 
@@ -77,7 +70,7 @@ export default function ToolsPage() {
   // 处理作品选择变化
   useEffect(() => {
     if (selectedWorkId) {
-      const work = mockWorks.find((w) => w.id === selectedWorkId);
+      const work = works.find((w) => w.id === selectedWorkId);
       setSelectedWork(work || null);
 
       // 加载该作品的角色
@@ -103,7 +96,7 @@ export default function ToolsPage() {
       setCharacters([]);
       setWorldItems([]);
     }
-  }, [selectedWorkId, getCharactersByWorkId, getWorldItemsByWorkId]);
+  }, [selectedWorkId, getCharactersByWorkId, getWorldItemsByWorkId, works]);
 
   // 处理AI生成
   const handleGenerateAI = async () => {
@@ -134,9 +127,9 @@ export default function ToolsPage() {
               <SelectValue placeholder="选择作品" />
             </SelectTrigger>
             <SelectContent>
-              {mockWorks.map((work) => (
+              {works.map((work) => (
                 <SelectItem key={work.id} value={work.id}>
-                  {work.title}
+                  {work.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -248,9 +241,9 @@ export default function ToolsPage() {
                     <SelectValue placeholder="选择作品" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockWorks.map((work) => (
+                    {works.map((work) => (
                       <SelectItem key={work.id} value={work.id}>
-                        {work.title}
+                        {work.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -261,7 +254,7 @@ export default function ToolsPage() {
             <>
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold">
-                  {selectedWork?.title} - 角色列表
+                  {selectedWork?.name} - 角色列表
                 </h2>
                 <Button size="sm" asChild>
                   <Link href={`/tools/characters/new?workId=${selectedWorkId}`}>
@@ -339,9 +332,9 @@ export default function ToolsPage() {
                     <SelectValue placeholder="选择作品" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockWorks.map((work) => (
+                    {works.map((work) => (
                       <SelectItem key={work.id} value={work.id}>
-                        {work.title}
+                        {work.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -352,7 +345,7 @@ export default function ToolsPage() {
             <>
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold">
-                  {selectedWork?.title} - 世界观设定
+                  {selectedWork?.name} - 世界观设定
                 </h2>
                 <Button size="sm" asChild>
                   <Link

@@ -6,74 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Save, Book, Layers, FileText } from "lucide-react";
 import Link from "next/link";
-import { Work } from "../../components/WorkCard";
-import { Outline, VolumeOutline, ChapterOutline } from "@/types/outline";
+import { Work } from "@/types/work";
+import { Outline, VolumeWithChapters, ChapterDraft } from "@/types/outline";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-// 模拟从API获取作品数据的函数，使用更新后的数据结构
-const getWorkById = async (id: string): Promise<Work | null> => {
-  const works: Work[] = [
-    {
-      id: "1",
-      title: "修仙从种田开始",
-      description: "一个普通农民意外获得仙家传承...",
-      chapterCount: 23,
-      wordCount: 78500,
-      updatedAt: "2023-09-20",
-      outline: {
-        main: "主角李青，一个现代农业大学毕业生，意外穿越到修仙世界，利用科学知识结合仙法进行种田，最终成为一代仙农的传奇故事。",
-        volumes: [
-          {
-            volumeId: "v1",
-            title: "第一卷：仙农初成",
-            order: 1,
-            outline:
-              "本卷主要讲述主角初入仙界，如何利用知识和机遇，建立自己的灵田，并与当地宗门产生初步联系。",
-            chapters: [
-              {
-                chapterId: "1-1",
-                title: "第一章 意外得到仙家传承",
-                outline: "主角获得《仙农传承》，开启修仙之路。",
-                order: 1,
-              },
-              {
-                chapterId: "1-2",
-                title: "第二章 初试灵力",
-                outline: "主角第一次使用灵力改良土壤，效果显著。",
-                order: 2,
-              },
-              {
-                chapterId: "1-3",
-                title: "第三章 神秘的种子",
-                outline: "种下神秘种子，引发天地异象。",
-                order: 3,
-              },
-            ],
-          },
-          {
-            volumeId: "v2",
-            title: "第二卷：仙农再起",
-            order: 2,
-            outline:
-              "本卷主要讲述主角初入仙界，如何利用知识和机遇，建立自己的灵田，并与当地宗门产生初步联系。",
-            chapters: [
-              {
-                chapterId: "1-3",
-                title: "第三章 神秘的种子",
-                outline: "种下神秘种子，引发天地异象。",
-                order: 3,
-              },
-            ],
-          },
-        ],
-      },
-    },
-    // 其他作品...
-  ];
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  return works.find((work) => work.id === id) || null;
-};
+import { mockWorks } from "@/lib/mock/works-mock-data";
+import { mockVolumes } from "@/lib/mock/volumes-mock-data";
+import { mockChapters } from "@/lib/mock/chapters-mock-data";
 
 export default function OutlinePage() {
   const router = useRouter();
@@ -87,14 +26,27 @@ export default function OutlinePage() {
 
   useEffect(() => {
     if (typeof id === "string") {
-      const fetchWork = async () => {
-        setIsLoading(true);
-        const fetchedWork = await getWorkById(id);
-        setWork(fetchedWork);
-        setOutline(fetchedWork?.outline || null);
-        setIsLoading(false);
-      };
-      fetchWork();
+      setIsLoading(true);
+      const currentWork = mockWorks.find((w) => w.id === id);
+      if (currentWork) {
+        setWork(currentWork);
+        const workVolumes = mockVolumes.filter((v) => v.workId === id);
+        const workChapters = mockChapters.filter((c) => c.workId === id);
+
+        const constructedOutline: Outline = {
+          main: currentWork.outline || "暂无总纲",
+          volumes: workVolumes.map(
+            (vol): VolumeWithChapters => ({
+              ...vol,
+              chapters: workChapters.filter(
+                (chap) => chap.volumeId === vol.volumeId
+              ),
+            })
+          ),
+        };
+        setOutline(constructedOutline);
+      }
+      setIsLoading(false);
     }
   }, [id]);
 
@@ -114,19 +66,25 @@ export default function OutlinePage() {
   ) => {
     if (!outline) return;
 
-    let newOutline = { ...outline };
+    let newOutline = JSON.parse(JSON.stringify(outline)); // Deep copy to avoid state mutation issues
 
     if (type === "main") {
       newOutline.main = value;
     } else if (type === "volume" && volumeId) {
-      const volume = newOutline.volumes.find((v) => v.volumeId === volumeId);
+      const volume = newOutline.volumes.find(
+        (v: VolumeWithChapters) => v.volumeId === volumeId
+      );
       if (volume) {
         volume.outline = value;
       }
     } else if (type === "chapter" && volumeId && chapterId) {
-      const volume = newOutline.volumes.find((v) => v.volumeId === volumeId);
+      const volume = newOutline.volumes.find(
+        (v: VolumeWithChapters) => v.volumeId === volumeId
+      );
       if (volume) {
-        const chapter = volume.chapters.find((c) => c.chapterId === chapterId);
+        const chapter = volume.chapters.find(
+          (c: ChapterDraft) => c.chapterId === chapterId
+        );
         if (chapter) {
           chapter.outline = value;
         }
@@ -151,7 +109,7 @@ export default function OutlinePage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              大纲管理: {work.title}
+              大纲管理: {work.name}
             </h1>
             <p className="text-muted-foreground">
               规划您的故事结构，让创作思路更清晰。

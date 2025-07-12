@@ -1,89 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { ChapterList, Chapter } from "./components/ChapterList";
+import { ChapterList } from "./components/ChapterList";
 import { WorkSelector } from "./components/WorkSelector";
-
-// 作品类型定义
-interface Work {
-  id: string;
-  title: string;
-}
-
-// 模拟作品数据
-const works: Work[] = [
-  { id: "1", title: "修仙从种田开始" },
-  { id: "2", title: "都市之全能高手" },
-  { id: "3", title: "星际穿越之旅" },
-];
-
-// 模拟章节数据
-const chaptersData: Record<string, Chapter[]> = {
-  "1": [
-    {
-      id: "1-1",
-      title: "第一章 意外得到仙家传承",
-      wordCount: 3500,
-      status: "published",
-      updatedAt: "2023-09-15",
-      order: 1,
-      volumeId: "v1",
-      volumeTitle: "第一卷：仙农初成",
-    },
-    {
-      id: "1-2",
-      title: "第二章 初试灵力",
-      wordCount: 3200,
-      status: "published",
-      updatedAt: "2023-09-16",
-      order: 2,
-      volumeId: "v1",
-      volumeTitle: "第一卷：仙农初成",
-    },
-    {
-      id: "1-3",
-      title: "第三章 神秘的种子",
-      wordCount: 3800,
-      status: "draft",
-      updatedAt: "2023-09-18",
-      order: 3,
-      volumeId: "v2",
-      volumeTitle: "第二卷：仙农再起",
-    },
-  ],
-  "2": [
-    {
-      id: "2-1",
-      title: "第一章 回归都市",
-      wordCount: 4200,
-      status: "published",
-      updatedAt: "2023-09-10",
-      order: 1,
-      volumeId: "v1",
-      volumeTitle: "第一卷：都市风云",
-    },
-    {
-      id: "2-2",
-      title: "第二章 初露锋芒",
-      wordCount: 3900,
-      status: "published",
-      updatedAt: "2023-09-12",
-      order: 2,
-      volumeId: "v1",
-      volumeTitle: "第一卷：都市风云",
-    },
-  ],
-  "3": [],
-};
+import { mockWorks } from "@/lib/mock/works-mock-data";
+import { mockChapters } from "@/lib/mock/chapters-mock-data";
+import { Work } from "@/types/work";
+import { ChapterDraft } from "@/types/outline";
 
 // 章节管理页面组件
 export default function ChaptersPage() {
   // 选中的作品状态
-  const [selectedWork, setSelectedWork] = useState<Work | null>(works[0]);
+  const [selectedWork, setSelectedWork] = useState<Work | null>(
+    mockWorks[0] || null
+  );
 
   // 当前作品的章节
-  const currentChapters = selectedWork
-    ? chaptersData[selectedWork.id] || []
+  const currentChapters: ChapterDraft[] = selectedWork
+    ? mockChapters.filter((chapter) => chapter.workId === selectedWork.id)
     : [];
 
   return (
@@ -97,7 +31,7 @@ export default function ChaptersPage() {
           </p>
         </div>
         <WorkSelector
-          works={works}
+          works={mockWorks}
           selectedWork={selectedWork}
           onSelectWork={setSelectedWork}
         />

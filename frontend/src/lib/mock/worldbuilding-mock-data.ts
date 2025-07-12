@@ -9,7 +9,7 @@ import {
 export const mockWorldItems: WorldItem[] = [
   {
     id: "world-1",
-    workId: "work-1",
+    workId: "1",
     name: "灵气体系",
     type: "system",
     description: "修真界的核心资源是「灵气」，它通过世界各处的「灵脉」流动。",
@@ -22,7 +22,7 @@ export const mockWorldItems: WorldItem[] = [
   },
   {
     id: "world-2",
-    workId: "work-3",
+    workId: "3",
     name: "青云宗",
     type: "organization",
     description: "修真界五大宗门之一，以炼丹术闻名天下。",
@@ -35,7 +35,7 @@ export const mockWorldItems: WorldItem[] = [
   },
   {
     id: "world-3",
-    workId: "work-1",
+    workId: "1",
     name: "天元大陆",
     type: "location",
     description: "故事发生的主要大陆，分为东南西北中五大区域。",

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -24,6 +24,7 @@ import {
 import { ArrowLeft, Save } from "lucide-react";
 import { useCharacters } from "@/hooks/character/useCharacters";
 import { useWorks } from "@/hooks/useWorks";
+import { useCharacterRelations } from "@/hooks/character/useCharacterRelations";
 import { CharacterRelationManager } from "@/components/character/CharacterRelationManager";
 import {
   Character,
@@ -32,55 +33,45 @@ import {
 } from "@/types/character";
 import { Separator } from "@/components/ui/separator";
 
-// A version of CharacterRelationship for temporary state before the main character has an ID.
-type TempCharacterRelationship = Omit<CharacterRelationship, "id" | "sourceId">;
-
-export default function NewCharacterPage() {
+export default function EditCharacterPage() {
   const router = useRouter();
-  const { characters: allCharacters, addCharacter } = useCharacters();
+  const params = useParams();
+  const characterId = Array.isArray(params.id) ? params.id[0] : params.id;
+
+  const {
+    characters: allCharacters,
+    getCharacter,
+    updateCharacter,
+  } = useCharacters();
   const { works } = useWorks();
+  const { relations, addRelation, deleteRelation, updateRelationType } =
+    useCharacterRelations(characterId || "", allCharacters);
 
-  const [workId, setWorkId] = useState("");
-  const [formData, setFormData] = useState({
-    name: "",
-    gender: "",
-    age: "",
-    occupation: "",
-    personality: "",
-    abilities: "",
-    background: "",
-    appearance: "",
-    notes: "",
-  });
-
-  const [tempRelations, setTempRelations] = useState<
-    TempCharacterRelationship[]
-  >([]);
+  const [formData, setFormData] = useState<Partial<Character>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const charactersInSameWork = allCharacters.filter((c) => c.workId === workId);
-
-  const handleAddRelation = (targetId: string, type: RelationshipType) => {
-    // Prevent duplicates
-    if (tempRelations.some((r) => r.targetId === targetId)) return;
-    setTempRelations((prev) => [...prev, { targetId, type }]);
-  };
-
-  const handleDeleteRelation = (relationId: string) => {
-    // In temp state, we use targetId as a key
-    setTempRelations((prev) => prev.filter((r) => r.targetId !== relationId));
-  };
-
-  const handleUpdateRelationType = (
-    relationId: string,
-    newType: RelationshipType
-  ) => {
-    // In temp state, we use targetId as a key
-    setTempRelations((prev) =>
-      prev.map((r) => (r.targetId === relationId ? { ...r, type: newType } : r))
-    );
-  };
+  useEffect(() => {
+    if (characterId) {
+      const fetchCharacterData = async () => {
+        setIsLoading(true);
+        try {
+          const characterToEdit = await getCharacter(characterId);
+          if (characterToEdit) {
+            setFormData(characterToEdit);
+          } else {
+            setError("未找到要编辑的角色信息");
+          }
+        } catch (e) {
+          setError("加载角色数据失败");
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchCharacterData();
+    }
+  }, [characterId, getCharacter]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -96,12 +87,13 @@ export default function NewCharacterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name) {
-      setError("角色名称不能为空");
+    if (!characterId) {
+      setError("无效的角色ID，无法更新。");
       return;
     }
-    if (!workId) {
-      setError("必须选择一个所属作品");
+
+    if (!formData.name) {
+      setError("角色名称不能为空");
       return;
     }
 
@@ -109,52 +101,55 @@ export default function NewCharacterPage() {
     setError(null);
 
     try {
-      const personalityArray = formData.personality
-        ? formData.personality.split(",").map((item) => item.trim())
-        : [];
+      const age = formData.age ? parseInt(String(formData.age), 10) : undefined;
 
-      const abilitiesArray = formData.abilities
-        ? formData.abilities.split(",").map((item) => item.trim())
-        : [];
-
-      const age = formData.age ? parseInt(formData.age, 10) : undefined;
-
-      const newCharacterData = {
-        workId,
-        name: formData.name,
-        gender: formData.gender as "male" | "female" | "other" | undefined,
-        age: isNaN(age as number) ? undefined : age,
-        occupation: formData.occupation || undefined,
-        personality: personalityArray.length > 0 ? personalityArray : undefined,
-        abilities: abilitiesArray.length > 0 ? abilitiesArray : undefined,
-        background: formData.background || undefined,
-        appearance: formData.appearance || undefined,
-        notes: formData.notes || undefined,
+      const getArrayFromString = (
+        value: string | string[] | undefined
+      ): string[] => {
+        if (Array.isArray(value)) return value;
+        if (typeof value === "string" && value) {
+          return value.split(",").map((item: string) => item.trim());
+        }
+        return [];
       };
 
-      const newCharacter = await addCharacter(newCharacterData, tempRelations);
+      const personality = getArrayFromString(formData.personality);
+      const abilities = getArrayFromString(formData.abilities);
 
-      if (newCharacter) {
-        router.push(`/tools/characters/${newCharacter.id}`);
+      const updatedCharacterData: Character = {
+        ...(formData as Character),
+        id: characterId,
+        workId: formData.workId || "",
+        name: formData.name || "",
+        age: isNaN(age as number) ? undefined : age,
+        personality,
+        abilities,
+        createdAt: formData.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      const result = await updateCharacter(updatedCharacterData);
+
+      if (result) {
+        router.push(`/tools/characters/${characterId}`);
       } else {
-        setError("创建角色失败");
+        setError("更新角色失败");
       }
     } catch (err) {
-      setError("创建角色时发生错误");
-      console.error("Error creating character:", err);
+      setError("更新角色时发生错误");
+      console.error("Error updating character:", err);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Adapt tempRelations to fit the CharacterRelationManager's expected prop type
-  const managerRelations: CharacterRelationship[] = tempRelations.map(
-    (r, i) => ({
-      ...r,
-      id: r.targetId, // Use targetId as a temporary, unique key for the manager
-      sourceId: "new-character-placeholder", // Placeholder
-    })
-  );
+  if (isLoading) {
+    return <div className="text-center p-8">加载角色数据中...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center text-destructive p-8">{error}</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -163,7 +158,7 @@ export default function NewCharacterPage() {
           <ArrowLeft className="mr-2 h-4 w-4" />
           返回
         </Button>
-        <h1 className="text-2xl font-bold">创建新角色</h1>
+        <h1 className="text-2xl font-bold">编辑角色</h1>
         <div className="w-24"></div>
       </div>
 
@@ -172,7 +167,7 @@ export default function NewCharacterPage() {
           <CardHeader>
             <CardTitle>角色信息</CardTitle>
             <CardDescription>
-              填写角色的基本信息，带 * 的字段为必填项
+              修改角色的基本信息，带 * 的字段为必填项
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -183,7 +178,7 @@ export default function NewCharacterPage() {
                 <Input
                   id="name"
                   name="name"
-                  value={formData.name}
+                  value={formData.name || ""}
                   onChange={handleChange}
                   placeholder="输入角色名称"
                 />
@@ -194,7 +189,7 @@ export default function NewCharacterPage() {
                 <Input
                   id="occupation"
                   name="occupation"
-                  value={formData.occupation}
+                  value={formData.occupation || ""}
                   onChange={handleChange}
                   placeholder="如：修真者、丹药师"
                 />
@@ -206,7 +201,7 @@ export default function NewCharacterPage() {
                   id="age"
                   name="age"
                   type="number"
-                  value={formData.age}
+                  value={formData.age || ""}
                   onChange={handleChange}
                   placeholder="输入年龄"
                 />
@@ -215,7 +210,7 @@ export default function NewCharacterPage() {
               <div className="space-y-2">
                 <Label htmlFor="gender">性别</Label>
                 <Select
-                  value={formData.gender}
+                  value={formData.gender || ""}
                   onValueChange={(value) => handleSelectChange("gender", value)}
                 >
                   <SelectTrigger>
@@ -234,7 +229,10 @@ export default function NewCharacterPage() {
 
             <div className="space-y-2">
               <Label htmlFor="workId">所属作品 *</Label>
-              <Select value={workId} onValueChange={setWorkId}>
+              <Select
+                value={formData.workId || ""}
+                onValueChange={(value) => handleSelectChange("workId", value)}
+              >
                 <SelectTrigger id="workId">
                   <SelectValue placeholder="选择一个作品..." />
                 </SelectTrigger>
@@ -254,7 +252,11 @@ export default function NewCharacterPage() {
                 <Input
                   id="personality"
                   name="personality"
-                  value={formData.personality}
+                  value={
+                    Array.isArray(formData.personality)
+                      ? formData.personality.join(", ")
+                      : formData.personality || ""
+                  }
                   onChange={handleChange}
                   placeholder="如：坚韧,聪慧,重情义"
                 />
@@ -265,7 +267,11 @@ export default function NewCharacterPage() {
                 <Input
                   id="abilities"
                   name="abilities"
-                  value={formData.abilities}
+                  value={
+                    Array.isArray(formData.abilities)
+                      ? formData.abilities.join(", ")
+                      : formData.abilities || ""
+                  }
                   onChange={handleChange}
                   placeholder="如：火属性灵力,炼丹术,剑法"
                 />
@@ -277,7 +283,7 @@ export default function NewCharacterPage() {
               <Textarea
                 id="background"
                 name="background"
-                value={formData.background}
+                value={formData.background || ""}
                 onChange={handleChange}
                 placeholder="描述角色的背景故事、经历和动机"
                 rows={5}
@@ -289,7 +295,7 @@ export default function NewCharacterPage() {
               <Textarea
                 id="appearance"
                 name="appearance"
-                value={formData.appearance}
+                value={formData.appearance || ""}
                 onChange={handleChange}
                 placeholder="描述角色的外貌特征、穿着和气质"
                 rows={3}
@@ -301,7 +307,7 @@ export default function NewCharacterPage() {
               <Textarea
                 id="notes"
                 name="notes"
-                value={formData.notes}
+                value={formData.notes || ""}
                 onChange={handleChange}
                 placeholder="其他需要记录的信息，如角色发展方向、重要剧情点等"
                 rows={3}
@@ -313,14 +319,16 @@ export default function NewCharacterPage() {
             <Separator />
 
             {/* Relations Manager */}
-            {workId && (
+            {characterId && (
               <CharacterRelationManager
-                characterId="new-character-placeholder"
-                allCharacters={charactersInSameWork}
-                relations={managerRelations}
-                onAddRelation={handleAddRelation}
-                onDeleteRelation={handleDeleteRelation}
-                onUpdateRelationType={handleUpdateRelationType}
+                characterId={characterId}
+                allCharacters={allCharacters.filter(
+                  (c) => c.workId === formData.workId && c.id !== characterId
+                )}
+                relations={relations}
+                onAddRelation={addRelation}
+                onDeleteRelation={deleteRelation}
+                onUpdateRelationType={updateRelationType}
               />
             )}
           </CardContent>
@@ -333,7 +341,7 @@ export default function NewCharacterPage() {
               取消
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "创建中..." : "创建角色"}
+              {isSubmitting ? "保存中..." : "保存更改"}
               <Save className="ml-2 h-4 w-4" />
             </Button>
           </CardFooter>

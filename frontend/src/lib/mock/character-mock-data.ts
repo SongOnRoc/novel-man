@@ -9,7 +9,7 @@ import {
 export const mockCharacters: Character[] = [
   {
     id: "char-1",
-    workId: "work-1",
+    workId: "1",
     name: "林逸风",
     avatar: "/avatars/char-1.jpg",
     age: 25,
@@ -27,7 +27,7 @@ export const mockCharacters: Character[] = [
   },
   {
     id: "char-2",
-    workId: "work-1",
+    workId: "1",
     name: "沈月",
     avatar: "/avatars/char-2.jpg",
     age: 23,
@@ -45,7 +45,7 @@ export const mockCharacters: Character[] = [
   },
   {
     id: "char-3",
-    workId: "work-2",
+    workId: "2",
     name: "莫天阳",
     avatar: "/avatars/char-3.jpg",
     age: 45,
@@ -60,6 +60,42 @@ export const mockCharacters: Character[] = [
     notes: "主要反派，与主角有深仇大恨，最终将在修真界大战中败亡。",
     createdAt: "2023-02-05T09:20:00Z",
     updatedAt: "2023-04-10T11:05:00Z",
+  },
+  {
+    id: "char-4",
+    workId: "2",
+    name: "李青",
+    avatar: "/avatars/char-4.jpg",
+    age: 30,
+    gender: "male",
+    occupation: "农民",
+    background:
+      "出身贫寒，家境拮据，但对修真有着执着的追求。在机缘巧合下获得修真资源，开始了自己的修真之路。",
+    personality: ["勤奋", "善良", "执着", "乐观"],
+    abilities: ["土属性灵力", "基础农艺", "生存技能"],
+    appearance:
+      "身材魁梧，皮肤黝黑，手掌粗糙，常年在田间劳作。眼神中透露着坚定与执着。",
+    notes: "配角，李青的成长与奋斗将与主线紧密相连。",
+    createdAt: "2023-02-10T09:30:00Z",
+    updatedAt: "2023-04-15T11:15:00Z",
+  },
+  {
+    id: "char-5",
+    workId: "2",
+    name: "林逸风",
+    avatar: "/avatars/char-5.jpg",
+    age: 35,
+    gender: "male",
+    occupation: "宗门弟子",
+    background:
+      "出身于修真世家，天赋异禀，年纪轻轻就成为宗门重点培养的弟子。性格沉稳，与林逸风是青梅竹马。",
+    personality: ["直率", "聪颖", "善良", "固执"],
+    abilities: ["风属性灵力", "基础剑法", "阵法知识"],
+    appearance:
+      "身材修长，面容俊朗，气质儒雅。常穿一袭青色道袍，手持一把长剑。",
+    notes: "配角，林逸风的成长与奋斗将与主线紧密相连。",
+    createdAt: "2023-02-15T09:30:00Z",
+    updatedAt: "2023-04-20T11:15:00Z",
   },
 ];
 
