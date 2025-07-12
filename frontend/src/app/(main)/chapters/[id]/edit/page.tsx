@@ -6,7 +6,6 @@ import { TiptapEditor } from "@/components/editor/TiptapEditor";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { SettingsLookup } from "@/components/common/lookup/SettingsLookup";
 import { EditorContent } from "@/types/editor";
 
 // 修改模拟章节数据，添加workId字段
@@ -114,9 +113,6 @@ export default function ChapterEditPage() {
             </p>
           </div>
         </div>
-
-        {/* 添加设定速查按钮 */}
-        {workId && <SettingsLookup workId={workId} />}
       </div>
 
       {/* 加载状态 */}
@@ -137,6 +133,7 @@ export default function ChapterEditPage() {
           placeholder="开始编写您的章节内容..."
           autoFocus
           chapterId={chapterId}
+          workId={workId}
           containerId={`editor-${chapterId}`} // 使用唯一的容器ID
         />
       )}

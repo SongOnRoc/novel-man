@@ -17,7 +17,6 @@ import {
   Undo,
   Redo,
   Save,
-  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
@@ -31,6 +30,8 @@ import {
   defaultEditorSettings,
 } from "@/types/editor";
 import { useState, useEffect } from "react";
+import { FindReplace } from "./FindReplace";
+import { SettingsLookup } from "@/components/common/lookup/SettingsLookup";
 
 interface EditorToolbarProps {
   editor: Editor | null;
@@ -38,6 +39,7 @@ interface EditorToolbarProps {
   isSaving?: boolean;
   wordCount?: number;
   chapterId?: string;
+  workId?: string;
   editorContainerId: string;
 }
 
@@ -47,6 +49,7 @@ export function EditorToolbar({
   isSaving = false,
   wordCount = 0,
   chapterId = "temp",
+  workId,
   editorContainerId,
 }: EditorToolbarProps) {
   // 编辑器设置
@@ -274,26 +277,11 @@ export function EditorToolbar({
 
         <div className="flex-1" />
 
-        {/* 章节内查找按钮 */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            if (editor) {
-              // 使用浏览器的查找功能
-              if (document.execCommand("find")) {
-                document.execCommand("find");
-              } else {
-                // 如果浏览器不支持execCommand，提示用户使用Ctrl+F
-                alert("请使用键盘快捷键 Ctrl+F 进行查找");
-              }
-            }
-          }}
-          className="gap-2"
-        >
-          <Search className="h-4 w-4" />
-          查找
-        </Button>
+        {/* 查找与替换 */}
+        <FindReplace editor={editor} />
+
+        {/* 设定速查按钮 */}
+        {workId && <SettingsLookup workId={workId} />}
 
         {/* 专注模式按钮 */}
         <FocusMode editorContainerId={editorContainerId} />

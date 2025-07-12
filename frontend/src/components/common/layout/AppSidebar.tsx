@@ -21,6 +21,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"; // 导入提示组件
 import { ThemeSwitcher } from "../ThemeSwitcher";
+import { UserNav } from "./UserNav";
 
 type NavItem = {
   title: string; // 导航项标题
@@ -71,7 +72,7 @@ export function AppSidebar() {
         </nav>
         <div className="flex flex-col gap-4 p-4">
           <ThemeSwitcher />
-          {/* 用户头像或登录按钮可以放在这里 */}
+          <UserNav />
         </div>
       </div>
 
@@ -116,7 +117,9 @@ export function AppSidebar() {
               <span className="text-sm text-muted-foreground">切换主题</span>
               <ThemeSwitcher />
             </div>
-            {/* 用户信息或登录按钮可以放在这里 */}
+            <div className="mt-4">
+              <UserNav />
+            </div>
           </div>
         </SheetContent>
       </Sheet>
