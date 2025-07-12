@@ -11,6 +11,38 @@ const works: Work[] = [
     chapterCount: 23,
     wordCount: 78500,
     updatedAt: "2023-09-20",
+    outline: {
+      main: "主角李青，一个现代农业大学毕业生，意外穿越到修仙世界，利用科学知识结合仙法进行种田，最终成为一代仙农的传奇故事。",
+      volumes: [
+        {
+          volumeId: "v1",
+          title: "第一卷：仙农初成",
+          order: 1,
+          outline:
+            "本卷主要讲述主角初入仙界，如何利用知识和机遇，建立自己的灵田，并与当地宗门产生初步联系。",
+          chapters: [
+            {
+              chapterId: "1-1",
+              title: "第一章 意外得到仙家传承",
+              outline: "主角获得《仙农传承》，开启修仙之路。",
+              order: 1,
+            },
+            {
+              chapterId: "1-2",
+              title: "第二章 初试灵力",
+              outline: "主角第一次使用灵力改良土壤，效果显著。",
+              order: 2,
+            },
+            {
+              chapterId: "1-3",
+              title: "第三章 神秘的种子",
+              outline: "种下神秘种子，引发天地异象。",
+              order: 3,
+            },
+          ],
+        },
+      ],
+    },
   },
   {
     id: "2",
@@ -20,6 +52,10 @@ const works: Work[] = [
     chapterCount: 15,
     wordCount: 52300,
     updatedAt: "2023-09-18",
+    outline: {
+      main: "退役兵王回归都市，开启一段新的传奇。",
+      volumes: [],
+    },
   },
   {
     id: "3",
@@ -29,6 +65,10 @@ const works: Work[] = [
     chapterCount: 7,
     wordCount: 24630,
     updatedAt: "2023-09-15",
+    outline: {
+      main: "为了人类的延续，宇航员们踏上未知的星际旅程。",
+      volumes: [],
+    },
   },
 ];
 

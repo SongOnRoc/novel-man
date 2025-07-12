@@ -6,13 +6,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Edit, MoreVertical } from "lucide-react";
+import { BookOpen, Edit, MoreVertical, FileText } from "lucide-react";
+import Link from "next/link";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Outline } from "@/types/outline";
 
 // 作品类型定义
 export interface Work {
@@ -23,6 +25,7 @@ export interface Work {
   wordCount: number;
   updatedAt: string;
   coverImage?: string; // 可选的封面图片URL
+  outline: Outline;
 }
 
 // 作品卡片属性类型
@@ -67,12 +70,18 @@ export function WorkCard({ work }: WorkCardProps) {
       </CardContent>
 
       {/* 卡片底部：操作按钮 */}
-      <CardFooter className="flex justify-between">
+      <CardFooter className="grid grid-cols-3 gap-2">
+        <Button variant="outline" size="sm" className="gap-1" asChild>
+          <Link href={`/works/${work.id}/outline`}>
+            <FileText className="h-4 w-4" />
+            大纲管理
+          </Link>
+        </Button>
         <Button variant="outline" size="sm" className="gap-1">
           <BookOpen className="h-4 w-4" />
           查看章节
         </Button>
-        <Button size="sm" className="gap-1">
+        <Button size="sm" className="gap-1 col-span-1">
           <Edit className="h-4 w-4" />
           继续写作
         </Button>

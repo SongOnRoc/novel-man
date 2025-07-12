@@ -34,3 +34,5 @@ go.work
 go.work.sum
 cdk
 main
+
+memory_bank/*

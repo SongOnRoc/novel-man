@@ -27,6 +27,8 @@ const chaptersData: Record<string, Chapter[]> = {
       status: "published",
       updatedAt: "2023-09-15",
       order: 1,
+      volumeId: "v1",
+      volumeTitle: "第一卷：仙农初成",
     },
     {
       id: "1-2",
@@ -35,6 +37,8 @@ const chaptersData: Record<string, Chapter[]> = {
       status: "published",
       updatedAt: "2023-09-16",
       order: 2,
+      volumeId: "v1",
+      volumeTitle: "第一卷：仙农初成",
     },
     {
       id: "1-3",
@@ -43,6 +47,8 @@ const chaptersData: Record<string, Chapter[]> = {
       status: "draft",
       updatedAt: "2023-09-18",
       order: 3,
+      volumeId: "v2",
+      volumeTitle: "第二卷：仙农再起",
     },
   ],
   "2": [
@@ -53,6 +59,8 @@ const chaptersData: Record<string, Chapter[]> = {
       status: "published",
       updatedAt: "2023-09-10",
       order: 1,
+      volumeId: "v1",
+      volumeTitle: "第一卷：都市风云",
     },
     {
       id: "2-2",
@@ -61,6 +69,8 @@ const chaptersData: Record<string, Chapter[]> = {
       status: "published",
       updatedAt: "2023-09-12",
       order: 2,
+      volumeId: "v1",
+      volumeTitle: "第一卷：都市风云",
     },
   ],
   "3": [],
