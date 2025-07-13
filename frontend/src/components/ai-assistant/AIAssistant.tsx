@@ -4,7 +4,7 @@ import { useState } from "react";
 import { AIPromptForm } from "./AIPromptForm";
 import { AIResponse } from "./AIResponse";
 import { useAIAssistant } from "@/hooks";
-import { AIPromptType } from "@/types/ai";
+import { AIGenerateParams, AIPromptType } from "@/types/ai";
 
 /**
  * 完整AI助手组件的属性类型
@@ -30,8 +30,8 @@ export function AIAssistant({
     useAIAssistant();
 
   // 处理表单提交
-  const handleSubmit = (promptType: AIPromptType, prompt: string) => {
-    generateResponse(promptType, prompt, selectedText);
+  const handleSubmit = (params: AIGenerateParams) => {
+    generateResponse(params);
   };
 
   return (

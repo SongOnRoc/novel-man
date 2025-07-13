@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DraftCard } from "./components/DraftCard";
 import { Button } from "@/components/ui/button";
 import { FilePlus } from "lucide-react";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { mockDrafts } from "@/lib/mock/chapters-mock-data";
+import { useDrafts } from "@/hooks/useDrafts";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Draft } from "@/types/work";
 
 // 草稿类型
@@ -14,31 +15,28 @@ type DraftType = "all" | "chapter" | "note";
 
 // 草稿箱页面组件
 export default function DraftsPage() {
-  // 当前选中的草稿类型
+  const { drafts, isLoading, deleteDraft, convertDraftToChapter } = useDrafts();
   const [draftType, setDraftType] = useState<DraftType>("all");
 
-  // 根据类型筛选草稿
-  const filteredDrafts = mockDrafts.filter((draft: Draft) => {
-    if (draftType === "all") return true;
-    // 'chapter' 类型草稿现在被定义为有关联 workId 的草稿
-    if (draftType === "chapter") return !!draft.workId;
-    // 'note' 类型草稿被定义为没有关联 workId 的草稿
-    if (draftType === "note") return !draft.workId;
-    return true;
-  });
+  const filteredDrafts = useMemo(() => {
+    return drafts.filter((draft: Draft) => {
+      if (draftType === "all") return true;
+      if (draftType === "chapter") return !!draft.workId && draft.workId !== 'note-1';
+      if (draftType === "note") return !draft.workId || draft.workId === 'note-1';
+      return true;
+    });
+  }, [drafts, draftType]);
 
-  // 处理删除草稿
   const handleDelete = (id: string) => {
-    // 这里将来会调用API删除草稿
-    console.log("删除草稿:", id);
-    alert(`删除草稿 ${id}`);
+    if (window.confirm("确定要删除这个草稿吗？此操作不可撤销。")) {
+      deleteDraft(id);
+    }
   };
 
-  // 处理转换为正式章节
   const handleConvert = (id: string) => {
-    // 这里将来会调用API转换草稿为正式章节
-    console.log("转换草稿为正式章节:", id);
-    alert(`转换草稿 ${id} 为正式章节`);
+    if (window.confirm("确定要将这个草稿转换为正式章节吗？")) {
+      convertDraftToChapter(id);
+    }
   };
 
   return (

@@ -19,10 +19,11 @@ import { Work } from "@/types/work";
 // 作品卡片属性类型
 interface WorkCardProps {
   work: Work;
+  onDelete: () => void;
 }
 
 // 作品卡片组件
-export function WorkCard({ work }: WorkCardProps) {
+export function WorkCard({ work, onDelete }: WorkCardProps) {
   return (
     <Card className="overflow-hidden">
       {/* 卡片头部：标题和操作菜单 */}
@@ -43,7 +44,13 @@ export function WorkCard({ work }: WorkCardProps) {
           <DropdownMenuContent align="end">
             <DropdownMenuItem>编辑信息</DropdownMenuItem>
             <DropdownMenuItem>导出作品</DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem
+              className="text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+            >
               删除作品
             </DropdownMenuItem>
           </DropdownMenuContent>

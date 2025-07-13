@@ -10,7 +10,7 @@ import {
 import { AIPromptForm } from "./AIPromptForm";
 import { AIResponse } from "./AIResponse";
 import { useAIAssistant } from "@/hooks";
-import { AIPromptType } from "@/types/ai";
+import { AIGenerateParams, AIPromptType } from "@/types/ai";
 import { Sparkles } from "lucide-react";
 
 /**
@@ -55,8 +55,8 @@ export function AIFloatingButton({
   };
 
   // 提交AI请求
-  const handleSubmit = async (promptType: AIPromptType, prompt: string) => {
-    await generateResponse(promptType, prompt, selectedText);
+  const handleSubmit = async (params: AIGenerateParams) => {
+    await generateResponse(params);
   };
 
   // 应用AI生成的文本到编辑器
