@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   BookOpenText, // 书籍图标
@@ -39,6 +40,8 @@ const navItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+  const pathname = usePathname();
+
   return (
     <>
       {/* 桌面端侧边栏 - 在中等屏幕及以上显示 */}
@@ -57,9 +60,8 @@ export function AppSidebar() {
                 <Link
                   href={item.href}
                   className={cn(
-                    "flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-                    // 可以根据当前路径添加激活状态
-                    // pathname === item.href && "bg-accent text-accent-foreground"
+                    "flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+                    pathname === item.href && "bg-accent text-accent-foreground"
                   )}
                 >
                   <item.icon className="h-5 w-5" />
@@ -101,9 +103,8 @@ export function AppSidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-                  // 可以根据当前路径添加激活状态
-                  // pathname === item.href && "bg-accent text-accent-foreground"
+                  "flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+                  pathname === item.href && "bg-accent text-accent-foreground"
                 )}
               >
                 <item.icon className="h-4 w-4" />
