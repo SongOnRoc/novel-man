@@ -8,6 +8,7 @@ import {
 import {
   mockCharacters,
   mockRelationships,
+  mockDeleteCharacter,
 } from "@/lib/mock/character-mock-data";
 
 /**
@@ -90,11 +91,23 @@ export function useCharacters() {
   }, []);
 
   const deleteCharacter = useCallback(async (id: string) => {
-    console.log(
-      `Mock deleteCharacter called for ID: ${id}. In a real app, this would send a delete request.`
-    );
-    // setCharacters(prev => prev.filter(c => c.id !== id)); // Uncomment to see UI update
-    return true;
+    setIsLoading(true);
+    try {
+      // In a real app, this would be an API call
+      // For now, we'll call the mock function
+      const success = await mockDeleteCharacter(id);
+      if (success) {
+        setCharacters((prev) => prev.filter((c) => c.id !== id));
+      }
+      return success;
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "An unknown error occurred"
+      );
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const getCharactersByWorkId = useCallback(async (workId: string) => {

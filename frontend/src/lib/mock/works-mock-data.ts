@@ -26,3 +26,20 @@ export const mockWorks: Work[] = [
     updatedAt: "2023-09-15",
   },
 ];
+
+// 模拟删除作品
+export const mockDeleteWork = (workId: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const index = mockWorks.findIndex((work) => work.id === workId);
+      if (index !== -1) {
+        mockWorks.splice(index, 1);
+        console.log(`Work with id ${workId} deleted.`);
+        resolve();
+      } else {
+        console.error(`Work with id ${workId} not found.`);
+        reject(new Error("Work not found"));
+      }
+    }, 500); // 模拟网络延迟
+  });
+};
