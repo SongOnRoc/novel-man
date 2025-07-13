@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   BookOpenText, // 书籍图标
@@ -21,6 +22,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"; // 导入提示组件
 import { ThemeSwitcher } from "../ThemeSwitcher";
+import { UserNav } from "./UserNav";
 
 type NavItem = {
   title: string; // 导航项标题
@@ -38,6 +40,8 @@ const navItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+  const pathname = usePathname();
+
   return (
     <>
       {/* 桌面端侧边栏 - 在中等屏幕及以上显示 */}
@@ -56,9 +60,8 @@ export function AppSidebar() {
                 <Link
                   href={item.href}
                   className={cn(
-                    "flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-                    // 可以根据当前路径添加激活状态
-                    // pathname === item.href && "bg-accent text-accent-foreground"
+                    "flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+                    pathname === item.href && "bg-accent text-accent-foreground"
                   )}
                 >
                   <item.icon className="h-5 w-5" />
@@ -71,7 +74,7 @@ export function AppSidebar() {
         </nav>
         <div className="flex flex-col gap-4 p-4">
           <ThemeSwitcher />
-          {/* 用户头像或登录按钮可以放在这里 */}
+          <UserNav />
         </div>
       </div>
 
@@ -100,9 +103,8 @@ export function AppSidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-                  // 可以根据当前路径添加激活状态
-                  // pathname === item.href && "bg-accent text-accent-foreground"
+                  "flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+                  pathname === item.href && "bg-accent text-accent-foreground"
                 )}
               >
                 <item.icon className="h-4 w-4" />
@@ -116,7 +118,9 @@ export function AppSidebar() {
               <span className="text-sm text-muted-foreground">切换主题</span>
               <ThemeSwitcher />
             </div>
-            {/* 用户信息或登录按钮可以放在这里 */}
+            <div className="mt-4">
+              <UserNav />
+            </div>
           </div>
         </SheetContent>
       </Sheet>

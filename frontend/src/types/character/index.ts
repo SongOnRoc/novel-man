@@ -17,17 +17,33 @@ export interface Character {
 }
 
 // 角色关系类型
-export type RelationshipType =
-  | "family" // 家人
-  | "friend" // 朋友
-  | "lover" // 恋人
-  | "enemy" // 敌人
-  | "master" // 师傅
-  | "disciple" // 弟子
-  | "ally" // 盟友
-  | "rival" // 竞争对手
-  | "subordinate" // 下属
-  | "superior"; // 上级
+export type RelationshipType = string;
+
+export const relationshipTypes: string[] = [
+  "family",
+  "friend",
+  "lover",
+  "enemy",
+  "master",
+  "disciple",
+  "ally",
+  "rival",
+  "subordinate",
+  "superior",
+];
+
+export const relationshipTypeMap: Record<string, string> = {
+  family: "家人",
+  friend: "朋友",
+  lover: "恋人",
+  enemy: "敌人",
+  master: "师傅",
+  disciple: "弟子",
+  ally: "盟友",
+  rival: "竞争对手",
+  subordinate: "下属",
+  superior: "上级",
+};
 
 // 角色关系
 export interface CharacterRelationship {

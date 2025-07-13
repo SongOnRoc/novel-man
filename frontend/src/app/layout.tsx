@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_SC } from "next/font/google";
 import { ThemeProvider } from "@/components/common/layout/ThemeProvider";
+import { SessionProvider } from "@/components/common/layout/SessionProvider";
 import "./globals.css";
 
 const inter = Inter({
@@ -41,7 +42,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <SessionProvider>{children}</SessionProvider>
         </ThemeProvider>
       </body>
     </html>

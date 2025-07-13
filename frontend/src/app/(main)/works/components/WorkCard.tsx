@@ -6,24 +6,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Edit, MoreVertical } from "lucide-react";
+import { BookOpen, Edit, MoreVertical, FileText } from "lucide-react";
+import Link from "next/link";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-// 作品类型定义
-export interface Work {
-  id: string;
-  title: string;
-  description: string;
-  chapterCount: number;
-  wordCount: number;
-  updatedAt: string;
-  coverImage?: string; // 可选的封面图片URL
-}
+import { Work } from "@/types/work";
 
 // 作品卡片属性类型
 interface WorkCardProps {
@@ -37,10 +28,10 @@ export function WorkCard({ work }: WorkCardProps) {
       {/* 卡片头部：标题和操作菜单 */}
       <CardHeader className="flex flex-row items-start justify-between">
         <div>
-          <CardTitle className="line-clamp-1">{work.title}</CardTitle>
-          <div className="text-sm text-muted-foreground">
+          <CardTitle className="line-clamp-1">{work.name}</CardTitle>
+          {/* <div className="text-sm text-muted-foreground">
             {work.chapterCount} 章节 · {work.wordCount.toLocaleString()} 字
-          </div>
+          </div> */}
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -67,12 +58,18 @@ export function WorkCard({ work }: WorkCardProps) {
       </CardContent>
 
       {/* 卡片底部：操作按钮 */}
-      <CardFooter className="flex justify-between">
+      <CardFooter className="grid grid-cols-3 gap-2">
+        <Button variant="outline" size="sm" className="gap-1" asChild>
+          <Link href={`/works/${work.id}/outline`}>
+            <FileText className="h-4 w-4" />
+            大纲管理
+          </Link>
+        </Button>
         <Button variant="outline" size="sm" className="gap-1">
           <BookOpen className="h-4 w-4" />
           查看章节
         </Button>
-        <Button size="sm" className="gap-1">
+        <Button size="sm" className="gap-1 col-span-1">
           <Edit className="h-4 w-4" />
           继续写作
         </Button>

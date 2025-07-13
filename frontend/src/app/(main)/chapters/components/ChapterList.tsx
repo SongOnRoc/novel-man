@@ -16,15 +16,8 @@ import {
 import { FileText, MoreVertical, Edit, Eye, ArrowUpDown } from "lucide-react";
 import Link from "next/link";
 
-// 章节类型定义
-export interface Chapter {
-  id: string;
-  title: string;
-  wordCount: number;
-  status: "draft" | "published";
-  updatedAt: string;
-  order: number;
-}
+import { Chapter } from "@/types/work";
+import { mockVolumes } from "@/lib/mock/volumes-mock-data";
 
 // 章节列表属性
 interface ChapterListProps {
@@ -34,8 +27,27 @@ interface ChapterListProps {
 
 // 章节列表组件
 export function ChapterList({ workId, chapters }: ChapterListProps) {
-  // 获取状态标签的样式
+  // 按分卷ID对章节进行分组
+  const chaptersByVolume = chapters.reduce<Record<string, Chapter[]>>(
+    (acc, chapter) => {
+      const volumeId = chapter.volumeId || "unclassified";
+      if (!acc[volumeId]) {
+        acc[volumeId] = [];
+      }
+      acc[volumeId].push(chapter);
+      return acc;
+    },
+    {}
+  );
+
+  const getVolumeTitle = (volumeId: string) => {
+    if (volumeId === "unclassified") return "未分卷";
+    const volume = mockVolumes.find((v) => v.id === volumeId);
+    return volume ? volume.title : "未知分卷";
+  };
+
   const getStatusBadge = (status: Chapter["status"]) => {
+    // ... (getStatusBadge function remains the same)
     switch (status) {
       case "draft":
         return (
@@ -59,7 +71,7 @@ export function ChapterList({ workId, chapters }: ChapterListProps) {
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>章节列表</CardTitle>
-          <CardDescription>管理您的章节，拖动可以调整顺序。</CardDescription>
+          <CardDescription>管理您的章节，可按分卷查看。</CardDescription>
         </div>
         <Button asChild>
           <Link href={`/chapters/new?workId=${workId}`}>
@@ -77,68 +89,65 @@ export function ChapterList({ workId, chapters }: ChapterListProps) {
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {chapters.map((chapter) => (
-              <div
-                key={chapter.id}
-                className="flex items-center justify-between rounded-lg border p-3 shadow-sm"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-md border bg-background">
-                    <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <div className="font-medium">{chapter.title}</div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>{chapter.wordCount} 字</span>
-                      <span>•</span>
-                      <span>更新于 {chapter.updatedAt}</span>
-                      <span>•</span>
-                      {getStatusBadge(chapter.status)}
+          <div className="space-y-6">
+            {Object.entries(chaptersByVolume).map(
+              ([volumeId, volumeChapters]) => (
+                <div key={volumeId} className="space-y-4">
+                  <h3 className="text-lg font-semibold tracking-tight border-b pb-2">
+                    {getVolumeTitle(volumeId)}
+                  </h3>
+                  {volumeChapters.map((chapter) => (
+                    <div
+                      key={chapter.id}
+                      className="flex items-center justify-between rounded-lg border p-3 shadow-sm"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-md border bg-background">
+                          <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <div className="font-medium">{chapter.title}</div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span>{chapter.wordCount} 字</span>
+                            <span>•</span>
+                            <span>更新于 {chapter.updatedAt}</span>
+                            <span>•</span>
+                            {getStatusBadge(chapter.status)}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="icon" asChild>
+                          <Link href={`/chapters/${chapter.id}/edit`}>
+                            <Edit className="h-4 w-4" />
+                            <span className="sr-only">编辑</span>
+                          </Link>
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>发布章节</DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive">
+                              删除章节
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" asChild>
-                    <Link href={`/chapters/${chapter.id}/view`}>
-                      <Eye className="h-4 w-4" />
-                      <span className="sr-only">查看</span>
-                    </Link>
-                  </Button>
-                  <Button variant="ghost" size="icon" asChild>
-                    <Link href={`/chapters/${chapter.id}/edit`}>
-                      <Edit className="h-4 w-4" />
-                      <span className="sr-only">编辑</span>
-                    </Link>
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="h-4 w-4" />
-                        <span className="sr-only">更多操作</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>设为草稿</DropdownMenuItem>
-                      <DropdownMenuItem>发布章节</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
-                        删除章节
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
         )}
       </CardContent>
       <CardFooter className="flex justify-between">
         <div className="text-sm text-muted-foreground">
-          共 {chapters.length} 章节，
-          {chapters
-            .reduce((sum, chapter) => sum + chapter.wordCount, 0)
-            .toLocaleString()}{" "}
-          字
+          共 {chapters.length} 章节
         </div>
       </CardFooter>
     </Card>

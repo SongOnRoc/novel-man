@@ -18,6 +18,7 @@ import {
 } from "@/types/editor";
 import { BookmarkExtension } from "@/lib/editor/BookmarkExtension";
 import { AIFloatingButton } from "@/components/ai-assistant/AIFloatingButton";
+import { FindExtension } from "@/lib/editor/FindExtension";
 
 // Tiptap编辑器属性
 interface TiptapEditorProps {
@@ -25,7 +26,8 @@ interface TiptapEditorProps {
   onSave?: (content: EditorContentType) => void; // 保存回调
   placeholder?: string; // 占位文本
   autoFocus?: boolean; // 是否自动聚焦
-  chapterId?: string; // 章节ID，用于书签管理
+  contentId?: string; // 内容ID，用于书签等
+  workId?: string; // 作品ID，用于设定速查
   containerId?: string; // 容器ID，用于专注模式
 }
 
@@ -105,7 +107,8 @@ export function TiptapEditor({
   onSave,
   placeholder = "开始您的创作...",
   autoFocus = false,
-  chapterId = "temp",
+  contentId = "temp",
+  workId,
   containerId = "editor-container",
 }: TiptapEditorProps) {
   // 标题状态
@@ -143,6 +146,7 @@ export function TiptapEditor({
         multicolor: false,
       }),
       BookmarkExtension,
+      FindExtension,
     ],
     content: initialContent.content,
     autofocus: autoFocus,
@@ -268,7 +272,8 @@ export function TiptapEditor({
         onSave={handleSave}
         isSaving={isSaving}
         wordCount={wordCount}
-        chapterId={chapterId}
+        contentId={contentId}
+        workId={workId}
         editorContainerId={containerId}
       />
 
@@ -322,6 +327,15 @@ export function TiptapEditor({
           background-color: rgba(255, 220, 0, 0.4);
           border-bottom: 2px solid #ffdc00;
           padding: 2px 0;
+        }
+
+        /* 查找高亮样式 */
+        .find-highlight {
+          background-color: yellow;
+        }
+
+        .find-highlight.active {
+          background-color: orange;
         }
 
         /* 专注模式样式 */

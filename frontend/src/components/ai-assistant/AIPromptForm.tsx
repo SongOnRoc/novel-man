@@ -11,11 +11,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AIPromptType, promptTypeOptions } from "@/types/ai";
+import {
+  AIPromptType,
+  promptTypeOptions,
+  AIWritingStyle,
+  writingStyleOptions,
+  AIGenerateParams,
+} from "@/types/ai";
 
 // 定义AIPromptForm组件的属性类型
 interface AIPromptFormProps {
-  onSubmit: (promptType: AIPromptType, prompt: string) => void;
+  onSubmit: (params: AIGenerateParams) => void;
   isLoading: boolean;
   selectedText?: string; // 从编辑器选中的文本
   initialPromptType?: AIPromptType; // 初始提示类型
@@ -36,6 +42,7 @@ export function AIPromptForm({
   // 状态管理
   const [promptType, setPromptType] = useState<AIPromptType>(initialPromptType);
   const [prompt, setPrompt] = useState<string>("");
+  const [writingStyle, setWritingStyle] = useState<AIWritingStyle>("formal");
 
   // 根据选中的提示类型生成占位符文本
   const getPlaceholder = () => {
@@ -65,7 +72,12 @@ export function AIPromptForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (prompt.trim() || selectedText) {
-      onSubmit(promptType, prompt);
+      onSubmit({
+        promptType,
+        prompt,
+        writingStyle,
+        selectedText,
+      });
     }
   };
 
@@ -96,6 +108,29 @@ export function AIPromptForm({
                 {promptTypeOptions.map((type) => (
                   <SelectItem key={type.value} value={type.value}>
                     {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* 写作风格选择器 */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">选择写作风格</label>
+            <Select
+              value={writingStyle}
+              onValueChange={(value) =>
+                setWritingStyle(value as AIWritingStyle)
+              }
+              disabled={isLoading}
+            >
+              <SelectTrigger className={compact ? "h-8 text-sm" : ""}>
+                <SelectValue placeholder="选择写作风格" />
+              </SelectTrigger>
+              <SelectContent>
+                {writingStyleOptions.map((style) => (
+                  <SelectItem key={style.value} value={style.value}>
+                    {style.label}
                   </SelectItem>
                 ))}
               </SelectContent>

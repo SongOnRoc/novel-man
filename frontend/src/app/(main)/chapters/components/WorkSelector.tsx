@@ -10,17 +10,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
 
-// 作品类型定义
-interface Work {
-  id: string;
-  title: string;
-}
+import { Work } from "@/types/work";
 
 // 作品选择器属性
 interface WorkSelectorProps {
   works: Work[];
   selectedWork: Work | null;
-  onSelectWork: (work: Work) => void;
+  onSelectWork: (work: Work | null) => void;
 }
 
 // 作品选择器组件
@@ -33,7 +29,7 @@ export function WorkSelector({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className="w-full md:w-auto justify-between">
-          {selectedWork ? selectedWork.title : "选择作品"}
+          {selectedWork ? selectedWork.name : "选择作品"}
           <ChevronDown className="ml-2 h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -44,7 +40,7 @@ export function WorkSelector({
             onClick={() => onSelectWork(work)}
             className="cursor-pointer"
           >
-            {work.title}
+            {work.name}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

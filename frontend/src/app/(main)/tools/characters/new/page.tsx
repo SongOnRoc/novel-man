@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,23 +23,25 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, Save } from "lucide-react";
 import { useCharacters } from "@/hooks/character/useCharacters";
+import { useWorks } from "@/hooks/useWorks";
+import { CharacterRelationManager } from "@/components/character/CharacterRelationManager";
+import {
+  Character,
+  CharacterRelationship,
+  RelationshipType,
+} from "@/types/character";
+import { Separator } from "@/components/ui/separator";
 
-// 模拟作品数据 - 实际应用中应从API获取
-const mockWorks = [
-  { id: "work-1", title: "修仙从种田开始" },
-  { id: "work-2", title: "都市之全能高手" },
-  { id: "work-3", title: "星际穿越之旅" },
-];
+// A version of CharacterRelationship for temporary state before the main character has an ID.
+type TempCharacterRelationship = Omit<CharacterRelationship, "id" | "sourceId">;
 
 export default function NewCharacterPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const workId = searchParams.get("workId");
-  const { createCharacter } = useCharacters();
+  const { characters: allCharacters, addCharacter } = useCharacters();
+  const { works } = useWorks();
 
-  // 表单状态
+  const [workId, setWorkId] = useState("");
   const [formData, setFormData] = useState({
-    workId: workId || "",
     name: "",
     gender: "",
     age: "",
@@ -50,19 +52,36 @@ export default function NewCharacterPage() {
     appearance: "",
     notes: "",
   });
+
+  const [tempRelations, setTempRelations] = useState<
+    TempCharacterRelationship[]
+  >([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [workTitle, setWorkTitle] = useState<string>("");
 
-  // 获取作品标题
-  useEffect(() => {
-    if (formData.workId) {
-      const work = mockWorks.find((w) => w.id === formData.workId);
-      setWorkTitle(work?.title || "");
-    }
-  }, [formData.workId]);
+  const charactersInSameWork = allCharacters.filter((c) => c.workId === workId);
 
-  // 处理表单输入变化
+  const handleAddRelation = (targetId: string, type: RelationshipType) => {
+    // Prevent duplicates
+    if (tempRelations.some((r) => r.targetId === targetId)) return;
+    setTempRelations((prev) => [...prev, { targetId, type }]);
+  };
+
+  const handleDeleteRelation = (relationId: string) => {
+    // In temp state, we use targetId as a key
+    setTempRelations((prev) => prev.filter((r) => r.targetId !== relationId));
+  };
+
+  const handleUpdateRelationType = (
+    relationId: string,
+    newType: RelationshipType
+  ) => {
+    // In temp state, we use targetId as a key
+    setTempRelations((prev) =>
+      prev.map((r) => (r.targetId === relationId ? { ...r, type: newType } : r))
+    );
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -70,22 +89,19 @@ export default function NewCharacterPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 处理选择变化
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 处理表单提交
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.workId) {
-      setError("请选择作品");
-      return;
-    }
-
     if (!formData.name) {
       setError("角色名称不能为空");
+      return;
+    }
+    if (!workId) {
+      setError("必须选择一个所属作品");
       return;
     }
 
@@ -93,7 +109,6 @@ export default function NewCharacterPage() {
     setError(null);
 
     try {
-      // 处理多值字段
       const personalityArray = formData.personality
         ? formData.personality.split(",").map((item) => item.trim())
         : [];
@@ -102,11 +117,10 @@ export default function NewCharacterPage() {
         ? formData.abilities.split(",").map((item) => item.trim())
         : [];
 
-      // 转换年龄为数字
       const age = formData.age ? parseInt(formData.age, 10) : undefined;
 
-      const character = await createCharacter({
-        workId: formData.workId,
+      const newCharacterData = {
+        workId,
         name: formData.name,
         gender: formData.gender as "male" | "female" | "other" | undefined,
         age: isNaN(age as number) ? undefined : age,
@@ -116,10 +130,12 @@ export default function NewCharacterPage() {
         background: formData.background || undefined,
         appearance: formData.appearance || undefined,
         notes: formData.notes || undefined,
-      });
+      };
 
-      if (character) {
-        router.push(`/tools?work=${formData.workId}`);
+      const newCharacter = await addCharacter(newCharacterData, tempRelations);
+
+      if (newCharacter) {
+        router.push(`/tools/characters/${newCharacter.id}`);
       } else {
         setError("创建角色失败");
       }
@@ -131,6 +147,15 @@ export default function NewCharacterPage() {
     }
   };
 
+  // Adapt tempRelations to fit the CharacterRelationManager's expected prop type
+  const managerRelations: CharacterRelationship[] = tempRelations.map(
+    (r, i) => ({
+      ...r,
+      id: r.targetId, // Use targetId as a temporary, unique key for the manager
+      sourceId: "new-character-placeholder", // Placeholder
+    })
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -139,7 +164,7 @@ export default function NewCharacterPage() {
           返回
         </Button>
         <h1 className="text-2xl font-bold">创建新角色</h1>
-        <div className="w-24"></div> {/* 占位，保持标题居中 */}
+        <div className="w-24"></div>
       </div>
 
       <Card>
@@ -147,31 +172,11 @@ export default function NewCharacterPage() {
           <CardHeader>
             <CardTitle>角色信息</CardTitle>
             <CardDescription>
-              请填写角色的基本信息，带 * 的字段为必填项
+              填写角色的基本信息，带 * 的字段为必填项
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* 作品选择 */}
-            <div className="space-y-2">
-              <Label htmlFor="workId">所属作品 *</Label>
-              <Select
-                value={formData.workId}
-                onValueChange={(value) => handleSelectChange("workId", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="选择作品" />
-                </SelectTrigger>
-                <SelectContent>
-                  {mockWorks.map((work) => (
-                    <SelectItem key={work.id} value={work.id}>
-                      {work.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* 基本信息 */}
+            {/* Basic Info Form */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">角色名称 *</Label>
@@ -225,7 +230,24 @@ export default function NewCharacterPage() {
               </div>
             </div>
 
-            {/* 特性和能力 */}
+            <Separator />
+
+            <div className="space-y-2">
+              <Label htmlFor="workId">所属作品 *</Label>
+              <Select value={workId} onValueChange={setWorkId}>
+                <SelectTrigger id="workId">
+                  <SelectValue placeholder="选择一个作品..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {works.map((work) => (
+                    <SelectItem key={work.id} value={work.id}>
+                      {work.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="personality">性格特点（用逗号分隔）</Label>
@@ -250,7 +272,6 @@ export default function NewCharacterPage() {
               </div>
             </div>
 
-            {/* 详细描述 */}
             <div className="space-y-2">
               <Label htmlFor="background">背景故事</Label>
               <Textarea
@@ -288,6 +309,20 @@ export default function NewCharacterPage() {
             </div>
 
             {error && <div className="text-destructive text-sm">{error}</div>}
+
+            <Separator />
+
+            {/* Relations Manager */}
+            {workId && (
+              <CharacterRelationManager
+                characterId="new-character-placeholder"
+                allCharacters={charactersInSameWork}
+                relations={managerRelations}
+                onAddRelation={handleAddRelation}
+                onDeleteRelation={handleDeleteRelation}
+                onUpdateRelationType={handleUpdateRelationType}
+              />
+            )}
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
             <Button

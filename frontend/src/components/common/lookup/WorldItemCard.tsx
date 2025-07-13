@@ -13,9 +13,15 @@ import { useState } from "react";
 
 interface WorldItemCardProps {
   worldItem: WorldItem;
+  onSelect?: (name: string) => void;
+  children?: React.ReactNode;
 }
 
-export function WorldItemCard({ worldItem }: WorldItemCardProps) {
+export function WorldItemCard({
+  worldItem,
+  onSelect,
+  children,
+}: WorldItemCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   // 获取设定类型标签
@@ -23,8 +29,16 @@ export function WorldItemCard({ worldItem }: WorldItemCardProps) {
     worldItemTypeOptions.find((opt) => opt.value === worldItem.type)?.label ||
     worldItem.type;
 
+  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // 阻止事件冒泡到展开/折叠按钮
+    if ((e.target as HTMLElement).closest("button")) {
+      return;
+    }
+    onSelect?.(worldItem.name);
+  };
+
   return (
-    <Card className="mb-3">
+    <Card className="mb-3 cursor-pointer" onClick={handleCardClick}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div>
@@ -35,18 +49,21 @@ export function WorldItemCard({ worldItem }: WorldItemCardProps) {
               </Badge>
             </CardDescription>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setExpanded(!expanded)}
-            className="h-8 w-8 p-0"
-          >
-            {expanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </Button>
+          <div className="flex items-center space-x-1">
+            {children}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setExpanded(!expanded)}
+              className="h-8 w-8 p-0"
+            >
+              {expanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="text-sm pt-0">

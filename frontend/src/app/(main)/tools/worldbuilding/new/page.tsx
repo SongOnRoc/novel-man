@@ -24,19 +24,14 @@ import {
 import { ArrowLeft, Save } from "lucide-react";
 import { useWorldbuilding } from "@/hooks/worldbuilding/useWorldbuilding";
 import { WorldItemType, worldItemTypeOptions } from "@/types/worldbuilding";
-
-// 模拟作品数据 - 实际应用中应从API获取
-const mockWorks = [
-  { id: "work-1", title: "修仙从种田开始" },
-  { id: "work-2", title: "都市之全能高手" },
-  { id: "work-3", title: "星际穿越之旅" },
-];
+import { useWorks } from "@/hooks/useWorks";
 
 export default function NewWorldItemPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const workId = searchParams.get("workId");
   const { createWorldItem } = useWorldbuilding();
+  const { works } = useWorks();
 
   // 表单状态
   const [formData, setFormData] = useState({
@@ -50,15 +45,6 @@ export default function NewWorldItemPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [workTitle, setWorkTitle] = useState<string>("");
-
-  // 获取作品标题
-  useEffect(() => {
-    if (formData.workId) {
-      const work = mockWorks.find((w) => w.id === formData.workId);
-      setWorkTitle(work?.title || "");
-    }
-  }, [formData.workId]);
 
   // 处理表单输入变化
   const handleChange = (
@@ -161,9 +147,9 @@ export default function NewWorldItemPage() {
                   <SelectValue placeholder="选择作品" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockWorks.map((work) => (
+                  {works.map((work) => (
                     <SelectItem key={work.id} value={work.id}>
-                      {work.title}
+                      {work.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

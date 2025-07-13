@@ -1,51 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Draft, DraftCard } from "./components/DraftCard";
+import { DraftCard } from "./components/DraftCard";
 import { Button } from "@/components/ui/button";
 import { FilePlus } from "lucide-react";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-// 模拟草稿数据
-const draftData: Draft[] = [
-  {
-    id: "1",
-    title: "第四章 灵田初成",
-    content:
-      "经过三天三夜的不懈努力，李青终于将灵力注入那片荒地，一股清新的灵气开始在土地中流转。他惊喜地发现，原本贫瘠的土地正在以肉眼可见的速度变得肥沃起来...",
-    workTitle: "修仙从种田开始",
-    workId: "1",
-    chapterId: undefined,
-    createdAt: "2023-09-19",
-    updatedAt: "2023-09-20",
-    wordCount: 2100,
-  },
-  {
-    id: "2",
-    title: "第三章 商业联姻",
-    content:
-      "张明站在高楼之上，俯瞰整个城市的灯火。他知道，今晚的宴会将决定他与林氏集团合作的成败。作为一个从军队退役的特种兵，他从未想过有一天会靠联姻来解决商业问题...",
-    workTitle: "都市之全能高手",
-    workId: "2",
-    chapterId: undefined,
-    createdAt: "2023-09-17",
-    updatedAt: "2023-09-18",
-    wordCount: 1800,
-  },
-  {
-    id: "3",
-    title: "新作品构思",
-    content:
-      "故事背景设定在2150年，人类已经开始在太阳系内多个行星建立殖民地。主角是一名星际运输船的机械师，在一次例行维修中发现了船舱内的神秘货物...",
-    workTitle: undefined,
-    workId: undefined,
-    chapterId: undefined,
-    createdAt: "2023-09-15",
-    updatedAt: "2023-09-15",
-    wordCount: 950,
-  },
-];
+import { mockDrafts } from "@/lib/mock/chapters-mock-data";
+import { Draft } from "@/types/work";
 
 // 草稿类型
 type DraftType = "all" | "chapter" | "note";
@@ -56,9 +18,11 @@ export default function DraftsPage() {
   const [draftType, setDraftType] = useState<DraftType>("all");
 
   // 根据类型筛选草稿
-  const filteredDrafts = draftData.filter((draft) => {
+  const filteredDrafts = mockDrafts.filter((draft: Draft) => {
     if (draftType === "all") return true;
+    // 'chapter' 类型草稿现在被定义为有关联 workId 的草稿
     if (draftType === "chapter") return !!draft.workId;
+    // 'note' 类型草稿被定义为没有关联 workId 的草稿
     if (draftType === "note") return !draft.workId;
     return true;
   });

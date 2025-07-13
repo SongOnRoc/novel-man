@@ -12,13 +12,30 @@ import { useState } from "react";
 
 interface CharacterCardProps {
   character: Character;
+  onSelect?: (name: string) => void;
 }
 
-export function CharacterCard({ character }: CharacterCardProps) {
+export function CharacterCard({
+  character,
+  onSelect,
+  children,
+}: {
+  character: Character;
+  onSelect?: (name: string) => void;
+  children?: React.ReactNode;
+}) {
   const [expanded, setExpanded] = useState(false);
 
+  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // 阻止事件冒泡到展开/折叠按钮
+    if ((e.target as HTMLElement).closest("button")) {
+      return;
+    }
+    onSelect?.(character.name);
+  };
+
   return (
-    <Card className="mb-3">
+    <Card className="mb-3 cursor-pointer" onClick={handleCardClick}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div>
@@ -27,18 +44,21 @@ export function CharacterCard({ character }: CharacterCardProps) {
               {character.occupation || "未知职业"}
             </CardDescription>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setExpanded(!expanded)}
-            className="h-8 w-8 p-0"
-          >
-            {expanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </Button>
+          <div className="flex items-center space-x-1">
+            {children}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setExpanded(!expanded)}
+              className="h-8 w-8 p-0"
+            >
+              {expanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </div>
       </CardHeader>
       {expanded && (

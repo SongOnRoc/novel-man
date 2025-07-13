@@ -74,8 +74,21 @@ export default function NewWorkPage() {
     setIsSubmitting(true);
 
     try {
+      // 为新作品创建一个包含默认大纲结构的对象
+      const newWorkData = {
+        ...values,
+        id: new Date().toISOString(), // 临时生成一个唯一ID
+        chapterCount: 0,
+        wordCount: 0,
+        updatedAt: new Date().toLocaleDateString("sv"),
+        outline: {
+          main: "",
+          volumes: [],
+        },
+      };
+
       // 这里将来会调用API创建新作品
-      console.log("创建新作品:", values);
+      console.log("创建新作品:", newWorkData);
 
       // 模拟API调用延迟
       await new Promise((resolve) => setTimeout(resolve, 1000));

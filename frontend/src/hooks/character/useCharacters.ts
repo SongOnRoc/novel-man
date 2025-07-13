@@ -1,41 +1,35 @@
 import { useState, useCallback, useEffect } from "react";
 import {
   Character,
+  CharacterRelationship,
   CreateCharacterRequest,
   UpdateCharacterRequest,
 } from "@/types/character";
 import {
-  mockGetAllCharacters,
-  mockGetCharacterById,
-  mockCreateCharacter,
-  mockUpdateCharacter,
-  mockDeleteCharacter,
-  mockGetCharactersByWorkId,
-} from "@/lib/character-mock-data";
+  mockCharacters,
+  mockRelationships,
+} from "@/lib/mock/character-mock-data";
 
 /**
- * 角色管理Hook
+ * 角色管理Hook (Mock data version)
  * 提供角色列表获取、创建、更新和删除功能
  */
 export function useCharacters() {
-  // 角色列表
   const [characters, setCharacters] = useState<Character[]>([]);
-  // 加载状态
-  const [isLoading, setIsLoading] = useState(false);
-  // 错误信息
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  /**
-   * 获取所有角色
-   */
+  // Note: In this mock version, relationships are not managed by this hook.
+  // They are read-only from the mock file. A separate useCharacterRelations hook handles them.
+
   const fetchCharacters = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-
     try {
-      const result = await mockGetAllCharacters();
-      setCharacters(result);
-      return result;
+      // Simulate async operation
+      await new Promise((res) => setTimeout(res, 100));
+      setCharacters(mockCharacters);
+      return mockCharacters;
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "获取角色列表时发生错误";
@@ -47,96 +41,66 @@ export function useCharacters() {
     }
   }, []);
 
-  /**
-   * 获取单个角色
-   */
-  const getCharacter = useCallback(async (id: string) => {
-    try {
-      return await mockGetCharacterById(id);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "获取角色信息时发生错误";
-      console.error("获取角色信息错误:", err);
-      return null;
-    }
-  }, []);
+  const getCharacter = useCallback(
+    async (id: string) => {
+      // In a real app, this might fetch from an API. Here, we find from the mock data.
+      const character = mockCharacters.find((char) => char.id === id);
+      return character || null;
+    },
+    [] // No dependency on state `characters` as we use the static mock data
+  );
 
-  /**
-   * 创建角色
-   */
-  const createCharacter = useCallback(async (data: CreateCharacterRequest) => {
-    try {
-      const newCharacter = await mockCreateCharacter(data);
-      setCharacters((prev) => [...prev, newCharacter]);
-      return newCharacter;
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "创建角色时发生错误";
-      console.error("创建角色错误:", err);
-      return null;
-    }
-  }, []);
-
-  /**
-   * 更新角色
-   */
-  const updateCharacter = useCallback(async (data: UpdateCharacterRequest) => {
-    try {
-      const updatedCharacter = await mockUpdateCharacter(data);
-      setCharacters((prev) =>
-        prev.map((char) =>
-          char.id === updatedCharacter.id ? updatedCharacter : char
-        )
+  const addCharacter = useCallback(
+    async (
+      characterData: CreateCharacterRequest,
+      // tempRelations are ignored in this mock version
+      tempRelations: Omit<CharacterRelationship, "id" | "sourceId">[] = []
+    ) => {
+      console.log(
+        "Mock addCharacter called. In a real app, this would save to a backend. Here, we just log and return a new character object.",
+        characterData
       );
-      return updatedCharacter;
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "更新角色时发生错误";
-      console.error("更新角色错误:", err);
-      return null;
-    }
+      const now = new Date().toISOString();
+      const newCharacter: Character = {
+        id: `char-${Date.now()}`,
+        ...characterData,
+        createdAt: now,
+        updatedAt: now,
+      };
+      // To see the new character in the UI, we would need to update the state.
+      // For this mock-up, we'll just return the new character.
+      // setCharacters(prev => [...prev, newCharacter]); // Uncomment to see UI update
+      return newCharacter;
+    },
+    []
+  );
+
+  const updateCharacter = useCallback(async (data: UpdateCharacterRequest) => {
+    console.log(
+      "Mock updateCharacter called. In a real app, this would save to a backend. Here, we just log and return the updated data.",
+      data
+    );
+    const updatedCharacter: Character = {
+      ...mockCharacters.find((c) => c.id === data.id)!,
+      ...data,
+      updatedAt: new Date().toISOString(),
+    };
+    // setCharacters(prev => prev.map(c => c.id === data.id ? updatedCharacter : c)); // Uncomment to see UI update
+    return updatedCharacter;
   }, []);
 
-  /**
-   * 删除角色
-   */
   const deleteCharacter = useCallback(async (id: string) => {
-    try {
-      const success = await mockDeleteCharacter(id);
-      if (success) {
-        setCharacters((prev) => prev.filter((char) => char.id !== id));
-      }
-      return success;
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "删除角色时发生错误";
-      console.error("删除角色错误:", err);
-      return false;
-    }
+    console.log(
+      `Mock deleteCharacter called for ID: ${id}. In a real app, this would send a delete request.`
+    );
+    // setCharacters(prev => prev.filter(c => c.id !== id)); // Uncomment to see UI update
+    return true;
   }, []);
 
-  /**
-   * 根据作品ID获取角色
-   */
   const getCharactersByWorkId = useCallback(async (workId: string) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const result = await mockGetCharactersByWorkId(workId);
-      return result;
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "获取角色列表时发生错误";
-      setError(errorMessage);
-      console.error("获取角色列表错误:", err);
-      return [];
-    } finally {
-      setIsLoading(false);
-    }
+    return mockCharacters.filter((char) => char.workId === workId);
   }, []);
 
-  // 初始加载角色列表
   useEffect(() => {
     fetchCharacters();
   }, [fetchCharacters]);
@@ -148,7 +112,7 @@ export function useCharacters() {
     fetchCharacters,
     getCharacter,
     getCharactersByWorkId,
-    createCharacter,
+    addCharacter,
     updateCharacter,
     deleteCharacter,
   };

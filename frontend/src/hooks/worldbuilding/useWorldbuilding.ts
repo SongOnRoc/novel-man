@@ -11,7 +11,7 @@ import {
   mockUpdateWorldItem,
   mockDeleteWorldItem,
   mockGetWorldItemsByWorkId,
-} from "@/lib/worldbuilding-mock-data";
+} from "@/lib/mock/worldbuilding-mock-data";
 
 /**
  * 世界观设定Hook

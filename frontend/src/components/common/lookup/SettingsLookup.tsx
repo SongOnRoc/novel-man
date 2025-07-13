@@ -7,6 +7,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetDescription,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -19,9 +20,10 @@ import { WorldItemCard } from "./WorldItemCard";
 
 interface SettingsLookupProps {
   workId: string;
+  onSelectItem?: (name: string) => void;
 }
 
-export function SettingsLookup({ workId }: SettingsLookupProps) {
+export function SettingsLookup({ workId, onSelectItem }: SettingsLookupProps) {
   const [open, setOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const { characters, worldItems, isLoading, loadSettings, searchSettings } =
@@ -57,6 +59,9 @@ export function SettingsLookup({ workId }: SettingsLookupProps) {
       <SheetContent className="w-[400px] sm:w-[540px] p-0">
         <SheetHeader className="px-6 pt-6 pb-2">
           <SheetTitle>设定速查</SheetTitle>
+          <SheetDescription>
+            在这里快速搜索作品中的角色和世界观设定。
+          </SheetDescription>
         </SheetHeader>
 
         <div className="px-6 py-2">
@@ -68,7 +73,7 @@ export function SettingsLookup({ workId }: SettingsLookupProps) {
               onKeyDown={handleKeyDown}
               className="flex-1"
             />
-            <Button onClick={handleSearch}>
+            <Button onClick={handleSearch} aria-label="搜索">
               <Search className="h-4 w-4" />
             </Button>
           </div>
@@ -102,7 +107,11 @@ export function SettingsLookup({ workId }: SettingsLookupProps) {
               <ScrollArea className="h-[calc(100vh-200px)]">
                 <div className="pr-4">
                   {characters.map((character) => (
-                    <CharacterCard key={character.id} character={character} />
+                    <CharacterCard
+                      key={character.id}
+                      character={character}
+                      onSelect={onSelectItem}
+                    />
                   ))}
                 </div>
               </ScrollArea>
@@ -124,7 +133,11 @@ export function SettingsLookup({ workId }: SettingsLookupProps) {
               <ScrollArea className="h-[calc(100vh-200px)]">
                 <div className="pr-4">
                   {worldItems.map((worldItem) => (
-                    <WorldItemCard key={worldItem.id} worldItem={worldItem} />
+                    <WorldItemCard
+                      key={worldItem.id}
+                      worldItem={worldItem}
+                      onSelect={onSelectItem}
+                    />
                   ))}
                 </div>
               </ScrollArea>
