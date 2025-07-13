@@ -23,10 +23,17 @@ import { mockVolumes } from "@/lib/mock/volumes-mock-data";
 interface ChapterListProps {
   workId: string;
   chapters: Chapter[];
+  onDeleteChapter: (chapterId: string) => void;
+  onUpdateStatus: (chapterId: string, status: "draft" | "published") => void;
 }
 
 // 章节列表组件
-export function ChapterList({ workId, chapters }: ChapterListProps) {
+export function ChapterList({
+  workId,
+  chapters,
+  onDeleteChapter,
+  onUpdateStatus,
+}: ChapterListProps) {
   // 按分卷ID对章节进行分组
   const chaptersByVolume = chapters.reduce<Record<string, Chapter[]>>(
     (acc, chapter) => {
@@ -130,8 +137,27 @@ export function ChapterList({ workId, chapters }: ChapterListProps) {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>发布章节</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
+                            {chapter.status === "draft" ? (
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  onUpdateStatus(chapter.id, "published")
+                                }
+                              >
+                                发布章节
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  onUpdateStatus(chapter.id, "draft")
+                                }
+                              >
+                                设为草稿
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => onDeleteChapter(chapter.id)}
+                            >
                               删除章节
                             </DropdownMenuItem>
                           </DropdownMenuContent>

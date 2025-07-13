@@ -1,24 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChapterList } from "./components/ChapterList";
 import { WorkSelector } from "./components/WorkSelector";
-import { mockWorks } from "@/lib/mock/works-mock-data";
-import { mockChapters } from "@/lib/mock/chapters-mock-data";
+import { useWorks } from "@/hooks/useWorks";
+import { useChapters } from "@/hooks/useChapters";
 import { Work } from "@/types/work";
-import { ChapterDraft } from "@/types/outline";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // 章节管理页面组件
 export default function ChaptersPage() {
-  // 选中的作品状态
-  const [selectedWork, setSelectedWork] = useState<Work | null>(
-    mockWorks[0] || null
-  );
+  const { works, isLoading: isLoadingWorks } = useWorks();
+  const [selectedWork, setSelectedWork] = useState<Work | null>(null);
 
-  // 当前作品的章节
-  const currentChapters: ChapterDraft[] = selectedWork
-    ? mockChapters.filter((chapter) => chapter.workId === selectedWork.id)
-    : [];
+  // 当作品数据加载后，设置默认选中的作品
+  useEffect(() => {
+    if (works.length > 0 && !selectedWork) {
+      setSelectedWork(works[0]);
+    }
+  }, [works, selectedWork]);
+
+  const {
+    chapters,
+    isLoading: isLoadingChapters,
+    deleteChapter,
+    updateChapterStatus,
+  } = useChapters(selectedWork?.id);
+
+  const handleDeleteChapter = (chapterId: string) => {
+    if (window.confirm("确定要删除这个章节吗？此操作不可撤销。")) {
+      deleteChapter(chapterId);
+    }
+  };
+
+  const handleUpdateStatus = (
+    chapterId: string,
+    status: "draft" | "published"
+  ) => {
+    const action = status === "published" ? "发布" : "设为草稿";
+    if (window.confirm(`确定要${action}这个章节吗？`)) {
+      updateChapterStatus(chapterId, status);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -30,16 +53,27 @@ export default function ChaptersPage() {
             管理您的作品章节，创建新章节或编辑现有章节。
           </p>
         </div>
-        <WorkSelector
-          works={mockWorks}
-          selectedWork={selectedWork}
-          onSelectWork={setSelectedWork}
-        />
+        {isLoadingWorks ? (
+          <Skeleton className="h-10 w-[200px]" />
+        ) : (
+          <WorkSelector
+            works={works}
+            selectedWork={selectedWork}
+            onSelectWork={setSelectedWork}
+          />
+        )}
       </div>
 
       {/* 章节列表 */}
-      {selectedWork ? (
-        <ChapterList workId={selectedWork.id} chapters={currentChapters} />
+      {isLoadingChapters ? (
+        <Skeleton className="h-[400px] w-full" />
+      ) : selectedWork ? (
+        <ChapterList
+          workId={selectedWork.id}
+          chapters={chapters}
+          onDeleteChapter={handleDeleteChapter}
+          onUpdateStatus={handleUpdateStatus}
+        />
       ) : (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
           <h2 className="text-2xl font-semibold">请选择一个作品</h2>

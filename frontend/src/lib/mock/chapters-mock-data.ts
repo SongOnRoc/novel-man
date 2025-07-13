@@ -151,3 +151,93 @@ export const mockDrafts: Draft[] = [
     updatedAt: "2023-09-15",
   },
 ];
+
+// 模拟删除章节
+export const mockDeleteChapter = (chapterId: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const index = mockChapters.findIndex((chapter) => chapter.id === chapterId);
+      if (index !== -1) {
+        mockChapters.splice(index, 1);
+        console.log(`Chapter with id ${chapterId} deleted.`);
+        resolve();
+      } else {
+        console.error(`Chapter with id ${chapterId} not found.`);
+        reject(new Error("Chapter not found"));
+      }
+    }, 500);
+  });
+};
+
+// 模拟更新章节状态
+export const mockUpdateChapterStatus = (
+  chapterId: string,
+  status: "draft" | "published"
+): Promise<Chapter> => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const chapter = mockChapters.find((c) => c.id === chapterId);
+      if (chapter) {
+        chapter.status = status;
+        chapter.updatedAt = new Date().toISOString().split("T")[0];
+        console.log(
+          `Chapter with id ${chapterId} status updated to ${status}.`
+        );
+        resolve(chapter);
+      } else {
+        console.error(`Chapter with id ${chapterId} not found.`);
+        reject(new Error("Chapter not found"));
+      }
+    }, 500);
+  });
+};
+
+// 模拟删除草稿
+export const mockDeleteDraft = (draftId: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const index = mockDrafts.findIndex((draft) => draft.id === draftId);
+      if (index !== -1) {
+        mockDrafts.splice(index, 1);
+        console.log(`Draft with id ${draftId} deleted.`);
+        resolve();
+      } else {
+        console.error(`Draft with id ${draftId} not found.`);
+        reject(new Error("Draft not found"));
+      }
+    }, 500);
+  });
+};
+
+// 模拟将草稿转换为章节
+export const mockConvertDraftToChapter = (draftId: string): Promise<Chapter> => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const draftIndex = mockDrafts.findIndex((d) => d.id === draftId);
+      const draft = mockDrafts[draftIndex];
+
+      if (draft && draft.workId) {
+        mockDrafts.splice(draftIndex, 1);
+        const newChapter: Chapter = {
+          id: `ch-${Date.now()}`, // 生成一个唯一ID
+          workId: draft.workId,
+          volumeId: "v1", // 假设默认添加到第一个分卷
+          title: draft.title,
+          content: draft.content,
+          status: "published",
+          order: mockChapters.filter(c => c.workId === draft.workId).length + 1,
+          wordCount: draft.wordCount,
+          createdAt: new Date().toISOString().split("T")[0],
+          updatedAt: new Date().toISOString().split("T")[0],
+          outline: draft.outline,
+        };
+        mockChapters.push(newChapter);
+        console.log(`Draft with id ${draftId} converted to chapter.`);
+        resolve(newChapter);
+      } else {
+        console.error(`Draft with id ${draftId} not found or has no workId.`);
+        reject(new Error("Draft not found or cannot be converted"));
+      }
+    }, 500);
+  });
+};

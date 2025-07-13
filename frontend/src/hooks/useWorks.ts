@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Work } from "@/types/work";
-import { mockWorks } from "@/lib/mock/works-mock-data";
+import { mockWorks, mockDeleteWork } from "@/lib/mock/works-mock-data";
 
 /**
  * 用于管理作品数据的自定义 Hook
@@ -15,6 +15,20 @@ export const useWorks = () => {
     // 在当前阶段，我们直接使用mock数据
     setWorks(mockWorks);
     setIsLoading(false);
+  }, []);
+
+  /**
+   * 删除作品
+   * @param workId 作品ID
+   */
+  const deleteWork = useCallback(async (workId: string) => {
+    try {
+      await mockDeleteWork(workId);
+      setWorks((prevWorks) => prevWorks.filter((work) => work.id !== workId));
+    } catch (error) {
+      console.error("Failed to delete work:", error);
+      // 在这里可以添加一些错误处理逻辑，例如显示一个通知
+    }
   }, []);
 
   /**
@@ -42,5 +56,5 @@ export const useWorks = () => {
     [works]
   );
 
-  return { works, isLoading, getWorkById, getWorkNameById };
+  return { works, isLoading, deleteWork, getWorkById, getWorkNameById };
 };
