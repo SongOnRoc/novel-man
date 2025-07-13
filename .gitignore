@@ -35,4 +35,5 @@ go.work.sum
 cdk
 main
 
-memory_bank/*
+memory_bank
+novel-editor

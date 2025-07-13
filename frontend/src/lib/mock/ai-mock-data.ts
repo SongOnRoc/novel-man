@@ -1,4 +1,4 @@
-import { AIPromptType } from "@/types/ai";
+import { AIGenerateParams, AIPromptType } from "@/types/ai";
 
 // 示例AI回复，实际应用中应通过API调用获取
 export const mockAIResponses: Record<AIPromptType, string> = {
@@ -21,16 +21,34 @@ export const mockAIResponses: Record<AIPromptType, string> = {
 };
 
 // 生成AI响应的模拟函数
-export async function mockGenerateAIResponse(params: {
-  promptType: AIPromptType;
-  prompt: string;
-  selectedText?: string;
-}): Promise<string> {
+export async function mockGenerateAIResponse(
+  params: AIGenerateParams
+): Promise<string> {
   // 模拟网络延迟
   await new Promise((resolve) => setTimeout(resolve, 1500));
 
   // 根据提示类型返回不同的模拟响应
   const baseResponse = mockAIResponses[params.promptType];
+
+  let finalResponse = baseResponse;
+
+  // 根据写作风格调整回复
+  if (params.writingStyle) {
+    switch (params.writingStyle) {
+      case "humorous":
+        finalResponse = `嘿，听好了，这是个笑话版的回复：${baseResponse}`;
+        break;
+      case "formal":
+        finalResponse = `根据您的请求，我们正式地提供以下答复：${baseResponse}`;
+        break;
+      case "descriptive":
+        finalResponse = `请想象这个场景，细节如下：${baseResponse}`;
+        break;
+      default:
+        // 默认风格不加修饰
+        break;
+    }
+  }
 
   // 如果有选中文本，则生成更具针对性的回复
   if (
@@ -40,8 +58,8 @@ export async function mockGenerateAIResponse(params: {
     const selectedPreview =
       params.selectedText.slice(0, 20) +
       (params.selectedText.length > 20 ? "..." : "");
-    return `基于您选择的文本「${selectedPreview}」，${baseResponse}`;
+    return `基于您选择的文本「${selectedPreview}」，${finalResponse}`;
   }
 
-  return baseResponse;
+  return finalResponse;
 }

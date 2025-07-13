@@ -1,5 +1,5 @@
 // AI辅助类型定义
-export type AIPromptType = 
+export type AIPromptType =
   | "expand" // 扩写
   | "summarize" // 缩写/总结
   | "rewrite" // 改写
@@ -27,7 +27,25 @@ export interface AIGenerateParams {
   prompt: string;
   selectedText?: string; // 编辑器中选中的文本
   context?: string; // 上下文信息，如章节标题、作品信息等
+  writingStyle?: string;
 }
+
+// 写作风格
+export type AIWritingStyle =
+  | "formal"
+  | "humorous"
+  | "descriptive"
+  | "concise"
+  | "academic";
+
+// 写作风格选项
+export const writingStyleOptions: { value: AIWritingStyle; label: string }[] = [
+  { value: "formal", label: "正式" },
+  { value: "humorous", label: "幽默" },
+  { value: "descriptive", label: "描述性" },
+  { value: "concise", label: "简洁" },
+  { value: "academic", label: "学术" },
+];
 
 // AI响应结果
 export interface AIResponse {
