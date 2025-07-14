@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Work } from "@/types/work";
 import { mockWorks, mockDeleteWork } from "@/lib/mock/works-mock-data";
+import { mockChapters } from "@/lib/mock/chapters-mock-data";
 
 /**
  * 用于管理作品数据的自定义 Hook
@@ -12,8 +13,37 @@ export const useWorks = () => {
   useEffect(() => {
     // 模拟从API加载作品列表
     setIsLoading(true);
-    // 在当前阶段，我们直接使用mock数据
-    setWorks(mockWorks);
+    // 在当前阶段，我们直接使用mock数据，并动态计算最新章节
+    const worksWithStats = mockWorks.map((work) => {
+      const chaptersForWork = mockChapters.filter((c) => c.workId === work.id);
+      const chapterCount = chaptersForWork.length;
+      const wordCount = chaptersForWork.reduce(
+        (sum, chapter) => sum + chapter.wordCount,
+        0
+      );
+
+      const sortedChapters = [...chaptersForWork].sort(
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      );
+
+      const latestChapter = sortedChapters.length > 0 ? sortedChapters[0] : null;
+
+      return {
+        ...work,
+        chapterCount,
+        wordCount,
+        latestChapterId: latestChapter?.id,
+        lastUpdatedChapter: latestChapter
+          ? {
+              title: latestChapter.title,
+              updatedAt: latestChapter.updatedAt,
+            }
+          : undefined,
+      };
+    });
+
+    setWorks(worksWithStats);
     setIsLoading(false);
   }, []);
 
@@ -51,7 +81,7 @@ export const useWorks = () => {
   const getWorkNameById = useCallback(
     (workId: string): string => {
       const work = works.find((w) => w.id === workId);
-      return work ? work.name : "";
+      return work ? work.title : "";
     },
     [works]
   );

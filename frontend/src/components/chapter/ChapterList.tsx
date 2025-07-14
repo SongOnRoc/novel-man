@@ -125,6 +125,12 @@ export function ChapterList({
                       </div>
                       <div className="flex items-center gap-2">
                         <Button variant="ghost" size="icon" asChild>
+                          <Link href={`/chapters/${chapter.id}/preview`}>
+                            <Eye className="h-4 w-4" />
+                            <span className="sr-only">预览</span>
+                          </Link>
+                        </Button>
+                        <Button variant="ghost" size="icon" asChild>
                           <Link href={`/chapters/${chapter.id}/edit`}>
                             <Edit className="h-4 w-4" />
                             <span className="sr-only">编辑</span>

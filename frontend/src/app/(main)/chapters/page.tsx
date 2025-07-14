@@ -1,31 +1,40 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ChapterList } from "./components/ChapterList";
-import { WorkSelector } from "./components/WorkSelector";
+import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ChapterList } from "@/components/chapter/ChapterList";
+import { WorkSelector } from "@/components/chapter/WorkSelector";
 import { useWorks } from "@/hooks/useWorks";
 import { useChapters } from "@/hooks/useChapters";
-import { Work } from "@/types/work";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Work } from "@/types/work";
 
-// 章节管理页面组件
 export default function ChaptersPage() {
-  const { works, isLoading: isLoadingWorks } = useWorks();
-  const [selectedWork, setSelectedWork] = useState<Work | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { works, isLoading: isLoadingWorks, getWorkById } = useWorks();
 
-  // 当作品数据加载后，设置默认选中的作品
+  const workId = searchParams.get("workId") || undefined;
+  const selectedWork = workId ? getWorkById(workId) : null;
+
   useEffect(() => {
-    if (works.length > 0 && !selectedWork) {
-      setSelectedWork(works[0]);
+    if (!isLoadingWorks && works.length > 0 && !workId) {
+      router.replace(`/chapters?workId=${works[0].id}`);
     }
-  }, [works, selectedWork]);
+  }, [works, isLoadingWorks, workId, router]);
 
   const {
     chapters,
     isLoading: isLoadingChapters,
     deleteChapter,
     updateChapterStatus,
-  } = useChapters(selectedWork?.id);
+  } = useChapters(workId);
+
+  const handleSelectWork = (work: Work | null) => {
+    if (work) {
+      router.push(`/chapters?workId=${work.id}`);
+    }
+  };
 
   const handleDeleteChapter = (chapterId: string) => {
     if (window.confirm("确定要删除这个章节吗？此操作不可撤销。")) {
@@ -45,7 +54,6 @@ export default function ChaptersPage() {
 
   return (
     <div className="space-y-6">
-      {/* 页面标题和作品选择器 */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">章节管理</h1>
@@ -58,18 +66,17 @@ export default function ChaptersPage() {
         ) : (
           <WorkSelector
             works={works}
-            selectedWork={selectedWork}
-            onSelectWork={setSelectedWork}
+            selectedWork={selectedWork || null}
+            onSelectWork={handleSelectWork}
           />
         )}
       </div>
 
-      {/* 章节列表 */}
-      {isLoadingChapters ? (
+      {isLoadingChapters || isLoadingWorks ? (
         <Skeleton className="h-[400px] w-full" />
-      ) : selectedWork ? (
+      ) : workId ? (
         <ChapterList
-          workId={selectedWork.id}
+          workId={workId}
           chapters={chapters}
           onDeleteChapter={handleDeleteChapter}
           onUpdateStatus={handleUpdateStatus}

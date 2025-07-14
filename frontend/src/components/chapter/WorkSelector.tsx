@@ -29,7 +29,7 @@ export function WorkSelector({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className="w-full md:w-auto justify-between">
-          {selectedWork ? selectedWork.name : "选择作品"}
+          {selectedWork ? selectedWork.title : "选择作品"}
           <ChevronDown className="ml-2 h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -40,7 +40,7 @@ export function WorkSelector({
             onClick={() => onSelectWork(work)}
             className="cursor-pointer"
           >
-            {work.name}
+            {work.title}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

@@ -11,9 +11,16 @@
  */
 export interface Work {
   id: string;
-  name: string;
+  title: string;
   description: string;
   coverImage?: string; // 可选的封面图片URL
+  chapterCount?: number;
+  wordCount?: number;
+  latestChapterId?: string; // 可选的最新章节ID
+  lastUpdatedChapter?: {
+    title: string;
+    updatedAt: string;
+  };
   createdAt: string;
   updatedAt: string;
 }

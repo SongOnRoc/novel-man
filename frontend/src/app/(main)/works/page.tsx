@@ -5,13 +5,18 @@ import { NewWorkButton } from "./components/NewWorkButton";
 import { useWorks } from "@/hooks/useWorks";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import { useState } from "react";
+
 // 作品列表页面组件
 export default function WorksPage() {
   const { works, isLoading, deleteWork } = useWorks();
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleDeleteWork = (workId: string) => {
+  const handleDeleteWork = async (workId: string) => {
     if (window.confirm("确定要删除这个作品吗？此操作不可撤销。")) {
-      deleteWork(workId);
+      setIsDeleting(true);
+      await deleteWork(workId);
+      setIsDeleting(false);
     }
   };
 
@@ -43,6 +48,7 @@ export default function WorksPage() {
                 key={work.id}
                 work={work}
                 onDelete={() => handleDeleteWork(work.id)}
+                isDeleting={isDeleting}
               />
             ))}
           </div>
