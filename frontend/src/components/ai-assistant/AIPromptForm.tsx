@@ -5,6 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import {
   Sparkles,
   PenSquare,
   Scaling,
@@ -12,6 +21,7 @@ import {
   BookText,
   Send,
   Icon,
+  Edit,
 } from "lucide-react";
 import { AIPromptType, AIGenerateParams } from "@/types/ai";
 import { cn } from "@/lib/utils";
@@ -21,6 +31,10 @@ interface AIPromptFormProps {
   isLoading: boolean;
   selectedText?: string;
   compact?: boolean;
+  style: string;
+  onStyleChange: (style: string) => void;
+  isPersonalized: boolean;
+  onPersonalizedChange: (value: boolean) => void;
 }
 
 import type { LucideIcon } from "lucide-react";
@@ -38,6 +52,14 @@ const quickActions: QuickAction[] = [
   { type: "summarize", label: "缩写", icon: Scaling, requiresSelection: true },
   { type: "correct", label: "纠错", icon: Check, requiresSelection: true },
   { type: "continue", label: "续写", icon: BookText, requiresSelection: false },
+  { type: "custom", label: "自定义", icon: Edit, requiresSelection: false },
+];
+
+const styleOptions = [
+  { value: "default", label: "默认风格" },
+  { value: "gufeng", label: "古风" },
+  { value: "xiandai", label: "现代" },
+  { value: "kehuan", label: "科幻" },
 ];
 
 export function AIPromptForm({
@@ -45,6 +67,10 @@ export function AIPromptForm({
   isLoading,
   selectedText,
   compact = false,
+  style,
+  onStyleChange,
+  isPersonalized,
+  onPersonalizedChange,
 }: AIPromptFormProps) {
   const [promptType, setPromptType] = useState<AIPromptType>("custom");
   const [prompt, setPrompt] = useState<string>("");
@@ -99,22 +125,24 @@ export function AIPromptForm({
       <CardContent className={cn("pt-6", compact && "p-0")}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
-            {quickActions.map(({ type, label, icon: Icon, requiresSelection }) => (
-              <Button
-                key={type}
-                variant={promptType === type ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleQuickAction(type)}
-                disabled={isLoading || (requiresSelection && !selectedText)}
-                className="flex flex-col h-16"
-              >
-                <Icon className="h-5 w-5 mb-1" />
-                <span>{label}</span>
-              </Button>
-            ))}
+            {quickActions.map(
+              ({ type, label, icon: Icon, requiresSelection }) => (
+                <Button
+                  key={type}
+                  variant={promptType === type ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleQuickAction(type)}
+                  disabled={isLoading || (requiresSelection && !selectedText)}
+                  className="flex flex-col h-16"
+                >
+                  <Icon className="h-5 w-5 mb-1" />
+                  <span>{label}</span>
+                </Button>
+              )
+            )}
           </div>
 
-          <div className="relative">
+          <div className="space-y-2">
             <Textarea
               placeholder={getPlaceholder}
               value={prompt}
@@ -122,18 +150,49 @@ export function AIPromptForm({
                 setPrompt(e.target.value);
                 setPromptType("custom");
               }}
-              rows={compact ? 4 : 6}
+              rows={compact ? 1 : 2}
               disabled={isLoading}
-              className="resize-none pr-12"
+              className="resize-none"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(null);
+                }
+              }}
             />
-            <Button
-              type="submit"
-              size="icon"
-              className="absolute bottom-2 right-2 h-8 w-8"
-              disabled={isLoading || (!prompt.trim() && !selectedText)}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <Select value={style} onValueChange={onStyleChange} disabled={isLoading}>
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue placeholder="选择风格" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {styleOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="personalized-switch"
+                    checked={isPersonalized}
+                    onCheckedChange={onPersonalizedChange}
+                    disabled={isLoading}
+                  />
+                  <Label htmlFor="personalized-switch">个性化建议</Label>
+                </div>
+              </div>
+              <Button
+                type="submit"
+                size="icon"
+                className="h-9 w-9 flex-shrink-0"
+                disabled={isLoading || (!prompt.trim() && !selectedText)}
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </form>
       </CardContent>

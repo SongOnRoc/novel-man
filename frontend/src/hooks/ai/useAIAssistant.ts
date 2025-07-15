@@ -8,6 +8,8 @@ export function useAIAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+  const [style, setStyle] = useState<string>("default");
+  const [isPersonalized, setIsPersonalized] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState<AIGenerateParams | null>(
     null
   );
@@ -17,10 +19,21 @@ export function useAIAssistant() {
     async (params: AIGenerateParams) => {
       setIsLoading(true);
       setError(null);
-      setCurrentPrompt(params);
+      
+      let finalPrompt =
+        style === "default"
+          ? params.prompt
+          : `请用${style}风格，${params.prompt}`;
+
+      if (isPersonalized) {
+        finalPrompt = `请模仿我的写作风格，并... ${finalPrompt}`;
+      }
+
+      const newPrompt = { ...params, prompt: finalPrompt };
+      setCurrentPrompt(newPrompt);
 
       try {
-        const result = await mockGenerateAIResponse(params);
+        const result = await mockGenerateAIResponse(newPrompt);
         setResponse(result);
         if (typeof result === 'string' && result) {
           setHistory((prev) => [result, ...prev].slice(0, MAX_HISTORY_LENGTH));
@@ -36,7 +49,7 @@ export function useAIAssistant() {
         setIsLoading(false);
       }
     },
-    []
+    [style, isPersonalized]
   );
 
   const regenerateResponse = useCallback(async () => {
@@ -59,6 +72,10 @@ export function useAIAssistant() {
     response,
     error,
     history,
+    style,
+    setStyle,
+    isPersonalized,
+    setIsPersonalized,
     generateResponse,
     regenerateResponse,
     clearResponse,

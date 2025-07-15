@@ -17,6 +17,7 @@ import {
   Undo,
   Redo,
   Save,
+  Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
@@ -32,6 +33,8 @@ import {
 import { useState, useEffect } from "react";
 import { FindReplace } from "./FindReplace";
 import { SettingsLookup } from "@/components/common/lookup/SettingsLookup";
+import { Progress } from "@/components/ui/progress";
+import { ValueSettingPopover } from "@/components/common/ValueSettingPopover";
 
 interface EditorToolbarProps {
   editor: Editor | null;
@@ -41,6 +44,8 @@ interface EditorToolbarProps {
   contentId?: string;
   workId?: string;
   editorContainerId: string;
+  targetCount?: number;
+  onTargetCountChange?: (newTarget: number) => void;
 }
 
 export function EditorToolbar({
@@ -51,6 +56,8 @@ export function EditorToolbar({
   contentId = "temp",
   workId,
   editorContainerId,
+  targetCount = 0,
+  onTargetCountChange,
 }: EditorToolbarProps) {
   // 编辑器设置
   const [settings, setSettings] = useState<EditorSettingsType>(() => {
@@ -315,8 +322,37 @@ export function EditorToolbar({
 
         {/* 字数统计 */}
         {settings.showWordCount && (
-          <div className="text-xs text-muted-foreground px-2">
-            {wordCount} 字
+          <div className="flex items-center gap-2 text-xs text-muted-foreground px-2">
+            <div className="min-w-[100px]">
+              {targetCount > 0 ? (
+                <div className="flex flex-col items-center gap-1">
+                  <span>
+                    {wordCount} / {targetCount} 字
+                  </span>
+                  <Progress
+                    value={(wordCount / targetCount) * 100}
+                    className="h-1"
+                  />
+                </div>
+              ) : (
+                <span>{wordCount} 字</span>
+              )}
+            </div>
+            {onTargetCountChange && (
+              <ValueSettingPopover
+                currentValue={targetCount}
+                onValueChange={onTargetCountChange}
+                label="设置目标字数"
+                placeholder="例如: 2000"
+                unit="字"
+                trigger={
+                  <Button variant="ghost" size="icon" className="h-6 w-6">
+                    <Target className="h-4 w-4" />
+                    <span className="sr-only">设置写作目标</span>
+                  </Button>
+                }
+              />
+            )}
           </div>
         )}
       </div>

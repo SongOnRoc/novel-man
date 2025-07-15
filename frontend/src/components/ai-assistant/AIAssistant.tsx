@@ -35,6 +35,10 @@ export function AIAssistant({
     isLoading,
     response,
     history,
+    style,
+    setStyle,
+    isPersonalized,
+    setIsPersonalized,
     generateResponse,
     regenerateResponse,
     clearResponse,
@@ -74,12 +78,18 @@ export function AIAssistant({
           </>
         ) : (
           <>
-            <h2 className="text-lg font-semibold mb-4">您的需求</h2>
+            <h2 className="text-lg font-semibold mb-4 justify-center">
+              ai工具箱
+            </h2>
             <AIPromptForm
               onSubmit={handleSubmit}
               isLoading={isLoading}
               selectedText={selectedText}
               compact={compact}
+              style={style}
+              onStyleChange={setStyle}
+              isPersonalized={isPersonalized}
+              onPersonalizedChange={setIsPersonalized}
             />
           </>
         )}
@@ -91,12 +101,16 @@ export function AIAssistant({
   return (
     <div className={cn("grid lg:grid-cols-2 gap-8", className)}>
       <div>
-        <h2 className="text-xl font-semibold mb-4">您的需求</h2>
+        <h2 className="text-xl font-semibold mb-4">ai工具箱</h2>
         <AIPromptForm
           onSubmit={handleSubmit}
           isLoading={isLoading}
           selectedText={selectedText}
           compact={compact}
+          style={style}
+          onStyleChange={setStyle}
+          isPersonalized={isPersonalized}
+          onPersonalizedChange={setIsPersonalized}
         />
       </div>
       <div>
@@ -139,17 +153,12 @@ const HistoryTab = ({ history, onSelect, compact }: HistoryTabProps) => {
 
   return (
     <div className="mt-8">
-      <h3
-        className={cn("text-lg font-semibold mb-3", compact && "text-base")}
-      >
+      <h3 className={cn("text-lg font-semibold mb-3", compact && "text-base")}>
         最近生成
       </h3>
       <div className="space-y-2">
         {history.filter(Boolean).map((item, index) => (
-          <Card
-            key={index}
-            className="p-3 hover:bg-muted/50 transition-colors"
-          >
+          <Card key={index} className="p-3 hover:bg-muted/50 transition-colors">
             <div className="flex justify-between items-start">
               <p
                 className="text-sm text-muted-foreground cursor-pointer flex-grow"

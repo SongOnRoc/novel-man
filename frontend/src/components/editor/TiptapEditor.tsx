@@ -29,6 +29,8 @@ interface TiptapEditorProps {
   contentId?: string; // 内容ID，用于书签等
   workId?: string; // 作品ID，用于设定速查
   containerId?: string; // 容器ID，用于专注模式
+  targetCount?: number;
+  onTargetCountChange?: (newTarget: number) => void;
 }
 
 // 计算字数的函数
@@ -110,6 +112,8 @@ export function TiptapEditor({
   contentId = "temp",
   workId,
   containerId = "editor-container",
+  targetCount,
+  onTargetCountChange,
 }: TiptapEditorProps) {
   // 标题状态
   const [title, setTitle] = useState(initialContent.title);
@@ -275,6 +279,8 @@ export function TiptapEditor({
         contentId={contentId}
         workId={workId}
         editorContainerId={containerId}
+        targetCount={targetCount}
+        onTargetCountChange={onTargetCountChange}
       />
 
       {/* 内容编辑区 */}

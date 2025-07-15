@@ -41,6 +41,9 @@ const editorFormSchema = z.object({
 
 const aiFormSchema = z.object({
   defaultWritingStyle: z.string(),
+  model: z.string().optional(),
+  apiKey: z.string().optional(),
+  apiEndpoint: z.string().optional(),
 });
 
 const writingStyleOptions = [
@@ -49,6 +52,11 @@ const writingStyleOptions = [
   { value: "casual", label: "休闲" },
   { value: "poetic", label: "诗意" },
 ];
+
+const modelOptions = [
+    { value: "GPT-4o", label: "GPT-4o" },
+    { value: "GPT-3.5-Turbo", label: "GPT-3.5-Turbo" },
+]
 
 export default function SettingsPage() {
   const { data: session } = useSession();
@@ -223,6 +231,56 @@ export default function SettingsPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={aiForm.control}
+                name="model"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>AI 模型</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="选择一个AI模型" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {modelOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={aiForm.control}
+                name="apiKey"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>API Key</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="输入你的API Key" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={aiForm.control}
+                name="apiEndpoint"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>API Endpoint</FormLabel>
+                    <FormControl>
+                      <Input placeholder="输入自定义接口地址" {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

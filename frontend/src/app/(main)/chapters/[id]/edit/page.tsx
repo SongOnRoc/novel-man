@@ -23,6 +23,8 @@ export default function ChapterEditPage() {
   const [chapterData, setChapterData] = useState<Chapter | null>(null);
   // 加载状态
   const [isLoading, setIsLoading] = useState(true);
+  // 写作目标状态
+  const [targetCount, setTargetCount] = useState(2000);
 
   // 加载章节数据
   useEffect(() => {
@@ -108,6 +110,8 @@ export default function ChapterEditPage() {
           contentId={chapterData.id}
           workId={chapterData.workId}
           containerId={`editor-${chapterData.id}`} // 使用唯一的容器ID
+          targetCount={targetCount}
+          onTargetCountChange={setTargetCount}
         />
       )}
 

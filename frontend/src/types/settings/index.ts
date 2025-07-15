@@ -6,6 +6,9 @@ export interface EditorSettings {
 
 export interface AISettings {
   defaultWritingStyle: string;
+  model?: string;
+  apiKey?: string;
+  apiEndpoint?: string;
 }
 
 export interface UserSettings {

@@ -11,6 +11,9 @@ const defaultSettings: UserSettings = {
   },
   ai: {
     defaultWritingStyle: 'neutral',
+    model: 'GPT-4o',
+    apiKey: '',
+    apiEndpoint: '',
   },
 };
 

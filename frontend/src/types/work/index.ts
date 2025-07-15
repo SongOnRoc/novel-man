@@ -12,6 +12,7 @@
 export interface Work {
   id: string;
   title: string;
+  genre: string; // 新增作品类型
   description: string;
   coverImage?: string; // 可选的封面图片URL
   chapterCount?: number;

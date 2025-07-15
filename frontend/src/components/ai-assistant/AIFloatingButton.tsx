@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AIAssistant } from "./AIAssistant";
 import { Sparkles } from "lucide-react";
@@ -28,7 +34,7 @@ export function AIFloatingButton({
       <DrawerTrigger asChild>
         <Button
           variant="default"
-          className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-lg z-50"
+          className="fixed bottom-8 right-8 h-10 w-10 rounded-full shadow-lg z-50"
         >
           <Sparkles className="h-7 w-7" />
         </Button>
