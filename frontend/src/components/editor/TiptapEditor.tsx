@@ -358,6 +358,16 @@ export function TiptapEditor({
         #${containerId}:fullscreen .hide-in-focus-mode {
           display: none;
         }
+       .ProseMirror h1 {
+         font-size: 2.25rem !important; /* text-4xl */
+         font-weight: 700 !important;
+         margin-bottom: 2rem !important;
+       }
+       .ProseMirror p {
+         text-indent: 2em;
+         margin-top: 1rem;
+         margin-bottom: 1rem;
+       }
       `}</style>
     </div>
   );

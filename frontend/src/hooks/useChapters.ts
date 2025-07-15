@@ -44,5 +44,26 @@ export const useChapters = (workId?: string) => {
     []
   );
 
-  return { chapters, isLoading, deleteChapter, updateChapterStatus };
+  const getChapterById = useCallback(
+    (chapterId: string) => {
+      return chapters.find((c) => c.id === chapterId);
+    },
+    [chapters]
+  );
+
+  const getChaptersByVolume = useCallback(
+    (volumeId: string) => {
+      return chapters.filter((c) => c.volumeId === volumeId);
+    },
+    [chapters]
+  );
+
+  return {
+    chapters,
+    isLoading,
+    deleteChapter,
+    updateChapterStatus,
+    getChapterById,
+    getChaptersByVolume,
+  };
 };

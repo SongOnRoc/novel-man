@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,7 +14,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { FileText, MoreVertical, Edit, Eye, ArrowUpDown } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { FileText, MoreVertical, Edit, Eye, ArrowUp, ArrowDown, Search } from "lucide-react";
 import Link from "next/link";
 
 import { Chapter } from "@/types/work";
@@ -34,18 +43,46 @@ export function ChapterList({
   onDeleteChapter,
   onUpdateStatus,
 }: ChapterListProps) {
-  // 按分卷ID对章节进行分组
-  const chaptersByVolume = chapters.reduce<Record<string, Chapter[]>>(
-    (acc, chapter) => {
-      const volumeId = chapter.volumeId || "unclassified";
-      if (!acc[volumeId]) {
-        acc[volumeId] = [];
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [selectedVolume, setSelectedVolume] = useState<string>("all");
+
+  const filteredAndSortedChapters = useMemo(() => {
+    let filtered = chapters;
+
+    if (selectedVolume !== "all") {
+      filtered = filtered.filter(
+        (chapter) => (chapter.volumeId || "unclassified") === selectedVolume
+      );
+    }
+
+    if (searchTerm) {
+      filtered = filtered.filter((chapter) =>
+        chapter.title.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    const sorted = [...filtered].sort((a, b) => {
+      if (sortOrder === "asc") {
+        return a.order - b.order;
+      } else {
+        return b.order - a.order;
       }
-      acc[volumeId].push(chapter);
-      return acc;
-    },
-    {}
-  );
+    });
+
+    return sorted;
+  }, [chapters, searchTerm, sortOrder, selectedVolume]);
+
+  const chaptersByVolume = filteredAndSortedChapters.reduce<
+    Record<string, Chapter[]>
+  >((acc, chapter) => {
+    const volumeId = chapter.volumeId || "unclassified";
+    if (!acc[volumeId]) {
+      acc[volumeId] = [];
+    }
+    acc[volumeId].push(chapter);
+    return acc;
+  }, {});
 
   const getVolumeTitle = (volumeId: string) => {
     if (volumeId === "unclassified") return "未分卷";
@@ -75,24 +112,60 @@ export function ChapterList({
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>章节列表</CardTitle>
-          <CardDescription>管理您的章节，可按分卷查看。</CardDescription>
+      <CardHeader>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle>章节列表</CardTitle>
+            <CardDescription>管理您的章节，可按分卷查看。</CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="搜索章节标题..."
+                className="w-full rounded-lg bg-background pl-8 sm:w-[200px]"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Select
+              value={selectedVolume}
+              onValueChange={setSelectedVolume}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="筛选分卷" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">所有分卷</SelectItem>
+                {mockVolumes.map((v) => (
+                  <SelectItem key={v.id} value={v.id}>
+                    {v.title}
+                  </SelectItem>
+                ))}
+                <SelectItem value="unclassified">未分卷</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+            >
+              {sortOrder === "asc" ? (
+                <ArrowUp className="h-4 w-4" />
+              ) : (
+                <ArrowDown className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </div>
-        <Button asChild>
-          <Link href={`/chapters/new?workId=${workId}`}>
-            <FileText className="mr-2 h-4 w-4" />
-            新建章节
-          </Link>
-        </Button>
       </CardHeader>
       <CardContent>
-        {chapters.length === 0 ? (
+        {filteredAndSortedChapters.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-            <h3 className="text-lg font-semibold">暂无章节</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              点击"新建章节"按钮开始创作。
+            <h3 className="text-lg font-semibold">未找到匹配的章节</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              请尝试调整搜索或筛选条件。
             </p>
           </div>
         ) : (
@@ -100,17 +173,17 @@ export function ChapterList({
             {Object.entries(chaptersByVolume).map(
               ([volumeId, volumeChapters]) => (
                 <div key={volumeId} className="space-y-4">
-                  <h3 className="text-lg font-semibold tracking-tight border-b pb-2">
+                  <h3 className="border-b pb-2 text-lg font-semibold tracking-tight">
                     {getVolumeTitle(volumeId)}
                   </h3>
-                  {volumeChapters.map((chapter) => (
+                  {volumeChapters.map((chapter, index) => (
                     <div
                       key={chapter.id}
                       className="flex items-center justify-between rounded-lg border p-3 shadow-sm"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-md border bg-background">
-                          <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex h-8 w-8 items-center justify-center rounded-md border bg-background text-muted-foreground">
+                          {chapter.order}
                         </div>
                         <div>
                           <div className="font-medium">{chapter.title}</div>
@@ -179,7 +252,7 @@ export function ChapterList({
       </CardContent>
       <CardFooter className="flex justify-between">
         <div className="text-sm text-muted-foreground">
-          共 {chapters.length} 章节
+          共 {filteredAndSortedChapters.length} / {chapters.length} 章节
         </div>
       </CardFooter>
     </Card>

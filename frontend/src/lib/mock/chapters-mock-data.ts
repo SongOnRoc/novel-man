@@ -241,3 +241,26 @@ export const mockConvertDraftToChapter = (draftId: string): Promise<Chapter> => 
     }, 500);
   });
 };
+
+// 模拟创建新章节
+export const mockCreateChapter = (
+  data: Omit<Chapter, "id" | "order" | "wordCount" | "createdAt" | "updatedAt" | "status">
+): Promise<Chapter> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const newChapter: Chapter = {
+        id: `ch-${Date.now()}`,
+        ...data,
+        order:
+          mockChapters.filter((c) => c.workId === data.workId).length + 1,
+        wordCount: data.content?.length || 0,
+        createdAt: new Date().toISOString().split("T")[0],
+        updatedAt: new Date().toISOString().split("T")[0],
+        status: "draft", // 新建的章节默认为草稿
+      };
+      mockChapters.push(newChapter);
+      console.log("New chapter created:", newChapter);
+      resolve(newChapter);
+    }, 500);
+  });
+};
