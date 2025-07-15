@@ -209,6 +209,28 @@ export const mockDeleteDraft = (draftId: string): Promise<void> => {
   });
 };
 
+// 模拟创建新草稿
+export const mockCreateDraft = (content: string): Promise<Draft> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const newDraft: Draft = {
+        id: `draft-${Date.now()}`,
+        workId: "note-1", // 默认为独立笔记
+        title: content.substring(0, 20) || "AI 生成内容",
+        content: content,
+        outline: content.substring(0, 100),
+        status: "draft",
+        wordCount: content.length,
+        createdAt: new Date().toISOString().split("T")[0],
+        updatedAt: new Date().toISOString().split("T")[0],
+      };
+      mockDrafts.unshift(newDraft); // 将新草稿添加到数组开头
+      console.log("New draft created:", newDraft);
+      resolve(newDraft);
+    }, 500);
+  });
+};
+
 // 模拟将草稿转换为章节
 export const mockConvertDraftToChapter = (draftId: string): Promise<Chapter> => {
   return new Promise((resolve, reject) => {

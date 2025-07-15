@@ -4,11 +4,13 @@ import {
   mockDrafts,
   mockDeleteDraft,
   mockConvertDraftToChapter,
+  mockCreateDraft,
 } from "@/lib/mock/chapters-mock-data";
 
 export const useDrafts = () => {
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
@@ -35,5 +37,26 @@ export const useDrafts = () => {
     }
   }, []);
 
-  return { drafts, isLoading, deleteDraft, convertDraftToChapter };
+  const createDraft = useCallback(async (content: string) => {
+    setIsSaving(true);
+    try {
+      const newDraft = await mockCreateDraft(content);
+      setDrafts((prev) => [newDraft, ...prev]);
+      return newDraft;
+    } catch (error) {
+      console.error("Failed to create draft:", error);
+      throw error;
+    } finally {
+      setIsSaving(false);
+    }
+  }, []);
+
+  return {
+    drafts,
+    isLoading,
+    isSaving,
+    deleteDraft,
+    convertDraftToChapter,
+    createDraft,
+  };
 };

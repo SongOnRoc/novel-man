@@ -286,9 +286,8 @@ export function TiptapEditor({
 
       {/* AI悬浮按钮 */}
       <AIFloatingButton
-        getSelectedText={getSelectedText}
-        applyTextToEditor={applyTextToEditor}
-        context={`标题：${title || "未命名"}`}
+        selectedText={getSelectedText()}
+        onApplyToEditor={applyTextToEditor}
       />
 
       {/* 编辑器样式 */}

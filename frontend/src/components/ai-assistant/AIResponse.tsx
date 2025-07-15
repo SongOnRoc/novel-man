@@ -1,141 +1,158 @@
 "use client";
 
 import { useState } from "react";
+import { useDrafts } from "@/hooks/useDrafts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Clipboard, Save, RefreshCw, ArrowUpFromLine } from "lucide-react";
+import {
+  Clipboard,
+  Save,
+  RefreshCw,
+  ArrowUpFromLine,
+  Trash2,
+  Replace,
+  Loader,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { LoadingIndicator } from "./AIAssistant";
 
-// 定义AIResponse组件的属性类型
 interface AIResponseProps {
   response: string;
   isLoading: boolean;
   onRegenerate?: () => void;
-  onApplyToEditor?: (text: string) => void; // 应用到编辑器的回调
-  compact?: boolean; // 是否使用紧凑布局
+  onApplyToEditor?: (text: string) => void;
+  onDiscard?: () => void;
+  hasSelection?: boolean;
+  compact?: boolean;
 }
 
-/**
- * AI响应组件
- * 展示AI生成的内容并提供互动功能
- */
 export function AIResponse({
   response,
   isLoading,
   onRegenerate,
   onApplyToEditor,
+  onDiscard,
+  hasSelection = false,
   compact = false,
 }: AIResponseProps) {
-  // 状态管理
   const [copied, setCopied] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const { createDraft, isSaving } = useDrafts();
 
-  // 复制文本到剪贴板
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(response);
       setCopied(true);
-      // 3秒后重置复制状态
       setTimeout(() => setCopied(false), 3000);
     } catch (err) {
       console.error("复制失败:", err);
     }
   };
 
-  // 保存到草稿
-  const saveToDraft = () => {
-    // 模拟保存到草稿的功能
-    // 实际应用中应该调用API保存到后端
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
-
-    // 这里只是模拟，实际实现需要与后端API交互
-    console.log("保存到草稿:", response);
-
-    // 显示成功消息（在实际应用中可以使用Toast通知）
-    alert("已保存到草稿箱");
+  const saveToDraft = async () => {
+    if (!response) return;
+    try {
+      await createDraft(response);
+      // In a real app, you'd use a toast notification
+      alert("已成功保存到草稿箱！");
+    } catch (error) {
+      console.error("保存草稿失败:", error);
+      alert("保存草稿失败，请稍后再试。");
+    }
   };
+
+  const ApplyIcon = hasSelection ? Replace : ArrowUpFromLine;
+  const applyText = hasSelection ? "替换" : "插入";
 
   return (
     <Card
-      className={`${isLoading ? "opacity-70" : ""} ${
+      className={cn(
+        "flex flex-col h-full",
+        isLoading && "opacity-70",
         compact ? "shadow-none border-0" : ""
-      }`}
+      )}
     >
-      <CardContent className={compact ? "p-0" : "pt-6"}>
+      <CardContent className={cn("flex-grow pt-6", compact && "p-0")}>
         {response ? (
-          <div className="prose max-w-none dark:prose-invert">
-            <Textarea
-              value={response}
-              readOnly
-              rows={compact ? 6 : 12}
-              className="resize-none font-serif text-base leading-relaxed"
-            />
-          </div>
+          <Textarea
+            value={response}
+            readOnly
+            className="w-full h-full resize-none font-serif text-base leading-relaxed"
+          />
         ) : (
           <div
-            className={`flex items-center justify-center text-muted-foreground ${
-              compact ? "h-[100px]" : "h-[200px]"
-            }`}
+            className={cn(
+              "flex items-center justify-center text-muted-foreground h-full",
+              compact ? "min-h-[150px]" : "min-h-[250px]"
+            )}
           >
-            {isLoading ? "AI正在生成内容..." : "生成的内容将显示在这里"}
+            {isLoading ? <LoadingIndicator /> : "生成的内容将显示在这里"}
           </div>
         )}
       </CardContent>
 
       {response && (
         <CardFooter
-          className={`flex justify-between ${compact ? "px-0 py-2" : ""}`}
+          className={cn(
+            "flex justify-between items-center pt-4",
+            compact && "px-0 py-2"
+          )}
         >
-          <div className="flex space-x-2">
+          <div className="flex items-center space-x-2">
+            {onApplyToEditor && (
+              <Button
+                onClick={() => onApplyToEditor(response)}
+                disabled={isLoading}
+                size={compact ? "sm" : "default"}
+              >
+                <ApplyIcon className="h-4 w-4 mr-2" />
+                {applyText}
+              </Button>
+            )}
             <Button
               variant="outline"
-              size={compact ? "sm" : "default"}
+              size={compact ? "sm" : "icon"}
+              onClick={saveToDraft}
+              disabled={isLoading || isSaving}
+            >
+              <Save className="h-4 w-4" />
+              <span className="sr-only">保存到草稿</span>
+            </Button>
+            <Button
+              variant="outline"
+              size={compact ? "sm" : "icon"}
               onClick={copyToClipboard}
               disabled={isLoading}
-              className={compact ? "h-8 text-xs" : ""}
             >
-              <Clipboard className="h-4 w-4 mr-2" />
-              {copied ? "已复制" : "复制"}
+              <Clipboard className="h-4 w-4" />
+              <span className="sr-only">{copied ? "已复制" : "复制"}</span>
             </Button>
+          </div>
 
-            <Button
-              variant="outline"
-              size={compact ? "sm" : "default"}
-              onClick={saveToDraft}
-              disabled={isLoading}
-              className={compact ? "h-8 text-xs" : ""}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {saved ? "已保存" : "保存到草稿"}
-            </Button>
-
-            {onApplyToEditor && (
+          <div className="flex items-center space-x-2">
+            {onDiscard && (
+              <Button
+                variant="ghost"
+                size={compact ? "sm" : "default"}
+                onClick={onDiscard}
+                disabled={isLoading}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                放弃
+              </Button>
+            )}
+            {onRegenerate && (
               <Button
                 variant="outline"
                 size={compact ? "sm" : "default"}
-                onClick={() => onApplyToEditor(response)}
+                onClick={onRegenerate}
                 disabled={isLoading}
-                className={compact ? "h-8 text-xs" : ""}
               >
-                <ArrowUpFromLine className="h-4 w-4 mr-2" />
-                应用到编辑器
+                <RefreshCw className="h-4 w-4 mr-2" />
+                重新生成
               </Button>
             )}
           </div>
-
-          {onRegenerate && (
-            <Button
-              variant="ghost"
-              size={compact ? "sm" : "default"}
-              onClick={onRegenerate}
-              disabled={isLoading}
-              className={compact ? "h-8 text-xs" : ""}
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              重新生成
-            </Button>
-          )}
         </CardFooter>
       )}
     </Card>

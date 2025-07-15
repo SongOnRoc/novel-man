@@ -1,25 +1,11 @@
 // AI辅助类型定义
 export type AIPromptType =
   | "expand" // 扩写
-  | "summarize" // 缩写/总结
   | "rewrite" // 改写
-  | "plot-idea" // 情节构思
-  | "character-design" // 角色设计
-  | "world-building" // 世界观构建
-  | "dialogue" // 对话生成
-  | "text-polish"; // 文本优化
-
-// 提示类型选项数组，用于下拉选择
-export const promptTypeOptions = [
-  { value: "expand", label: "扩写内容" },
-  { value: "summarize", label: "缩写/总结" },
-  { value: "rewrite", label: "改写内容" },
-  { value: "plot-idea", label: "情节构思" },
-  { value: "character-design", label: "角色设计" },
-  { value: "world-building", label: "世界观构建" },
-  { value: "dialogue", label: "对话生成" },
-  { value: "text-polish", label: "文本优化" },
-];
+  | "summarize" // 缩写
+  | "correct" // 纠错
+  | "continue" // 续写
+  | "custom"; // 自定义
 
 // AI生成请求参数
 export interface AIGenerateParams {
@@ -27,25 +13,7 @@ export interface AIGenerateParams {
   prompt: string;
   selectedText?: string; // 编辑器中选中的文本
   context?: string; // 上下文信息，如章节标题、作品信息等
-  writingStyle?: string;
 }
-
-// 写作风格
-export type AIWritingStyle =
-  | "formal"
-  | "humorous"
-  | "descriptive"
-  | "concise"
-  | "academic";
-
-// 写作风格选项
-export const writingStyleOptions: { value: AIWritingStyle; label: string }[] = [
-  { value: "formal", label: "正式" },
-  { value: "humorous", label: "幽默" },
-  { value: "descriptive", label: "描述性" },
-  { value: "concise", label: "简洁" },
-  { value: "academic", label: "学术" },
-];
 
 // AI响应结果
 export interface AIResponse {

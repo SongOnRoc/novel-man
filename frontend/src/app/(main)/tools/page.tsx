@@ -23,10 +23,9 @@ import { useCharacters } from "@/hooks/character/useCharacters";
 import { useWorldbuilding } from "@/hooks/worldbuilding/useWorldbuilding";
 import { useAIAssistant } from "@/hooks/ai/useAIAssistant";
 import { worldItemTypeOptions } from "@/types/worldbuilding";
-import { AIPromptType, promptTypeOptions } from "@/types/ai";
-import { Textarea } from "@/components/ui/textarea";
 import { useWorks } from "@/hooks/useWorks";
 import { Work } from "@/types/work";
+import { AIAssistant } from "@/components/ai-assistant/AIAssistant";
 
 export default function ToolsPage() {
   // 状态
@@ -37,16 +36,6 @@ export default function ToolsPage() {
   const [isLoadingCharacters, setIsLoadingCharacters] = useState(false);
   const [isLoadingWorldItems, setIsLoadingWorldItems] = useState(false);
   const [mounted, setMounted] = useState(false);
-
-  // AI助手状态
-  const [promptType, setPromptType] = useState<AIPromptType>("expand");
-  const [prompt, setPrompt] = useState("");
-  const {
-    isLoading: isAILoading,
-    response: aiResponse,
-    generateResponse,
-    clearResponse,
-  } = useAIAssistant();
 
   // Hooks
   const { works } = useWorks();
@@ -98,12 +87,6 @@ export default function ToolsPage() {
     }
   }, [selectedWorkId, getCharactersByWorkId, getWorldItemsByWorkId, works]);
 
-  // 处理AI生成
-  const handleGenerateAI = async () => {
-    if (!prompt) return;
-    await generateResponse(promptType, prompt);
-  };
-
   if (!mounted) {
     return null;
   }
@@ -129,7 +112,7 @@ export default function ToolsPage() {
             <SelectContent>
               {works.map((work) => (
                 <SelectItem key={work.id} value={work.id}>
-                  {work.name}
+                  {work.title}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -161,68 +144,7 @@ export default function ToolsPage() {
 
         {/* AI写作助手选项卡 */}
         <TabsContent value="ai" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>AI写作助手</CardTitle>
-              <CardDescription>
-                智能续写、情节构思、角色设计和文本优化
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="md:col-span-1">
-                  <Select
-                    value={promptType}
-                    onValueChange={(value) =>
-                      setPromptType(value as AIPromptType)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="选择提示类型" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {promptTypeOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="md:col-span-3">
-                  <Textarea
-                    placeholder="输入您的提示..."
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    rows={3}
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={clearResponse}
-                  disabled={isAILoading || !aiResponse}
-                >
-                  清除
-                </Button>
-                <Button
-                  onClick={handleGenerateAI}
-                  disabled={isAILoading || !prompt}
-                >
-                  {isAILoading ? "生成中..." : "生成内容"}
-                </Button>
-              </div>
-
-              {aiResponse && (
-                <div className="mt-4 p-4 border rounded-md bg-muted/30">
-                  <h3 className="font-medium mb-2">AI回复:</h3>
-                  <p className="whitespace-pre-line">{aiResponse}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            <AIAssistant />
         </TabsContent>
 
         {/* 角色管理选项卡 */}
@@ -243,7 +165,7 @@ export default function ToolsPage() {
                   <SelectContent>
                     {works.map((work) => (
                       <SelectItem key={work.id} value={work.id}>
-                        {work.name}
+                        {work.title}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -254,7 +176,7 @@ export default function ToolsPage() {
             <>
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold">
-                  {selectedWork?.name} - 角色列表
+                  {selectedWork?.title} - 角色列表
                 </h2>
                 <Button size="sm" asChild>
                   <Link href={`/tools/characters/new?workId=${selectedWorkId}`}>
@@ -334,7 +256,7 @@ export default function ToolsPage() {
                   <SelectContent>
                     {works.map((work) => (
                       <SelectItem key={work.id} value={work.id}>
-                        {work.name}
+                        {work.title}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -345,7 +267,7 @@ export default function ToolsPage() {
             <>
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold">
-                  {selectedWork?.name} - 世界观设定
+                  {selectedWork?.title} - 世界观设定
                 </h2>
                 <Button size="sm" asChild>
                   <Link

@@ -8,8 +8,8 @@ import { AIAssistant } from "@/components/ai-assistant/AIAssistant";
  */
 export default function AIAssistantPage() {
   return (
-    <div className="container max-w-5xl py-6 space-y-8">
-      <div>
+    <div className="container max-w-5xl py-6">
+      <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">AI写作助手</h1>
         <p className="text-muted-foreground">
           描述您的写作需求，AI将为您提供创意、角色设计、情节构思或文本优化建议。
