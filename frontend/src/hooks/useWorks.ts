@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Work } from "@/types/work";
-import { mockWorks, mockDeleteWork } from "@/lib/mock/works-mock-data";
+import { mockWorks, mockDeleteWork, mockUpdateWork } from "@/lib/mock/works-mock-data";
 import { mockChapters } from "@/lib/mock/chapters-mock-data";
 
 /**
@@ -62,6 +62,23 @@ export const useWorks = () => {
   }, []);
 
   /**
+   * 更新作品
+   * @param workId 作品ID
+   * @param updatedData 更新的数据
+   */
+  const updateWork = useCallback(async (workId: string, updatedData: Partial<Work>) => {
+    try {
+      const updatedWork = await mockUpdateWork(workId, updatedData);
+      setWorks((prevWorks) =>
+        prevWorks.map((work) => (work.id === workId ? updatedWork : work))
+      );
+    } catch (error) {
+      console.error("Failed to update work:", error);
+      // 在这里可以添加一些错误处理逻辑，例如显示一个通知
+    }
+  }, []);
+
+  /**
    * 根据作品ID获取作品信息
    * @param workId 作品ID
    * @returns 作品对象或 undefined
@@ -86,5 +103,5 @@ export const useWorks = () => {
     [works]
   );
 
-  return { works, isLoading, deleteWork, getWorkById, getWorkNameById };
+  return { works, isLoading, deleteWork, updateWork, getWorkById, getWorkNameById };
 };
