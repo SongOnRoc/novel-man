@@ -2,6 +2,82 @@
 记录架构和实现决策。
 
 ---
-### 错误分析 [配置错误] [2025-07-16 16:33:23] - VSCode tsserver 路径无效
-**根本原因：** VS Code 工作区设置 (`.vscode/settings.json`) 中的 `typescript.tsdk` 路径错误。它指向了项目根目录下的 `node_modules`，但实际上 `node_modules` 位于 `frontend` 子目录中。
-**修复方案：** 修正 `.vscode/settings.json` 文件中的 `typescript.tsdk` 路径为 `frontend/node_modules/typescript/lib`，使其与项目结构保持一致。
+### 决策
+[2025-07-17 16:47:00] - 确定后端技术栈和架构
+
+**决策:**
+
+经过对 `cdk` 项目的深入分析，我们决定采用以下技术栈和架构模式来构建“网络小说作家作品管理系统”的后端：
+
+1.  **语言**: Go
+2.  **Web 框架**: Gin
+3.  **ORM**: GORM
+4.  **数据库**: PostgreSQL / MySQL
+5.  **缓存**: Redis
+6.  **命令行**: Cobra
+
+**理由:**
+
+*   `cdk` 项目的架构清晰、模块化程度高，已被验证是健壮和可扩展的。
+*   Go 语言及其生态系统非常适合构建高性能、高并发的后端服务。
+*   Gin、GORM、Cobra 等都是成熟、流行的库，拥有丰富的文档和社区支持。
+*   分层和模块化的设计将使项目易于维护和团队协作。
+*   所有后端代码将统一存放于 `backend/` 目录下，以保持项目结构的整洁。
+
+
+---
+### 代码实现 后端模块 - 章节管理
+[2025-07-18 01:40:57] - 完成了章节管理 (Chapters) 模块的完整 CRUD 功能，并集成了权限验证和单元测试。
+
+**实现细节：**
+创建了 `Chapter` 模型、RESTful API 路由和处理函数。通过中间件确保用户只能管理自己作品下的章节。路由被正确注册，数据库迁移已更新。测试生成器还修复了 `order` 关键字冲突和中间件可见性问题。
+
+**测试框架：**
+Go 标准库 (testing, net/http/httptest), Gin, GORM mock DB
+
+**测试结果：**
+- 覆盖率：67.9%
+- 通过率：100%
+
+
+---
+### 代码实现 [Worldview 模块]
+[2025-07-18 02:53:54] - 实现了世界观设定模块的后端功能，包括数据模型、API路由和处理函数。
+
+**实现细节：**
+- 在 `backend/internal/apps/worldview/` 目录下创建了 `models.go`，定义了 `WorldviewCategory` 和 `WorldviewSetting` 的 GORM 模型，并建立了与 `User` 模型的关联。
+- 创建了 `routers.go`，实现了对分类和设定的完整 CRUD API，所有端点均通过 `auth.AuthRequired()` 中间件进行保护，确保只有资源所有者才能访问。
+- 在 `backend/internal/router/router.go` 中注册了 `/api/v1/worldview` 路由组。
+- 在 `backend/internal/cmd/root.go` 的数据库迁移中添加了 `WorldviewCategory` 和 `WorldviewSetting` 模型。
+
+**测试框架：**
+- Go testing
+- GORM with in-memory SQLite
+
+**测试结果：**
+- 覆盖率：81.8%
+- 通过率：100%
+
+---
+### 代码实现 [用户偏好设置模块]
+[2025-07-18 03:03:20] - 实现了用户偏好设置的读取和更新功能。
+
+**实现细节：**
+- 在 `backend/internal/apps/settings/` 目录下创建了 `models.go`，定义了 `UserSetting` GORM 模型，并与 `User` 模型建立了一对一关联。
+- 创建了 `routers.go`，实现了 `GET /api/v1/settings` 和 `PUT /api/v1/settings` 端点。GET 请求在用户没有设置时返回默认值，PUT 请求执行 "upsert" 操作。
+- 在 `backend/internal/router/router.go` 中注册了 `settings` 路由，并使用 `auth.AuthRequired()` 中间件进行了保护。
+- 在 `backend/internal/cmd/root.go` 的数据库迁移中添加了 `UserSetting` 模型。
+
+**测试框架：**
+- 尚未集成自动化测试框架。后续将通过 `test-case-generator` 模式生成。
+
+**测试结果：**
+- 覆盖率：N/A
+- 通过率：N/A
+
+
+---
+### 架构决策 [数据库层重构]
+*   **决策时间**: 2025-07-18 14:24:00
+*   **决策**: 重构数据库层，通过引入数据库工厂模式和更新配置结构，实现对多种数据库（MySQL, PostgreSQL, SQLite）的动态支持。
+*   **理由**: 提升系统的灵活性、可移植性和可测试性，避免对特定数据库厂商的硬编码依赖。这是一个重要的架构优化，有利于项目的长期发展。

@@ -1,0 +1,14 @@
+# 服务器配置
+server:
+  port: 8080
+
+# 数据库配置
+database:
+  # 'type' can be 'mysql', 'postgres', or 'sqlite'
+  type: "postgres"
+  # Data Source Name (DSN) for the database connection
+  # DSN examples:
+  # mysql: "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+  # postgres: "host=localhost user=user password=password dbname=novel_man port=5432 sslmode=disable"
+  # sqlite: "novel_man.db"
+  dsn: "host=localhost user=user password=password dbname=novel_man port=5432 sslmode=disable"

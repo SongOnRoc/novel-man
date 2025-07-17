@@ -32,7 +32,6 @@ Thumbs.db
 # go workspace
 go.work
 go.work.sum
-cdk
 main
 
 novel-editor
