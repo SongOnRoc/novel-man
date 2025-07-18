@@ -1,20 +1,21 @@
 package db
 
 import (
-	"log"
+	"novel-man/backend/internal/logger"
+	Ctx "novel-man/backend/utils/context"
 
 	"gorm.io/gorm"
 )
 
 // Migrate 函数执行数据库迁移
-func Migrate(db *gorm.DB, models ...interface{}) {
-	log.Println("Running database migrations...")
+func Migrate(ctx *Ctx.Context, db *gorm.DB, models ...interface{}) {
+	logger.Info(ctx, "Running database migrations...")
 
 	err := db.AutoMigrate(models...)
 
 	if err != nil {
-		log.Fatalf("Could not migrate database: %v", err)
+		logger.Error(ctx, "Could not migrate database: {}", err)
 	}
 
-	log.Println("Database migration completed successfully.")
+	logger.Info(ctx, "Database migration completed successfully.")
 }

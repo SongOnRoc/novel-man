@@ -12,3 +12,11 @@ database:
   # postgres: "host=localhost user=user password=password dbname=novel_man port=5432 sslmode=disable"
   # sqlite: "novel_man.db"
   dsn: "host=localhost user=user password=password dbname=novel_man port=5432 sslmode=disable"
+
+# 日志配置 (可选)
+# 如果此部分不存在，将使用默认值 (debug: false, console_log: false)
+logger:
+  # 是否开启 Debug 模式，会打印更详细的日志
+  debug: false
+  # 是否同时将日志输出到控制台 (默认只输出到文件)
+  console_log: false

@@ -33,6 +33,8 @@ Thumbs.db
 go.work
 go.work.sum
 main
+cdk
 
 novel-editor
 .roo
+*.exe
