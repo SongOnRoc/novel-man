@@ -16,5 +16,5 @@ type Draft struct {
 	Title   string `json:"title"`
 	Content string `json:"content"`
 
-	WorkID uint `json:"work_id"`
+	WorkID int64 `json:"work_id"`
 }

@@ -40,12 +40,12 @@ func generateJWT(userID uint) (string, error) {
 func RegisterPublicRoutes(r *gin.RouterGroup, gormDB *gorm.DB) {
 	r.POST("/register", registerHandler(gormDB))
 	r.POST("/login", loginHandler(gormDB))
-	r.POST("/logout", logoutHandler) // 登出通常是客户端行为，但保留端点以符合规范
 }
 
 // RegisterPrivateRoutes 注册私有认证路由 (需要认证)
 func RegisterPrivateRoutes(r *gin.RouterGroup, gormDB *gorm.DB) {
 	r.GET("/me", meHandler(gormDB))
+	r.POST("/logout", logoutHandler) // 登出通常是客户端行为，但保留端点以符合规范
 }
 
 // registerHandler 处理用户注册

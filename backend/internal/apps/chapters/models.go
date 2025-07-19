@@ -8,7 +8,7 @@ import (
 // Chapter represents the chapters table in the database.
 type Chapter struct {
 	ID          uint       `gorm:"primaryKey"`
-	WorkID      uint       `gorm:"not null"`
+	WorkID      int64      `gorm:"not null"`
 	Work        works.Work `gorm:"foreignKey:WorkID"`
 	Title       string     `gorm:"not null;size:255"`
 	Content     string     `gorm:"type:text"`

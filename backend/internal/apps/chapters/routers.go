@@ -13,14 +13,11 @@ import (
 // RegisterRoutes registers the chapter routes.
 // Note that this function is designed to be called on a router group already prefixed with /works/:work_id
 func RegisterRoutes(router *gin.RouterGroup, db *gorm.DB) {
-	chaptersGroup := router.Group("/chapters")
-	{
-		chaptersGroup.POST("", createChapter)
-		chaptersGroup.GET("", getChapters)
-		chaptersGroup.GET("/:chapter_id", getChapter)
-		chaptersGroup.PUT("/:chapter_id", updateChapter)
-		chaptersGroup.DELETE("/:chapter_id", deleteChapter)
-	}
+	router.POST("", createChapter)
+	router.GET("", getChapters)
+	router.GET("/:chapter_id", getChapter)
+	router.PUT("/:chapter_id", updateChapter)
+	router.DELETE("/:chapter_id", deleteChapter)
 }
 
 // createChapter handles the creation of a new chapter for a specific work.

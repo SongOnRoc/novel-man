@@ -1,13 +1,11 @@
-"use client"; // 标记为客户端组件，因为需要处理表单提交
+"use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -27,6 +25,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useCreateWork } from "@/hooks/work/useWorks";
+import { CreateWorkData } from "@/types/work";
 
 // 定义表单验证模式
 const formSchema = z.object({
@@ -34,15 +34,12 @@ const formSchema = z.object({
     .string()
     .min(2, { message: "标题至少需要2个字符" })
     .max(100, { message: "标题不能超过100个字符" }),
-  description: z
-    .string()
-    .max(500, { message: "描述不能超过500个字符" })
-    .optional(),
-  genre: z.string().min(1, { message: "请选择一个类型" }),
+  description: z.string().max(500, { message: "描述不能超过500个字符" }).optional(),
+  category: z.string().min(1, { message: "请选择一个类型" }),
 });
 
 // 类型选项
-const genreOptions = [
+const categoryOptions = [
   "玄幻",
   "修真",
   "都市",
@@ -57,7 +54,7 @@ const genreOptions = [
 // 新作品页面组件
 export default function NewWorkPage() {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { mutate: createWork, isPending: isSubmitting } = useCreateWork();
 
   // 初始化表单
   const form = useForm<z.infer<typeof formSchema>>({
@@ -65,42 +62,28 @@ export default function NewWorkPage() {
     defaultValues: {
       title: "",
       description: "",
-      genre: "",
+      category: "",
     },
   });
 
   // 表单提交处理
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsSubmitting(true);
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    const newWorkData: CreateWorkData = {
+      ...values,
+      description: values.description || "",
+      cover_image_url: "", // 暂时为空
+      status: "连载中",
+    };
 
-    try {
-      // 为新作品创建一个包含默认大纲结构的对象
-      const newWorkData = {
-        ...values,
-        id: new Date().toISOString(), // 临时生成一个唯一ID
-        chapterCount: 0,
-        wordCount: 0,
-        updatedAt: new Date().toLocaleDateString("sv"),
-        outline: {
-          main: "",
-          volumes: [],
-        },
-      };
-
-      // 这里将来会调用API创建新作品
-      console.log("创建新作品:", newWorkData);
-
-      // 模拟API调用延迟
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // 成功后跳转到作品列表页
-      router.push("/works");
-    } catch (error) {
-      console.error("创建作品失败:", error);
-      // 这里可以添加错误处理，如显示错误消息
-    } finally {
-      setIsSubmitting(false);
-    }
+    createWork(newWorkData, {
+      onSuccess: () => {
+        router.push("/works");
+      },
+      onError: (error) => {
+        console.error("创建作品失败:", error);
+        // 这里可以添加错误处理，如显示错误消息
+      },
+    });
   }
 
   return (
@@ -153,7 +136,7 @@ export default function NewWorkPage() {
               {/* 类型字段 */}
               <FormField
                 control={form.control}
-                name="genre"
+                name="category"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>作品类型</FormLabel>
@@ -165,9 +148,9 @@ export default function NewWorkPage() {
                         <option value="" disabled>
                           选择作品类型
                         </option>
-                        {genreOptions.map((genre) => (
-                          <option key={genre} value={genre}>
-                            {genre}
+                        {categoryOptions.map((category) => (
+                          <option key={category} value={category}>
+                            {category}
                           </option>
                         ))}
                       </select>

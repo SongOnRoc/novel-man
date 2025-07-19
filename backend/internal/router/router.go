@@ -1,18 +1,17 @@
 package router
 
 import (
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"net/http"
 	"novel-man/backend/internal/apps/ai"
 	"novel-man/backend/internal/apps/auth"
-	"novel-man/backend/internal/apps/chapters"
 	"novel-man/backend/internal/apps/characters"
-	"novel-man/backend/internal/apps/drafts"
 	"novel-man/backend/internal/apps/settings"
 	"novel-man/backend/internal/apps/works"
 	"novel-man/backend/internal/apps/worldview"
 	"novel-man/backend/internal/middlewares"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // InitRouter initializes the Gin router
@@ -46,14 +45,15 @@ func InitRouter(dbInstance *gorm.DB) *gin.Engine {
 		worksGroup.Use(middlewares.JWTAuthMiddleware())
 		works.RegisterRoutes(worksGroup, dbInstance)
 
+		// 这里的路由不对，在后续需要法修复
 		// Register chapters routes (nested under works)
 		// The middleware will ensure the user owns the work
 		// workService := &works.WorkService{DB: dbInstance}
-		workScopedGroup := worksGroup.Group("/:work_id")
+		// chaptersGroup := worksGroup.Group("/chapters")
 		// TODO: Re-implement WorkOwnerMiddleware for JWT
 		// workScopedGroup.Use(middlewares.WorkOwnerMiddleware(workService))
-		chapters.RegisterRoutes(workScopedGroup, dbInstance)
-		drafts.RegisterRoutes(workScopedGroup, dbInstance)
+		// chapters.RegisterRoutes(workScochaptersGrouppedGroup, dbInstance)
+		// drafts.RegisterRoutes(workScopedGroup, dbInstance)
 
 		// 注册 characters 路由
 		charactersGroup := apiV1.Group("/characters")

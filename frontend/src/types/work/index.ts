@@ -10,21 +10,27 @@
  * 代表一部独立的作品，如小说、剧本等。
  */
 export interface Work {
-  id: string;
+  id: number;
   title: string;
-  genre: string; // 新增作品类型
   description: string;
-  coverImage?: string; // 可选的封面图片URL
-  chapterCount?: number;
-  wordCount?: number;
-  latestChapterId?: string; // 可选的最新章节ID
-  lastUpdatedChapter?: {
-    title: string;
-    updatedAt: string;
-  };
-  createdAt: string;
-  updatedAt: string;
+  cover_image_url: string;
+  category: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
 }
+
+export interface WorkListResponse {
+  data: Work[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+  };
+}
+
+export type CreateWorkData = Omit<Work, 'id' | 'created_at' | 'updated_at'>;
+export type UpdateWorkData = Partial<CreateWorkData>;
 
 // 2. 内容基本结构 (Base Content)
 // =================================================================

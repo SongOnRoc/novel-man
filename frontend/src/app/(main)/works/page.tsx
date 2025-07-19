@@ -2,21 +2,19 @@
 
 import { WorkCard } from "./components/WorkCard";
 import { NewWorkButton } from "./components/NewWorkButton";
-import { useWorks } from "@/hooks/useWorks";
+import { useWorks, useDeleteWork } from "@/hooks/work/useWorks";
 import { Skeleton } from "@/components/ui/skeleton";
-
-import { useState } from "react";
 
 // 作品列表页面组件
 export default function WorksPage() {
-  const { works, isLoading, deleteWork } = useWorks();
-  const [isDeleting, setIsDeleting] = useState(false);
+  const { data: worksResponse, isLoading } = useWorks();
+  const { mutate: deleteWork, isPending: isDeleting } = useDeleteWork();
 
-  const handleDeleteWork = async (workId: string) => {
+  const works = worksResponse?.data || [];
+
+  const handleDeleteWork = (workId: number) => {
     if (window.confirm("确定要删除这个作品吗？此操作不可撤销。")) {
-      setIsDeleting(true);
-      await deleteWork(workId);
-      setIsDeleting(false);
+      deleteWork(workId);
     }
   };
 
@@ -35,26 +33,31 @@ export default function WorksPage() {
 
       {/* 作品列表 */}
       {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[...Array(3)].map((_, i) => (
-            <Skeleton key={i} className="h-[200px] w-full" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="flex flex-col space-y-3">
+              <Skeleton className="h-[125px] w-full rounded-xl" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-[250px]" />
+                <Skeleton className="h-4 w-[200px]" />
+              </div>
+            </div>
           ))}
         </div>
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {works.map((work) => (
-              <WorkCard
-                key={work.id}
-                work={work}
-                onDelete={() => handleDeleteWork(work.id)}
-                isDeleting={isDeleting}
-              />
-            ))}
-          </div>
-
-          {/* 当没有作品时显示的内容 */}
-          {works.length === 0 && (
+          {works.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {works.map((work) => (
+                <WorkCard
+                  key={work.id}
+                  work={work}
+                  onDelete={() => handleDeleteWork(work.id)}
+                  isDeleting={isDeleting}
+                />
+              ))}
+            </div>
+          ) : (
             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
               <h2 className="text-2xl font-semibold">暂无作品</h2>
               <p className="mb-4 mt-2 text-muted-foreground">

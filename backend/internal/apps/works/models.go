@@ -7,7 +7,7 @@ import (
 
 // Work represents the works table in the database.
 type Work struct {
-	ID            uint      `gorm:"primaryKey" json:"id"`
+	ID            int64     `gorm:"primaryKey" json:"id"`
 	UserID        uint      `gorm:"not null" json:"-"`
 	User          auth.User `gorm:"foreignKey:UserID" json:"-"`
 	Title         string    `gorm:"not null;size:255" json:"title"`

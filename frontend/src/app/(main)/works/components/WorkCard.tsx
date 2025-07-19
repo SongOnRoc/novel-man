@@ -101,14 +101,10 @@ export function WorkCard({ work, onDelete, isDeleting = false }: WorkCardProps) 
           size="sm"
           className="gap-1 col-span-1"
           asChild
-          disabled={!work.latestChapterId}
+          disabled={true}
         >
           <Link
-            href={
-              work.latestChapterId
-                ? `/chapters/${work.latestChapterId}/edit`
-                : "#"
-            }
+            href="#"
           >
             <Edit className="h-4 w-4" />
             继续写作

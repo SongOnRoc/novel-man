@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChapterList } from "@/components/chapter/ChapterList";
 import { WorkSelector } from "@/components/chapter/WorkSelector";
-import { useWorks } from "@/hooks/useWorks";
+import { useWorks } from "@/hooks/work/useWorks";
 import { useChapters } from "@/hooks/useChapters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Work } from "@/types/work";
@@ -12,10 +12,11 @@ import { Work } from "@/types/work";
 export default function ChaptersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { works, isLoading: isLoadingWorks, getWorkById } = useWorks();
+  const { data: worksResponse, isLoading: isLoadingWorks } = useWorks();
+  const works = worksResponse?.data || [];
 
   const workId = searchParams.get("workId") || undefined;
-  const selectedWork = workId ? getWorkById(workId) : null;
+  const selectedWork = workId ? works.find(w => w.id === Number(workId)) : null;
 
   useEffect(() => {
     if (!isLoadingWorks && works.length > 0 && !workId) {

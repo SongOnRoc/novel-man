@@ -19,14 +19,12 @@ func RegisterRoutes(router *gin.RouterGroup, db *gorm.DB) {
 	service := NewWorkService(db)
 	handler := NewWorkHandler(service)
 
-	worksGroup := router.Group("/works")
-	{
-		worksGroup.POST("", handler.createWork)
-		worksGroup.GET("", handler.getWorks)
-		worksGroup.GET("/:id", handler.getWork)
-		worksGroup.PUT("/:id", handler.updateWork)
-		worksGroup.DELETE("/:id", handler.deleteWork)
-	}
+	router.POST("", handler.createWork)
+	router.GET("", handler.getWorks)
+	router.GET("/:id", handler.getWork)
+	router.PUT("/:id", handler.updateWork)
+	router.DELETE("/:id", handler.deleteWork)
+
 }
 
 // WorkHandler handles the HTTP requests for works.
@@ -116,14 +114,14 @@ func (h *WorkHandler) getWork(c *gin.Context) {
 		return
 	}
 
-	workID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	workID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		logger.Warn(customCtx, "Invalid work ID provided: {}", c.Param("id"))
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid work ID"})
 		return
 	}
 
-	work, err := h.service.GetWorkByID(customCtx.Context, uint(workID), userID.(uint))
+	work, err := h.service.GetWorkByID(customCtx.Context, workID, userID.(uint))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Work not found"})
@@ -146,7 +144,7 @@ func (h *WorkHandler) updateWork(c *gin.Context) {
 		return
 	}
 
-	workID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	workID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		logger.Warn(customCtx, "Invalid work ID for update: {}", c.Param("id"))
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid work ID"})
@@ -164,7 +162,7 @@ func (h *WorkHandler) updateWork(c *gin.Context) {
 		return
 	}
 
-	work, err := h.service.UpdateWork(customCtx.Context, uint(workID), userID.(uint), &input)
+	work, err := h.service.UpdateWork(customCtx.Context, workID, userID.(uint), &input)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Work not found"})
@@ -187,14 +185,14 @@ func (h *WorkHandler) deleteWork(c *gin.Context) {
 		return
 	}
 
-	workID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	workID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		logger.Warn(customCtx, "Invalid work ID for delete: {}", c.Param("id"))
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid work ID"})
 		return
 	}
 
-	err = h.service.DeleteWork(customCtx.Context, uint(workID), userID.(uint))
+	err = h.service.DeleteWork(customCtx.Context, workID, userID.(uint))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Work not found"})

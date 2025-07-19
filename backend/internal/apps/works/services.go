@@ -2,8 +2,10 @@ package works
 
 import (
 	"context"
+	"errors"
 	"novel-man/backend/internal/logger"
 	Ctx "novel-man/backend/utils/context"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -18,11 +20,36 @@ func NewWorkService(db *gorm.DB) *WorkService {
 	return &WorkService{DB: db}
 }
 
+// generateUniqueID generates a unique, timestamp-based ID.
+// It checks for collisions and retries until a unique ID is found.
+func (s *WorkService) generateUniqueID(ctx context.Context) (int64, error) {
+	for {
+		id := time.Now().UnixMilli()
+		var count int64
+		if err := s.DB.WithContext(ctx).Model(&Work{}).Where("id = ?", id).Count(&count).Error; err != nil {
+			return 0, err
+		}
+		if count == 0 {
+			return id, nil
+		}
+		time.Sleep(time.Millisecond * 5)
+		// If ID exists, loop again to get a new timestamp.
+	}
+}
+
 // CreateWork creates a new work for a user.
 func (s *WorkService) CreateWork(ctx context.Context, userID uint, input *CreateWorkDTO) (*Work, error) {
 	customCtx := Ctx.New(ctx)
 	logger.Info(customCtx, "Attempting to create work for user {}", userID)
+
+	uniqueID, err := s.generateUniqueID(ctx)
+	if err != nil {
+		logger.Error(customCtx, "Failed to generate unique ID for new work: {}", err)
+		return nil, err
+	}
+
 	work := &Work{
+		ID:            uniqueID,
 		UserID:        userID,
 		Title:         input.Title,
 		Description:   input.Description,
@@ -72,12 +99,14 @@ func (s *WorkService) GetWorks(ctx context.Context, userID uint, page, limit int
 }
 
 // GetWorkByID retrieves a single work by its ID for a specific user.
-func (s *WorkService) GetWorkByID(ctx context.Context, workID, userID uint) (*Work, error) {
+func (s *WorkService) GetWorkByID(ctx context.Context, workID int64, userID uint) (*Work, error) {
 	customCtx := Ctx.New(ctx)
 	logger.Info(customCtx, "Fetching work {} for user {}", workID, userID)
 	var work Work
 	if err := s.DB.WithContext(ctx).Where("id = ? AND user_id = ?", workID, userID).First(&work).Error; err != nil {
-		logger.Warn(customCtx, "Failed to find work {} for user {}: {}", workID, userID, err)
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			logger.Error(customCtx, "Failed to find work {} for user {}: {}", workID, userID, err)
+		}
 		return nil, err
 	}
 	logger.Info(customCtx, "Successfully fetched work {}", workID)
@@ -85,7 +114,7 @@ func (s *WorkService) GetWorkByID(ctx context.Context, workID, userID uint) (*Wo
 }
 
 // UpdateWork updates an existing work.
-func (s *WorkService) UpdateWork(ctx context.Context, workID, userID uint, input *UpdateWorkDTO) (*Work, error) {
+func (s *WorkService) UpdateWork(ctx context.Context, workID int64, userID uint, input *UpdateWorkDTO) (*Work, error) {
 	customCtx := Ctx.New(ctx)
 	logger.Info(customCtx, "Attempting to update work {} for user {}", workID, userID)
 	work, err := s.GetWorkByID(ctx, workID, userID)
@@ -108,17 +137,25 @@ func (s *WorkService) UpdateWork(ctx context.Context, workID, userID uint, input
 }
 
 // DeleteWork deletes a work.
-func (s *WorkService) DeleteWork(ctx context.Context, workID, userID uint) error {
+func (s *WorkService) DeleteWork(ctx context.Context, workID int64, userID uint) error {
 	customCtx := Ctx.New(ctx)
 	logger.Info(customCtx, "Attempting to delete work {} for user {}", workID, userID)
-	work, err := s.GetWorkByID(ctx, workID, userID)
-	if err != nil {
-		return err // GetWorkByID already logs the error
+	
+	// We only need to ensure the work exists and belongs to the user.
+	// GORM's .Delete works with a primary key.
+	result := s.DB.WithContext(ctx).Where("id = ? AND user_id = ?", workID, userID).Delete(&Work{})
+	
+	if result.Error != nil {
+		logger.Error(customCtx, "Failed to delete work {}: {}", workID, result.Error)
+		return result.Error
 	}
-	if err := s.DB.WithContext(ctx).Delete(work).Error; err != nil {
-		logger.Error(customCtx, "Failed to delete work {}: {}", workID, err)
+
+	if result.RowsAffected == 0 {
+		err := gorm.ErrRecordNotFound
+		logger.Warn(customCtx, "Attempted to delete non-existent or unauthorized work {}: {}", workID, err)
 		return err
 	}
+
 	logger.Info(customCtx, "Successfully deleted work {}", workID)
 	return nil
 }

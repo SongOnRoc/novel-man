@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -27,10 +26,9 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useWorks } from "@/hooks/useWorks";
-import { mockWorks } from "@/lib/mock/works-mock-data";
-import { Work } from "@/types/work";
-
+import { useWork, useUpdateWork } from "@/hooks/work/useWorks";
+import { Skeleton } from "@/components/ui/skeleton";
+import { UpdateWorkData } from "@/types/work";
 
 // 定义表单验证模式
 const formSchema = z.object({
@@ -42,11 +40,12 @@ const formSchema = z.object({
     .string()
     .max(500, { message: "描述不能超过500个字符" })
     .optional(),
-  genre: z.string().min(1, { message: "请选择一个类型" }),
+  category: z.string().min(1, { message: "请选择一个类型" }),
+  status: z.string().min(1, { message: "请选择一个状态" }),
 });
 
-// 类型选项
-const genreOptions = [
+// 选项
+const categoryOptions = [
   "玄幻",
   "修真",
   "都市",
@@ -57,15 +56,15 @@ const genreOptions = [
   "轻小说",
   "其他",
 ];
+const statusOptions = ["连载中", "完结"];
 
 export default function EditWorkPage() {
   const router = useRouter();
   const params = useParams();
-  const { updateWork } = useWorks();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [work, setWork] = useState<Work | null>(null);
+  const workId = Number(params.id);
 
-  const workId = params.id as string;
+  const { data: work, isLoading } = useWork(workId);
+  const { mutate: updateWork, isPending: isSubmitting } = useUpdateWork();
 
   // 初始化表单
   const form = useForm<z.infer<typeof formSchema>>({
@@ -73,43 +72,77 @@ export default function EditWorkPage() {
     defaultValues: {
       title: "",
       description: "",
-      genre: "",
+      category: "",
+      status: "",
     },
   });
 
   useEffect(() => {
-    if (workId) {
-      const currentWork = mockWorks.find((w) => w.id === workId);
-      if (currentWork) {
-        setWork(currentWork);
-        form.reset({
-          title: currentWork.title,
-          description: currentWork.description,
-          genre: currentWork.genre,
-        });
-      }
+    if (work) {
+      form.reset({
+        title: work.title,
+        description: work.description,
+        category: work.category,
+        status: work.status,
+      });
     }
-  }, [workId, form]);
-
+  }, [work, form]);
 
   // 表单提交处理
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!workId) return;
-    setIsSubmitting(true);
-    try {
-      await updateWork(workId, values);
-      // 成功后跳转到作品列表页
-      router.push("/works");
-    } catch (error) {
-      console.error("更新作品失败:", error);
-      // 这里可以添加错误处理，如显示错误消息
-    } finally {
-      setIsSubmitting(false);
-    }
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    const updateData: UpdateWorkData = {
+      ...values,
+      description: values.description || "",
+    };
+    updateWork(
+      { id: workId, data: updateData },
+      {
+        onSuccess: () => {
+          router.push("/works");
+        },
+        onError: (error) => {
+          console.error("更新作品失败:", error);
+        },
+      }
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-10 w-10" />
+          <div>
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-64 mt-2" />
+          </div>
+        </div>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-4 w-80 mt-2" />
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-24 w-full" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (!work) {
-    return <div>加载中...</div>;
+    return <div>作品未找到。</div>;
   }
 
   return (
@@ -124,9 +157,7 @@ export default function EditWorkPage() {
         </Button>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">编辑作品信息</h1>
-          <p className="text-muted-foreground">
-            更新您的作品详情。
-          </p>
+          <p className="text-muted-foreground">更新您的作品详情。</p>
         </div>
       </div>
 
@@ -134,9 +165,7 @@ export default function EditWorkPage() {
       <Card>
         <CardHeader>
           <CardTitle>作品信息</CardTitle>
-          <CardDescription>
-            修改作品的基本信息。
-          </CardDescription>
+          <CardDescription>修改作品的基本信息。</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -162,7 +191,7 @@ export default function EditWorkPage() {
               {/* 类型字段 */}
               <FormField
                 control={form.control}
-                name="genre"
+                name="category"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>作品类型</FormLabel>
@@ -174,14 +203,42 @@ export default function EditWorkPage() {
                         <option value="" disabled>
                           选择作品类型
                         </option>
-                        {genreOptions.map((genre) => (
-                          <option key={genre} value={genre}>
-                            {genre}
+                        {categoryOptions.map((category) => (
+                          <option key={category} value={category}>
+                            {category}
                           </option>
                         ))}
                       </select>
                     </FormControl>
                     <FormDescription>选择最符合您作品的类型。</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* 状态字段 */}
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>作品状态</FormLabel>
+                    <FormControl>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        {...field}
+                      >
+                        <option value="" disabled>
+                          选择作品状态
+                        </option>
+                        {statusOptions.map((status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                    </FormControl>
+                    <FormDescription>设置作品当前的连载状态。</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
