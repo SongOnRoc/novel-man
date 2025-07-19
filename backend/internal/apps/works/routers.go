@@ -1,61 +1,74 @@
 package works
 
 import (
+	"encoding/json"
+	"errors"
 	"net/http"
+	"novel-man/backend/internal/logger"
+	Ctx "novel-man/backend/utils/context"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 )
 
+var validate = validator.New()
+
 func RegisterRoutes(router *gin.RouterGroup, db *gorm.DB) {
-	// 使用 AuthRequired 中间件保护所有 /works 路由
+	service := NewWorkService(db)
+	handler := NewWorkHandler(service)
+
 	worksGroup := router.Group("/works")
 	{
-		worksGroup.POST("", createWork)
-		worksGroup.GET("", getWorks)
-		worksGroup.GET("/:id", getWork)
-		worksGroup.PUT("/:id", updateWork)
-		worksGroup.DELETE("/:id", deleteWork)
+		worksGroup.POST("", handler.createWork)
+		worksGroup.GET("", handler.getWorks)
+		worksGroup.GET("/:id", handler.getWork)
+		worksGroup.PUT("/:id", handler.updateWork)
+		worksGroup.DELETE("/:id", handler.deleteWork)
 	}
 }
 
-// createWork handles the creation of a new work.
-func createWork(c *gin.Context) {
-	var input struct {
-		Title         string `json:"title" binding:"required"`
-		Description   string `json:"description"`
-		CoverImageURL string `json:"cover_image_url"`
-		Category      string `json:"category"`
-		Status        string `json:"status"`
+// WorkHandler handles the HTTP requests for works.
+type WorkHandler struct {
+	service *WorkService
+}
+
+// NewWorkHandler creates a new instance of WorkHandler.
+func NewWorkHandler(service *WorkService) *WorkHandler {
+	return &WorkHandler{service: service}
+}
+
+func (h *WorkHandler) createWork(c *gin.Context) {
+	customCtx := Ctx.New(c.Request.Context())
+	logger.Info(customCtx, "Handling create work request")
+	var input CreateWorkDTO
+
+	decoder := json.NewDecoder(c.Request.Body)
+	decoder.DisallowUnknownFields()
+
+	if err := decoder.Decode(&input); err != nil {
+		logger.Warn(customCtx, "Failed to decode request body: {}", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body: " + err.Error()})
+		return
 	}
 
-	if err := c.ShouldBindJSON(&input); err != nil {
+	if err := validate.Struct(input); err != nil {
+		logger.Warn(customCtx, "Request body validation failed: {}", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	userID, exists := c.Get("userID")
 	if !exists {
+		logger.Warn(customCtx, "Unauthorized attempt to create work: missing userID")
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-	work := Work{
-		UserID:        userID.(uint),
-		Title:         input.Title,
-		Description:   input.Description,
-		CoverImageURL: input.CoverImageURL,
-		Category:      input.Category,
-		Status:        input.Status,
-	}
-
-	if work.Status == "" {
-		work.Status = "连载中"
-	}
-
-	db := c.MustGet("db").(*gorm.DB)
-	if err := db.Create(&work).Error; err != nil {
+	work, err := h.service.CreateWork(customCtx.Context, userID.(uint), &input)
+	if err != nil {
+		// Service layer already logs the error
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create work"})
 		return
 	}
@@ -63,33 +76,22 @@ func createWork(c *gin.Context) {
 	c.JSON(http.StatusCreated, work)
 }
 
-// getWorks handles fetching all works for the current user.
-func getWorks(c *gin.Context) {
+func (h *WorkHandler) getWorks(c *gin.Context) {
+	customCtx := Ctx.New(c.Request.Context())
+	logger.Info(customCtx, "Handling get works request")
 	userID, exists := c.Get("userID")
 	if !exists {
+		logger.Warn(customCtx, "Unauthorized attempt to get works: missing userID")
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-	db := c.MustGet("db").(*gorm.DB)
-	var works []Work
-
-	// Pagination
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	offset := (page - 1) * limit
+	status := c.Query("status")
 
-	query := db.Where("user_id = ?", userID)
-
-	// Filtering by status
-	if status := c.Query("status"); status != "" {
-		query = query.Where("status = ?", status)
-	}
-
-	var total int64
-	query.Model(&Work{}).Count(&total)
-
-	if err := query.Offset(offset).Limit(limit).Find(&works).Error; err != nil {
+	works, total, err := h.service.GetWorks(customCtx.Context, userID.(uint), page, limit, status)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve works"})
 		return
 	}
@@ -104,19 +106,26 @@ func getWorks(c *gin.Context) {
 	})
 }
 
-// getWork handles fetching a single work.
-func getWork(c *gin.Context) {
+func (h *WorkHandler) getWork(c *gin.Context) {
+	customCtx := Ctx.New(c.Request.Context())
+	logger.Info(customCtx, "Handling get work by ID request")
 	userID, exists := c.Get("userID")
 	if !exists {
+		logger.Warn(customCtx, "Unauthorized attempt to get work: missing userID")
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-	db := c.MustGet("db").(*gorm.DB)
-	var work Work
+	workID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		logger.Warn(customCtx, "Invalid work ID provided: {}", c.Param("id"))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid work ID"})
+		return
+	}
 
-	if err := db.Where("id = ? AND user_id = ?", c.Param("id"), userID).First(&work).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+	work, err := h.service.GetWorkByID(customCtx.Context, uint(workID), userID.(uint))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Work not found"})
 			return
 		}
@@ -127,65 +136,70 @@ func getWork(c *gin.Context) {
 	c.JSON(http.StatusOK, work)
 }
 
-// updateWork handles updating a work.
-func updateWork(c *gin.Context) {
+func (h *WorkHandler) updateWork(c *gin.Context) {
+	customCtx := Ctx.New(c.Request.Context())
+	logger.Info(customCtx, "Handling update work request")
 	userID, exists := c.Get("userID")
 	if !exists {
+		logger.Warn(customCtx, "Unauthorized attempt to update work: missing userID")
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-	db := c.MustGet("db").(*gorm.DB)
-	var work Work
+	workID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		logger.Warn(customCtx, "Invalid work ID for update: {}", c.Param("id"))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid work ID"})
+		return
+	}
 
-	if err := db.Where("id = ? AND user_id = ?", c.Param("id"), userID).First(&work).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+	var input UpdateWorkDTO
+
+	decoder := json.NewDecoder(c.Request.Body)
+	decoder.DisallowUnknownFields()
+
+	if err := decoder.Decode(&input); err != nil {
+		logger.Warn(customCtx, "Failed to decode request body for update: {}", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body: " + err.Error()})
+		return
+	}
+
+	work, err := h.service.UpdateWork(customCtx.Context, uint(workID), userID.(uint), &input)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Work not found"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve work"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update work"})
 		return
 	}
-
-	var input struct {
-		Title         string `json:"title"`
-		Description   string `json:"description"`
-		CoverImageURL string `json:"cover_image_url"`
-		Category      string `json:"category"`
-		Status        string `json:"status"`
-	}
-
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	db.Model(&work).Updates(input)
 
 	c.JSON(http.StatusOK, work)
 }
 
-// deleteWork handles deleting a work.
-func deleteWork(c *gin.Context) {
+func (h *WorkHandler) deleteWork(c *gin.Context) {
+	customCtx := Ctx.New(c.Request.Context())
+	logger.Info(customCtx, "Handling delete work request")
 	userID, exists := c.Get("userID")
 	if !exists {
+		logger.Warn(customCtx, "Unauthorized attempt to delete work: missing userID")
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-	db := c.MustGet("db").(*gorm.DB)
-	var work Work
-
-	if err := db.Where("id = ? AND user_id = ?", c.Param("id"), userID).First(&work).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Work not found"})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve work"})
+	workID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		logger.Warn(customCtx, "Invalid work ID for delete: {}", c.Param("id"))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid work ID"})
 		return
 	}
 
-	if err := db.Delete(&work).Error; err != nil {
+	err = h.service.DeleteWork(customCtx.Context, uint(workID), userID.(uint))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Work not found"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete work"})
 		return
 	}
