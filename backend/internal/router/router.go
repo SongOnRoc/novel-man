@@ -1,8 +1,6 @@
 package router
 
 import (
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"net/http"
@@ -20,10 +18,6 @@ import (
 // InitRouter initializes the Gin router
 func InitRouter(dbInstance *gorm.DB) *gin.Engine {
 	r := gin.Default()
-
-	// 设置 Session 中间件
-	store := cookie.NewStore([]byte("secret")) // TODO: Move secret to config
-	r.Use(sessions.Sessions("mysession", store))
 
 	// 将数据库实例存入 Gin Context
 	r.Use(func(c *gin.Context) {
@@ -43,41 +37,42 @@ func InitRouter(dbInstance *gorm.DB) *gin.Engine {
 
 			// 私有路由，需要认证
 			privateAuthGroup := authGroup.Group("/")
-			privateAuthGroup.Use(middlewares.AuthRequired())
+			privateAuthGroup.Use(middlewares.JWTAuthMiddleware())
 			auth.RegisterPrivateRoutes(privateAuthGroup, dbInstance)
 		}
 
 		// 注册 works 路由
 		worksGroup := apiV1.Group("/works")
-		worksGroup.Use(middlewares.AuthRequired())
+		worksGroup.Use(middlewares.JWTAuthMiddleware())
 		works.RegisterRoutes(worksGroup, dbInstance)
 
 		// Register chapters routes (nested under works)
 		// The middleware will ensure the user owns the work
-		workService := &works.WorkService{DB: dbInstance}
+		// workService := &works.WorkService{DB: dbInstance}
 		workScopedGroup := worksGroup.Group("/:work_id")
-		workScopedGroup.Use(middlewares.WorkOwnerMiddleware(workService))
+		// TODO: Re-implement WorkOwnerMiddleware for JWT
+		// workScopedGroup.Use(middlewares.WorkOwnerMiddleware(workService))
 		chapters.RegisterRoutes(workScopedGroup, dbInstance)
 		drafts.RegisterRoutes(workScopedGroup, dbInstance)
 
 		// 注册 characters 路由
 		charactersGroup := apiV1.Group("/characters")
-		charactersGroup.Use(middlewares.AuthRequired())
+		charactersGroup.Use(middlewares.JWTAuthMiddleware())
 		characters.RegisterRoutes(charactersGroup)
 
 		// 注册 worldview 路由
 		worldviewGroup := apiV1.Group("/worldview")
-		worldviewGroup.Use(middlewares.AuthRequired())
+		worldviewGroup.Use(middlewares.JWTAuthMiddleware())
 		worldview.RegisterRoutes(worldviewGroup)
 
 		// 注册 settings 路由
 		settingsGroup := apiV1.Group("/")
-		settingsGroup.Use(middlewares.AuthRequired())
+		settingsGroup.Use(middlewares.JWTAuthMiddleware())
 		settings.RegisterRoutes(settingsGroup)
 
 		// 注册 ai 路由
 		aiGroup := apiV1.Group("/ai")
-		aiGroup.Use(middlewares.AuthRequired())
+		aiGroup.Use(middlewares.JWTAuthMiddleware())
 		ai.RegisterRoutes(aiGroup)
 
 		// Health check endpoint

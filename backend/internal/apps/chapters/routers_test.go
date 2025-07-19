@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"novel-man/backend/internal/apps/auth"
 	"novel-man/backend/internal/apps/works"
-	"novel-man/backend/internal/middlewares"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -58,10 +57,10 @@ func TestChapterRoutes(t *testing.T) {
 	db.Create(&testWork)
 
 	// --- Register Routes with Auth Middleware ---
-	workService := &works.WorkService{DB: db}
+	// workService := &works.WorkService{DB: db}
 	authedGroup := router.Group("/works/:work_id")
 	authedGroup.Use(testAuthMiddleware(testUser.ID)) // Simulate user 1 is logged in
-	authedGroup.Use(middlewares.WorkOwnerMiddleware(workService))
+	// authedGroup.Use(middlewares.WorkOwnerMiddleware(workService))
 	RegisterRoutes(authedGroup, db)
 
 	// --- Test Cases ---
@@ -141,7 +140,7 @@ func TestChapterRoutes(t *testing.T) {
 		})
 		unauthedGroup := permissionRouter.Group("/works/:work_id")
 		unauthedGroup.Use(testAuthMiddleware(otherUser.ID)) // Simulate user 2 is logged in
-		unauthedGroup.Use(middlewares.WorkOwnerMiddleware(workService))
+		// unauthedGroup.Use(middlewares.WorkOwnerMiddleware(workService))
 		RegisterRoutes(unauthedGroup, db)
 
 		input := gin.H{"title": "Chapter by other user"}

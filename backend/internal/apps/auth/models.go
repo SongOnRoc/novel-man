@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 // User 定义了用户表的 GORM 模型
@@ -34,16 +33,3 @@ func (u *User) CheckPasswordHash(password string) bool {
 	return err == nil
 }
 
-// BeforeSave GORM钩子，在创建用户时自动哈希密码
-// 注意：这个钩子不会在更新时自动处理密码，需要在业务逻辑中显式调用HashPassword
-func (u *User) BeforeSave(tx *gorm.DB) (err error) {
-	// 仅在创建新记录时（ID为0）且密码字段不为空时执行
-	if u.ID == 0 && u.PasswordHash != "" {
-		hashedPassword, err := HashPassword(u.PasswordHash)
-		if err != nil {
-			return err
-		}
-		u.PasswordHash = hashedPassword
-	}
-	return
-}
