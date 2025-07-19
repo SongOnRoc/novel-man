@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useAuth } from "@/hooks/auth/useAuth";
+import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -39,7 +40,9 @@ const formSchema = z.object({
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -51,15 +54,14 @@ export default function LoginPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setError(null);
-    const result = await signIn("credentials", {
-      ...values,
-      redirect: false,
-    });
-
-    if (result?.error) {
-      setError("无效的邮箱或密码。");
-    } else {
+    setIsLoading(true);
+    try {
+      await login(values);
       router.push("/");
+    } catch (err: any) {
+      setError(err.response?.data?.message || "登录失败，请稍后重试。");
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -103,7 +105,8 @@ export default function LoginPage() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               登录
             </Button>
           </form>

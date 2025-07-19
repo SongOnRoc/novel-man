@@ -55,7 +55,7 @@ func registerHandler(gormDB *gorm.DB) gin.HandlerFunc {
 		logger.Info(ctx, "Attempting to register a new user")
 
 		var req struct {
-			Username string `json:"username" binding:"required"`
+			Username string `json:"username" binding:"required,min=4,max=32"`
 			Email    string `json:"email" binding:"required,email"`
 			Password string `json:"password" binding:"required,min=8"`
 		}

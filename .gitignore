@@ -1,6 +1,5 @@
 # IDE
 .idea
-.vscode
 
 # logs
 logs
@@ -38,3 +37,4 @@ cdk
 novel-editor
 .roo
 *.exe
+novel_man.db

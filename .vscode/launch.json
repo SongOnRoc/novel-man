@@ -13,17 +13,11 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "novel",
+      "name": "frontend",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["dev"],
-      "skipFiles": ["<node_internals>/**"],
       "console": "internalConsole",
-      "sourceMaps": true,
-      "resolveSourceMapLocations": [
-        "${workspaceFolder}/**",
-        "!**/node_modules/**"
-      ],
-      "outFiles": ["${workspaceFolder}/.next/**/*.js"]
+      "cwd": "${workspaceFolder}/frontend"
     }
   ]
 }

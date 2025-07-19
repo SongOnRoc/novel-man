@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/hooks/auth/useAuth";
 import { useRouter } from "next/navigation";
 import { MainLayout } from "@/components/common/layout/MainLayout";
 
@@ -11,16 +11,16 @@ export default function MainRouteLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session, status } = useSession();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (!isLoading && !user) {
       router.push("/login");
     }
-  }, [status, router]);
+  }, [isLoading, user, router]);
 
-  if (status === "loading") {
+  if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div>正在加载...</div>
@@ -28,7 +28,7 @@ export default function MainRouteLayout({
     );
   }
 
-  if (status === "authenticated") {
+  if (user) {
     return <MainLayout>{children}</MainLayout>;
   }
 

@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useAuth } from "@/hooks/auth/useAuth";
+import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,17 +27,20 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const formSchema = z
   .object({
-    username: z.string().min(2, {
-      message: "用户名至少需要2个字符。",
+    username: z.string().min(4, {
+      message: "用户名至少需要4个字符。",
+    }).max(32, {
+      message: "用户名不能超过32个字符。",
     }),
     email: z.string().email({
       message: "请输入有效的电子邮件。",
     }),
-    password: z.string().min(6, {
-      message: "密码至少需要6个字符。",
+    password: z.string().min(8, {
+      message: "密码至少需要8个字符。",
     }),
     confirmPassword: z.string(),
   })
@@ -43,6 +50,11 @@ const formSchema = z
   });
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const { register } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -53,10 +65,19 @@ export default function RegisterPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // This is where the form submission logic will go.
-    // For now, we'll just log the values.
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setError(null);
+    setIsLoading(true);
+    try {
+      // 只发送后端需要的字段
+      const { confirmPassword, ...registerData } = values;
+      await register(registerData);
+      router.push("/login?registered=true"); // Redirect to login with a success indicator
+    } catch (err: any) {
+      setError(err.response?.data?.message || "注册失败，请稍后重试。");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -68,6 +89,11 @@ export default function RegisterPage() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
             <FormField
               control={form.control}
               name="username"
@@ -120,7 +146,8 @@ export default function RegisterPage() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               创建帐户
             </Button>
           </form>
