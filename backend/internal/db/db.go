@@ -6,6 +6,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/schema" // Import the schema package for NamingStrategy
 	"novel-man/backend/internal/config"
 )
 
@@ -21,12 +22,21 @@ func NewDatabase(cfg *config.DatabaseConfig) (*gorm.DB, error) {
 	case "postgres":
 		dialector = postgres.Open(cfg.DSN)
 	case "sqlite":
-		dialector = sqlite.Open(cfg.DSN)
+		// Enable WAL mode for better concurrency and to prevent read-after-write issues in tests.
+		dsn := fmt.Sprintf("%s?_pragma=journal_mode=WAL", cfg.DSN)
+		dialector = sqlite.Open(dsn)
 	default:
 		return nil, fmt.Errorf("不支持的数据库类型: %s", cfg.Type)
 	}
 
-	db, err := gorm.Open(dialector, &gorm.Config{})
+	// Define the naming strategy to use plural table names.
+	namingStrategy := schema.NamingStrategy{
+		SingularTable: false,
+	}
+
+	db, err := gorm.Open(dialector, &gorm.Config{
+		NamingStrategy: namingStrategy,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("无法连接到数据库: %w", err)
 	}

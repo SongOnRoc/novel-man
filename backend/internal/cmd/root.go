@@ -2,20 +2,16 @@ package cmd
 
 import (
 	"fmt"
-	"novel-man/backend/internal/apps/auth"
-	"novel-man/backend/internal/apps/chapters"
-	"novel-man/backend/internal/apps/characters"
-	"novel-man/backend/internal/apps/drafts"
-	"novel-man/backend/internal/apps/settings"
-	"novel-man/backend/internal/apps/works"
-	"novel-man/backend/internal/apps/worldview"
 	"novel-man/backend/internal/config"
+	"novel-man/backend/internal/container"
 	"novel-man/backend/internal/db"
 	"novel-man/backend/internal/logger"
+	"novel-man/backend/internal/models" // Import the new central models package
 	Ctx "novel-man/backend/utils/context"
 	"os"
 
 	"github.com/spf13/cobra"
+	"gorm.io/gorm"
 )
 
 var (
@@ -45,14 +41,36 @@ var rootCmd = &cobra.Command{
 		// }
 
 		// 初始化数据库连接
-		_, err := db.InitDB(&config.Cfg.Database)
+		dbInstance, err := db.InitDB(&config.Cfg.Database)
 		if err != nil {
 			logger.Error(ctx, "Error initializing database: {}", err)
 			panic(err)
 		}
 
+		// 将 *gorm.DB 提供给 DI 容器
+		err = container.Container.Provide(func() *gorm.DB {
+			return dbInstance
+		})
+		if err != nil {
+			logger.Error(ctx, "Error providing *gorm.DB to container: {}", err)
+			panic(err)
+		}
+
 		// 执行数据库迁移
-		db.Migrate(ctx, db.GetDB(), &auth.User{}, &settings.UserSetting{}, &works.Work{}, &chapters.Chapter{}, &drafts.Draft{}, &characters.Character{}, &worldview.WorldviewCategory{}, &worldview.WorldviewSetting{})
+		// Execute database migration with the new unified models.
+		db.Migrate(ctx, db.GetDB(),
+			&models.User{},
+			&models.Work{},
+			&models.Volume{},
+			&models.Chapter{},
+			&models.Draft{},
+			&models.Character{},
+			&models.WorldviewCategory{},
+			&models.WorldviewItem{},
+			&models.WorkCharacter{},
+			&models.EntityRelationship{},
+			// &settings.UserSetting{}, // TODO: Refactor UserSetting to also use the central models package if needed.
+		)
 	},
 }
 

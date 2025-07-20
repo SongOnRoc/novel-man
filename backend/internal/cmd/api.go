@@ -7,6 +7,7 @@ import (
 	"novel-man/backend/internal/logger"
 	"novel-man/backend/internal/router"
 	Ctx "novel-man/backend/utils/context"
+	"novel-man/backend/internal/middlewares"
 
 	"github.com/spf13/cobra"
 )
@@ -19,6 +20,7 @@ var apiCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := Ctx.New(cmd.Context())
 		logger.Info(ctx, "Starting API server...")
+
 		// 数据库已在 rootCmd 的 PersistentPreRun 中初始化
 		dbInstance := db.GetDB()
 		if dbInstance == nil {
@@ -26,7 +28,13 @@ var apiCmd = &cobra.Command{
 			return
 		}
 
-		// 初始化路由
+		// 初始化中间件
+		if err := middlewares.InitMiddlewares(); err != nil {
+			logger.Error(ctx, "Error initializing middlewares: {}", err)
+			return
+		}
+
+		// 初始化路由 - 使用新的自动路由注册机制
 		r := router.InitRouter(dbInstance)
 
 		// 启动服务器
