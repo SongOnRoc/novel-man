@@ -1,8 +1,10 @@
 package gorm
 
 import (
-	"gorm.io/gorm"
+	"novel-man/backend/internal/contracts"
 	"novel-man/backend/utils/context"
+
+	"gorm.io/gorm"
 )
 
 // GenericGormRepository 提供了一个通用的 GORM 仓储实现
@@ -35,17 +37,25 @@ func (r *GenericGormRepository[T, ID]) Delete(ctx context.Context, id ID) error 
 	return r.db.WithContext(ctx).Where("id = ?", id).Delete(&entity).Error
 }
 
-func (r *GenericGormRepository[T, ID]) List(ctx context.Context, page, limit int) ([]T, int64, error) {
+func (r *GenericGormRepository[T, ID]) List(ctx context.Context, page, limit int, filters contracts.Filters) ([]T, int64, error) {
 	var entities []T
 	var total int64
 
-	offset := (page - 1) * limit
+	db := r.db.WithContext(ctx).Model(new(T))
 
-	if err := r.db.WithContext(ctx).Model(new(T)).Count(&total).Error; err != nil {
+	// 应用所有过滤器
+	for key, value := range filters {
+		db = db.Where(key+" = ?", value)
+	}
+
+	// 计算总数
+	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	if err := r.db.WithContext(ctx).Offset(offset).Limit(limit).Find(&entities).Error; err != nil {
+	// 应用分页并获取数据
+	offset := (page - 1) * limit
+	if err := db.Offset(offset).Limit(limit).Find(&entities).Error; err != nil {
 		return nil, 0, err
 	}
 

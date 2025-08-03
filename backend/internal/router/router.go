@@ -4,6 +4,11 @@ import (
 	"net/http"
 	"novel-man/backend/internal/apps"
 
+	_ "novel-man/backend/docs" // Import the generated docs
+
+	ginSwagger "github.com/SongOnRoc/gin-swagger"
+	swaggerFiles "github.com/swaggo/files"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -42,6 +47,9 @@ func InitRouter(dbInstance *gorm.DB) *gin.Engine {
 		}
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
+
+	// Swagger documentation route
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return r
 }

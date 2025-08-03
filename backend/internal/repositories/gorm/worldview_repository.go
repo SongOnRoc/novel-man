@@ -1,10 +1,10 @@
 package gorm
 
 import (
+	"gorm.io/gorm"
 	"novel-man/backend/internal/contracts/worldview"
 	"novel-man/backend/internal/models"
 	"novel-man/backend/utils/context"
-	"gorm.io/gorm"
 )
 
 // WorldviewCategoryGormRepository 通过嵌入 GenericGormRepository 来复用代码
@@ -17,7 +17,7 @@ type WorldviewCategoryGormRepository struct {
 func NewWorldviewCategoryGormRepository(db *gorm.DB) worldview.WorldviewCategoryRepository {
 	return &WorldviewCategoryGormRepository{
 		GenericGormRepository: NewGenericGormRepository[models.WorldviewCategory, uint](db),
-		db: db,
+		db:                    db,
 	}
 }
 
@@ -42,7 +42,7 @@ type WorldviewItemGormRepository struct {
 func NewWorldviewItemGormRepository(db *gorm.DB) worldview.WorldviewItemRepository {
 	return &WorldviewItemGormRepository{
 		GenericGormRepository: NewGenericGormRepository[models.WorldviewItem, uint](db),
-		db: db,
+		db:                    db,
 	}
 }
 

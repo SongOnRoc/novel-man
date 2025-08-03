@@ -45,6 +45,7 @@ func (m *settingsModule) RegisterRoutes(router *gin.RouterGroup) {
 			authedGroup.GET("", controller.ListSettings)
 			authedGroup.GET("/user/:user_id", controller.GetSettingByUserID)
 			authedGroup.PUT("/user/:user_id", controller.UpdateSettingByUserID)
+			authedGroup.PUT("/user/:user_id/ai-model", controller.UpdateAIModel)
 
 			// Routes with /:id probably need ownership check if they are not admin-only
 			// For now, we assume they are protected by the user's scope

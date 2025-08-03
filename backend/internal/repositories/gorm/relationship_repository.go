@@ -15,6 +15,6 @@ type RelationshipGormRepository struct {
 func NewRelationshipGormRepository(db *gorm.DB) relationships.RelationshipRepository {
 	return &RelationshipGormRepository{
 		GenericGormRepository: NewGenericGormRepository[models.EntityRelationship, uint](db),
-		db: db,
+		db:                    db,
 	}
 }

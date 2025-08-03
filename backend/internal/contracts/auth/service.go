@@ -1,8 +1,14 @@
 package auth
 
 import (
+	"errors"
 	"novel-man/backend/internal/models"
 	"novel-man/backend/utils/context"
+)
+
+var (
+	// ErrUserAlreadyExists is returned when trying to register a user that already exists.
+	ErrUserAlreadyExists = errors.New("user with this email or username already exists")
 )
 
 // AuthService defines the interface for authentication services.

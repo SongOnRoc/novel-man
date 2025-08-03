@@ -1,14 +1,18 @@
 package settings
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"novel-man/backend/internal/contracts"
 	"novel-man/backend/internal/contracts/settings"
 	"novel-man/backend/internal/models"
 	"novel-man/backend/utils/context"
+	"novel-man/backend/utils/response"
 )
 
 type SettingController struct {
@@ -19,35 +23,77 @@ func NewSettingController(service settings.SettingService) *SettingController {
 	return &SettingController{service: service}
 }
 
-type CreateSettingRequest struct {
-	UserID            uint   `json:"user_id" binding:"required"`
-	AIModel           string `json:"ai_model" binding:"required"`
-	CustomAPIEndpoint string `json:"custom_api_endpoint"`
-	EditorTheme       string `json:"editor_theme" binding:"required"`
-	FontSize          int    `json:"font_size" binding:"required"`
-	LineHeight        float64 `json:"line_height" binding:"required"`
+// DTOs
+type SettingRequest struct {
+	AIModel           string  `json:"ai_model"`
+	CustomAPIEndpoint string  `json:"custom_api_endpoint"`
+	EditorTheme       string  `json:"editor_theme"`
+	FontSize          int     `json:"font_size"`
+	LineHeight        float64 `json:"line_height"`
+}
+
+type UpdateAIModelRequest struct {
+	AIModel string `json:"ai_model" binding:"required"`
+}
+
+type SettingResponse struct {
+	ID                uint      `json:"id"`
+	UserID            uint      `json:"user_id"`
+	AIModel           string    `json:"ai_model"`
+	CustomAPIEndpoint string    `json:"custom_api_endpoint"`
+	EditorTheme       string    `json:"editor_theme"`
+	FontSize          int       `json:"font_size"`
+	LineHeight        float64   `json:"line_height"`
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
+}
+
+type ListSettingsResponse struct {
+	Data       []SettingResponse     `json:"data"`
+	Pagination response.Pagination `json:"pagination"`
+}
+
+func toSettingResponse(setting *models.UserSetting) SettingResponse {
+	return SettingResponse{
+		ID:                setting.ID,
+		UserID:            setting.UserID,
+		AIModel:           setting.AIModel,
+		CustomAPIEndpoint: setting.CustomAPIEndpoint,
+		EditorTheme:       setting.EditorTheme,
+		FontSize:          setting.FontSize,
+		LineHeight:        setting.LineHeight,
+		CreatedAt:         setting.CreatedAt,
+		UpdatedAt:         setting.UpdatedAt,
+	}
 }
 
 // CreateSetting godoc
 // @Summary Create a new setting
-// @Description Create a new setting with user ID, AI model, custom API endpoint, editor theme, font size, and line height
+// @Description Create a new setting for the logged-in user.
 // @Tags settings
 // @Accept  json
 // @Produce  json
-// @Param   setting  body      CreateSettingRequest  true  "Setting creation info"
-// @Success 201   {object}  models.UserSetting
-// @Failure 400   {object}  map[string]interface{}
-// @Failure 500   {object}  map[string]interface{}
+// @Param   setting  body      SettingRequest  true  "Setting creation info"
+// @Success 201   {object}  response.StandardResponse{data=SettingResponse}
+// @Failure 400   {object}  response.StandardResponse "Invalid request body"
+// @Failure 401   {object}  response.StandardResponse "Unauthorized"
+// @Failure 500   {object}  response.StandardResponse "Failed to create setting"
+// @Security BearerAuth
 // @Router /settings [post]
 func (c *SettingController) CreateSetting(ctx *gin.Context) {
-	var req CreateSettingRequest
+	var req SettingRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		response.Error(ctx, http.StatusUnauthorized, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	setting := &models.UserSetting{
-		UserID:            req.UserID,
+		UserID:            userID.(uint),
 		AIModel:           req.AIModel,
 		CustomAPIEndpoint: req.CustomAPIEndpoint,
 		EditorTheme:       req.EditorTheme,
@@ -56,51 +102,43 @@ func (c *SettingController) CreateSetting(ctx *gin.Context) {
 	}
 
 	if err := c.service.Create(*context.New(ctx), setting); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to create setting", err)
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, setting)
+	response.Success(ctx, http.StatusCreated, toSettingResponse(setting))
 }
 
 // GetSetting godoc
 // @Summary Get a setting by ID
 // @Description Get a setting by its ID
 // @Tags settings
-// @Accept  json
 // @Produce  json
 // @Param   id  path  int  true  "Setting ID"
-// @Success 200 {object} models.UserSetting
-// @Failure 400 {object} map[string]interface{}
-// @Failure 404 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
+// @Success 200 {object} response.StandardResponse{data=SettingResponse}
+// @Failure 400 {object} response.StandardResponse "Invalid ID"
+// @Failure 404 {object} response.StandardResponse "Setting not found"
+// @Failure 500 {object} response.StandardResponse "Failed to get setting"
+// @Security BearerAuth
 // @Router /settings/{id} [get]
 func (c *SettingController) GetSetting(ctx *gin.Context) {
-	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid ID", err)
 		return
 	}
 
 	setting, err := c.service.GetByID(*context.New(ctx), uint(id))
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "Setting not found"})
-			return
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Setting not found", err)
+		} else {
+			response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to get setting", err)
 		}
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, setting)
-}
-
-type UpdateSettingRequest struct {
-	AIModel           string `json:"ai_model"`
-	CustomAPIEndpoint string `json:"custom_api_endpoint"`
-	EditorTheme       string `json:"editor_theme"`
-	FontSize          int    `json:"font_size"`
-	LineHeight        float64 `json:"line_height"`
+	response.Success(ctx, http.StatusOK, toSettingResponse(setting))
 }
 
 // UpdateSetting godoc
@@ -110,115 +148,113 @@ type UpdateSettingRequest struct {
 // @Accept  json
 // @Produce  json
 // @Param   id  path  int  true  "Setting ID"
-// @Param   setting  body  UpdateSettingRequest  true  "Setting update info"
-// @Success 200 {object} models.UserSetting
-// @Failure 400 {object} map[string]interface{}
-// @Failure 404 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
+// @Param   setting  body  SettingRequest  true  "Setting update info"
+// @Success 200 {object} response.StandardResponse{data=SettingResponse}
+// @Failure 400 {object} response.StandardResponse "Invalid ID or request body"
+// @Failure 404 {object} response.StandardResponse "Setting not found"
+// @Failure 500 {object} response.StandardResponse "Failed to update setting"
+// @Security BearerAuth
 // @Router /settings/{id} [put]
 func (c *SettingController) UpdateSetting(ctx *gin.Context) {
-	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid ID", err)
 		return
 	}
 
-	var req UpdateSettingRequest
+	var req SettingRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
 	setting, err := c.service.GetByID(*context.New(ctx), uint(id))
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "Setting not found"})
-			return
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Setting not found", err)
+		} else {
+			response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to get setting for update", err)
 		}
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// 更新可更新的字段
-	if req.AIModel != "" {
-		setting.AIModel = req.AIModel
-	}
-	if req.CustomAPIEndpoint != "" {
-		setting.CustomAPIEndpoint = req.CustomAPIEndpoint
-	}
-	if req.EditorTheme != "" {
-		setting.EditorTheme = req.EditorTheme
-	}
-	if req.FontSize != 0 {
-		setting.FontSize = req.FontSize
-	}
-	if req.LineHeight != 0 {
-		setting.LineHeight = req.LineHeight
-	}
+	setting.AIModel = req.AIModel
+	setting.CustomAPIEndpoint = req.CustomAPIEndpoint
+	setting.EditorTheme = req.EditorTheme
+	setting.FontSize = req.FontSize
+	setting.LineHeight = req.LineHeight
 
 	if err := c.service.Update(*context.New(ctx), uint(id), setting); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to update setting", err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, setting)
+	response.Success(ctx, http.StatusOK, toSettingResponse(setting))
 }
 
 // DeleteSetting godoc
 // @Summary Delete a setting by ID
 // @Description Delete a setting by its ID
 // @Tags settings
-// @Accept  json
-// @Produce  json
 // @Param   id  path  int  true  "Setting ID"
-// @Success 204 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
-// @Failure 404 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
+// @Success 200 {object} response.StandardResponse{data=object{message=string}}
+// @Failure 400 {object} response.StandardResponse "Invalid ID"
+// @Failure 404 {object} response.StandardResponse "Setting not found"
+// @Failure 500 {object} response.StandardResponse "Failed to delete setting"
+// @Security BearerAuth
 // @Router /settings/{id} [delete]
 func (c *SettingController) DeleteSetting(ctx *gin.Context) {
-	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid ID", err)
 		return
 	}
 
 	if err := c.service.Delete(*context.New(ctx), uint(id)); err != nil {
-		if err == gorm.ErrRecordNotFound {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "Setting not found"})
-			return
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Setting not found", err)
+		} else {
+			response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to delete setting", err)
 		}
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.Status(http.StatusNoContent)
+	response.Success(ctx, http.StatusOK, gin.H{"message": "Setting deleted successfully"})
 }
 
 // ListSettings godoc
 // @Summary List settings
-// @Description List all settings with pagination
+// @Description List all settings with pagination (admin-only, for now)
 // @Tags settings
-// @Accept  json
 // @Produce  json
 // @Param   page  query  int  false  "Page number (default: 1)"
 // @Param   limit query  int  false  "Number of items per page (default: 10)"
-// @Success 200 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
+// @Success 200 {object} response.StandardResponse{data=ListSettingsResponse}
+// @Failure 500 {object} response.StandardResponse "Failed to retrieve settings"
+// @Security BearerAuth
 // @Router /settings [get]
 func (c *SettingController) ListSettings(ctx *gin.Context) {
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
 
-	settings, total, err := c.service.List(*context.New(ctx), page, limit)
+	settings, total, err := c.service.List(*context.New(ctx), page, limit, make(contracts.Filters))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to retrieve settings", err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"data":  settings,
-		"total": total,
+	settingResponses := make([]SettingResponse, len(settings))
+	for i, setting := range settings {
+		settingResponses[i] = toSettingResponse(&setting)
+	}
+
+	response.Success(ctx, http.StatusOK, ListSettingsResponse{
+		Data: settingResponses,
+		Pagination: response.Pagination{
+			Total: total,
+			Page:  page,
+			Limit: limit,
+		},
 	})
 }
 
@@ -226,32 +262,32 @@ func (c *SettingController) ListSettings(ctx *gin.Context) {
 // @Summary Get a setting by user ID
 // @Description Get a setting by user ID
 // @Tags settings
-// @Accept  json
 // @Produce  json
 // @Param   user_id  path  int  true  "User ID"
-// @Success 200 {object} models.UserSetting
-// @Failure 400 {object} map[string]interface{}
-// @Failure 404 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
+// @Success 200 {object} response.StandardResponse{data=SettingResponse}
+// @Failure 400 {object} response.StandardResponse "Invalid user ID"
+// @Failure 404 {object} response.StandardResponse "Setting not found"
+// @Failure 500 {object} response.StandardResponse "Failed to get setting"
+// @Security BearerAuth
 // @Router /settings/user/{user_id} [get]
 func (c *SettingController) GetSettingByUserID(ctx *gin.Context) {
-	userID, err := strconv.ParseUint(ctx.Param("user_id"), 10, 64)
+	userID, err := strconv.ParseUint(ctx.Param("user_id"), 10, 32)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid user ID", err)
 		return
 	}
 
 	setting, err := c.service.GetByUserID(*context.New(ctx), uint(userID))
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "Setting not found"})
-			return
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Setting not found", err)
+		} else {
+			response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to get setting", err)
 		}
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, setting)
+	response.Success(ctx, http.StatusOK, toSettingResponse(setting))
 }
 
 // UpdateSettingByUserID godoc
@@ -261,56 +297,93 @@ func (c *SettingController) GetSettingByUserID(ctx *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param   user_id  path  int  true  "User ID"
-// @Param   setting  body  UpdateSettingRequest  true  "Setting update info"
-// @Success 200 {object} models.UserSetting
-// @Failure 400 {object} map[string]interface{}
-// @Failure 404 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
+// @Param   setting  body  SettingRequest  true  "Setting update info"
+// @Success 200 {object} response.StandardResponse{data=SettingResponse}
+// @Failure 400 {object} response.StandardResponse "Invalid user ID or request body"
+// @Failure 404 {object} response.StandardResponse "Setting not found"
+// @Failure 500 {object} response.StandardResponse "Failed to update setting"
+// @Security BearerAuth
 // @Router /settings/user/{user_id} [put]
 func (c *SettingController) UpdateSettingByUserID(ctx *gin.Context) {
-	userID, err := strconv.ParseUint(ctx.Param("user_id"), 10, 64)
+	userID, err := strconv.ParseUint(ctx.Param("user_id"), 10, 32)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid user ID", err)
 		return
 	}
 
-	var req UpdateSettingRequest
+	var req SettingRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
 	setting, err := c.service.GetByUserID(*context.New(ctx), uint(userID))
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "Setting not found"})
-			return
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Setting not found", err)
+		} else {
+			response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to get setting for update", err)
 		}
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// 更新可更新的字段
-	if req.AIModel != "" {
-		setting.AIModel = req.AIModel
-	}
-	if req.CustomAPIEndpoint != "" {
-		setting.CustomAPIEndpoint = req.CustomAPIEndpoint
-	}
-	if req.EditorTheme != "" {
-		setting.EditorTheme = req.EditorTheme
-	}
-	if req.FontSize != 0 {
-		setting.FontSize = req.FontSize
-	}
-	if req.LineHeight != 0 {
-		setting.LineHeight = req.LineHeight
-	}
+	setting.AIModel = req.AIModel
+	setting.CustomAPIEndpoint = req.CustomAPIEndpoint
+	setting.EditorTheme = req.EditorTheme
+	setting.FontSize = req.FontSize
+	setting.LineHeight = req.LineHeight
 
 	if err := c.service.UpdateByUserID(*context.New(ctx), uint(userID), setting); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to update setting", err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, setting)
+	response.Success(ctx, http.StatusOK, toSettingResponse(setting))
+}
+
+// UpdateAIModel godoc
+// @Summary Update AI model setting for a user
+// @Description Update the AI model setting for a specific user
+// @Tags settings
+// @Accept  json
+// @Produce  json
+// @Param   user_id  path  int  true  "User ID"
+// @Param   ai_model  body  UpdateAIModelRequest  true  "AI Model"
+// @Success 200 {object} response.StandardResponse{data=SettingResponse}
+// @Failure 400 {object} response.StandardResponse "Invalid user ID or request body"
+// @Failure 404 {object} response.StandardResponse "Setting not found"
+// @Failure 500 {object} response.StandardResponse "Failed to update AI model"
+// @Security BearerAuth
+// @Router /settings/{user_id}/ai-model [put]
+func (c *SettingController) UpdateAIModel(ctx *gin.Context) {
+	userID, err := strconv.ParseUint(ctx.Param("user_id"), 10, 32)
+	if err != nil {
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid user ID", err)
+		return
+	}
+
+	var req UpdateAIModelRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+
+	setting, err := c.service.GetByUserID(*context.New(ctx), uint(userID))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Setting not found", err)
+		} else {
+			response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to get setting for update", err)
+		}
+		return
+	}
+
+	setting.AIModel = req.AIModel
+
+	if err := c.service.UpdateByUserID(*context.New(ctx), uint(userID), setting); err != nil {
+		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to update AI model", err)
+		return
+	}
+
+	response.Success(ctx, http.StatusOK, toSettingResponse(setting))
 }

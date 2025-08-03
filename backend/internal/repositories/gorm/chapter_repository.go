@@ -15,7 +15,7 @@ type ChapterGormRepository struct {
 func NewChapterGormRepository(db *gorm.DB) chapters.ChapterRepository {
 	return &ChapterGormRepository{
 		GenericGormRepository: NewGenericGormRepository[models.Chapter, uint](db),
-		db: db,
+		db:                    db,
 	}
 }
 

@@ -1,14 +1,19 @@
 package works
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
+	"novel-man/backend/internal/contracts"
 	"novel-man/backend/internal/contracts/works"
 	"novel-man/backend/internal/models"
 	"novel-man/backend/utils/context"
+	"novel-man/backend/utils/response"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type WorkController struct {
@@ -19,13 +24,56 @@ func NewWorkController(service works.WorkService) *WorkController {
 	return &WorkController{service: service}
 }
 
+// DTOs
 type CreateWorkRequest struct {
-	UserID        uint   `json:"user_id" binding:"required"`
 	Title         string `json:"title" binding:"required"`
 	Description   string `json:"description"`
-	CoverImageURL string `json:"cover_image_url"`
 	Category      string `json:"category"`
+	Status        string `json:"status"`
+	CoverImageURL string `json:"cover_image_url"`
 	Outline       string `json:"outline"`
+}
+
+type UpdateWorkRequest struct {
+	Title         string `json:"title"`
+	Description   string `json:"description"`
+	Category      string `json:"category"`
+	Status        string `json:"status"`
+	Outline       string `json:"outline"`
+	CoverImageURL string `json:"cover_image_url"`
+}
+
+type WorkResponse struct {
+	ID            int64     `json:"id"`
+	UserID        uint      `json:"user_id"`
+	Title         string    `json:"title"`
+	Description   string    `json:"description"`
+	Category      string    `json:"category"`
+	Status        string    `json:"status"`
+	CoverImageURL string    `json:"cover_image_url"`
+	Outline       string    `json:"outline"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+}
+
+type ListWorksResponse struct {
+	Data       []WorkResponse      `json:"data"`
+	Pagination response.Pagination `json:"pagination"`
+}
+
+func toWorkResponse(work *models.Work) WorkResponse {
+	return WorkResponse{
+		ID:            work.ID,
+		UserID:        work.UserID,
+		Title:         work.Title,
+		Description:   work.Description,
+		Category:      work.Category,
+		Status:        work.Status,
+		CoverImageURL: work.CoverImageURL,
+		Outline:       work.Outline,
+		CreatedAt:     work.CreatedAt,
+		UpdatedAt:     work.UpdatedAt,
+	}
 }
 
 // CreateWork godoc
@@ -35,33 +83,44 @@ type CreateWorkRequest struct {
 // @Accept  json
 // @Produce  json
 // @Param work body CreateWorkRequest true "Create Work Request"
-// @Success 201 {object} models.Work
-// @Failure 400 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
+// @Success 201 {object} response.StandardResponse{data=WorkResponse}
+// @Failure 400 {object} response.StandardResponse "Invalid request body"
+// @Failure 401 {object} response.StandardResponse "Unauthorized"
+// @Failure 500 {object} response.StandardResponse "Failed to create work"
+// @Security BearerAuth
 // @Router /works [post]
 func (c *WorkController) CreateWork(ctx *gin.Context) {
 	var req CreateWorkRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		response.Error(ctx, http.StatusUnauthorized, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	work := &models.Work{
-		UserID:        req.UserID,
+		UserID:        userID.(uint),
 		Title:         req.Title,
 		Description:   req.Description,
 		CoverImageURL: req.CoverImageURL,
 		Category:      req.Category,
 		Outline:       req.Outline,
-		Status:        "draft", // 默认状态为草稿
+		Status:        req.Status,
+	}
+	if work.Status == "" {
+		work.Status = "draft"
 	}
 
 	if err := c.service.Create(*context.New(ctx), work); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to create work", err)
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, work)
+	response.Success(ctx, http.StatusCreated, toWorkResponse(work))
 }
 
 // GetWork godoc
@@ -70,37 +129,30 @@ func (c *WorkController) CreateWork(ctx *gin.Context) {
 // @Tags works
 // @Produce  json
 // @Param id path int true "Work ID"
-// @Success 200 {object} models.Work
-// @Failure 400 {object} map[string]interface{}
-// @Failure 404 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
+// @Success 200 {object} response.StandardResponse{data=WorkResponse}
+// @Failure 400 {object} response.StandardResponse "Invalid ID"
+// @Failure 404 {object} response.StandardResponse "Work not found"
+// @Failure 500 {object} response.StandardResponse "Failed to get work"
+// @Security BearerAuth
 // @Router /works/{id} [get]
 func (c *WorkController) GetWork(ctx *gin.Context) {
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid ID", err)
 		return
 	}
 
 	work, err := c.service.GetByID(*context.New(ctx), id)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "Work not found"})
-			return
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Work not found", err)
+		} else {
+			response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to get work", err)
 		}
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, work)
-}
-
-type UpdateWorkRequest struct {
-	Title         string `json:"title"`
-	Description   string `json:"description"`
-	CoverImageURL string `json:"cover_image_url"`
-	Category      string `json:"category"`
-	Outline       string `json:"outline"`
+	response.Success(ctx, http.StatusOK, toWorkResponse(work))
 }
 
 // UpdateWork godoc
@@ -111,57 +163,49 @@ type UpdateWorkRequest struct {
 // @Produce  json
 // @Param id path int true "Work ID"
 // @Param work body UpdateWorkRequest true "Update Work Request"
-// @Success 200 {object} models.Work
-// @Failure 400 {object} map[string]interface{}
-// @Failure 404 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
+// @Success 200 {object} response.StandardResponse{data=WorkResponse}
+// @Failure 400 {object} response.StandardResponse "Invalid ID or request body"
+// @Failure 404 {object} response.StandardResponse "Work not found"
+// @Failure 500 {object} response.StandardResponse "Failed to update work"
+// @Security BearerAuth
 // @Router /works/{id} [put]
 func (c *WorkController) UpdateWork(ctx *gin.Context) {
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid ID", err)
 		return
 	}
 
 	var req UpdateWorkRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
 	work, err := c.service.GetByID(*context.New(ctx), id)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "Work not found"})
-			return
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Work not found", err)
+		} else {
+			response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to get work for update", err)
 		}
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// 更新可更新的字段
-	if req.Title != "" {
-		work.Title = req.Title
-	}
-	if req.Description != "" {
-		work.Description = req.Description
-	}
-	if req.CoverImageURL != "" {
-		work.CoverImageURL = req.CoverImageURL
-	}
-	if req.Category != "" {
-		work.Category = req.Category
-	}
-	if req.Outline != "" {
-		work.Outline = req.Outline
-	}
+	// Update fields from request
+	work.Title = req.Title
+	work.Description = req.Description
+	work.CoverImageURL = req.CoverImageURL
+	work.Category = req.Category
+	work.Outline = req.Outline
+	work.Status = req.Status
 
 	if err := c.service.Update(*context.New(ctx), id, work); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to update work", err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, work)
+	response.Success(ctx, http.StatusOK, toWorkResponse(work))
 }
 
 // DeleteWork godoc
@@ -169,28 +213,29 @@ func (c *WorkController) UpdateWork(ctx *gin.Context) {
 // @Description Delete a work by its ID
 // @Tags works
 // @Param id path int true "Work ID"
-// @Success 204 "No Content"
-// @Failure 400 {object} map[string]interface{}
-// @Failure 404 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
+// @Success 200 {object} response.StandardResponse{data=object{message=string}}
+// @Failure 400 {object} response.StandardResponse "Invalid ID"
+// @Failure 404 {object} response.StandardResponse "Work not found"
+// @Failure 500 {object} response.StandardResponse "Failed to delete work"
+// @Security BearerAuth
 // @Router /works/{id} [delete]
 func (c *WorkController) DeleteWork(ctx *gin.Context) {
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid ID", err)
 		return
 	}
 
 	if err := c.service.Delete(*context.New(ctx), id); err != nil {
-		if err == gorm.ErrRecordNotFound {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "Work not found"})
-			return
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Work not found", err)
+		} else {
+			response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to delete work", err)
 		}
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.Status(http.StatusNoContent)
+	response.Success(ctx, http.StatusOK, gin.H{"message": "Work deleted successfully"})
 }
 
 // ListWorks godoc
@@ -200,22 +245,39 @@ func (c *WorkController) DeleteWork(ctx *gin.Context) {
 // @Produce  json
 // @Param page query int false "Page number" default(1)
 // @Param limit query int false "Number of items per page" default(10)
-// @Success 200 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
+// @Param status query string false "Filter by status"
+// @Success 200 {object} response.StandardResponse{data=ListWorksResponse}
+// @Failure 500 {object} response.StandardResponse "Failed to retrieve works"
+// @Security BearerAuth
 // @Router /works [get]
 func (c *WorkController) ListWorks(ctx *gin.Context) {
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
+	status := ctx.Query("status")
 
-	works, total, err := c.service.List(*context.New(ctx), page, limit)
+	filters := make(contracts.Filters)
+	if status != "" {
+		filters["status"] = status
+	}
+
+	works, total, err := c.service.List(*context.New(ctx), page, limit, filters)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to retrieve works", err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"data":  works,
-		"total": total,
+	workResponses := make([]WorkResponse, len(works))
+	for i, work := range works {
+		workResponses[i] = toWorkResponse(&work)
+	}
+
+	response.Success(ctx, http.StatusOK, ListWorksResponse{
+		Data: workResponses,
+		Pagination: response.Pagination{
+			Total: total,
+			Page:  page,
+			Limit: limit,
+		},
 	})
 }
 
@@ -224,26 +286,27 @@ func (c *WorkController) ListWorks(ctx *gin.Context) {
 // @Description Publish a work by its ID
 // @Tags works
 // @Param id path int true "Work ID"
-// @Success 200 "OK"
-// @Failure 400 {object} map[string]interface{}
-// @Failure 404 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
+// @Success 200 {object} response.StandardResponse{data=object{message=string}}
+// @Failure 400 {object} response.StandardResponse "Invalid ID"
+// @Failure 404 {object} response.StandardResponse "Work not found"
+// @Failure 500 {object} response.StandardResponse "Failed to publish work"
+// @Security BearerAuth
 // @Router /works/{id}/publish [post]
 func (c *WorkController) PublishWork(ctx *gin.Context) {
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid ID", err)
 		return
 	}
 
 	if err := c.service.Publish(*context.New(ctx), id); err != nil {
-		if err == gorm.ErrRecordNotFound {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "Work not found"})
-			return
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Work not found", err)
+		} else {
+			response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to publish work", err)
 		}
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.Status(http.StatusOK)
+	response.Success(ctx, http.StatusOK, gin.H{"message": "Work published successfully"})
 }

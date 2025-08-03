@@ -1,9 +1,9 @@
 package middlewares
 
 import (
+	"go.uber.org/dig"
 	"novel-man/backend/internal/container"
 	"novel-man/backend/internal/contracts/middlewares"
-	"go.uber.org/dig"
 )
 
 // MiddlewareProvider 中间件提供者，用于在模块中获取中间件

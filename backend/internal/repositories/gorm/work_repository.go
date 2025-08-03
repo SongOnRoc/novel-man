@@ -15,7 +15,7 @@ type WorkGormRepository struct {
 func NewWorkGormRepository(db *gorm.DB) works.WorkRepository {
 	return &WorkGormRepository{
 		GenericGormRepository: NewGenericGormRepository[models.Work, int64](db),
-		db: db,
+		db:                    db,
 	}
 }
 

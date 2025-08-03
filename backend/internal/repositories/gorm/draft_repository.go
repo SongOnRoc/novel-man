@@ -15,6 +15,6 @@ type DraftGormRepository struct {
 func NewDraftGormRepository(db *gorm.DB) drafts.DraftRepository {
 	return &DraftGormRepository{
 		GenericGormRepository: NewGenericGormRepository[models.Draft, uint](db),
-		db: db,
+		db:                    db,
 	}
 }

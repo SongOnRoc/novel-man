@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 
+	"novel-man/backend/internal/config"
 	"novel-man/backend/internal/container"
 	"novel-man/backend/internal/contracts/auth"
 	"novel-man/backend/internal/contracts/middlewares"
@@ -20,8 +20,6 @@ import (
 const (
 	// AuthMiddlewareName 是认证中间件在注册表中的名称。
 	AuthMiddlewareName = "auth"
-	// defaultJWTSecret 是在没有配置时的备用JWT密钥，仅用于开发环境。
-	defaultJWTSecret = "your-super-secret-key-for-dev-env"
 )
 
 // 确保 AuthMiddleware 实现了 Middleware 接口。
@@ -41,14 +39,9 @@ type AuthMiddleware struct {
 
 // NewAuthMiddleware 创建一个新的认证中间件实例。
 func NewAuthMiddleware(authService auth.AuthService) *AuthMiddleware {
-	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		secret = defaultJWTSecret
-	}
-
 	return &AuthMiddleware{
 		authService: authService,
-		jwtSecret:   []byte(secret),
+		jwtSecret:   []byte(config.GetJWTSecret()),
 	}
 }
 

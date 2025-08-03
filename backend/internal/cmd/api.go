@@ -5,9 +5,9 @@ import (
 	"novel-man/backend/internal/config"
 	"novel-man/backend/internal/db"
 	"novel-man/backend/internal/logger"
+	"novel-man/backend/internal/middlewares"
 	"novel-man/backend/internal/router"
 	Ctx "novel-man/backend/utils/context"
-	"novel-man/backend/internal/middlewares"
 
 	"github.com/spf13/cobra"
 )

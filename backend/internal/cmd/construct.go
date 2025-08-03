@@ -11,7 +11,6 @@ import (
 	_ "novel-man/backend/internal/apps/settings"
 	_ "novel-man/backend/internal/apps/works"
 	_ "novel-man/backend/internal/apps/worldview"
-
 	// 激活中间件
 	// 在新的DI架构中，不再需要通过空白导入来激活中间件。
 	// 它们的初始化器由其各自的包注册到容器中，

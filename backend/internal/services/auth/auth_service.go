@@ -2,25 +2,28 @@ package auth
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
+	"novel-man/backend/internal/config"
 	"novel-man/backend/internal/contracts/auth"
+	"novel-man/backend/internal/logger"
 	"novel-man/backend/internal/models"
 	"novel-man/backend/utils/context"
 )
 
 type authService struct {
-	userRepo auth.UserRepository
+	userRepo  auth.UserRepository
 	jwtSecret string
 }
 
 func NewAuthService(userRepo auth.UserRepository) auth.AuthService {
 	// In a real application, the JWT secret should be loaded from a secure configuration.
-	return &authService{userRepo: userRepo, jwtSecret: "your-super-secret-key"}
+	return &authService{userRepo: userRepo, jwtSecret: config.GetJWTSecret()}
 }
 
 func (s *authService) Register(ctx context.Context, username, email, password string) (*models.User, error) {
@@ -36,6 +39,12 @@ func (s *authService) Register(ctx context.Context, username, email, password st
 	}
 
 	if err := s.userRepo.CreateUser(ctx, user); err != nil {
+		// Generic check for duplicate entry error string.
+		// This is not ideal but avoids driver-specific dependencies.
+		logger.Warn(&ctx, "Error creating user: {}", err)
+		if strings.Contains(strings.ToLower(err.Error()), "unique constraint failed") {
+			return nil, auth.ErrUserAlreadyExists
+		}
 		return nil, err
 	}
 

@@ -13,7 +13,7 @@ var (
 // MiddlewareRegistry 中间件注册表，用于管理所有已注册的中间件
 type MiddlewareRegistry struct {
 	middlewares map[string]middlewares.Middleware
-	mutex sync.RWMutex
+	mutex       sync.RWMutex
 }
 
 // GetMiddlewareRegistry 获取全局中间件注册表实例
@@ -58,4 +58,3 @@ func (r *MiddlewareRegistry) GetAll() map[string]middlewares.Middleware {
 	}
 	return result
 }
-

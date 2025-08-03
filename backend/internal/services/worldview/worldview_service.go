@@ -10,7 +10,7 @@ import (
 // WorldviewCategoryService 通过嵌入 GenericService 来复用代码
 type WorldviewCategoryService struct {
 	*services.GenericService[models.WorldviewCategory, uint, worldview.WorldviewCategoryRepository]
-	repo worldview.WorldviewCategoryRepository
+	repo        worldview.WorldviewCategoryRepository
 	itemService worldview.WorldviewItemService
 }
 
@@ -18,8 +18,8 @@ type WorldviewCategoryService struct {
 func NewWorldviewCategoryService(repo worldview.WorldviewCategoryRepository, itemService worldview.WorldviewItemService) worldview.WorldviewCategoryService {
 	return &WorldviewCategoryService{
 		GenericService: services.NewGenericService[models.WorldviewCategory, uint, worldview.WorldviewCategoryRepository](repo),
-		repo: repo,
-		itemService: itemService,
+		repo:           repo,
+		itemService:    itemService,
 	}
 }
 
@@ -35,13 +35,13 @@ func (s *WorldviewCategoryService) Delete(ctx context.Context, id uint) error {
 	if err != nil {
 		return err
 	}
-	
+
 	for _, item := range items {
 		if err := s.itemService.Delete(ctx, item.ID); err != nil {
 			return err
 		}
 	}
-	
+
 	// 然后删除分类本身
 	return s.GenericService.Delete(ctx, id)
 }
@@ -58,7 +58,7 @@ type WorldviewItemService struct {
 func NewWorldviewItemService(repo worldview.WorldviewItemRepository) worldview.WorldviewItemService {
 	return &WorldviewItemService{
 		GenericService: services.NewGenericService[models.WorldviewItem, uint, worldview.WorldviewItemRepository](repo),
-		repo: repo,
+		repo:           repo,
 	}
 }
 

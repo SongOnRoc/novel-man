@@ -21,6 +21,7 @@ func init() {
 	apps.Register(&draftsModule{})
 	// 注册服务实现
 	container.Container.Provide(gorm.NewDraftGormRepository)
+	container.Container.Provide(gorm.NewChapterGormRepository) // 为 DraftService 提供依赖
 	container.Container.Provide(drafts_service.NewDraftService)
 
 	// 注册控制器实现
@@ -60,6 +61,7 @@ func (m *draftsModule) RegisterRoutes(router *gin.RouterGroup) {
 				resourceGroup.GET("", controller.GetDraft)
 				resourceGroup.PUT("", controller.UpdateDraft)
 				resourceGroup.DELETE("", controller.DeleteDraft)
+				resourceGroup.POST("/publish", controller.PublishDraft)
 			}
 		}
 	})

@@ -30,6 +30,6 @@ func (s *GenericService[T, ID, R]) Delete(ctx context.Context, id ID) error {
 	return s.repo.Delete(ctx, id)
 }
 
-func (s *GenericService[T, ID, R]) List(ctx context.Context, page, limit int) ([]T, int64, error) {
-	return s.repo.List(ctx, page, limit)
+func (s *GenericService[T, ID, R]) List(ctx context.Context, page, limit int, filters contracts.Filters) ([]T, int64, error) {
+	return s.repo.List(ctx, page, limit, filters)
 }

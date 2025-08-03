@@ -15,7 +15,7 @@ type CharacterGormRepository struct {
 func NewCharacterGormRepository(db *gorm.DB) characters.CharacterRepository {
 	return &CharacterGormRepository{
 		GenericGormRepository: NewGenericGormRepository[models.Character, uint](db),
-		db: db,
+		db:                    db,
 	}
 }
 
