@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/hooks/auth/useAuth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -26,270 +26,196 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSettings } from "@/hooks/settings/useSettings";
-import { UserSettings } from "@/types/settings";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
-const profileFormSchema = z.object({
-  username: z.string().min(2, "用户名至少需要2个字符。"),
-});
-
-const editorFormSchema = z.object({
+// 定义用户设置表单验证规则
+const userSettingsSchema = z.object({
+  aiModel: z.enum(["gpt-4", "claude-3", "custom"]),
+  customApiEndpoint: z.string().optional(),
+  editorTheme: z.enum(["light", "dark"]),
   fontSize: z.number().min(10).max(30),
   lineHeight: z.number().min(1).max(2),
-  autoSave: z.boolean(),
 });
-
-const aiFormSchema = z.object({
-  defaultWritingStyle: z.string(),
-  model: z.string().optional(),
-  apiKey: z.string().optional(),
-  apiEndpoint: z.string().optional(),
-});
-
-const writingStyleOptions = [
-  { value: "neutral", label: "中性" },
-  { value: "formal", label: "正式" },
-  { value: "casual", label: "休闲" },
-  { value: "poetic", label: "诗意" },
-];
-
-const modelOptions = [
-    { value: "GPT-4o", label: "GPT-4o" },
-    { value: "GPT-3.5-Turbo", label: "GPT-3.5-Turbo" },
-]
 
 export default function SettingsPage() {
-  const { data: session } = useSession();
-  const { settings, saveSettings } = useSettings();
+  const { user } = useAuth();
+  const { settings, isLoading, updateSettings, isUpdating } = useSettings();
 
-  const profileForm = useForm<z.infer<typeof profileFormSchema>>({
-    resolver: zodResolver(profileFormSchema),
-    values: {
-      username: session?.user?.name || "",
+  // 初始化表单
+  const form = useForm<z.infer<typeof userSettingsSchema>>({
+    resolver: zodResolver(userSettingsSchema),
+    defaultValues: {
+      aiModel: "gpt-4",
+      customApiEndpoint: "",
+      editorTheme: "light",
+      fontSize: 16,
+      lineHeight: 1.5,
     },
   });
 
-  const editorForm = useForm<z.infer<typeof editorFormSchema>>({
-    resolver: zodResolver(editorFormSchema),
-    values: settings.editor,
-  });
+  // 当设置加载完成时，重置表单值
+  useEffect(() => {
+    if (settings) {
+      form.reset({
+        aiModel: settings.aiModel,
+        customApiEndpoint: settings.customApiEndpoint,
+        editorTheme: settings.editorTheme,
+        fontSize: settings.fontSize,
+        lineHeight: settings.lineHeight,
+      });
+    }
+  }, [settings, form]);
 
-  const aiForm = useForm<z.infer<typeof aiFormSchema>>({
-    resolver: zodResolver(aiFormSchema),
-    values: settings.ai,
-  });
-
-  const onProfileSubmit = (data: z.infer<typeof profileFormSchema>) => {
-    // 在实际应用中，这里会调用API更新用户信息
-    console.log("Profile updated:", data);
+  // 表单提交处理
+  const onSubmit = async (data: z.infer<typeof userSettingsSchema>) => {
+    try {
+      await updateSettings(data);
+      toast.success("设置已保存");
+    } catch (error) {
+      toast.error("保存设置失败");
+    }
   };
-
-  const onEditorSubmit = (data: z.infer<typeof editorFormSchema>) => {
-    saveSettings({ ...settings, editor: data });
-  };
-
-  const onAiSubmit = (data: z.infer<typeof aiFormSchema>) => {
-    saveSettings({ ...settings, ai: data });
-  };
-
-  // 监听编辑器表单变化并自动保存
-  editorForm.watch((value) => {
-    const currentEditorSettings = editorForm.getValues();
-    saveSettings({ ...settings, editor: currentEditorSettings });
-  });
-
-  // 监听AI表单变化并自动保存
-  aiForm.watch((value) => {
-    const currentAiSettings = aiForm.getValues();
-    saveSettings({ ...settings, ai: currentAiSettings });
-  });
 
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-2xl font-bold mb-6">设置</h1>
-      <Tabs defaultValue="profile" className="w-full">
-        <TabsList>
-          <TabsTrigger value="profile">个人资料</TabsTrigger>
-          <TabsTrigger value="editor">编辑器设置</TabsTrigger>
-          <TabsTrigger value="ai">AI助手设置</TabsTrigger>
-        </TabsList>
 
-        <TabsContent value="profile" className="mt-6">
-          <div className="flex items-center space-x-4 mb-6">
-            <Avatar className="h-20 w-20">
-              <AvatarImage src={session?.user?.image || ""} />
-              <AvatarFallback>{session?.user?.name?.[0]}</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-xl font-semibold">{session?.user?.name}</p>
-              <p className="text-sm text-muted-foreground">
-                {session?.user?.email}
-              </p>
-            </div>
-          </div>
-          <Form {...profileForm}>
-            <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-8">
-              <FormField
-                control={profileForm.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>用户名</FormLabel>
-                    <FormControl>
-                      <Input placeholder="你的昵称" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit">更新个人资料</Button>
-            </form>
-          </Form>
-        </TabsContent>
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <p>加载设置中...</p>
+        </div>
+      ) : (
+        <Tabs defaultValue="editor" className="w-full">
+          <TabsList>
+            <TabsTrigger value="editor">编辑器设置</TabsTrigger>
+            <TabsTrigger value="ai">AI助手设置</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="editor" className="mt-6">
-          <Form {...editorForm}>
-            <form onSubmit={editorForm.handleSubmit(onEditorSubmit)} className="space-y-8">
-              <FormField
-                control={editorForm.control}
-                name="fontSize"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>默认字体大小: {field.value}px</FormLabel>
-                    <FormControl>
-                      <Slider
-                        min={10}
-                        max={30}
-                        step={1}
-                        value={[field.value]}
-                        onValueChange={(vals) => field.onChange(vals[0])}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={editorForm.control}
-                name="lineHeight"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>默认行间距: {field.value}</FormLabel>
-                    <FormControl>
-                      <Slider
-                        min={1}
-                        max={2}
-                        step={0.1}
-                        value={[field.value]}
-                        onValueChange={(vals) => field.onChange(vals[0])}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={editorForm.control}
-                name="autoSave"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                       <FormLabel>自动保存</FormLabel>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-               <Button type="submit">保存编辑器设置</Button>
-            </form>
-          </Form>
-        </TabsContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <TabsContent value="editor" className="mt-6 space-y-6">
+                <FormField
+                  control={form.control}
+                  name="editorTheme"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>编辑器主题</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="选择主题" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="light">浅色模式</SelectItem>
+                          <SelectItem value="dark">深色模式</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-        <TabsContent value="ai" className="mt-6">
-          <Form {...aiForm}>
-            <form onSubmit={aiForm.handleSubmit(onAiSubmit)} className="space-y-8">
-              <FormField
-                control={aiForm.control}
-                name="defaultWritingStyle"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>默认写作风格</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormField
+                  control={form.control}
+                  name="fontSize"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>字体大小: {field.value}px</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="选择一种写作风格" />
-                        </SelectTrigger>
+                        <Slider
+                          min={10}
+                          max={30}
+                          step={1}
+                          value={[field.value]}
+                          onValueChange={(vals) => field.onChange(vals[0])}
+                        />
                       </FormControl>
-                      <SelectContent>
-                        {writingStyleOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={aiForm.control}
-                name="model"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>AI 模型</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="lineHeight"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>行间距: {field.value}</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="选择一个AI模型" />
-                        </SelectTrigger>
+                        <Slider
+                          min={1}
+                          max={2}
+                          step={0.1}
+                          value={[field.value]}
+                          onValueChange={(vals) => field.onChange(vals[0])}
+                        />
                       </FormControl>
-                      <SelectContent>
-                        {modelOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+
+              <TabsContent value="ai" className="mt-6 space-y-6">
+                <FormField
+                  control={form.control}
+                  name="aiModel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>AI模型</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="选择AI模型" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="gpt-4">GPT-4</SelectItem>
+                          <SelectItem value="claude-3">Claude 3</SelectItem>
+                          <SelectItem value="custom">自定义</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch("aiModel") === "custom" && (
+                  <FormField
+                    control={form.control}
+                    name="customApiEndpoint"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>自定义API地址</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="https://api.example.com"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
-              />
-              <FormField
-                control={aiForm.control}
-                name="apiKey"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>API Key</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="输入你的API Key" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={aiForm.control}
-                name="apiEndpoint"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>API Endpoint</FormLabel>
-                    <FormControl>
-                      <Input placeholder="输入自定义接口地址" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit">保存AI助手设置</Button>
+              </TabsContent>
+
+              <div className="mt-6">
+                <Button type="submit" disabled={isUpdating}>
+                  {isUpdating ? "保存中..." : "保存设置"}
+                </Button>
+              </div>
             </form>
           </Form>
-        </TabsContent>
-      </Tabs>
+        </Tabs>
+      )}
     </div>
   );
 }

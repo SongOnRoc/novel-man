@@ -48,7 +48,7 @@ export function EditorSettings({
   // 更新单个设置项
   const updateSetting = <K extends keyof EditorSettingsType>(
     key: K,
-    value: EditorSettingsType[K]
+    value: EditorSettingsType[K],
   ) => {
     setLocalSettings((prev) => ({
       ...prev,

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_SC } from "next/font/google";
 import { ThemeProvider } from "@/components/common/layout/ThemeProvider";
-import { AuthProvider } from "@/hooks/auth/useAuth";
 import QueryProvider from "@/components/common/layout/QueryProvider";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const inter = Inter({
@@ -43,9 +43,8 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <QueryProvider>
-            <AuthProvider>{children}</AuthProvider>
-          </QueryProvider>
+          <QueryProvider>{children}</QueryProvider>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

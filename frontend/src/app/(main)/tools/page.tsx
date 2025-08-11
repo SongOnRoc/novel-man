@@ -20,10 +20,11 @@ import {
 import { PlusCircle, Users, Globe, Sparkles, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { useCharacters } from "@/hooks/character/useCharacters";
-import { useWorldbuilding } from "@/hooks/worldbuilding/useWorldbuilding";
-import { useAIAssistant } from "@/hooks/ai/useAIAssistant";
+import { useWorldview } from "@/hooks/worldbuilding/useWorldview";
+import { WorldviewItem } from "@/types/core";
 import { worldItemTypeOptions } from "@/types/worldbuilding";
-import { useWorks } from "@/hooks/useWorks";
+// import { useAIAssistant } from "@/hooks/ai/useAIAssistant";
+import { useWorks } from "@/hooks/work/useWorks";
 import { Work } from "@/types/work";
 import { AIAssistant } from "@/components/ai-assistant/AIAssistant";
 
@@ -38,9 +39,10 @@ export default function ToolsPage() {
   const [mounted, setMounted] = useState(false);
 
   // Hooks
-  const { works } = useWorks();
-  const { getCharactersByWorkId } = useCharacters();
-  const { getWorldItemsByWorkId } = useWorldbuilding();
+  const { data: worksData } = useWorks();
+  const works = worksData?.data || [];
+  const { items: allWorldItems, isLoadingItems: isLoadingWorldItemsGlobal } =
+    useWorldview();
 
   // 处理URL参数和客户端水合问题
   useEffect(() => {
@@ -58,34 +60,17 @@ export default function ToolsPage() {
 
   // 处理作品选择变化
   useEffect(() => {
-    if (selectedWorkId) {
-      const work = works.find((w) => w.id === selectedWorkId);
-      setSelectedWork(work || null);
+    const work = works.find(
+      (w: Work) => w && w.id.toString() === selectedWorkId,
+    );
+    setSelectedWork(work || null);
+  }, [selectedWorkId, works]);
 
-      // 加载该作品的角色
-      const loadCharacters = async () => {
-        setIsLoadingCharacters(true);
-        const chars = await getCharactersByWorkId(selectedWorkId);
-        setCharacters(chars);
-        setIsLoadingCharacters(false);
-      };
-
-      // 加载该作品的世界观设定
-      const loadWorldItems = async () => {
-        setIsLoadingWorldItems(true);
-        const items = await getWorldItemsByWorkId(selectedWorkId);
-        setWorldItems(items);
-        setIsLoadingWorldItems(false);
-      };
-
-      loadCharacters();
-      loadWorldItems();
-    } else {
-      setSelectedWork(null);
-      setCharacters([]);
-      setWorldItems([]);
-    }
-  }, [selectedWorkId, getCharactersByWorkId, getWorldItemsByWorkId, works]);
+  // 加载关联数据（仅世界观）
+  useEffect(() => {
+    // TODO: Implement proper filtering based on WorkWorldview associations
+    setWorldItems(allWorldItems || []);
+  }, [allWorldItems]);
 
   if (!mounted) {
     return null;
@@ -110,8 +95,8 @@ export default function ToolsPage() {
               <SelectValue placeholder="选择作品" />
             </SelectTrigger>
             <SelectContent>
-              {works.map((work) => (
-                <SelectItem key={work.id} value={work.id}>
+              {works.map((work: Work) => (
+                <SelectItem key={work.id} value={work.id.toString()}>
                   {work.title}
                 </SelectItem>
               ))}
@@ -144,7 +129,7 @@ export default function ToolsPage() {
 
         {/* AI写作助手选项卡 */}
         <TabsContent value="ai" className="space-y-4">
-            <AIAssistant />
+          <AIAssistant />
         </TabsContent>
 
         {/* 角色管理选项卡 */}
@@ -163,8 +148,8 @@ export default function ToolsPage() {
                     <SelectValue placeholder="选择作品" />
                   </SelectTrigger>
                   <SelectContent>
-                    {works.map((work) => (
-                      <SelectItem key={work.id} value={work.id}>
+                    {works.map((work: Work) => (
+                      <SelectItem key={work.id} value={work.id.toString()}>
                         {work.title}
                       </SelectItem>
                     ))}
@@ -254,8 +239,8 @@ export default function ToolsPage() {
                     <SelectValue placeholder="选择作品" />
                   </SelectTrigger>
                   <SelectContent>
-                    {works.map((work) => (
-                      <SelectItem key={work.id} value={work.id}>
+                    {works.map((work: Work) => (
+                      <SelectItem key={work.id} value={work.id.toString()}>
                         {work.title}
                       </SelectItem>
                     ))}
@@ -303,13 +288,13 @@ export default function ToolsPage() {
                 </Card>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {worldItems.map((worldItem) => (
+                  {(worldItems as WorldviewItem[]).map((worldItem) => (
                     <Card key={worldItem.id}>
                       <CardHeader className="pb-2">
                         <CardTitle>{worldItem.name}</CardTitle>
                         <CardDescription>
                           {worldItemTypeOptions.find(
-                            (opt) => opt.value === worldItem.type
+                            (opt) => opt.value === worldItem.type,
                           )?.label || worldItem.type}
                         </CardDescription>
                       </CardHeader>

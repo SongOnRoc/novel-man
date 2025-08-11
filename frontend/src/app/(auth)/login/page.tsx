@@ -5,9 +5,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useAuth } from "@/hooks/auth/useAuth";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,11 +27,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useLoginMutation } from "@/hooks/auth/useLoginMutation";
 
 const formSchema = z.object({
-  email: z.string().email({
-    message: "请输入有效的电子邮件。",
+  identifier: z.string().min(1, {
+    message: "请输入您的用户名或电子邮件。",
   }),
   password: z.string().min(1, {
     message: "密码不能为空。",
@@ -40,53 +40,52 @@ const formSchema = z.object({
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const loginMutation = useLoginMutation({
+    onSuccess: () => {
+      toast.success("登录成功", {
+        description: "欢迎回来！即将跳转到您的工作台...",
+      });
+      // Redirect after a short delay to allow the user to see the toast
+      setTimeout(() => {
+        router.push("/");
+      }, 1500);
+    },
+    onError: (error: any) => {
+      toast.error("登录失败", {
+        description: error?.message || "请检查您的凭据或稍后重试。",
+      });
+    },
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
+      identifier: "",
       password: "",
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    setError(null);
-    setIsLoading(true);
-    try {
-      await login(values);
-      router.push("/");
-    } catch (err: any) {
-      setError(err.response?.data?.message || "登录失败，请稍后重试。");
-    } finally {
-      setIsLoading(false);
-    }
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    loginMutation.mutate(values);
   }
 
   return (
     <Card className="w-full max-w-sm">
       <CardHeader>
         <CardTitle className="text-2xl">登录</CardTitle>
-        <CardDescription>输入您的邮箱和密码以登录您的帐户。</CardDescription>
+        <CardDescription>输入您的用户名或邮箱以登录您的账户。</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
             <FormField
               control={form.control}
-              name="email"
+              name="identifier"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>邮箱</FormLabel>
+                  <FormLabel>用户名或邮箱</FormLabel>
                   <FormControl>
-                    <Input placeholder="name@example.com" {...field} />
+                    <Input placeholder="您的用户名或邮箱" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -105,10 +104,18 @@ export default function LoginPage() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              登录
-            </Button>
+            <motion.div whileTap={{ scale: 0.98 }}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={loginMutation.isPending}
+              >
+                {loginMutation.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                登录
+              </Button>
+            </motion.div>
           </form>
         </Form>
       </CardContent>

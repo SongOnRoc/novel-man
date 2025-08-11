@@ -1,26 +1,27 @@
 import { useState, useCallback } from "react";
-import { useCharacters } from "@/hooks/character/useCharacters";
-import { useWorldbuilding } from "@/hooks/worldbuilding/useWorldbuilding";
-import { Character } from "@/types/character";
-import { WorldItem } from "@/types/worldbuilding";
+import { useCharacterLookup } from "@/hooks/character/useCharacters";
+import { useWorldviewLookup } from "@/hooks/worldbuilding/useWorldview";
+import { Character, WorldviewItem } from "@/types/core";
 
 export function useLookup() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [originalCharacters, setOriginalCharacters] = useState<Character[]>([]);
-  const [worldItems, setWorldItems] = useState<WorldItem[]>([]);
-  const [originalWorldItems, setOriginalWorldItems] = useState<WorldItem[]>([]);
+  const [worldItems, setWorldItems] = useState<WorldviewItem[]>([]);
+  const [originalWorldItems, setOriginalWorldItems] = useState<WorldviewItem[]>(
+    [],
+  );
   const [isLoading, setIsLoading] = useState(false);
 
-  const { getCharactersByWorkId } = useCharacters();
-  const { getWorldItemsByWorkId } = useWorldbuilding();
+  const { getCharactersByWorkId } = useCharacterLookup();
+  const { getWorldItemsByWorkId } = useWorldviewLookup();
 
   const loadSettings = useCallback(
     async (workId: string) => {
       setIsLoading(true);
       try {
         const [charData, worldData] = await Promise.all([
-          getCharactersByWorkId(workId),
-          getWorldItemsByWorkId(workId),
+          getCharactersByWorkId(parseInt(workId, 10)),
+          getWorldItemsByWorkId(parseInt(workId, 10)),
         ]);
         setCharacters(charData);
         setOriginalCharacters(charData);
@@ -32,7 +33,7 @@ export function useLookup() {
         setIsLoading(false);
       }
     },
-    [getCharactersByWorkId, getWorldItemsByWorkId]
+    [getCharactersByWorkId, getWorldItemsByWorkId],
   );
 
   const searchSettings = useCallback(
@@ -44,17 +45,17 @@ export function useLookup() {
       } else {
         const lowercasedQuery = query.toLowerCase();
         const filteredChars = originalCharacters.filter((c) =>
-          c.name.toLowerCase().includes(lowercasedQuery)
+          c.name.toLowerCase().includes(lowercasedQuery),
         );
         const filteredWorldItems = originalWorldItems.filter((w) =>
-          w.name.toLowerCase().includes(lowercasedQuery)
+          w.name.toLowerCase().includes(lowercasedQuery),
         );
         setCharacters(filteredChars);
         setWorldItems(filteredWorldItems);
       }
       setIsLoading(false);
     },
-    [originalCharacters, originalWorldItems]
+    [originalCharacters, originalWorldItems],
   );
 
   return { characters, worldItems, isLoading, loadSettings, searchSettings };

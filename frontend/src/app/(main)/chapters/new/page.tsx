@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { mockCreateChapter } from "@/lib/mock/chapters-mock-data";
+import { useCreateChapter } from "@/hooks/chapter/useChapters";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const chapterFormSchema = z.object({
@@ -24,7 +24,8 @@ const chapterFormSchema = z.object({
   outline: z.string().optional(),
   content: z.string().optional(),
   workId: z.string().min(1, "必须关联一个作品"),
-  volumeId: z.string().min(1, "必须关联一个分卷"),
+  // volumeId is not part of the backend model yet, so we remove it for now.
+  // volumeId: z.string().min(1, "必须关联一个分卷"),
 });
 
 type ChapterFormValues = z.infer<typeof chapterFormSchema>;
@@ -33,6 +34,7 @@ function NewChapterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const workId = searchParams.get("workId");
+  const createChapterMutation = useCreateChapter();
 
   const form = useForm<ChapterFormValues>({
     resolver: zodResolver(chapterFormSchema),
@@ -41,23 +43,29 @@ function NewChapterForm() {
       outline: "",
       content: "",
       workId: workId || "",
-      volumeId: "v1", // 默认添加到第一个分卷，后续可以做成可选项
     },
   });
 
   async function onSubmit(data: ChapterFormValues) {
     try {
+      // Convert workId to number before sending to the API
       const chapterData = {
-        ...data,
+        title: data.title,
         outline: data.outline || "",
         content: data.content || "",
+        workId: parseInt(data.workId, 10),
+        status: "draft" as const, // Use 'as const' to satisfy the literal type
+        wordCount: 0,
+        order: 0,
       };
-      await mockCreateChapter(chapterData);
+
+      await createChapterMutation.mutateAsync(chapterData);
+
       alert("章节创建成功！");
-      router.push(`/chapters?workId=${data.workId}`);
+      router.push(`/works/${data.workId}/outline`); // Redirect to the work's outline page
     } catch (error) {
       console.error("Failed to create chapter:", error);
-      alert("章节创建失败。");
+      alert("章节创建失败。请检查控制台获取更多信息。");
     }
   }
 

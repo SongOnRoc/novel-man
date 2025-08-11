@@ -14,23 +14,33 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 
-import { Draft } from "@/types/work";
-import { useWorks } from "@/hooks/useWorks";
+import { Draft } from "@/types/draft";
+import { useWorks } from "@/hooks/work/useWorks";
+import { Work } from "@/types/work";
 
 // 草稿卡片属性
 interface DraftCardProps {
   draft: Draft;
-  onDelete?: (id: string) => void;
-  onConvert?: (id: string) => void;
+  works: Work[];
+  onDelete?: (id: number) => void;
+  onPublish?: (id: number) => void;
 }
 
 // 草稿卡片组件
-export function DraftCard({ draft, onDelete, onConvert }: DraftCardProps) {
-  const { getWorkNameById } = useWorks();
+export function DraftCard({
+  draft,
+  works,
+  onDelete,
+  onPublish,
+}: DraftCardProps) {
+  const getWorkNameById = (workId: number | string) => {
+    const id = typeof workId === "string" ? parseInt(workId, 10) : workId;
+    return works.find((work) => work.id === id)?.title || "未知作品";
+  };
 
   // 获取草稿内容预览（截取前100个字符）
   const contentPreview =
-    draft.content.length > 100
+    draft.content && draft.content.length > 100
       ? `${draft.content.substring(0, 100)}...`
       : draft.content;
 
@@ -59,8 +69,8 @@ export function DraftCard({ draft, onDelete, onConvert }: DraftCardProps) {
               <Link href={`/drafts/${draft.id}/edit`}>编辑草稿</Link>
             </DropdownMenuItem>
             {draft.workId && (
-              <DropdownMenuItem onClick={() => onConvert?.(draft.id)}>
-                转为正式章节
+              <DropdownMenuItem onClick={() => onPublish?.(draft.id)}>
+                发布
               </DropdownMenuItem>
             )}
             <DropdownMenuItem
@@ -80,7 +90,7 @@ export function DraftCard({ draft, onDelete, onConvert }: DraftCardProps) {
       <CardFooter className="flex justify-between">
         <div className="flex items-center text-sm text-muted-foreground">
           <Clock className="mr-1 h-3.5 w-3.5" />
-          <span>更新于 {draft.updatedAt}</span>
+          <span>更新于 {new Date(draft.updatedAt).toLocaleDateString()}</span>
           <span className="mx-2">•</span>
           <FileText className="mr-1 h-3.5 w-3.5" />
           <span>{draft.wordCount} 字</span>

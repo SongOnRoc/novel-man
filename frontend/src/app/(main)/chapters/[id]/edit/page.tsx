@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { TiptapEditor } from "@/components/editor/TiptapEditor";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { EditorContent } from "@/types/editor";
-import { mockChapters } from "@/lib/mock/chapters-mock-data";
-import { Chapter } from "@/types/work";
+import { useChapter, useUpdateChapter } from "@/hooks/chapter/useChapters";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Terminal } from "lucide-react";
 
 // 章节编辑页面组件
 export default function ChapterEditPage() {
@@ -16,58 +18,76 @@ export default function ChapterEditPage() {
   const params = useParams();
   // 获取路由器实例，用于页面导航
   const router = useRouter();
-  // 从URL参数中提取章节ID
-  const id = params.id as string;
+  // 从URL参数中提取章节ID并转换为数字
+  const id = Number(params.id as string);
 
-  // 将所有章节相关状态合并到一个对象中
-  const [chapterData, setChapterData] = useState<Chapter | null>(null);
-  // 加载状态
-  const [isLoading, setIsLoading] = useState(true);
   // 写作目标状态
   const [targetCount, setTargetCount] = useState(2000);
 
-  // 加载章节数据
-  useEffect(() => {
-    setIsLoading(true);
-    // 从中央mock数据中查找当前章节
-    const currentChapter = mockChapters.find((chap) => chap.id === id);
+  // 使用 useChapter hook 获取章节数据
+  const { data: chapterData, isLoading, error } = useChapter(id);
 
-    if (currentChapter) {
-      setChapterData(currentChapter);
-    } else {
-      console.error(`找不到章节: ${id}`);
-      // 如果找不到章节，可以重定向或显示错误信息
-      // router.push('/chapters');
-    }
-    setIsLoading(false);
-  }, [id]);
+  // 使用 useUpdateChapter hook 更新章节数据
+  const { mutate: updateChapter, isPending: isSaving } = useUpdateChapter();
 
   // 保存章节
   const handleSave = async (content: EditorContent) => {
-    // 这里将来会调用API保存章节
+    if (!chapterData) return;
+
     console.log("保存章节:", id, content);
-
-    // 模拟API调用延迟
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    // 更新中央mock数据
-    const chapterIndex = mockChapters.findIndex((chap) => chap.id === id);
-    if (chapterIndex !== -1) {
-      const updatedChapter = {
-        ...mockChapters[chapterIndex],
-        title: content.title,
-        content: content.content,
-        updatedAt: new Date().toISOString().split("T")[0], // 更新修改日期
-      };
-      mockChapters[chapterIndex] = updatedChapter;
-      setChapterData(updatedChapter); // 更新本地状态以反映更改
-    }
+    updateChapter(
+      {
+        id,
+        data: {
+          title: content.title,
+          content: content.content,
+          workId: chapterData.workId,
+        },
+      },
+      {
+        onSuccess: () => {
+          console.log("章节保存成功");
+        },
+        onError: (err) => {
+          console.error("章节保存失败:", err);
+        },
+      },
+    );
   };
 
   // 返回上一页
   const handleBack = () => {
     router.back();
   };
+
+  // 渲染加载状态
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-10 w-10" />
+          <div>
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-64 mt-2" />
+          </div>
+        </div>
+        <Skeleton className="w-full h-[60vh]" />
+      </div>
+    );
+  }
+
+  // 渲染错误状态
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <Terminal className="h-4 w-4" />
+        <AlertTitle>加载错误</AlertTitle>
+        <AlertDescription>
+          加载章节数据时发生错误: {error.message}
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -87,18 +107,8 @@ export default function ChapterEditPage() {
         </div>
       </div>
 
-      {/* 加载状态 */}
-      {isLoading || !chapterData ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em]"></div>
-            <p className="mt-2 text-sm text-muted-foreground">
-              正在加载章节内容...
-            </p>
-          </div>
-        </div>
-      ) : (
-        /* Tiptap编辑器 - 更新为使用新的编辑器功能 */
+      {/* Tiptap编辑器 */}
+      {chapterData ? (
         <TiptapEditor
           initialContent={{
             title: chapterData.title,
@@ -107,12 +117,22 @@ export default function ChapterEditPage() {
           onSave={handleSave}
           placeholder="开始编写您的章节内容..."
           autoFocus
-          contentId={chapterData.id}
-          workId={chapterData.workId}
+          contentId={chapterData.id.toString()}
+          workId={chapterData.workId.toString()}
           containerId={`editor-${chapterData.id}`} // 使用唯一的容器ID
           targetCount={targetCount}
           onTargetCountChange={setTargetCount}
+          isSaving={isSaving}
         />
+      ) : (
+        // 如果没有chapter数据，但也没有加载或错误状态，显示一个提示
+        <Alert>
+          <Terminal className="h-4 w-4" />
+          <AlertTitle>未找到章节</AlertTitle>
+          <AlertDescription>
+            无法加载章节数据，或指定的章节不存在。
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* 底部操作按钮 */}
@@ -121,8 +141,12 @@ export default function ChapterEditPage() {
           <Link href="/chapters">返回章节列表</Link>
         </Button>
         <div className="space-x-2">
-          <Button variant="outline">保存为草稿</Button>
-          <Button>发布章节</Button>
+          <Button variant="outline" disabled={isSaving}>
+            {isSaving ? "保存中..." : "保存为草稿"}
+          </Button>
+          <Button disabled={isSaving}>
+            {isSaving ? "发布中..." : "发布章节"}
+          </Button>
         </div>
       </div>
 

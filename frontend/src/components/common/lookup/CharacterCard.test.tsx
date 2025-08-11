@@ -33,7 +33,7 @@ describe("CharacterCard", () => {
     render(
       <CharacterCard character={mockCharacter} onSelect={onSelect}>
         <button>编辑</button>
-      </CharacterCard>
+      </CharacterCard>,
     );
     await userEvent.click(screen.getByRole("button", { name: /编辑/i }));
     expect(onSelect).not.toHaveBeenCalled();

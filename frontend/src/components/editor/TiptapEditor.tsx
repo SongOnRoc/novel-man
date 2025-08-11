@@ -31,6 +31,7 @@ interface TiptapEditorProps {
   containerId?: string; // 容器ID，用于专注模式
   targetCount?: number;
   onTargetCountChange?: (newTarget: number) => void;
+  isSaving?: boolean; // 是否正在保存
 }
 
 // 计算字数的函数
@@ -114,11 +115,10 @@ export function TiptapEditor({
   containerId = "editor-container",
   targetCount,
   onTargetCountChange,
+  isSaving: isSavingProp = false, // 从props接收isSaving状态
 }: TiptapEditorProps) {
   // 标题状态
   const [title, setTitle] = useState(initialContent.title);
-  // 保存状态
-  const [isSaving, setIsSaving] = useState(false);
   // 字数状态
   const [wordCount, setWordCount] = useState(0);
   // 编辑器设置
@@ -172,12 +172,11 @@ export function TiptapEditor({
   // 保存处理函数
   const handleSave = async () => {
     if (onSave) {
-      setIsSaving(true);
       try {
         const content = getCurrentContent();
         await onSave(content);
       } finally {
-        setIsSaving(false);
+        // 保存状态由外部控制
       }
     }
   };
@@ -246,11 +245,11 @@ export function TiptapEditor({
   useEffect(() => {
     document.documentElement.style.setProperty(
       "--editor-font-size",
-      `${settings.fontSize}px`
+      `${settings.fontSize}px`,
     );
     document.documentElement.style.setProperty(
       "--editor-line-height",
-      `${settings.lineSpacing}`
+      `${settings.lineSpacing}`,
     );
   }, [settings]);
 
@@ -274,7 +273,7 @@ export function TiptapEditor({
       <EditorToolbar
         editor={editor}
         onSave={handleSave}
-        isSaving={isSaving}
+        isSaving={isSavingProp}
         wordCount={wordCount}
         contentId={contentId}
         workId={workId}
@@ -363,16 +362,16 @@ export function TiptapEditor({
         #${containerId}:fullscreen .hide-in-focus-mode {
           display: none;
         }
-       .ProseMirror h1 {
-         font-size: 2.25rem !important; /* text-4xl */
-         font-weight: 700 !important;
-         margin-bottom: 2rem !important;
-       }
-       .ProseMirror p {
-         text-indent: 2em;
-         margin-top: 1rem;
-         margin-bottom: 1rem;
-       }
+        .ProseMirror h1 {
+          font-size: 2.25rem !important; /* text-4xl */
+          font-weight: 700 !important;
+          margin-bottom: 2rem !important;
+        }
+        .ProseMirror p {
+          text-indent: 2em;
+          margin-top: 1rem;
+          margin-bottom: 1rem;
+        }
       `}</style>
     </div>
   );

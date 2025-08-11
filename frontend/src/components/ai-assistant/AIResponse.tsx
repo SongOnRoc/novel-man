@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useDrafts } from "@/hooks/useDrafts";
+import { useCreateDraft } from "@/hooks/draft/useDrafts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { LoadingIndicator } from "./AIAssistant";
 
 interface AIResponseProps {
-  response: string;
+  response?: string;
   isLoading: boolean;
   onRegenerate?: () => void;
   onApplyToEditor?: (text: string) => void;
@@ -37,9 +37,10 @@ export function AIResponse({
   compact = false,
 }: AIResponseProps) {
   const [copied, setCopied] = useState(false);
-  const { createDraft, isSaving } = useDrafts();
+  const { mutateAsync: createDraft, isPending: isSaving } = useCreateDraft();
 
   const copyToClipboard = async () => {
+    if (!response) return;
     try {
       await navigator.clipboard.writeText(response);
       setCopied(true);
@@ -52,7 +53,8 @@ export function AIResponse({
   const saveToDraft = async () => {
     if (!response) return;
     try {
-      await createDraft(response);
+      // @ts-ignore
+      await createDraft({ content: response });
       // In a real app, you'd use a toast notification
       alert("已成功保存到草稿箱！");
     } catch (error) {
@@ -69,7 +71,7 @@ export function AIResponse({
       className={cn(
         "flex flex-col h-full",
         isLoading && "opacity-70",
-        compact ? "shadow-none border-0" : ""
+        compact ? "shadow-none border-0" : "",
       )}
     >
       <CardContent className={cn("flex-grow pt-6", compact && "p-0")}>
@@ -83,7 +85,7 @@ export function AIResponse({
           <div
             className={cn(
               "flex items-center justify-center text-muted-foreground h-full",
-              compact ? "min-h-[150px]" : "min-h-[250px]"
+              compact ? "min-h-[150px]" : "min-h-[250px]",
             )}
           >
             {isLoading ? <LoadingIndicator /> : "生成的内容将显示在这里"}
@@ -95,7 +97,7 @@ export function AIResponse({
         <CardFooter
           className={cn(
             "flex justify-between items-center pt-4",
-            compact && "px-0 py-2"
+            compact && "px-0 py-2",
           )}
         >
           <div className="flex items-center space-x-2">

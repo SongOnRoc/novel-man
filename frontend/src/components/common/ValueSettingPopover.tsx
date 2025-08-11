@@ -58,7 +58,9 @@ export function ValueSettingPopover({
               className="h-8"
               placeholder={placeholder}
             />
-            {unit && <span className="text-sm text-muted-foreground">{unit}</span>}
+            {unit && (
+              <span className="text-sm text-muted-foreground">{unit}</span>
+            )}
             <Button size="sm" onClick={handleSetValue} className="h-8">
               设置
             </Button>

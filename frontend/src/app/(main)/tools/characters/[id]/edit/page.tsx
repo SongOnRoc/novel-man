@@ -22,59 +22,47 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowLeft, Save } from "lucide-react";
-import { useCharacters } from "@/hooks/character/useCharacters";
-import { useWorks } from "@/hooks/useWorks";
-import { useCharacterRelations } from "@/hooks/character/useCharacterRelations";
-import { CharacterRelationManager } from "@/components/character/CharacterRelationManager";
+import {
+  useCharacter,
+  useUpdateCharacter,
+} from "@/hooks/character/useCharacters";
+import { useWorks } from "@/hooks/work/useWorks";
+// import { useCharacterRelations } from "@/hooks/character/useCharacterRelations";
+// import { CharacterRelationManager } from "@/components/character/CharacterRelationManager";
 import {
   Character,
-  CharacterRelationship,
-  RelationshipType,
+  // CharacterRelationship,
+  // RelationshipType,
 } from "@/types/character";
 import { Separator } from "@/components/ui/separator";
 
 export default function EditCharacterPage() {
   const router = useRouter();
   const params = useParams();
-  const characterId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const characterId = Number(
+    Array.isArray(params.id) ? params.id[0] : params.id,
+  );
 
   const {
-    characters: allCharacters,
-    getCharacter,
-    updateCharacter,
-  } = useCharacters();
-  const { works } = useWorks();
-  const { relations, addRelation, deleteRelation, updateRelationType } =
-    useCharacterRelations(characterId || "", allCharacters);
+    data: character,
+    isLoading,
+    error: fetchError,
+  } = useCharacter(characterId);
+  const updateCharacterMutation = useUpdateCharacter();
+  const { data: worksData } = useWorks();
+  const works = worksData?.data || [];
 
   const [formData, setFormData] = useState<Partial<Character>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (characterId) {
-      const fetchCharacterData = async () => {
-        setIsLoading(true);
-        try {
-          const characterToEdit = await getCharacter(characterId);
-          if (characterToEdit) {
-            setFormData(characterToEdit);
-          } else {
-            setError("未找到要编辑的角色信息");
-          }
-        } catch (e) {
-          setError("加载角色数据失败");
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      fetchCharacterData();
+    if (character) {
+      setFormData(character);
     }
-  }, [characterId, getCharacter]);
+  }, [character]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -97,49 +85,17 @@ export default function EditCharacterPage() {
       return;
     }
 
-    setIsSubmitting(true);
     setError(null);
 
     try {
-      const age = formData.age ? parseInt(String(formData.age), 10) : undefined;
-
-      const getArrayFromString = (
-        value: string | string[] | undefined
-      ): string[] => {
-        if (Array.isArray(value)) return value;
-        if (typeof value === "string" && value) {
-          return value.split(",").map((item: string) => item.trim());
-        }
-        return [];
-      };
-
-      const personality = getArrayFromString(formData.personality);
-      const abilities = getArrayFromString(formData.abilities);
-
-      const updatedCharacterData: Character = {
-        ...(formData as Character),
+      await updateCharacterMutation.mutateAsync({
         id: characterId,
-        workId: formData.workId || "",
-        name: formData.name || "",
-        age: isNaN(age as number) ? undefined : age,
-        personality,
-        abilities,
-        createdAt: formData.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      const result = await updateCharacter(updatedCharacterData);
-
-      if (result) {
-        router.push(`/tools/characters/${characterId}`);
-      } else {
-        setError("更新角色失败");
-      }
+        data: formData,
+      });
+      router.push(`/tools/characters/${characterId}`);
     } catch (err) {
       setError("更新角色时发生错误");
       console.error("Error updating character:", err);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -147,8 +103,12 @@ export default function EditCharacterPage() {
     return <div className="text-center p-8">加载角色数据中...</div>;
   }
 
-  if (error) {
-    return <div className="text-center text-destructive p-8">{error}</div>;
+  if (fetchError) {
+    return (
+      <div className="text-center text-destructive p-8">
+        加载数据失败: {fetchError.message}
+      </div>
+    );
   }
 
   return (
@@ -228,18 +188,18 @@ export default function EditCharacterPage() {
             <Separator />
 
             <div className="space-y-2">
-              <Label htmlFor="workId">所属作品 *</Label>
+              <Label htmlFor="work_id">所属作品 *</Label>
               <Select
-                value={formData.workId || ""}
-                onValueChange={(value) => handleSelectChange("workId", value)}
+                value={formData.work_id?.toString() || ""}
+                onValueChange={(value) => handleSelectChange("work_id", value)}
               >
-                <SelectTrigger id="workId">
+                <SelectTrigger id="work_id">
                   <SelectValue placeholder="选择一个作品..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {works.map((work) => (
-                    <SelectItem key={work.id} value={work.id}>
-                      {work.name}
+                  {works.map((work: any) => (
+                    <SelectItem key={work.id} value={work.id.toString()}>
+                      {work.title}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -252,11 +212,7 @@ export default function EditCharacterPage() {
                 <Input
                   id="personality"
                   name="personality"
-                  value={
-                    Array.isArray(formData.personality)
-                      ? formData.personality.join(", ")
-                      : formData.personality || ""
-                  }
+                  value={formData.personality || ""}
                   onChange={handleChange}
                   placeholder="如：坚韧,聪慧,重情义"
                 />
@@ -267,11 +223,7 @@ export default function EditCharacterPage() {
                 <Input
                   id="abilities"
                   name="abilities"
-                  value={
-                    Array.isArray(formData.abilities)
-                      ? formData.abilities.join(", ")
-                      : formData.abilities || ""
-                  }
+                  value={formData.abilities || ""}
                   onChange={handleChange}
                   placeholder="如：火属性灵力,炼丹术,剑法"
                 />
@@ -309,7 +261,7 @@ export default function EditCharacterPage() {
                 name="notes"
                 value={formData.notes || ""}
                 onChange={handleChange}
-                placeholder="其他需要记录的信息，如角色发展方向、重要剧情点等"
+                placeholder="其他需要记录的信息"
                 rows={3}
               />
             </div>
@@ -318,8 +270,8 @@ export default function EditCharacterPage() {
 
             <Separator />
 
-            {/* Relations Manager */}
-            {characterId && (
+            {/* Relations Manager - Temporarily Disabled */}
+            {/* {characterId && (
               <CharacterRelationManager
                 characterId={characterId}
                 allCharacters={allCharacters.filter(
@@ -330,7 +282,7 @@ export default function EditCharacterPage() {
                 onDeleteRelation={deleteRelation}
                 onUpdateRelationType={updateRelationType}
               />
-            )}
+            )} */}
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
             <Button
@@ -340,8 +292,8 @@ export default function EditCharacterPage() {
             >
               取消
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "保存中..." : "保存更改"}
+            <Button type="submit" disabled={updateCharacterMutation.isPending}>
+              {updateCharacterMutation.isPending ? "保存中..." : "保存更改"}
               <Save className="ml-2 h-4 w-4" />
             </Button>
           </CardFooter>

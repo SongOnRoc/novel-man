@@ -61,13 +61,19 @@ async function handler(req: NextRequest) {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
-      return NextResponse.json(axiosError.response?.data, {
-        status: axiosError.response?.status || 500,
-      });
+      // Ensure we send a proper JSON response even if the upstream service doesn't.
+      const status = axiosError.response?.status || 500;
+      const data = axiosError.response?.data || {
+        message: "An error occurred",
+      };
+      // If data is not a valid JSON object, create one.
+      const responseData =
+        typeof data === "object" ? data : { message: String(data) };
+      return NextResponse.json(responseData, { status });
     }
     return NextResponse.json(
       { message: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

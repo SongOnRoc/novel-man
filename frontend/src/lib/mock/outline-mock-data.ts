@@ -13,19 +13,24 @@ import { mockChapters } from "./chapters-mock-data";
 function generateOutlines(
   works: Work[],
   volumes: Volume[],
-  chapters: Chapter[]
+  chapters: Chapter[],
 ): Outline[] {
   return works.map((work) => {
     // 筛选出属于当前作品的分卷
-    const workVolumes = volumes.filter((volume) => volume.workId === work.id);
+    const workVolumes = volumes.filter((volume) => volume.work_id === work.id);
 
     return {
-      workId: work.id,
-      main: work.description, // 使用作品的描述作为总纲
+      id: work.id,
+      work_id: work.id,
+      title: work.title,
+      description: work.description,
+      order: 0,
+      created_at: work.createdAt,
+      updated_at: work.updatedAt,
       volumes: workVolumes.map((volume) => {
         // 筛选出属于当前分卷的章节
         const volumeChapters = chapters.filter(
-          (chapter) => chapter.volumeId === volume.id
+          (chapter) => chapter.volumeId === volume.id,
         );
         return {
           ...volume,
@@ -40,7 +45,7 @@ function generateOutlines(
 export const mockOutlines: Outline[] = generateOutlines(
   mockWorks,
   mockVolumes,
-  mockChapters
+  mockChapters,
 );
 
 /**
@@ -48,6 +53,6 @@ export const mockOutlines: Outline[] = generateOutlines(
  * @param workId - 作品ID
  * @returns - 对应的大纲信息，如果找不到则返回undefined
  */
-export function getOutlineByWorkId(workId: string): Outline | undefined {
-  return mockOutlines.find((outline) => outline.workId === workId);
+export function getOutlineByWorkId(workId: number): Outline | undefined {
+  return mockOutlines.find((outline) => outline.work_id === workId);
 }

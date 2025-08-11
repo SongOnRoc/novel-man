@@ -2,6 +2,27 @@
 
 本文档旨在精确、完整地记录项目当前API接口的设计，基于 `backend/internal/apps/` 目录下的代码实现。
 
+## 标准响应格式
+
+所有API的响应都将遵循以下标准JSON格式。这确保了客户端可以有一致的方式来处理API的返回结果。
+
+```json
+{
+  "code": 0,
+  "data": {},
+  "message": "OK",
+  "sourceId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  "traceId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+}
+```
+
+- **`code`** (`int`): 业务状态码。`0` 代表成功，非 `0` 代表各种业务错误。
+- **`data`** (`object`, 可选): 成功时返回的主要数据负载。如果请求失败或没有数据返回，此字段可能不存在。
+- **`message`** (`string`): 对响应的描述。成功时通常为 `"OK"`，失败时为详细的错误信息。
+- **`sourceId`** (`string`): 由服务端为每次响应生成的唯一ID，用于追踪和日志记录。
+- **`traceId`** (`string`): 由客户端在请求时通过 `X-Trace-ID` 请求头传入的唯一ID，用于端到端追踪。如果客户端未提供，此字段可能为空。
+
+---
 ## 模块: Auth (认证)
 
 ### `POST /api/v1/auth/register`
@@ -39,7 +60,7 @@
 
 ### `POST /api/v1/works`
 - **描述**: 创建新作品。
-- **请求体**: `{"title": "string", "description": "string", "category": "string", "status": "string"}`
+- **请求体**: `{"title": "string", "description": "string", "category": "string", "status": "string", "cover_image_url": "string", "outline": "string"}`
 - **成功响应 (201)**: `{"data": Work}`
 - **失败响应 (400)**: `{"error": "Invalid request body: ..."}`
 - **失败响应 (500)**: `{"error": "Failed to create work"}`
@@ -51,13 +72,13 @@
 
 ### `PUT /api/v1/works/{id}`
 - **描述**: 更新作品。
-- **请求体**: `{"title": "string", "description": "string", ...}`
+- **请求体**: `{"title": "string", "description": "string", "category": "string", "status": "string", "outline": "string"}`
 - **成功响应 (200)**: `{"data": Work}`
 - **失败响应 (404)**: `{"error": "Work not found"}`
 
 ### `DELETE /api/v1/works/{id}`
 - **描述**: 删除作品。
-- **成功响应 (204)**: 无内容。
+- **成功响应 (200)**: `{"message": "Resource deleted successfully"}`
 - **失败响应 (404)**: `{"error": "Work not found"}`
 ## 模块: Chapters (章节)
 
@@ -86,7 +107,7 @@
 
 ### `DELETE /api/v1/chapters/{id}`
 - **描述**: 删除章节。
-- **成功响应 (204)**: 无内容。
+- **成功响应 (200)**: `{"message": "Resource deleted successfully"}`
 - **失败响应 (404)**: `{"error": "Chapter not found"}`
 
 ## 模块: Drafts (草稿)
@@ -118,7 +139,7 @@
 
 ### `DELETE /api/v1/characters/{id}`
 - **描述**: 删除指定ID的角色。
-- **成功响应 (204)**: 无内容。
+- **成功响应 (200)**: `{"message": "Character deleted successfully"}`
 
 ## 模块: Worldview (世界观)
 
@@ -156,22 +177,64 @@
 ## 模块: Settings (设置)
 
 ### `GET /api/v1/settings`
-- **描述**: 获取当前用户的设置。
-- **成功响应 (200)**: `{"aiModel": "string", "customApiEndpoint": "string", ...}`
+- **描述**: 获取设置列表 (支持分页)。
+- **成功响应 (200)**: `{"data": [UserSetting], "pagination": ...}`
 
-### `PUT /api/v1/settings`
-- **描述**: 更新或创建当前用户的设置。
-- **请求体**: `{"aiModel": "string", "customApiEndpoint": "string", ...}`
-- **成功响应 (200)**: `{"aiModel": "string", "customApiEndpoint": "string", ...}`
+### `POST /api/v1/settings`
+- **描述**: 创建新设置。
+- **请求体**: `{"ai_model": "string", ...}`
+- **成功响应 (201)**: `{"data": UserSetting}`
+
+### `GET /api/v1/settings/{id}`
+- **描述**: 获取指定 ID 的设置。
+- **成功响应 (200)**: `{"data": UserSetting}`
+
+### `PUT /api/v1/settings/{id}`
+- **描述**: 更新指定 ID 的设置。
+- **请求体**: `{"ai_model": "string", ...}`
+- **成功响应 (200)**: `{"data": UserSetting}`
+
+### `DELETE /api/v1/settings/{id}`
+- **描述**: 删除指定 ID 的设置。
+- **成功响应 (200)**: `{"message": "Resource deleted successfully"}`
+
+### `GET /api/v1/settings/user/{user_id}`
+- **描述**: 获取指定用户的设置。
+- **成功响应 (200)**: `{"data": UserSetting}`
+
+### `PUT /api/v1/settings/user/{user_id}`
+- **描述**: 更新指定用户的设置。
+- **请求体**: `{"ai_model": "string", ...}`
+- **成功响应 (200)**: `{"data": UserSetting}`
+
+### `PUT /api/v1/settings/{user_id}/ai-model`
+- **描述**: 更新指定用户的AI模型设置。
+- **请求体**: `{"ai_model": "string"}`
+- **成功响应 (200)**: `{"data": UserSetting}`
 
 ## 模块: AI (人工智能)
 
 ### `POST /api/v1/ai/completion`
 - **描述**: 请求文本补全。
-- **请求体**: `{"prompt": "string"}`
-- **成功响应 (200)**: `{"completion": "string"}`
+- **请求体**: `models.CompletionRequest`
+- **成功响应 (200)**: `{"data": models.CompletionResponse}`
 
 ### `POST /api/v1/ai/polish`
 - **描述**: 请求文本润色。
-- **请求体**: `{"text": "string"}`
-- **成功响应 (200)**: `{"polishedText": "string"}`
+- **请求体**: `models.PolishRequest`
+- **成功响应 (200)**: `{"data": models.PolishResponse}`
+
+### `POST /api/v1/ai/generate-idea`
+- **描述**: 生成想法。
+- **请求体**: `models.GenerateIdeaRequest`
+- **成功响应 (200)**: `{"data": models.GenerateIdeaResponse}`
+
+### `POST /api/v1/ai/generate-outline`
+- **描述**: 生成大纲。
+- **请求体**: `models.GenerateOutlineRequest`
+- **成功响应 (200)**: `{"data": models.GenerateOutlineResponse}`
+
+### `POST /api/v1/ai/create-character`
+- **描述**: 创建角色。
+- **请求体**: `models.CreateCharacterRequest`
+- **成功响应 (200)**: `{"data": models.CreateCharacterResponse}`

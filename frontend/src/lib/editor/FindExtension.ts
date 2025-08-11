@@ -60,7 +60,7 @@ export const FindExtension = Extension.create({
                 editor.state.doc,
                 searchTerm,
                 caseSensitive,
-                wholeWord
+                wholeWord,
               );
               return { ...value, results, currentIndex: -1 };
             }
@@ -80,7 +80,7 @@ export const FindExtension = Extension.create({
                 return Decoration.inline(res.from, res.to, {
                   class: className,
                 });
-              }
+              },
             );
             return DecorationSet.create(state.doc, decorations);
           },
@@ -194,7 +194,7 @@ function find(
   doc: any,
   searchTerm: string,
   caseSensitive: boolean,
-  wholeWord: boolean
+  wholeWord: boolean,
 ): FindResult[] {
   if (!searchTerm) return [];
 
@@ -203,7 +203,7 @@ function find(
   const regex = wholeWord
     ? new RegExp(
         `\\b${searchTerm.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")}\\b`,
-        flags
+        flags,
       )
     : new RegExp(searchTerm.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"), flags);
 

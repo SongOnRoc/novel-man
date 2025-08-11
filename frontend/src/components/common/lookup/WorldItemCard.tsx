@@ -1,4 +1,4 @@
-import { WorldItem, worldItemTypeOptions } from "@/types/worldbuilding";
+import { WorldviewItem, worldItemTypeOptions } from "@/types/worldbuilding";
 import {
   Card,
   CardContent,
@@ -12,7 +12,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 
 interface WorldItemCardProps {
-  worldItem: WorldItem;
+  worldItem: WorldviewItem;
   onSelect?: (name: string) => void;
   children?: React.ReactNode;
 }

@@ -1,24 +1,70 @@
-"use client"; // 标记为客户端组件
+"use client";
 
-import * as React from "react"; // 导入React
-import { AppSidebar } from "./AppSidebar"; // 导入侧边栏组件
+import React from "react";
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/ui/resizable";
+import { Sidebar } from "./Sidebar";
+import { Header } from "./Header";
+import { cn } from "@/lib/utils";
 
-// 定义主布局组件的属性类型
 interface MainLayoutProps {
-  children: React.ReactNode; // 子组件
+  children: React.ReactNode;
+  defaultLayout?: number[];
+  defaultCollapsed?: boolean;
+  navCollapsedSize?: number;
 }
 
-// 主布局组件
-export function MainLayout({ children }: MainLayoutProps) {
-  return (
-    <div className="flex min-h-screen">
-      {/* 侧边栏 */}
-      <AppSidebar />
+export function MainLayout({
+  children,
+  defaultLayout = [20, 80], // Sidebar: 20%, Main: 80%
+  defaultCollapsed = false,
+  navCollapsedSize = 4, // Corresponds to Tailwind CSS width w-16 (4rem)
+}: MainLayoutProps) {
+  const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
 
-      {/* 主内容区域 */}
-      <main className="flex-1 overflow-auto">
-        <div className="container mx-auto p-6">{children}</div>
-      </main>
-    </div>
+  return (
+    <ResizablePanelGroup
+      direction="horizontal"
+      onLayout={(sizes: number[]) => {
+        document.cookie = `react-resizable-panels:layout=${JSON.stringify(
+          sizes,
+        )}`;
+      }}
+      className="h-screen items-stretch"
+    >
+      <ResizablePanel
+        defaultSize={defaultLayout[0]}
+        collapsedSize={navCollapsedSize}
+        collapsible={true}
+        minSize={15}
+        maxSize={25}
+        onCollapse={() => {
+          setIsCollapsed(true);
+          document.cookie = `react-resizable-panels:collapsed=true`;
+        }}
+        onExpand={() => {
+          setIsCollapsed(false);
+          document.cookie = `react-resizable-panels:collapsed=false`;
+        }}
+        className={cn(
+          "transition-all duration-300 ease-in-out",
+          isCollapsed && "min-w-[50px] transition-all duration-300 ease-in-out",
+        )}
+      >
+        <Sidebar isCollapsed={isCollapsed} />
+      </ResizablePanel>
+      <ResizableHandle withHandle />
+      <ResizablePanel defaultSize={defaultLayout[1]}>
+        <div className="flex flex-col h-full">
+          <Header />
+          <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+            {children}
+          </main>
+        </div>
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 }

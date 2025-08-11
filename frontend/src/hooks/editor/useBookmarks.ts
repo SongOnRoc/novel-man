@@ -29,13 +29,13 @@ export function useBookmarks(editor: Editor | null, contentId: string) {
       try {
         localStorage.setItem(
           `bookmarks-${contentId}`,
-          JSON.stringify(bookmarksList)
+          JSON.stringify(bookmarksList),
         );
       } catch (error) {
         console.error("保存书签失败:", error);
       }
     },
-    [contentId]
+    [contentId],
   );
 
   // 添加书签
@@ -64,31 +64,33 @@ export function useBookmarks(editor: Editor | null, contentId: string) {
 
       return newBookmark;
     },
-    [editor, bookmarks, saveBookmarksToStorage]
+    [editor, bookmarks, saveBookmarksToStorage],
   );
 
   // 删除书签
   const removeBookmark = useCallback(
     (bookmarkId: string) => {
       const updatedBookmarks = bookmarks.filter(
-        (bookmark) => bookmark.id !== bookmarkId
+        (bookmark) => bookmark.id !== bookmarkId,
       );
       setBookmarks(updatedBookmarks);
       saveBookmarksToStorage(updatedBookmarks);
     },
-    [bookmarks, saveBookmarksToStorage]
+    [bookmarks, saveBookmarksToStorage],
   );
 
   // 更新书签标签
   const updateBookmarkLabel = useCallback(
     (bookmarkId: string, newLabel: string) => {
       const updatedBookmarks = bookmarks.map((bookmark) =>
-        bookmark.id === bookmarkId ? { ...bookmark, label: newLabel } : bookmark
+        bookmark.id === bookmarkId
+          ? { ...bookmark, label: newLabel }
+          : bookmark,
       );
       setBookmarks(updatedBookmarks);
       saveBookmarksToStorage(updatedBookmarks);
     },
-    [bookmarks, saveBookmarksToStorage]
+    [bookmarks, saveBookmarksToStorage],
   );
 
   // 跳转到书签位置
@@ -123,7 +125,7 @@ export function useBookmarks(editor: Editor | null, contentId: string) {
         editor.commands.unsetMark("highlight");
       }, 2000);
     },
-    [editor, bookmarks]
+    [editor, bookmarks],
   );
 
   return {

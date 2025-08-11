@@ -102,7 +102,7 @@ describe("EditorToolbar", () => {
 
   it("should not render if editor is null", () => {
     const { container } = render(
-      <EditorToolbar editor={null} editorContainerId="test-id" />
+      <EditorToolbar editor={null} editorContainerId="test-id" />,
     );
     expect(container.firstChild).toBeNull();
   });
@@ -113,7 +113,7 @@ describe("EditorToolbar", () => {
         editor={mockEditor}
         editorContainerId="test-id"
         workId="w1"
-      />
+      />,
     );
     expect(screen.getByLabelText("加粗")).toBeInTheDocument();
     expect(screen.getByLabelText("斜体")).toBeInTheDocument();
@@ -214,7 +214,7 @@ describe("EditorToolbar", () => {
         editor={mockEditor}
         onSave={onSave}
         editorContainerId="test-id"
-      />
+      />,
     );
     await user.click(screen.getByRole("button", { name: "保存" }));
     expect(onSave).toHaveBeenCalled();
@@ -227,7 +227,7 @@ describe("EditorToolbar", () => {
         onSave={() => {}}
         isSaving={true}
         editorContainerId="test-id"
-      />
+      />,
     );
     const saveButton = screen.getByRole("button", { name: "保存中..." });
     expect(saveButton).toBeInTheDocument();
@@ -251,7 +251,7 @@ describe("EditorToolbar", () => {
 
     // 默认设置 showWordCount 是 true, 所以初始保存时应该是 true
     const initialSettings = JSON.parse(
-      localStorage.getItem("editor-settings")!
+      localStorage.getItem("editor-settings")!,
     );
     expect(initialSettings.showWordCount).toBe(true);
 
@@ -260,7 +260,7 @@ describe("EditorToolbar", () => {
 
     // 验证 localStorage 的内容是否已更新
     const updatedSettings = JSON.parse(
-      localStorage.getItem("editor-settings")!
+      localStorage.getItem("editor-settings")!,
     );
     expect(updatedSettings.showWordCount).toBe(false);
   });
@@ -271,7 +271,7 @@ describe("EditorToolbar", () => {
         editor={mockEditor}
         editorContainerId="test-id"
         wordCount={123}
-      />
+      />,
     );
     expect(screen.getByText("123 字")).toBeInTheDocument();
     await user.click(screen.getByText("Toggle Word Count"));
@@ -303,7 +303,7 @@ describe("EditorToolbar", () => {
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       "加载编辑器设置失败:",
-      expect.any(Error)
+      expect.any(Error),
     );
     const editorElement = document.querySelector(".ProseMirror");
     expect(editorElement?.classList.contains("theme-default")).toBe(true);

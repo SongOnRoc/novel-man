@@ -101,7 +101,7 @@ describe("useLookup", () => {
     expect(result.current.worldItems).toEqual([]);
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       "Failed to load settings:",
-      expect.any(Error)
+      expect.any(Error),
     );
     consoleErrorSpy.mockRestore();
   });
@@ -172,7 +172,7 @@ describe("useLookup", () => {
       .mockImplementation(() => {});
     mockGetCharactersByWorkId.mockResolvedValue(mockCharacters);
     mockGetWorldItemsByWorkId.mockRejectedValue(
-      new Error("World fetch failed")
+      new Error("World fetch failed"),
     );
 
     const { result } = renderHook(() => useLookup());

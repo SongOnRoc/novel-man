@@ -36,7 +36,9 @@ export interface ExportOptions {
 export function ExportDialog({ onExport, disabled }: ExportDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [format, setFormat] = useState<"txt" | "png">("txt");
-  const [range, setRange] = useState<"current" | "volume" | "all" | "custom">("current");
+  const [range, setRange] = useState<"current" | "volume" | "all" | "custom">(
+    "current",
+  );
 
   const handleExportClick = () => {
     onExport({ format, range });
@@ -80,7 +82,9 @@ export function ExportDialog({ onExport, disabled }: ExportDialogProps) {
             <Label className="text-right">范围</Label>
             <RadioGroup
               value={range}
-              onValueChange={(value) => setRange(value as "current" | "volume" | "all" | "custom")}
+              onValueChange={(value) =>
+                setRange(value as "current" | "volume" | "all" | "custom")
+              }
               className="col-span-3"
             >
               <div className="flex items-center space-x-2">
@@ -95,7 +99,7 @@ export function ExportDialog({ onExport, disabled }: ExportDialogProps) {
                 <RadioGroupItem value="all" id="r3" />
                 <Label htmlFor="r3">整部作品</Label>
               </div>
-               <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2">
                 <RadioGroupItem value="custom" id="r4" disabled />
                 <Label htmlFor="r4">自定义范围 (暂不可用)</Label>
               </div>

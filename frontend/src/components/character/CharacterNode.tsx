@@ -1,10 +1,10 @@
 import React, { memo } from "react";
-import { Handle, Position, NodeProps, useStore } from "react-flow-renderer";
+import { Handle, Position, NodeProps, useViewport } from "reactflow";
 
 const CharacterNode = ({
   data,
 }: NodeProps<{ label: string; avatar?: string }>) => {
-  const zoom = useStore((s) => s.transform[2]);
+  const { zoom } = useViewport();
 
   const isVisible = zoom >= 0.6;
 

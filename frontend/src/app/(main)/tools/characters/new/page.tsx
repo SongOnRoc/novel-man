@@ -22,23 +22,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowLeft, Save } from "lucide-react";
-import { useCharacters } from "@/hooks/character/useCharacters";
-import { useWorks } from "@/hooks/useWorks";
-import { CharacterRelationManager } from "@/components/character/CharacterRelationManager";
+import { useCreateCharacter } from "@/hooks/character/useCharacters";
+import { useWorks } from "@/hooks/work/useWorks";
+// import { CharacterRelationManager } from "@/components/character/CharacterRelationManager";
 import {
   Character,
-  CharacterRelationship,
-  RelationshipType,
+  // CharacterRelationship,
+  // RelationshipType,
 } from "@/types/character";
 import { Separator } from "@/components/ui/separator";
 
 // A version of CharacterRelationship for temporary state before the main character has an ID.
-type TempCharacterRelationship = Omit<CharacterRelationship, "id" | "sourceId">;
+// import { TempCharacterRelationship } from "@/types/character";
 
 export default function NewCharacterPage() {
   const router = useRouter();
-  const { characters: allCharacters, addCharacter } = useCharacters();
-  const { works } = useWorks();
+  const createCharacterMutation = useCreateCharacter();
+  const { data: worksData } = useWorks();
+  const works = worksData?.data || [];
 
   const [workId, setWorkId] = useState("");
   const [formData, setFormData] = useState({
@@ -53,37 +54,45 @@ export default function NewCharacterPage() {
     notes: "",
   });
 
-  const [tempRelations, setTempRelations] = useState<
-    TempCharacterRelationship[]
-  >([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // const [tempRelations, setTempRelations] = useState<
+  //   TempCharacterRelationship[]
+  // >([]);
   const [error, setError] = useState<string | null>(null);
 
-  const charactersInSameWork = allCharacters.filter((c) => c.workId === workId);
+  // const charactersInSameWork = allCharacters.filter(
+  //   (c) => c.work_id && c.work_id.toString() === workId
+  // );
 
-  const handleAddRelation = (targetId: string, type: RelationshipType) => {
-    // Prevent duplicates
-    if (tempRelations.some((r) => r.targetId === targetId)) return;
-    setTempRelations((prev) => [...prev, { targetId, type }]);
-  };
+  // const handleAddRelation = (targetId: string, type: RelationshipType) => {
+  //   // Prevent duplicates
+  //   if (tempRelations.some((r) => r.target_id.toString() === targetId)) return;
+  //   setTempRelations((prev) => [
+  //     ...prev,
+  //     { target_id: parseInt(targetId, 10), type },
+  //   ]);
+  // };
 
-  const handleDeleteRelation = (relationId: string) => {
-    // In temp state, we use targetId as a key
-    setTempRelations((prev) => prev.filter((r) => r.targetId !== relationId));
-  };
+  // const handleDeleteRelation = (relationId: string) => {
+  //   // In temp state, we use targetId as a key
+  //   setTempRelations((prev) =>
+  //     prev.filter((r) => r.target_id.toString() !== relationId)
+  //   );
+  // };
 
-  const handleUpdateRelationType = (
-    relationId: string,
-    newType: RelationshipType
-  ) => {
-    // In temp state, we use targetId as a key
-    setTempRelations((prev) =>
-      prev.map((r) => (r.targetId === relationId ? { ...r, type: newType } : r))
-    );
-  };
+  // const handleUpdateRelationType = (
+  //   relationId: string,
+  //   newType: RelationshipType
+  // ) => {
+  //   // In temp state, we use targetId as a key
+  //   setTempRelations((prev) =>
+  //     prev.map((r) =>
+  //       r.target_id.toString() === relationId ? { ...r, type: newType } : r
+  //     )
+  //   );
+  // };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -105,34 +114,24 @@ export default function NewCharacterPage() {
       return;
     }
 
-    setIsSubmitting(true);
     setError(null);
 
     try {
-      const personalityArray = formData.personality
-        ? formData.personality.split(",").map((item) => item.trim())
-        : [];
-
-      const abilitiesArray = formData.abilities
-        ? formData.abilities.split(",").map((item) => item.trim())
-        : [];
-
-      const age = formData.age ? parseInt(formData.age, 10) : undefined;
-
       const newCharacterData = {
-        workId,
+        work_id: parseInt(workId, 10),
         name: formData.name,
-        gender: formData.gender as "male" | "female" | "other" | undefined,
-        age: isNaN(age as number) ? undefined : age,
-        occupation: formData.occupation || undefined,
-        personality: personalityArray.length > 0 ? personalityArray : undefined,
-        abilities: abilitiesArray.length > 0 ? abilitiesArray : undefined,
-        background: formData.background || undefined,
-        appearance: formData.appearance || undefined,
-        notes: formData.notes || undefined,
+        gender: formData.gender,
+        age: parseInt(formData.age, 10) || 0,
+        occupation: formData.occupation,
+        personality: formData.personality,
+        abilities: formData.abilities,
+        background: formData.background,
+        appearance: formData.appearance,
+        notes: formData.notes,
       };
 
-      const newCharacter = await addCharacter(newCharacterData, tempRelations);
+      const newCharacter =
+        await createCharacterMutation.mutateAsync(newCharacterData);
 
       if (newCharacter) {
         router.push(`/tools/characters/${newCharacter.id}`);
@@ -142,19 +141,22 @@ export default function NewCharacterPage() {
     } catch (err) {
       setError("创建角色时发生错误");
       console.error("Error creating character:", err);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   // Adapt tempRelations to fit the CharacterRelationManager's expected prop type
-  const managerRelations: CharacterRelationship[] = tempRelations.map(
-    (r, i) => ({
-      ...r,
-      id: r.targetId, // Use targetId as a temporary, unique key for the manager
-      sourceId: "new-character-placeholder", // Placeholder
-    })
-  );
+  // const managerRelations: CharacterRelationship[] = tempRelations.map(
+  //   (r, i) => ({
+  //     id: r.target_id, // Use target_id as a temporary, unique key for the manager
+  //     source_id: 0, // Placeholder
+  //     target_id: r.target_id,
+  //     type: r.type,
+  //     description: r.description || "",
+  //     work_id: parseInt(workId, 10),
+  //     created_at: new Date().toISOString(),
+  //     updated_at: new Date().toISOString(),
+  //   })
+  // );
 
   return (
     <div className="space-y-6">
@@ -239,9 +241,9 @@ export default function NewCharacterPage() {
                   <SelectValue placeholder="选择一个作品..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {works.map((work) => (
-                    <SelectItem key={work.id} value={work.id}>
-                      {work.name}
+                  {works.map((work: any) => (
+                    <SelectItem key={work.id} value={work.id.toString()}>
+                      {work.title}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -312,8 +314,8 @@ export default function NewCharacterPage() {
 
             <Separator />
 
-            {/* Relations Manager */}
-            {workId && (
+            {/* Relations Manager - Temporarily Disabled */}
+            {/* {workId && (
               <CharacterRelationManager
                 characterId="new-character-placeholder"
                 allCharacters={charactersInSameWork}
@@ -322,7 +324,7 @@ export default function NewCharacterPage() {
                 onDeleteRelation={handleDeleteRelation}
                 onUpdateRelationType={handleUpdateRelationType}
               />
-            )}
+            )} */}
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
             <Button
@@ -332,8 +334,8 @@ export default function NewCharacterPage() {
             >
               取消
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "创建中..." : "创建角色"}
+            <Button type="submit" disabled={createCharacterMutation.isPending}>
+              {createCharacterMutation.isPending ? "创建中..." : "创建角色"}
               <Save className="ml-2 h-4 w-4" />
             </Button>
           </CardFooter>

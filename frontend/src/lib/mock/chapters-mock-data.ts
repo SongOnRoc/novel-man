@@ -1,11 +1,11 @@
-import { Chapter, Draft } from "@/types/work";
+import { Chapter, Draft } from "@/types/core";
 
 export const mockChapters: Chapter[] = [
   // 作品 "修仙从种田开始" 的已发布章节
   {
-    id: "1-1",
-    workId: "1",
-    volumeId: "v1",
+    id: 1,
+    workId: 1,
+    volumeId: 1,
     title: "第一章 意外得到仙家传承",
     outline: "主角获得《仙农传承》，开启修仙之路。",
     content:
@@ -17,9 +17,9 @@ export const mockChapters: Chapter[] = [
     status: "published",
   },
   {
-    id: "1-2",
-    workId: "1",
-    volumeId: "v1",
+    id: 2,
+    workId: 1,
+    volumeId: 1,
     title: "第二章 初试灵力",
     outline: "主角第一次使用灵力改良土壤，效果显著。",
     content:
@@ -30,259 +30,19 @@ export const mockChapters: Chapter[] = [
     updatedAt: "2023-09-13",
     status: "published",
   },
-  {
-    id: "1-3",
-    workId: "1",
-    volumeId: "v2",
-    title: "第三章 神秘的种子",
-    outline: "种下神秘种子，引发天地异象。",
-    content: "",
-    order: 3,
-    wordCount: 1650,
-    createdAt: "2023-09-14",
-    updatedAt: "2023-09-15",
-    status: "published",
-  },
-  {
-    id: "1-4",
-    workId: "1",
-    volumeId: "v2",
-    title: "第四章 修炼灵力",
-    outline: "修炼灵力，引发灵田生长。",
-    content: "",
-    order: 4,
-    wordCount: 1650,
-    createdAt: "2023-09-14",
-    updatedAt: "2023-09-15",
-    status: "published",
-  },
-  {
-    id: "1-5",
-    workId: "1",
-    volumeId: "v2",
-    title: "第五章 修炼灵力",
-    outline: "修炼灵力，引发灵田生长。",
-    content: "",
-    order: 5,
-    wordCount: 1650,
-    createdAt: "2023-09-14",
-    updatedAt: "2023-09-15",
-    status: "published",
-  },
-  {
-    id: "2-1",
-    workId: "2",
-    volumeId: "v1",
-    title: "第一章 回归都市",
-    outline: "主角回到都市，开始新的生活。",
-    content: "",
-    order: 1,
-    wordCount: 1650,
-    createdAt: "2023-09-14",
-    updatedAt: "2023-09-15",
-    status: "published",
-  },
-  {
-    id: "2-2",
-    workId: "2",
-    volumeId: "v1",
-    title: "第二章 初露锋芒",
-    outline: "主角在都市中逐渐展露头角，获得了初步的成功。",
-    content: "",
-    order: 2,
-    wordCount: 1650,
-    createdAt: "2023-09-14",
-    updatedAt: "2023-09-15",
-    status: "published",
-  },
-  {
-    id: "3-1",
-    workId: "3",
-    volumeId: "v1",
-    title: "第一章 青云山下",
-    outline: "",
-    content: "",
-    order: 1,
-    wordCount: 1650,
-    createdAt: "2023-09-14",
-    updatedAt: "2023-09-15",
-    status: "published",
-  },
 ];
 
 export const mockDrafts: Draft[] = [
   {
-    id: "draft-1",
-    workId: "1",
+    id: 1,
+    workId: 1,
     title: "第四章 灵田初成",
-    outline:
+    description:
       "经过三天三夜的不懈努力，李青终于将灵力注入那片荒地，一股清新的灵气开始在土地中流转。他惊喜地发现，原本贫瘠的土地正在以肉眼可见的速度变得肥沃起来...",
     content:
       "经过三天三夜的不懈努力，李青终于将灵力注入那片荒地，一股清新的灵气开始在土地中流转。他惊喜地发现，原本贫瘠的土地正在以肉眼可见的速度变得肥沃起来...",
-    status: "draft",
     wordCount: 2100,
     createdAt: "2023-09-19",
     updatedAt: "2023-09-20",
   },
-  {
-    id: "draft-2",
-    workId: "2",
-    title: "第三章 商业联姻",
-    outline:
-      "张明站在高楼之上，俯瞰整个城市的灯火。他知道，今晚的宴会将决定他与林氏集团合作的成败。作为一个从军队退役的特种兵，他从未想过有一天会靠联姻来解决商业问题...",
-    content:
-      "张明站在高楼之上，俯瞰整个城市的灯火。他知道，今晚的宴会将决定他与林氏集团合作的成 baisse.作为一个从军队退役的特种兵，他从未想过有一天会靠联姻来解决商业问题...",
-    status: "draft",
-    wordCount: 1800,
-    createdAt: "2023-09-17",
-    updatedAt: "2023-09-18",
-  },
-  {
-    id: "draft-3",
-    workId: "note-1", // 使用一个特殊的workId来表示这是一个独立的笔记
-    title: "新作品构思",
-    outline:
-      "故事背景设定在2150年，人类已经开始在太阳系内多个行星建立殖民地。主角是一名星际运输船的机械师，在一次例行维修中发现了船舱内的神秘货物...",
-    content:
-      "故事背景设定在2150年，人类已经开始在太阳系内多个行星建立殖民地。主角是一名星际运输船的机械师，在一次例行维修中发现了船舱内的神秘货物...",
-    status: "draft",
-    wordCount: 950,
-    createdAt: "2023-09-15",
-    updatedAt: "2023-09-15",
-  },
 ];
-
-// 模拟删除章节
-export const mockDeleteChapter = (chapterId: string): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const index = mockChapters.findIndex((chapter) => chapter.id === chapterId);
-      if (index !== -1) {
-        mockChapters.splice(index, 1);
-        console.log(`Chapter with id ${chapterId} deleted.`);
-        resolve();
-      } else {
-        console.error(`Chapter with id ${chapterId} not found.`);
-        reject(new Error("Chapter not found"));
-      }
-    }, 500);
-  });
-};
-
-// 模拟更新章节状态
-export const mockUpdateChapterStatus = (
-  chapterId: string,
-  status: "draft" | "published"
-): Promise<Chapter> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const chapter = mockChapters.find((c) => c.id === chapterId);
-      if (chapter) {
-        chapter.status = status;
-        chapter.updatedAt = new Date().toISOString().split("T")[0];
-        console.log(
-          `Chapter with id ${chapterId} status updated to ${status}.`
-        );
-        resolve(chapter);
-      } else {
-        console.error(`Chapter with id ${chapterId} not found.`);
-        reject(new Error("Chapter not found"));
-      }
-    }, 500);
-  });
-};
-
-// 模拟删除草稿
-export const mockDeleteDraft = (draftId: string): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const index = mockDrafts.findIndex((draft) => draft.id === draftId);
-      if (index !== -1) {
-        mockDrafts.splice(index, 1);
-        console.log(`Draft with id ${draftId} deleted.`);
-        resolve();
-      } else {
-        console.error(`Draft with id ${draftId} not found.`);
-        reject(new Error("Draft not found"));
-      }
-    }, 500);
-  });
-};
-
-// 模拟创建新草稿
-export const mockCreateDraft = (content: string): Promise<Draft> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const newDraft: Draft = {
-        id: `draft-${Date.now()}`,
-        workId: "note-1", // 默认为独立笔记
-        title: content.substring(0, 20) || "AI 生成内容",
-        content: content,
-        outline: content.substring(0, 100),
-        status: "draft",
-        wordCount: content.length,
-        createdAt: new Date().toISOString().split("T")[0],
-        updatedAt: new Date().toISOString().split("T")[0],
-      };
-      mockDrafts.unshift(newDraft); // 将新草稿添加到数组开头
-      console.log("New draft created:", newDraft);
-      resolve(newDraft);
-    }, 500);
-  });
-};
-
-// 模拟将草稿转换为章节
-export const mockConvertDraftToChapter = (draftId: string): Promise<Chapter> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const draftIndex = mockDrafts.findIndex((d) => d.id === draftId);
-      const draft = mockDrafts[draftIndex];
-
-      if (draft && draft.workId) {
-        mockDrafts.splice(draftIndex, 1);
-        const newChapter: Chapter = {
-          id: `ch-${Date.now()}`, // 生成一个唯一ID
-          workId: draft.workId,
-          volumeId: "v1", // 假设默认添加到第一个分卷
-          title: draft.title,
-          content: draft.content,
-          status: "published",
-          order: mockChapters.filter(c => c.workId === draft.workId).length + 1,
-          wordCount: draft.wordCount,
-          createdAt: new Date().toISOString().split("T")[0],
-          updatedAt: new Date().toISOString().split("T")[0],
-          outline: draft.outline,
-        };
-        mockChapters.push(newChapter);
-        console.log(`Draft with id ${draftId} converted to chapter.`);
-        resolve(newChapter);
-      } else {
-        console.error(`Draft with id ${draftId} not found or has no workId.`);
-        reject(new Error("Draft not found or cannot be converted"));
-      }
-    }, 500);
-  });
-};
-
-// 模拟创建新章节
-export const mockCreateChapter = (
-  data: Omit<Chapter, "id" | "order" | "wordCount" | "createdAt" | "updatedAt" | "status">
-): Promise<Chapter> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const newChapter: Chapter = {
-        id: `ch-${Date.now()}`,
-        ...data,
-        order:
-          mockChapters.filter((c) => c.workId === data.workId).length + 1,
-        wordCount: data.content?.length || 0,
-        createdAt: new Date().toISOString().split("T")[0],
-        updatedAt: new Date().toISOString().split("T")[0],
-        status: "draft", // 新建的章节默认为草稿
-      };
-      mockChapters.push(newChapter);
-      console.log("New chapter created:", newChapter);
-      resolve(newChapter);
-    }, 500);
-  });
-};

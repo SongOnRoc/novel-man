@@ -34,7 +34,10 @@ const formSchema = z.object({
     .string()
     .min(2, { message: "标题至少需要2个字符" })
     .max(100, { message: "标题不能超过100个字符" }),
-  description: z.string().max(500, { message: "描述不能超过500个字符" }).optional(),
+  description: z
+    .string()
+    .max(500, { message: "描述不能超过500个字符" })
+    .optional(),
   category: z.string().min(1, { message: "请选择一个类型" }),
 });
 
@@ -71,8 +74,8 @@ export default function NewWorkPage() {
     const newWorkData: CreateWorkData = {
       ...values,
       description: values.description || "",
-      cover_image_url: "", // 暂时为空
-      status: "连载中",
+      coverImageUrl: "", // 暂时为空
+      status: "ongoing",
     };
 
     createWork(newWorkData, {

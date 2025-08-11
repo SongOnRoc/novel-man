@@ -22,24 +22,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FileText, MoreVertical, Edit, Eye, ArrowUp, ArrowDown, Search } from "lucide-react";
+import {
+  MoreVertical,
+  Edit,
+  Eye,
+  ArrowUp,
+  ArrowDown,
+  Search,
+} from "lucide-react";
 import Link from "next/link";
 
-import { Chapter } from "@/types/work";
-import { mockVolumes } from "@/lib/mock/volumes-mock-data";
+import { Chapter } from "@/types/chapter";
+import { Volume } from "@/types/work";
 
-// 章节列表属性
+// Chapter list properties
 interface ChapterListProps {
-  workId: string;
   chapters: Chapter[];
-  onDeleteChapter: (chapterId: string) => void;
-  onUpdateStatus: (chapterId: string, status: "draft" | "published") => void;
+  volumes: Volume[];
+  onDeleteChapter: (chapterId: number) => void;
+  onUpdateStatus: (chapterId: number, status: "draft" | "published") => void;
 }
 
-// 章节列表组件
+// Chapter list component
 export function ChapterList({
-  workId,
   chapters,
+  volumes,
   onDeleteChapter,
   onUpdateStatus,
 }: ChapterListProps) {
@@ -51,14 +58,23 @@ export function ChapterList({
     let filtered = chapters;
 
     if (selectedVolume !== "all") {
-      filtered = filtered.filter(
-        (chapter) => (chapter.volumeId || "unclassified") === selectedVolume
-      );
+      const isUnclassified = selectedVolume === "unclassified";
+      if (isUnclassified) {
+        filtered = filtered.filter(
+          (chapter) =>
+            chapter.volumeId === null || chapter.volumeId === undefined,
+        );
+      } else {
+        const volumeIdNumber = parseInt(selectedVolume, 10);
+        filtered = filtered.filter(
+          (chapter) => chapter.volumeId === volumeIdNumber,
+        );
+      }
     }
 
     if (searchTerm) {
       filtered = filtered.filter((chapter) =>
-        chapter.title.toLowerCase().includes(searchTerm.toLowerCase())
+        chapter.title.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
@@ -76,7 +92,7 @@ export function ChapterList({
   const chaptersByVolume = filteredAndSortedChapters.reduce<
     Record<string, Chapter[]>
   >((acc, chapter) => {
-    const volumeId = chapter.volumeId || "unclassified";
+    const volumeId = chapter.volumeId?.toString() || "unclassified";
     if (!acc[volumeId]) {
       acc[volumeId] = [];
     }
@@ -86,12 +102,11 @@ export function ChapterList({
 
   const getVolumeTitle = (volumeId: string) => {
     if (volumeId === "unclassified") return "未分卷";
-    const volume = mockVolumes.find((v) => v.id === volumeId);
+    const volume = volumes.find((v) => v.id.toString() === volumeId);
     return volume ? volume.title : "未知分卷";
   };
 
   const getStatusBadge = (status: Chapter["status"]) => {
-    // ... (getStatusBadge function remains the same)
     switch (status) {
       case "draft":
         return (
@@ -129,17 +144,14 @@ export function ChapterList({
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Select
-              value={selectedVolume}
-              onValueChange={setSelectedVolume}
-            >
+            <Select value={selectedVolume} onValueChange={setSelectedVolume}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="筛选分卷" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">所有分卷</SelectItem>
-                {mockVolumes.map((v) => (
-                  <SelectItem key={v.id} value={v.id}>
+                {volumes.map((v) => (
+                  <SelectItem key={v.id} value={v.id.toString()}>
                     {v.title}
                   </SelectItem>
                 ))}
@@ -176,7 +188,7 @@ export function ChapterList({
                   <h3 className="border-b pb-2 text-lg font-semibold tracking-tight">
                     {getVolumeTitle(volumeId)}
                   </h3>
-                  {volumeChapters.map((chapter, index) => (
+                  {volumeChapters.map((chapter) => (
                     <div
                       key={chapter.id}
                       className="flex items-center justify-between rounded-lg border p-3 shadow-sm"
@@ -190,7 +202,10 @@ export function ChapterList({
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <span>{chapter.wordCount} 字</span>
                             <span>•</span>
-                            <span>更新于 {chapter.updatedAt}</span>
+                            <span>
+                              更新于{" "}
+                              {new Date(chapter.updatedAt).toLocaleDateString()}
+                            </span>
                             <span>•</span>
                             {getStatusBadge(chapter.status)}
                           </div>
@@ -245,7 +260,7 @@ export function ChapterList({
                     </div>
                   ))}
                 </div>
-              )
+              ),
             )}
           </div>
         )}

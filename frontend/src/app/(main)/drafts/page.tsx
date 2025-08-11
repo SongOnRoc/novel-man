@@ -6,36 +6,42 @@ import { Button } from "@/components/ui/button";
 import { FilePlus } from "lucide-react";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useDrafts } from "@/hooks/useDrafts";
+import {
+  useDrafts,
+  useDeleteDraft,
+  usePublishDraft,
+} from "@/hooks/draft/useDrafts";
+import { useWorks } from "@/hooks/work/useWorks";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Draft } from "@/types/work";
+import { Draft } from "@/types/draft";
+import { useSearchParams } from "next/navigation";
 
 // 草稿类型
 type DraftType = "all" | "chapter" | "note";
 
 // 草稿箱页面组件
 export default function DraftsPage() {
-  const { drafts, isLoading, deleteDraft, convertDraftToChapter } = useDrafts();
+  const searchParams = useSearchParams();
+  const workId = searchParams.get("work_id");
+
   const [draftType, setDraftType] = useState<DraftType>("all");
+  const { data, isLoading } = useDrafts(workId ? parseInt(workId) : undefined);
+  const { data: worksData } = useWorks({ limit: 999 }); // Fetch all works for selection
+  const deleteDraftMutation = useDeleteDraft();
+  const publishDraftMutation = usePublishDraft();
 
-  const filteredDrafts = useMemo(() => {
-    return drafts.filter((draft: Draft) => {
-      if (draftType === "all") return true;
-      if (draftType === "chapter") return !!draft.workId && draft.workId !== 'note-1';
-      if (draftType === "note") return !draft.workId || draft.workId === 'note-1';
-      return true;
-    });
-  }, [drafts, draftType]);
+  const drafts = useMemo(() => data?.data || [], [data]);
+  const works = useMemo(() => worksData?.data || [], [worksData]);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: number) => {
     if (window.confirm("确定要删除这个草稿吗？此操作不可撤销。")) {
-      deleteDraft(id);
+      deleteDraftMutation.mutate(id);
     }
   };
 
-  const handleConvert = (id: string) => {
-    if (window.confirm("确定要将这个草稿转换为正式章节吗？")) {
-      convertDraftToChapter(id);
+  const handlePublish = (id: number) => {
+    if (window.confirm("确定要发布这个草稿吗？")) {
+      publishDraftMutation.mutate(id);
     }
   };
 
@@ -69,14 +75,21 @@ export default function DraftsPage() {
           <TabsTrigger value="note">笔记草稿</TabsTrigger>
         </TabsList>
         <TabsContent value={draftType}>
-          {filteredDrafts.length > 0 ? (
+          {isLoading ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredDrafts.map((draft) => (
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-48 w-full" />
+              ))}
+            </div>
+          ) : drafts.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {drafts.map((draft) => (
                 <DraftCard
                   key={draft.id}
                   draft={draft}
-                  onDelete={handleDelete}
-                  onConvert={handleConvert}
+                  works={works}
+                  onDelete={() => handleDelete(draft.id)}
+                  onPublish={() => handlePublish(draft.id)}
                 />
               ))}
             </div>

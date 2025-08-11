@@ -4,6 +4,7 @@ import { WorkCard } from "./components/WorkCard";
 import { NewWorkButton } from "./components/NewWorkButton";
 import { useWorks, useDeleteWork } from "@/hooks/work/useWorks";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Work } from "@/types/work";
 
 // 作品列表页面组件
 export default function WorksPage() {
@@ -48,7 +49,7 @@ export default function WorksPage() {
         <>
           {works.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {works.map((work) => (
+              {works.map((work: Work) => (
                 <WorkCard
                   key={work.id}
                   work={work}

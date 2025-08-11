@@ -90,20 +90,16 @@
 | `ID` | `uint` | `id` | 角色唯一标识符 (主键) |
 | `UserID` | `uint` | `user_id` | 所属用户ID |
 | `Name` | `string` | `name` | 角色名 |
-| `Alias` | `*string` | `alias,omitempty` | 角色别名 |
-| `AvatarURL` | `*string` | `avatar_url,omitempty` | 角色头像URL |
-| `Gender` | `*string` | `gender,omitempty` | 性别 |
-| `Age` | `*int` | `age,omitempty` | 年龄 |
-| `Occupation` | `*string` | `occupation,omitempty` | 职业 |
-| `Personality` | `*string` | `personality,omitempty` | 性格 |
-| `Abilities` | `*string` | `abilities,omitempty` | 能力 |
-| `Background` | `*string` | `background,omitempty` | 背景 |
-| `Appearance` | `*string` | `appearance,omitempty` | 外貌 |
-| `Notes` | `*string` | `notes,omitempty` | 备注 |
-| `AppearanceDesc` | `*string` | `appearance_desc,omitempty` | 外貌描述 |
-| `PersonalityDesc` | `*string` | `personality_desc,omitempty` | 性格描述 |
-| `AbilityDesc` | `*string` | `ability_desc,omitempty` | 能力描述 |
-| `BackgroundStory` | `*string` | `background_story,omitempty` | 背景故事 |
+| `Alias` | `string` | `alias` | 角色别名 |
+| `AvatarURL` | `string` | `avatar_url` | 角色头像URL |
+| `Gender` | `string` | `gender` | 性别 |
+| `Age` | `int` | `age` | 年龄 |
+| `Occupation` | `string` | `occupation` | 职业 |
+| `Personality` | `string` | `personality` | 性格 |
+| `Abilities` | `string` | `abilities` | 能力 |
+| `BackgroundStory` | `string` | `background_story` | 背景故事 |
+| `Appearance` | `string` | `appearance` | 外貌 |
+| `Notes` | `string` | `notes` | 备注 |
 | `Works` | `[]Work` | `works,omitempty` | 关联的作品对象切片 (gorm:"many2many:work_characters;") |
 
 ### `WorldviewCategory`

@@ -24,7 +24,11 @@ interface WorkCardProps {
 }
 
 // 作品卡片组件
-export function WorkCard({ work, onDelete, isDeleting = false }: WorkCardProps) {
+export function WorkCard({
+  work,
+  onDelete,
+  isDeleting = false,
+}: WorkCardProps) {
   return (
     <Card className="overflow-hidden">
       {/* 卡片头部：标题和操作菜单 */}
@@ -97,15 +101,8 @@ export function WorkCard({ work, onDelete, isDeleting = false }: WorkCardProps) 
             查看章节
           </Link>
         </Button>
-        <Button
-          size="sm"
-          className="gap-1 col-span-1"
-          asChild
-          disabled={true}
-        >
-          <Link
-            href="#"
-          >
+        <Button size="sm" className="gap-1 col-span-1" asChild disabled={true}>
+          <Link href="#">
             <Edit className="h-4 w-4" />
             继续写作
           </Link>

@@ -22,7 +22,7 @@ export const mockAIResponses: Record<AIPromptType, string> = {
 
 // 生成AI响应的模拟函数
 export async function mockGenerateAIResponse(
-  params: AIGenerateParams
+  params: AIGenerateParams,
 ): Promise<string> {
   // 模拟网络延迟
   await new Promise((resolve) => setTimeout(resolve, 1500));

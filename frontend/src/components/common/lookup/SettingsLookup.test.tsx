@@ -79,7 +79,7 @@ describe("SettingsLookup", () => {
   it("should render the trigger button", () => {
     render(<SettingsLookup workId="w1" />);
     expect(
-      screen.getByRole("button", { name: /设定速查/i })
+      screen.getByRole("button", { name: /设定速查/i }),
     ).toBeInTheDocument();
   });
 
@@ -120,13 +120,13 @@ describe("SettingsLookup", () => {
     expect(await screen.findByText("Alice")).toBeInTheDocument();
     expect(await screen.findByText("Bob")).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /角色/i })).toHaveTextContent(
-      "角色 (2)"
+      "角色 (2)",
     );
 
     await user.click(screen.getByRole("tab", { name: /世界观/i }));
     expect(await screen.findByText("Magic City")).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /世界观/i })).toHaveTextContent(
-      "世界观 (1)"
+      "世界观 (1)",
     );
   });
 
@@ -138,7 +138,7 @@ describe("SettingsLookup", () => {
 
     await user.click(screen.getByRole("tab", { name: /世界观/i }));
     expect(
-      await screen.findByText(/该作品还没有世界观设定/i)
+      await screen.findByText(/该作品还没有世界观设定/i),
     ).toBeInTheDocument();
   });
 
@@ -184,7 +184,7 @@ describe("SettingsLookup", () => {
 
     await user.click(screen.getByRole("tab", { name: /世界观/i }));
     expect(
-      await screen.findByText(/没有找到匹配的世界观设定/i)
+      await screen.findByText(/没有找到匹配的世界观设定/i),
     ).toBeInTheDocument();
   });
 
@@ -203,7 +203,7 @@ describe("SettingsLookup", () => {
         workId="w1"
         onSelectItem={onSelectItem}
         // @ts-ignore - onSelectItem is now a valid prop
-      />
+      />,
     );
     await user.click(screen.getByRole("button", { name: /设定速查/i }));
 

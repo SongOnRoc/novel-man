@@ -63,17 +63,17 @@ export function CharacterCard({
       </CardHeader>
       {expanded && (
         <CardContent className="text-sm">
-          {character.personality && character.personality.length > 0 && (
+          {character.personality && (
             <div className="mb-2">
               <span className="font-medium">性格：</span>
-              <span>{character.personality.join("、")}</span>
+              <span>{character.personality}</span>
             </div>
           )}
 
-          {character.abilities && character.abilities.length > 0 && (
+          {character.abilities && (
             <div className="mb-2">
               <span className="font-medium">能力：</span>
-              <span>{character.abilities.join("、")}</span>
+              <span>{character.abilities}</span>
             </div>
           )}
 

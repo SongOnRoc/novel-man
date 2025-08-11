@@ -14,53 +14,28 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Edit, Trash2, BookOpen } from "lucide-react";
-import { useCharacters } from "@/hooks/character/useCharacters";
+import {
+  useCharacter,
+  useDeleteCharacter,
+} from "@/hooks/character/useCharacters";
 import { Character } from "@/types/character";
-import { CharacterRelations } from "@/components/character/CharacterRelations";
-import { useWorks } from "@/hooks/useWorks";
+// import { CharacterRelations } from "@/components/character/CharacterRelations";
+import { useWorks } from "@/hooks/work/useWorks";
 
 export default function CharacterDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { getCharacter, deleteCharacter } = useCharacters();
-  const { getWorkNameById } = useWorks();
-  const [character, setCharacter] = useState<Character | null>(null);
-  const [workTitle, setWorkTitle] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const characterId = Number(
+    Array.isArray(params.id) ? params.id[0] : params.id,
+  );
 
-  // 获取角色详情
-  useEffect(() => {
-    const fetchCharacter = async () => {
-      if (!params.id) return;
+  const { data: character, isLoading, error } = useCharacter(characterId);
+  const deleteCharacterMutation = useDeleteCharacter();
+  const { data: worksData } = useWorks();
+  const works = worksData?.data || [];
 
-      setIsLoading(true);
-      try {
-        const characterId = Array.isArray(params.id) ? params.id[0] : params.id;
-        const result = await getCharacter(characterId);
-        if (result) {
-          setCharacter(result);
-        } else {
-          setError("未找到角色信息");
-        }
-      } catch (err) {
-        setError("加载角色信息失败");
-        console.error("Error fetching character:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchCharacter();
-  }, [params.id, getCharacter]);
-
-  // 当 character 或 getWorkNameById 更新时，更新作品标题
-  useEffect(() => {
-    if (character) {
-      const title = getWorkNameById(character.workId);
-      setWorkTitle(title || "");
-    }
-  }, [character, getWorkNameById]);
+  const workTitle =
+    character && works.find((w: any) => w.id === character.work_id)?.title;
 
   // 处理删除角色
   const handleDelete = async () => {
@@ -68,16 +43,11 @@ export default function CharacterDetailPage() {
 
     if (confirm(`确定要删除角色 "${character.name}" 吗？此操作不可撤销。`)) {
       try {
-        const success = await deleteCharacter(character.id);
-        if (success) {
-          // 返回到工具页面，并选择正确的作品
-          router.push(`/tools?work=${character.workId}`);
-        } else {
-          setError("删除角色失败");
-        }
+        await deleteCharacterMutation.mutateAsync(character.id);
+        router.push(`/tools/characters`);
       } catch (err) {
-        setError("删除角色时发生错误");
         console.error("Error deleting character:", err);
+        // Optionally, show an error message to the user
       }
     }
   };
@@ -90,10 +60,10 @@ export default function CharacterDetailPage() {
     );
   }
 
-  if (error || !character) {
+  if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh]">
-        <p className="text-destructive">{error || "未找到角色信息"}</p>
+        <p className="text-destructive">加载角色信息失败: {error.message}</p>
         <Button
           variant="outline"
           className="mt-4"
@@ -105,13 +75,21 @@ export default function CharacterDetailPage() {
     );
   }
 
+  if (!character) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh]">
+        <p className="text-muted-foreground">未找到角色信息</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <Button
           variant="outline"
           size="sm"
-          onClick={() => router.push(`/tools?work=${character.workId}`)}
+          onClick={() => router.push(`/tools/characters`)}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           返回
@@ -134,20 +112,21 @@ export default function CharacterDetailPage() {
         </div>
       </div>
 
-      {/* 添加作品信息 */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <BookOpen className="h-4 w-4" />
-        <span>所属作品: {workTitle}</span>
-      </div>
+      {workTitle && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <BookOpen className="h-4 w-4" />
+          <span>所属作品: {workTitle}</span>
+        </div>
+      )}
 
       <div className="flex flex-col md:flex-row gap-6">
         <div className="md:w-1/3">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-center mb-4">
-                {character.avatar ? (
+                {character.avatarUrl ? (
                   <img
-                    src={character.avatar}
+                    src={character.avatarUrl}
                     alt={character.name}
                     className="rounded-full h-32 w-32 object-cover border-4 border-primary/20"
                   />
@@ -162,55 +141,10 @@ export default function CharacterDetailPage() {
               </CardTitle>
               <CardDescription className="text-center">
                 {character.occupation || "未知职业"}
-                {character.age && ` • ${character.age}岁`}
-                {character.gender &&
-                  ` • ${
-                    character.gender === "male"
-                      ? "男"
-                      : character.gender === "female"
-                      ? "女"
-                      : "其他"
-                  }`}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* 其余内容保持不变 */}
-              <div>
-                <h3 className="font-medium mb-1">性格特点</h3>
-                <div className="flex flex-wrap gap-1">
-                  {character.personality?.map((trait, index) => (
-                    <span
-                      key={index}
-                      className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs"
-                    >
-                      {trait}
-                    </span>
-                  )) || (
-                    <span className="text-muted-foreground text-sm">
-                      未设置性格特点
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-medium mb-1">能力</h3>
-                <div className="flex flex-wrap gap-1">
-                  {character.abilities?.map((ability, index) => (
-                    <span
-                      key={index}
-                      className="bg-secondary/10 text-secondary-foreground rounded-full px-2 py-0.5 text-xs"
-                    >
-                      {ability}
-                    </span>
-                  )) || (
-                    <span className="text-muted-foreground text-sm">
-                      未设置能力
-                    </span>
-                  )}
-                </div>
-              </div>
-
+              {/* Simplified display based on new flat model */}
               <div>
                 <h3 className="font-medium mb-1">创建时间</h3>
                 <p className="text-sm text-muted-foreground">
@@ -234,7 +168,8 @@ export default function CharacterDetailPage() {
             <TabsList>
               <TabsTrigger value="background">背景故事</TabsTrigger>
               <TabsTrigger value="appearance">外貌描述</TabsTrigger>
-              <TabsTrigger value="notes">笔记</TabsTrigger>
+              <TabsTrigger value="personality">性格</TabsTrigger>
+              <TabsTrigger value="ability">能力</TabsTrigger>
               <TabsTrigger value="relationships">关系网络</TabsTrigger>
             </TabsList>
 
@@ -272,23 +207,50 @@ export default function CharacterDetailPage() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="notes" className="mt-4">
+            <TabsContent value="personality" className="mt-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>笔记</CardTitle>
+                  <CardTitle>性格</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {character.notes ? (
-                    <p className="whitespace-pre-line">{character.notes}</p>
+                  {character.personality ? (
+                    <p className="whitespace-pre-line">
+                      {character.personality}
+                    </p>
                   ) : (
-                    <p className="text-muted-foreground">暂无笔记</p>
+                    <p className="text-muted-foreground">暂无性格描述</p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="ability" className="mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>能力</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {character.abilities ? (
+                    <p className="whitespace-pre-line">{character.abilities}</p>
+                  ) : (
+                    <p className="text-muted-foreground">暂无能力描述</p>
                   )}
                 </CardContent>
               </Card>
             </TabsContent>
 
             <TabsContent value="relationships" className="mt-4">
-              <CharacterRelations characterId={character.id} />
+              {/* <CharacterRelations characterId={character.id.toString()} /> */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>关系网络</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    此功能正在基于新的通用关系模型进行重构，敬请期待。
+                  </p>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>

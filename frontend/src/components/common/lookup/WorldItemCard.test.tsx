@@ -35,7 +35,7 @@ describe("WorldItemCard", () => {
     render(
       <WorldItemCard worldItem={mockWorldItem} onSelect={onSelect}>
         <button>编辑</button>
-      </WorldItemCard>
+      </WorldItemCard>,
     );
     await userEvent.click(screen.getByRole("button", { name: /编辑/i }));
     expect(onSelect).not.toHaveBeenCalled();

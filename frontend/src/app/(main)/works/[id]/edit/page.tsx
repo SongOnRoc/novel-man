@@ -93,6 +93,7 @@ export default function EditWorkPage() {
     const updateData: UpdateWorkData = {
       ...values,
       description: values.description || "",
+      status: values.status as "ongoing" | "completed" | "on_hold",
     };
     updateWork(
       { id: workId, data: updateData },
@@ -103,7 +104,7 @@ export default function EditWorkPage() {
         onError: (error) => {
           console.error("更新作品失败:", error);
         },
-      }
+      },
     );
   }
 

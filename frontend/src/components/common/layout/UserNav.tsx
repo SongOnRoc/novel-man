@@ -1,47 +1,53 @@
 "use client";
 
-import Link from "next/link";
-import { useAuth } from "@/hooks/auth/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useUserQuery } from "@/hooks/auth/useUserQuery";
+import { signOut } from "next-auth/react";
+import Link from "next/link";
 
 export function UserNav() {
-  const { user, isLoading, logout } = useAuth();
+  const { data: user, isLoading } = useUserQuery();
 
   if (isLoading) {
-    return <Skeleton className="h-10 w-10 rounded-full" />;
+    // You can return a skeleton loader here
+    return <div>Loading...</div>;
   }
 
   if (!user) {
-    return (
-      <Button asChild>
-        <Link href="/login">登录</Link>
-      </Button>
-    );
+    return null;
   }
+
+  const getInitials = (name?: string | null) => {
+    if (!name) return "";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("");
+  };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Avatar className="cursor-pointer">
-          {/* 我们当前的用户模型没有头像URL，所以这里留空 */}
-          <AvatarImage src="" alt={user.username} />
-          <AvatarFallback>
-            {user.username?.charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+          <Avatar className="h-8 w-8">
+            {/* TODO: Uncomment this line after the backend API provides an avatar URL */}
+            {/* <AvatarImage src={user.image || ""} alt={user.username} /> */}
+            <AvatarFallback>{getInitials(user.username)}</AvatarFallback>
+          </Avatar>
+        </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user.username}</p>
             <p className="text-xs leading-none text-muted-foreground">
@@ -50,9 +56,13 @@ export function UserNav() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={logout}>
-          退出登录
-        </DropdownMenuItem>
+        <DropdownMenuGroup>
+          <Link href="/settings">
+            <DropdownMenuItem>设置</DropdownMenuItem>
+          </Link>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => signOut()}>登出</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

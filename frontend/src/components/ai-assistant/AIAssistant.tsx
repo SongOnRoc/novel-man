@@ -2,12 +2,21 @@
 
 import { AIPromptForm } from "./AIPromptForm";
 import { AIResponse } from "./AIResponse";
-import { useAIAssistant } from "@/hooks";
-import { AIGenerateParams } from "@/types/ai";
+import {
+  usePolishTextMutation,
+  useGetCompletionMutation,
+  useGenerateOutlineMutation,
+  useCreateCharacterMutation,
+} from "@/hooks/ai/useAIAssistant";
+import {
+  AIContext,
+  PolishTextRequest,
+  GetCompletionRequest,
+  GenerateOutlineRequest,
+  CreateCharacterRequest,
+} from "@/types/ai";
 import { cn } from "@/lib/utils";
-import { Loader, Copy, Check } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Loader } from "lucide-react";
 import { useState } from "react";
 
 interface AIAssistantProps {
@@ -15,6 +24,9 @@ interface AIAssistantProps {
   onApplyToEditor?: (text: string) => void;
   compact?: boolean;
   className?: string;
+  // 新增：传递上下文
+  workId?: number;
+  characterIds?: number[];
 }
 
 export const LoadingIndicator = () => (
@@ -30,27 +42,82 @@ export function AIAssistant({
   onApplyToEditor,
   compact = false,
   className = "",
+  workId,
+  characterIds,
 }: AIAssistantProps) {
-  const {
-    isLoading,
-    response,
-    history,
-    style,
-    setStyle,
-    isPersonalized,
-    setIsPersonalized,
-    generateResponse,
-    regenerateResponse,
-    clearResponse,
-    applyFromHistory,
-    hasPrompt,
-  } = useAIAssistant();
+  const [style, setStyle] = useState("default");
+  const [isPersonalized, setIsPersonalized] = useState(false);
 
-  const handleSubmit = (params: AIGenerateParams) => {
-    generateResponse(params);
+  const polishMutation = usePolishTextMutation();
+  const getCompletionMutation = useGetCompletionMutation();
+  const generateOutlineMutation = useGenerateOutlineMutation();
+  const createCharacterMutation = useCreateCharacterMutation();
+
+  const isLoading =
+    polishMutation.isPending ||
+    getCompletionMutation.isPending ||
+    generateOutlineMutation.isPending ||
+    createCharacterMutation.isPending;
+
+  const getResponseContent = () => {
+    if (polishMutation.data) return polishMutation.data.polished_text;
+    if (getCompletionMutation.data)
+      return getCompletionMutation.data.completion;
+    if (generateOutlineMutation.data)
+      return generateOutlineMutation.data.outline;
+    if (createCharacterMutation.data) {
+      const { name, background_story, personality_desc } =
+        createCharacterMutation.data;
+      return `### ${name}\n\n**背景:**\n${background_story}\n\n**性格:**\n${personality_desc}`;
+    }
+    return undefined;
   };
 
-  const showResponseArea = hasPrompt || response || isLoading;
+  const response = getResponseContent();
+
+  const handleSubmit = (
+    promptType: string,
+    prompt: string,
+    currentSelectedText?: string,
+  ) => {
+    const context: AIContext = {
+      workId,
+      characterIds: isPersonalized ? characterIds : undefined,
+      stylePreference: style !== "default" ? style : undefined,
+    };
+
+    const textForRequest = currentSelectedText || selectedText || "";
+
+    switch (promptType) {
+      case "polish":
+        polishMutation.mutate({ text: textForRequest, context });
+        break;
+      case "completion":
+        getCompletionMutation.mutate({ text: textForRequest, context });
+        break;
+      case "generate-outline":
+        generateOutlineMutation.mutate({ text: prompt, context });
+        break;
+      case "create-character":
+        createCharacterMutation.mutate({ description: prompt, context });
+        break;
+      default:
+        // 默认行为可以是润色或根据 prompt 自定义
+        if (textForRequest) {
+          getCompletionMutation.mutate({ text: textForRequest, context });
+        }
+        break;
+    }
+  };
+
+  const clearResponse = () => {
+    polishMutation.reset();
+    getCompletionMutation.reset();
+    generateOutlineMutation.reset();
+    createCharacterMutation.reset();
+  };
+
+  const showResponseArea = response || isLoading;
 
   // Compact view for floating button (Drawer)
   if (compact) {
@@ -62,19 +129,12 @@ export function AIAssistant({
             <AIResponse
               response={response}
               isLoading={isLoading}
-              onRegenerate={regenerateResponse}
+              onRegenerate={() => handleSubmit("polish", "", selectedText)}
               onApplyToEditor={onApplyToEditor}
               onDiscard={clearResponse}
               hasSelection={!!selectedText}
               compact={compact}
             />
-            {history.length > 0 && (
-              <HistoryTab
-                history={history}
-                onSelect={applyFromHistory}
-                compact={compact}
-              />
-            )}
           </>
         ) : (
           <>
@@ -82,7 +142,9 @@ export function AIAssistant({
               ai工具箱
             </h2>
             <AIPromptForm
-              onSubmit={handleSubmit}
+              onSubmit={(promptType, prompt) =>
+                handleSubmit(promptType, prompt, selectedText)
+              }
               isLoading={isLoading}
               selectedText={selectedText}
               compact={compact}
@@ -103,7 +165,9 @@ export function AIAssistant({
       <div>
         <h2 className="text-xl font-semibold mb-4">ai工具箱</h2>
         <AIPromptForm
-          onSubmit={handleSubmit}
+          onSubmit={(promptType, prompt) =>
+            handleSubmit(promptType, prompt, selectedText)
+          }
           isLoading={isLoading}
           selectedText={selectedText}
           compact={compact}
@@ -118,70 +182,13 @@ export function AIAssistant({
         <AIResponse
           response={response}
           isLoading={isLoading}
-          onRegenerate={regenerateResponse}
+          onRegenerate={() => handleSubmit("polish", "", selectedText)}
           onApplyToEditor={onApplyToEditor}
           onDiscard={clearResponse}
           hasSelection={!!selectedText}
           compact={compact}
         />
-        {history.length > 0 && (
-          <HistoryTab
-            history={history}
-            onSelect={applyFromHistory}
-            compact={compact}
-          />
-        )}
       </div>
     </div>
   );
 }
-
-interface HistoryTabProps {
-  history: string[];
-  onSelect: (text: string) => void;
-  compact?: boolean;
-}
-
-const HistoryTab = ({ history, onSelect, compact }: HistoryTabProps) => {
-  const [copiedId, setCopiedId] = useState<number | null>(null);
-
-  const handleCopy = (text: string, index: number) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId(index);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  return (
-    <div className="mt-8">
-      <h3 className={cn("text-lg font-semibold mb-3", compact && "text-base")}>
-        最近生成
-      </h3>
-      <div className="space-y-2">
-        {history.filter(Boolean).map((item, index) => (
-          <Card key={index} className="p-3 hover:bg-muted/50 transition-colors">
-            <div className="flex justify-between items-start">
-              <p
-                className="text-sm text-muted-foreground cursor-pointer flex-grow"
-                onClick={() => onSelect(item)}
-              >
-                {item.substring(0, 80)}...
-              </p>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => handleCopy(item, index)}
-              >
-                {copiedId === index ? (
-                  <Check className="h-4 w-4 text-green-500" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-};

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { useChapters } from "@/hooks/useChapters";
+import { useChapter } from "@/hooks/chapter/useChapters";
 import { notFound, useParams } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -15,12 +15,11 @@ export default function ChapterPreviewPage() {
   const chapterId = Array.isArray(params.id) ? params.id[0] : params.id;
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const { chapters, isLoading, getChaptersByVolume, getChapterById } = useChapters();
+  const { data: chapter, isLoading } = useChapter(Number(chapterId));
 
   if (!chapterId) {
     return notFound();
   }
-  const chapter = getChapterById(chapterId);
 
   const handleExport = (options: ExportOptions) => {
     if (!chapter) return;
@@ -33,19 +32,20 @@ export default function ChapterPreviewPage() {
         contentToExport = chapter.content;
         title = chapter.title;
         break;
-      case "volume":
-        const volumeChapters = getChaptersByVolume(chapter.volumeId);
-        title = `分卷-${volumeChapters[0]?.volumeId}`; // Simplified title
-        contentToExport = volumeChapters
-          .map((c) => `## ${c.title}\n\n${c.content}`)
-          .join("\n\n---\n\n");
-        break;
-      case "all":
-        title = `全书`;
-        contentToExport = chapters
-          .map((c) => `## ${c.title}\n\n${c.content}`)
-          .join("\n\n---\n\n");
-        break;
+      // The following cases need to be re-implemented as getChaptersByVolume and chapters are not available in useChapter
+      // case "volume":
+      //   const volumeChapters = getChaptersByVolume(chapter.volumeId);
+      //   title = `分卷-${volumeChapters[0]?.volumeId}`; // Simplified title
+      //   contentToExport = volumeChapters
+      //     .map((c) => `## ${c.title}\n\n${c.content}`)
+      //     .join("\n\n---\n\n");
+      //   break;
+      // case "all":
+      //   title = `全书`;
+      //   contentToExport = chapters
+      //     .map((c) => `## ${c.title}\n\n${c.content}`)
+      //     .join("\n\n---\n\n");
+      //   break;
       default:
         return;
     }
@@ -98,14 +98,15 @@ export default function ChapterPreviewPage() {
             </Link>
           </Button>
           <Button variant="outline" size="sm" asChild>
-            <Link href={`/chapters/${chapter.id}/edit`}>
-              返回编辑
-            </Link>
+            <Link href={`/chapters/${chapter.id}/edit`}>返回编辑</Link>
           </Button>
         </div>
         <ExportDialog onExport={handleExport} />
       </div>
-      <article ref={contentRef} className="prose dark:prose-invert max-w-none bg-background p-6 rounded-md">
+      <article
+        ref={contentRef}
+        className="prose dark:prose-invert max-w-none bg-background p-6 rounded-md"
+      >
         <h1>{chapter.title}</h1>
         {chapter.content ? (
           <div dangerouslySetInnerHTML={{ __html: chapter.content }} />
