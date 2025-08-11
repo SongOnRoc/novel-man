@@ -20,6 +20,12 @@ async function handler(req: NextRequest) {
     headers["Content-Type"] = contentType;
   }
 
+  // Forward cookie header if it exists (SSR/Edge compatibility)
+  const cookie = req.headers.get("cookie");
+  if (cookie) {
+    headers["Cookie"] = cookie;
+  }
+
   const getBody = async () => {
     // Methods like GET, HEAD, DELETE, OPTIONS should not have a body.
     if (["GET", "HEAD", "DELETE", "OPTIONS"].includes(req.method)) {

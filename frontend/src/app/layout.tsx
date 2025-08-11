@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_SC } from "next/font/google";
 import { ThemeProvider } from "@/components/common/layout/ThemeProvider";
-import QueryProvider from "@/components/common/layout/QueryProvider";
+import { Providers } from "@/components/common/Providers";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -19,8 +19,10 @@ const notoSansSC = Noto_Sans_SC({
 });
 
 export const metadata: Metadata = {
-  title: "小说作家管理系统",
-  description: "网络小说作家作品管理系统",
+  // title: "小说作家管理系统",
+  // description: "网络小说作家作品管理系统",
+  title: "1",
+  description: "1",
 };
 
 export default function RootLayout({
@@ -43,7 +45,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <QueryProvider>{children}</QueryProvider>
+          <Providers>{children}</Providers>
           <Toaster />
         </ThemeProvider>
       </body>

@@ -3,6 +3,13 @@
  * This service is responsible for all authentication-related API calls.
  * It uses the auto-generated API client functions and provides them
  * to the application's hooks.
+ *
+ * 重要说明：
+ * - UI 层的“登录动作”必须通过 NextAuth 触发（例如 useAuth().login → signIn('credentials')）。
+ * - 本模块中的 `loginService` 仅用于 NextAuth 服务端路由的 `authorize` 步骤，用来对接后端登录与会话建立，
+ *   并将 accessToken 与 user 合并进 NextAuth 的 JWT/Session 回调。
+ * - UI 端请勿直接调用 `loginService`，以避免会话与令牌生命周期分裂、SSR/回调不一致等问题。
+ * - 登录后的业务数据查询使用本模块提供的其它服务方法（如 getCurrentUserService），并由 Hook/TanStack Query 统一调度。
  * @author Alex Chen
  */
 
@@ -29,9 +36,12 @@ export type AuthUser = AuthUserProfileResponse;
 export type LoginResponse = AuthLoginResponse;
 
 /**
- * Handles the user login request.
- * @param data - The login credentials.
- * @returns A promise that resolves with the login response.
+ * 登录服务（仅供 NextAuth authorize 使用，不面向 UI 直接调用）
+ * - 在 NextAuth CredentialsProvider.authorize 中调用该函数以向后端发起登录
+ * - 成功后由 NextAuth 服务端继续使用 accessToken 拉取 /auth/me，并合并至 JWT/Session
+ * - UI 层应通过 useAuth().login → signIn('credentials') 触发认证链，而非直接触达该服务
+ * @param data - 登录凭据
+ * @returns 后端登录响应（通常包含 access_token 与 token_type）
  */
 export const loginService = (data: LoginCredentials) => {
   return postAuthLogin(data) as Promise<LoginResponse>;

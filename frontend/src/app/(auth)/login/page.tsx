@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/auth/useAuth";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -27,7 +28,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useLoginMutation } from "@/hooks/auth/useLoginMutation";
 
 const formSchema = z.object({
   identifier: z.string().min(1, {
@@ -40,22 +40,7 @@ const formSchema = z.object({
 
 export default function LoginPage() {
   const router = useRouter();
-  const loginMutation = useLoginMutation({
-    onSuccess: () => {
-      toast.success("登录成功", {
-        description: "欢迎回来！即将跳转到您的工作台...",
-      });
-      // Redirect after a short delay to allow the user to see the toast
-      setTimeout(() => {
-        router.push("/");
-      }, 1500);
-    },
-    onError: (error: any) => {
-      toast.error("登录失败", {
-        description: error?.message || "请检查您的凭据或稍后重试。",
-      });
-    },
-  });
+  const { login } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -65,8 +50,28 @@ export default function LoginPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    loginMutation.mutate(values);
+  const { isSubmitting } = form.formState;
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const result = await login(values);
+
+      if (result?.ok) {
+        toast.success("登录成功", {
+          description: "欢迎回来！即将跳转到您的工作台...",
+        });
+
+        router.replace("/dashboard");
+      } else {
+        toast.error("登录失败", {
+          description: result?.error || "请检查您的凭据或稍后重试。",
+        });
+      }
+    } catch (error) {
+      toast.error("登录失败", {
+        description: "登录过程中发生错误，请稍后重试。",
+      });
+    }
   }
 
   return (
@@ -77,7 +82,12 @@ export default function LoginPage() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form
+            onSubmit={(e) => {
+              form.handleSubmit(onSubmit)(e);
+            }}
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="identifier"
@@ -105,12 +115,8 @@ export default function LoginPage() {
               )}
             />
             <motion.div whileTap={{ scale: 0.98 }}>
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={loginMutation.isPending}
-              >
-                {loginMutation.isPending && (
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
                 登录

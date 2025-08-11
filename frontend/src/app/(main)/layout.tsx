@@ -1,53 +1,14 @@
-"use client";
-
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useUserQuery } from "@/hooks/auth/useUserQuery";
-import { MainLayout } from "@/components/common/layout/MainLayout";
-import { Skeleton } from "@/components/ui/skeleton";
+import { MainLayoutGuard } from "@/components/common/layout/MainLayoutGuard";
 
 /**
- * This layout component acts as a route guard for all main application routes.
- * It ensures that only authenticated users can access the content.
+ * This layout wraps all main application routes.
+ * Context providers are attached at the root layout. Avoid duplicating here.
+ * Route guarding and main shell are delegated to MainLayoutGuard.
  */
 export default function MainRouteLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { data: user, isLoading, isError } = useUserQuery();
-  const router = useRouter();
-
-  useEffect(() => {
-    // If the query is done and there's an error (e.g., 401 Unauthorized) or no user,
-    // redirect to the login page.
-    if (!isLoading && (isError || !user)) {
-      router.push("/login");
-    }
-  }, [isLoading, isError, user, router]);
-
-  // While the user data is loading, display a full-page skeleton loader.
-  if (isLoading) {
-    return (
-      <div className="flex h-screen w-full">
-        <Skeleton className="h-full w-[256px]" />
-        <div className="flex-1 flex flex-col">
-          <Skeleton className="h-14 w-full border-b" />
-          <div className="p-8 space-y-4">
-            <Skeleton className="h-8 w-1/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // If the user is authenticated, render the main layout with the page content.
-  if (user) {
-    return <MainLayout>{children}</MainLayout>;
-  }
-
-  // Render null while redirecting to prevent flashing of content.
-  return null;
+  return <MainLayoutGuard>{children}</MainLayoutGuard>;
 }
