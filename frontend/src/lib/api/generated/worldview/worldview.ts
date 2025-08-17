@@ -43,20 +43,21 @@ import type {
 
 import { customInstance } from "../../../axios";
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
 /**
  * Get all worldview categories for the current user
  * @summary Get all worldview categories
  */
 export const getWorldviewCategories = (
   params?: GetWorldviewCategoriesParams,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetWorldviewCategories200>({
-    url: `/worldview/categories`,
-    method: "GET",
-    params,
-    signal,
-  });
+  return customInstance<GetWorldviewCategories200>(
+    { url: `/worldview/categories`, method: "GET", params, signal },
+    options,
+  );
 };
 
 export const getGetWorldviewCategoriesQueryKey = (
@@ -78,16 +79,17 @@ export const getGetWorldviewCategoriesQueryOptions = <
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getGetWorldviewCategoriesQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof getWorldviewCategories>>
-  > = ({ signal }) => getWorldviewCategories(params, signal);
+  > = ({ signal }) => getWorldviewCategories(params, requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getWorldviewCategories>>,
@@ -124,6 +126,7 @@ export function useGetWorldviewCategories<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -150,6 +153,7 @@ export function useGetWorldviewCategories<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -168,6 +172,7 @@ export function useGetWorldviewCategories<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -190,6 +195,7 @@ export function useGetWorldviewCategories<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -213,15 +219,19 @@ export function useGetWorldviewCategories<
  */
 export const postWorldviewCategories = (
   worldviewCreateCategoryRequest: WorldviewCreateCategoryRequest,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostWorldviewCategories201>({
-    url: `/worldview/categories`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: worldviewCreateCategoryRequest,
-    signal,
-  });
+  return customInstance<PostWorldviewCategories201>(
+    {
+      url: `/worldview/categories`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: worldviewCreateCategoryRequest,
+      signal,
+    },
+    options,
+  );
 };
 
 export const getPostWorldviewCategoriesMutationOptions = <
@@ -237,6 +247,7 @@ export const getPostWorldviewCategoriesMutationOptions = <
     { data: WorldviewCreateCategoryRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postWorldviewCategories>>,
   TError,
@@ -244,13 +255,13 @@ export const getPostWorldviewCategoriesMutationOptions = <
   TContext
 > => {
   const mutationKey = ["postWorldviewCategories"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postWorldviewCategories>>,
@@ -258,7 +269,7 @@ export const getPostWorldviewCategoriesMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return postWorldviewCategories(data);
+    return postWorldviewCategories(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -291,6 +302,7 @@ export const usePostWorldviewCategories = <
       { data: WorldviewCreateCategoryRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -307,11 +319,14 @@ export const usePostWorldviewCategories = <
  * Delete a worldview category by its ID
  * @summary Delete a worldview category
  */
-export const deleteWorldviewCategoriesId = (id: number) => {
-  return customInstance<DeleteWorldviewCategoriesId200>({
-    url: `/worldview/categories/${id}`,
-    method: "DELETE",
-  });
+export const deleteWorldviewCategoriesId = (
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<DeleteWorldviewCategoriesId200>(
+    { url: `/worldview/categories/${id}`, method: "DELETE" },
+    options,
+  );
 };
 
 export const getDeleteWorldviewCategoriesIdMutationOptions = <
@@ -328,6 +343,7 @@ export const getDeleteWorldviewCategoriesIdMutationOptions = <
     { id: number },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteWorldviewCategoriesId>>,
   TError,
@@ -335,13 +351,13 @@ export const getDeleteWorldviewCategoriesIdMutationOptions = <
   TContext
 > => {
   const mutationKey = ["deleteWorldviewCategoriesId"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteWorldviewCategoriesId>>,
@@ -349,7 +365,7 @@ export const getDeleteWorldviewCategoriesIdMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return deleteWorldviewCategoriesId(id);
+    return deleteWorldviewCategoriesId(id, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -383,6 +399,7 @@ export const useDeleteWorldviewCategoriesId = <
       { id: number },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -400,12 +417,15 @@ export const useDeleteWorldviewCategoriesId = <
  * Get a single worldview category by its ID
  * @summary Get a single worldview category
  */
-export const getWorldviewCategoriesId = (id: number, signal?: AbortSignal) => {
-  return customInstance<GetWorldviewCategoriesId200>({
-    url: `/worldview/categories/${id}`,
-    method: "GET",
-    signal,
-  });
+export const getWorldviewCategoriesId = (
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<GetWorldviewCategoriesId200>(
+    { url: `/worldview/categories/${id}`, method: "GET", signal },
+    options,
+  );
 };
 
 export const getGetWorldviewCategoriesIdQueryKey = (id?: number) => {
@@ -429,16 +449,17 @@ export const getGetWorldviewCategoriesIdQueryOptions = <
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getGetWorldviewCategoriesIdQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof getWorldviewCategoriesId>>
-  > = ({ signal }) => getWorldviewCategoriesId(id, signal);
+  > = ({ signal }) => getWorldviewCategoriesId(id, requestOptions, signal);
 
   return {
     queryKey,
@@ -486,6 +507,7 @@ export function useGetWorldviewCategoriesId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -516,6 +538,7 @@ export function useGetWorldviewCategoriesId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -538,6 +561,7 @@ export function useGetWorldviewCategoriesId<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -564,6 +588,7 @@ export function useGetWorldviewCategoriesId<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -588,13 +613,17 @@ export function useGetWorldviewCategoriesId<
 export const putWorldviewCategoriesId = (
   id: number,
   worldviewUpdateCategoryRequest: WorldviewUpdateCategoryRequest,
+  options?: SecondParameter<typeof customInstance>,
 ) => {
-  return customInstance<PutWorldviewCategoriesId200>({
-    url: `/worldview/categories/${id}`,
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    data: worldviewUpdateCategoryRequest,
-  });
+  return customInstance<PutWorldviewCategoriesId200>(
+    {
+      url: `/worldview/categories/${id}`,
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: worldviewUpdateCategoryRequest,
+    },
+    options,
+  );
 };
 
 export const getPutWorldviewCategoriesIdMutationOptions = <
@@ -611,6 +640,7 @@ export const getPutWorldviewCategoriesIdMutationOptions = <
     { id: number; data: WorldviewUpdateCategoryRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putWorldviewCategoriesId>>,
   TError,
@@ -618,13 +648,13 @@ export const getPutWorldviewCategoriesIdMutationOptions = <
   TContext
 > => {
   const mutationKey = ["putWorldviewCategoriesId"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof putWorldviewCategoriesId>>,
@@ -632,7 +662,7 @@ export const getPutWorldviewCategoriesIdMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return putWorldviewCategoriesId(id, data);
+    return putWorldviewCategoriesId(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -667,6 +697,7 @@ export const usePutWorldviewCategoriesId = <
       { id: number; data: WorldviewUpdateCategoryRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -680,19 +711,18 @@ export const usePutWorldviewCategoriesId = <
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * Get all worldview items for a given category
+ * Get all worldview items for a given category, verifying ownership of the category.
  * @summary Get all worldview items for a category
  */
 export const getWorldviewItems = (
   params: GetWorldviewItemsParams,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetWorldviewItems200>({
-    url: `/worldview/items`,
-    method: "GET",
-    params,
-    signal,
-  });
+  return customInstance<GetWorldviewItems200>(
+    { url: `/worldview/items`, method: "GET", params, signal },
+    options,
+  );
 };
 
 export const getGetWorldviewItemsQueryKey = (
@@ -703,7 +733,12 @@ export const getGetWorldviewItemsQueryKey = (
 
 export const getGetWorldviewItemsQueryOptions = <
   TData = Awaited<ReturnType<typeof getWorldviewItems>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params: GetWorldviewItemsParams,
   options?: {
@@ -714,16 +749,17 @@ export const getGetWorldviewItemsQueryOptions = <
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getGetWorldviewItemsQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof getWorldviewItems>>
-  > = ({ signal }) => getWorldviewItems(params, signal);
+  > = ({ signal }) => getWorldviewItems(params, requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getWorldviewItems>>,
@@ -737,11 +773,19 @@ export type GetWorldviewItemsQueryResult = NonNullable<
 >;
 export type GetWorldviewItemsQueryError =
   | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse
   | ResponseStandardResponse;
 
 export function useGetWorldviewItems<
   TData = Awaited<ReturnType<typeof getWorldviewItems>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params: GetWorldviewItemsParams,
   options: {
@@ -760,6 +804,7 @@ export function useGetWorldviewItems<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -767,7 +812,12 @@ export function useGetWorldviewItems<
 };
 export function useGetWorldviewItems<
   TData = Awaited<ReturnType<typeof getWorldviewItems>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params: GetWorldviewItemsParams,
   options?: {
@@ -786,6 +836,7 @@ export function useGetWorldviewItems<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -793,7 +844,12 @@ export function useGetWorldviewItems<
 };
 export function useGetWorldviewItems<
   TData = Awaited<ReturnType<typeof getWorldviewItems>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params: GetWorldviewItemsParams,
   options?: {
@@ -804,6 +860,7 @@ export function useGetWorldviewItems<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -815,7 +872,12 @@ export function useGetWorldviewItems<
 
 export function useGetWorldviewItems<
   TData = Awaited<ReturnType<typeof getWorldviewItems>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params: GetWorldviewItemsParams,
   options?: {
@@ -826,6 +888,7 @@ export function useGetWorldviewItems<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -849,15 +912,19 @@ export function useGetWorldviewItems<
  */
 export const postWorldviewItems = (
   worldviewCreateItemRequest: WorldviewCreateItemRequest,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostWorldviewItems201>({
-    url: `/worldview/items`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: worldviewCreateItemRequest,
-    signal,
-  });
+  return customInstance<PostWorldviewItems201>(
+    {
+      url: `/worldview/items`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: worldviewCreateItemRequest,
+      signal,
+    },
+    options,
+  );
 };
 
 export const getPostWorldviewItemsMutationOptions = <
@@ -873,6 +940,7 @@ export const getPostWorldviewItemsMutationOptions = <
     { data: WorldviewCreateItemRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postWorldviewItems>>,
   TError,
@@ -880,13 +948,13 @@ export const getPostWorldviewItemsMutationOptions = <
   TContext
 > => {
   const mutationKey = ["postWorldviewItems"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postWorldviewItems>>,
@@ -894,7 +962,7 @@ export const getPostWorldviewItemsMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return postWorldviewItems(data);
+    return postWorldviewItems(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -926,6 +994,7 @@ export const usePostWorldviewItems = <
       { data: WorldviewCreateItemRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -942,11 +1011,14 @@ export const usePostWorldviewItems = <
  * Delete a worldview item by its ID
  * @summary Delete a worldview item
  */
-export const deleteWorldviewItemsId = (id: number) => {
-  return customInstance<DeleteWorldviewItemsId200>({
-    url: `/worldview/items/${id}`,
-    method: "DELETE",
-  });
+export const deleteWorldviewItemsId = (
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<DeleteWorldviewItemsId200>(
+    { url: `/worldview/items/${id}`, method: "DELETE" },
+    options,
+  );
 };
 
 export const getDeleteWorldviewItemsIdMutationOptions = <
@@ -963,6 +1035,7 @@ export const getDeleteWorldviewItemsIdMutationOptions = <
     { id: number },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteWorldviewItemsId>>,
   TError,
@@ -970,13 +1043,13 @@ export const getDeleteWorldviewItemsIdMutationOptions = <
   TContext
 > => {
   const mutationKey = ["deleteWorldviewItemsId"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteWorldviewItemsId>>,
@@ -984,7 +1057,7 @@ export const getDeleteWorldviewItemsIdMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return deleteWorldviewItemsId(id);
+    return deleteWorldviewItemsId(id, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -1018,6 +1091,7 @@ export const useDeleteWorldviewItemsId = <
       { id: number },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -1034,12 +1108,15 @@ export const useDeleteWorldviewItemsId = <
  * Get a single worldview item by its ID
  * @summary Get a single worldview item
  */
-export const getWorldviewItemsId = (id: number, signal?: AbortSignal) => {
-  return customInstance<GetWorldviewItemsId200>({
-    url: `/worldview/items/${id}`,
-    method: "GET",
-    signal,
-  });
+export const getWorldviewItemsId = (
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<GetWorldviewItemsId200>(
+    { url: `/worldview/items/${id}`, method: "GET", signal },
+    options,
+  );
 };
 
 export const getGetWorldviewItemsIdQueryKey = (id?: number) => {
@@ -1063,15 +1140,16 @@ export const getGetWorldviewItemsIdQueryOptions = <
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetWorldviewItemsIdQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof getWorldviewItemsId>>
-  > = ({ signal }) => getWorldviewItemsId(id, signal);
+  > = ({ signal }) => getWorldviewItemsId(id, requestOptions, signal);
 
   return {
     queryKey,
@@ -1119,6 +1197,7 @@ export function useGetWorldviewItemsId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -1149,6 +1228,7 @@ export function useGetWorldviewItemsId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -1171,6 +1251,7 @@ export function useGetWorldviewItemsId<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -1197,6 +1278,7 @@ export function useGetWorldviewItemsId<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -1221,13 +1303,17 @@ export function useGetWorldviewItemsId<
 export const putWorldviewItemsId = (
   id: number,
   worldviewUpdateItemRequest: WorldviewUpdateItemRequest,
+  options?: SecondParameter<typeof customInstance>,
 ) => {
-  return customInstance<PutWorldviewItemsId200>({
-    url: `/worldview/items/${id}`,
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    data: worldviewUpdateItemRequest,
-  });
+  return customInstance<PutWorldviewItemsId200>(
+    {
+      url: `/worldview/items/${id}`,
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: worldviewUpdateItemRequest,
+    },
+    options,
+  );
 };
 
 export const getPutWorldviewItemsIdMutationOptions = <
@@ -1244,6 +1330,7 @@ export const getPutWorldviewItemsIdMutationOptions = <
     { id: number; data: WorldviewUpdateItemRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putWorldviewItemsId>>,
   TError,
@@ -1251,13 +1338,13 @@ export const getPutWorldviewItemsIdMutationOptions = <
   TContext
 > => {
   const mutationKey = ["putWorldviewItemsId"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof putWorldviewItemsId>>,
@@ -1265,7 +1352,7 @@ export const getPutWorldviewItemsIdMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return putWorldviewItemsId(id, data);
+    return putWorldviewItemsId(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -1299,6 +1386,7 @@ export const usePutWorldviewItemsId = <
       { id: number; data: WorldviewUpdateItemRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

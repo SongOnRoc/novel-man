@@ -25,8 +25,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useCreateWork } from "@/hooks/work/useWorks";
-import { CreateWorkData } from "@/types/work";
+import { useCreateWork } from "@/hooks/work/useWorkService";
+import { CreateWorkPayload } from "@/lib/services/work.service";
 
 // 定义表单验证模式
 const formSchema = z.object({
@@ -71,11 +71,11 @@ export default function NewWorkPage() {
 
   // 表单提交处理
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const newWorkData: CreateWorkData = {
+    const newWorkData: CreateWorkPayload = {
       ...values,
       description: values.description || "",
-      coverImageUrl: "", // 暂时为空
-      status: "ongoing",
+      cover_image_url: "", // 暂时为空
+      status: "连载中",
     };
 
     createWork(newWorkData, {

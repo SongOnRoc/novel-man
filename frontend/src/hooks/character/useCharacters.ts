@@ -11,24 +11,35 @@ import {
   updateCharacter,
   deleteCharacter,
   getCharactersByWorkId,
-} from "@/lib/api/characters";
-import { CharacterUpdate, CharacterCreate } from "@/types/character";
+} from "@/lib/services/characters.service";
+import type {
+  CharacterCreate,
+  CharacterUpdate,
+  CharacterListParams,
+} from "@/lib/services/characters.service";
 
 const characterKeys = {
   all: ["characters"] as const,
   lists: () => [...characterKeys.all, "list"] as const,
-  list: (filters: any) => [...characterKeys.lists(), filters] as const,
+  list: (params: CharacterListParams) => [...characterKeys.lists(), params] as const,
   details: () => [...characterKeys.all, "detail"] as const,
   detail: (id: number) => [...characterKeys.details(), id] as const,
 };
 
 export function useCharacters(workId?: number) {
   return useQuery({
-    queryKey: characterKeys.list({ workId }),
+    queryKey: characterKeys.list({ workId } as CharacterListParams),
     queryFn: () => (workId ? getCharactersByWorkId(workId) : getCharacters()),
     enabled: !!workId,
   });
 }
+
+export const useCharacterList = (params: CharacterListParams) => {
+  return useQuery({
+    queryKey: characterKeys.list(params),
+    queryFn: () => getCharacters(params),
+  });
+};
 
 export function useCharacter(id: number) {
   return useQuery({
@@ -54,10 +65,10 @@ export function useUpdateCharacter() {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: CharacterUpdate }) =>
       updateCharacter(id, data),
-    onSuccess: (data) => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: characterKeys.lists() });
       queryClient.invalidateQueries({
-        queryKey: characterKeys.detail(data.id),
+        queryKey: characterKeys.detail(variables.id),
       });
     },
   });

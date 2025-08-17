@@ -1,23 +1,49 @@
 "use client";
 
-import { WorkCard } from "./components/WorkCard";
-import { NewWorkButton } from "./components/NewWorkButton";
-import { useWorks, useDeleteWork } from "@/hooks/work/useWorks";
+import { useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { WorkCard } from "@/features/works/components/WorkCard";
+import { NewWorkButton } from "@/features/works/components/NewWorkButton";
+import { useWorkList, useDeleteWork } from "@/hooks/work/useWorkService";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Work } from "@/types/work";
+import { Work, WorksList } from "@/lib/services/work.service";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 // 作品列表页面组件
 export default function WorksPage() {
-  const { data: worksResponse, isLoading } = useWorks();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const page = useMemo(() => {
+    const pageParam = searchParams.get("page");
+    return pageParam ? parseInt(pageParam, 10) : 1;
+  }, [searchParams]);
+
+  const { data: worksResponse, isLoading } = useWorkList({ page });
   const { mutate: deleteWork, isPending: isDeleting } = useDeleteWork();
 
-  const works = worksResponse?.data || [];
+  const works = (worksResponse as WorksList)?.data || [];
+  const pagination = (worksResponse as WorksList)?.pagination;
 
   const handleDeleteWork = (workId: number) => {
     if (window.confirm("确定要删除这个作品吗？此操作不可撤销。")) {
       deleteWork(workId);
     }
   };
+
+  const totalPages = useMemo(() => {
+    if (!pagination || !pagination.total || !pagination.limit) {
+      return 1;
+    }
+    return Math.ceil(pagination.total / pagination.limit);
+  }, [pagination]);
 
   return (
     <div className="space-y-6">
@@ -53,7 +79,7 @@ export default function WorksPage() {
                 <WorkCard
                   key={work.id}
                   work={work}
-                  onDelete={() => handleDeleteWork(work.id)}
+                  onDelete={() => handleDeleteWork(work.id!)}
                   isDeleting={isDeleting}
                 />
               ))}
@@ -68,6 +94,40 @@ export default function WorksPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* 分页 */}
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            {page > 1 && (
+              <PaginationItem>
+                <PaginationPrevious
+                  href={`/works?page=${page - 1}`}
+                />
+              </PaginationItem>
+            )}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+              (pageNumber) => (
+                <PaginationItem key={pageNumber}>
+                  <PaginationLink
+                    href={`/works?page=${pageNumber}`}
+                    isActive={page === pageNumber}
+                  >
+                    {pageNumber}
+                  </PaginationLink>
+                </PaginationItem>
+              )
+            )}
+            {page < totalPages && (
+              <PaginationItem>
+                <PaginationNext
+                  href={`/works?page=${page + 1}`}
+                />
+              </PaginationItem>
+            )}
+          </PaginationContent>
+        </Pagination>
       )}
     </div>
   );

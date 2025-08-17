@@ -662,6 +662,10 @@ export type GetRelationshipsParams = {
    */
   limit?: number;
   /**
+   * Filter by Work ID
+   */
+  work_id?: number;
+  /**
    * Filter by Source Entity ID
    */
   sourceEntityId?: number;
@@ -669,6 +673,14 @@ export type GetRelationshipsParams = {
    * Filter by Source Entity Type
    */
   sourceEntityType?: string;
+  /**
+   * Filter by Target Entity ID
+   */
+  targetEntityId?: number;
+  /**
+   * Filter by Target Entity Type
+   */
+  targetEntityType?: string;
 };
 
 export type GetRelationships200 = Data & {

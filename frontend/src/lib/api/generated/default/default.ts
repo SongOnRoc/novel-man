@@ -29,17 +29,26 @@ import type {
 
 import { customInstance } from "../../../axios";
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
 /**
  * get string by ID
  * @summary Get a list of books in the the store
  */
-export const getBooks = (getBooksBody: GetBooksBody, signal?: AbortSignal) => {
-  return customInstance<V2Book[]>({
-    url: `/books`,
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    signal,
-  });
+export const getBooks = (
+  getBooksBody: GetBooksBody,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<V2Book[]>(
+    {
+      url: `/books`,
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      signal,
+    },
+    options,
+  );
 };
 
 export const getGetBooksQueryKey = (getBooksBody?: GetBooksBody) => {
@@ -55,15 +64,16 @@ export const getGetBooksQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getBooks>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetBooksQueryKey(getBooksBody);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getBooks>>> = ({
     signal,
-  }) => getBooks(getBooksBody, signal);
+  }) => getBooks(getBooksBody, requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getBooks>>,
@@ -94,6 +104,7 @@ export function useGetBooks<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -116,6 +127,7 @@ export function useGetBooks<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -130,6 +142,7 @@ export function useGetBooks<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getBooks>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -148,6 +161,7 @@ export function useGetBooks<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getBooks>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -172,14 +186,18 @@ export function useGetBooks<
 export const getTestapiGetStringByIntSomeId = (
   someId: number,
   getTestapiGetStringByIntSomeIdBody: GetTestapiGetStringByIntSomeIdBody,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<string>({
-    url: `/testapi/get-string-by-int/${someId}`,
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    signal,
-  });
+  return customInstance<string>(
+    {
+      url: `/testapi/get-string-by-int/${someId}`,
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      signal,
+    },
+    options,
+  );
 };
 
 export const getGetTestapiGetStringByIntSomeIdQueryKey = (
@@ -206,9 +224,10 @@ export const getGetTestapiGetStringByIntSomeIdQueryOptions = <
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ??
@@ -223,6 +242,7 @@ export const getGetTestapiGetStringByIntSomeIdQueryOptions = <
     getTestapiGetStringByIntSomeId(
       someId,
       getTestapiGetStringByIntSomeIdBody,
+      requestOptions,
       signal,
     );
 
@@ -267,6 +287,7 @@ export function useGetTestapiGetStringByIntSomeId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -294,6 +315,7 @@ export function useGetTestapiGetStringByIntSomeId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -313,6 +335,7 @@ export function useGetTestapiGetStringByIntSomeId<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -336,6 +359,7 @@ export function useGetTestapiGetStringByIntSomeId<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -364,15 +388,19 @@ export const getTestapiGetStructArrayByStringSomeId = (
   someId: string,
   getTestapiGetStructArrayByStringSomeIdBody: GetTestapiGetStructArrayByStringSomeIdBody,
   params: GetTestapiGetStructArrayByStringSomeIdParams,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<string>({
-    url: `/testapi/get-struct-array-by-string/${someId}`,
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    params,
-    signal,
-  });
+  return customInstance<string>(
+    {
+      url: `/testapi/get-struct-array-by-string/${someId}`,
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      params,
+      signal,
+    },
+    options,
+  );
 };
 
 export const getGetTestapiGetStructArrayByStringSomeIdQueryKey = (
@@ -402,9 +430,10 @@ export const getGetTestapiGetStructArrayByStringSomeIdQueryOptions = <
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ??
@@ -421,6 +450,7 @@ export const getGetTestapiGetStructArrayByStringSomeIdQueryOptions = <
       someId,
       getTestapiGetStructArrayByStringSomeIdBody,
       params,
+      requestOptions,
       signal,
     );
 
@@ -466,6 +496,7 @@ export function useGetTestapiGetStructArrayByStringSomeId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -494,6 +525,7 @@ export function useGetTestapiGetStructArrayByStringSomeId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -514,6 +546,7 @@ export function useGetTestapiGetStructArrayByStringSomeId<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -535,6 +568,7 @@ export function useGetTestapiGetStructArrayByStringSomeId<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {

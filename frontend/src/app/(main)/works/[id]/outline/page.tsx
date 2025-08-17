@@ -1,44 +1,49 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, PlusCircle, Globe } from "lucide-react";
-import { useWork } from "@/hooks/work/useWorks";
-import { useWorkWorldview } from "@/hooks/work/useWorkWorldview";
-import { useWorldview } from "@/hooks/worldbuilding/useWorldview";
-import { WorldviewItem } from "@/types/core";
+} from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft, PlusCircle, Globe } from 'lucide-react';
+import { useWorkById, useWorkWorldview } from '@/hooks/work/useWorkService';
+import { useWorldviewItems } from '@/hooks/worldbuilding/useWorldviewService';
+import { WorldviewItem, WorldviewItemList } from '@/lib/services/worldview.service';
+import { Work } from '@/lib/services/work.service';
+import { Relationship } from '@/lib/services/relationship.service';
 
 export default function OutlinePage() {
   const router = useRouter();
   const params = useParams();
   const workId = Number(params.id);
 
-  const { data: work, isLoading: isWorkLoading } = useWork(workId);
+  const { data: workResponse, isLoading: isWorkLoading } = useWorkById(workId);
+  const work = workResponse?.data as Work;
+
   const {
     items: associatedItems,
-    associateItems,
-    dissociateItem,
+    associate,
+    dissociate,
     isLoading: isWorldviewLoading,
   } = useWorkWorldview(workId);
-  const { items: allItems, isLoadingItems } = useWorldview();
+  const { data: allItemsResponse } = useWorldviewItems({ category_id: 0 }); // TODO: This should be a real category ID
+  const allItems =
+    (allItemsResponse?.data as WorldviewItemList)?.data || [];
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleAssociate = async (itemId: number) => {
-    await associateItems([itemId]);
+    await associate(itemId);
   };
 
-  const handleDissociate = async (itemId: number) => {
-    await dissociateItem(itemId);
+  const handleDissociate = async (relationshipId: number) => {
+    await dissociate(relationshipId);
   };
 
   if (isWorkLoading) return <div>正在加载作品信息...</div>;
@@ -76,7 +81,7 @@ export default function OutlinePage() {
                 <DialogTitle>从世界观库中选择</DialogTitle>
               </DialogHeader>
               <div className="space-y-2">
-                {(allItems || []).map((item: WorldviewItem) => (
+                {allItems.map((item: WorldviewItem) => (
                   <div
                     key={item.id}
                     className="flex items-center justify-between"
@@ -85,7 +90,7 @@ export default function OutlinePage() {
                     <Button
                       size="sm"
                       onClick={() => {
-                        handleAssociate(item.id);
+                        handleAssociate(item.id!);
                         setIsModalOpen(false);
                       }}
                     >
@@ -102,29 +107,27 @@ export default function OutlinePage() {
             <p>加载中...</p>
           ) : (
             <ul className="space-y-2">
-              {(associatedItems || []).map(
-                (item: { worldviewItemId: number }) => (
-                  <li
-                    key={item.worldviewItemId}
-                    className="flex items-center justify-between"
+              {associatedItems.map((item: Relationship) => (
+                <li
+                  key={item.id}
+                  className="flex items-center justify-between"
+                >
+                  <span>
+                    {
+                      allItems.find(
+                        (i: WorldviewItem) => i.id === item.target_entity_id
+                      )?.name
+                    }
+                  </span>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleDissociate(item.id!)}
                   >
-                    <span>
-                      {
-                        (allItems || []).find(
-                          (i: WorldviewItem) => i.id === item.worldviewItemId,
-                        )?.name
-                      }
-                    </span>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDissociate(item.worldviewItemId)}
-                    >
-                      移除
-                    </Button>
-                  </li>
-                ),
-              )}
+                    移除
+                  </Button>
+                </li>
+              ))}
             </ul>
           )}
         </CardContent>

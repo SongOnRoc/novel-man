@@ -377,7 +377,7 @@ func (c *WorldviewController) CreateItem(ctx *gin.Context) {
 
 // GetItems godoc
 // @Summary Get all worldview items for a category
-// @Description Get all worldview items for a given category
+// @Description Get all worldview items for a given category, verifying ownership of the category.
 // @Tags worldview
 // @Produce  json
 // @Param category_id query int true "Category ID"
@@ -385,6 +385,9 @@ func (c *WorldviewController) CreateItem(ctx *gin.Context) {
 // @Param limit query int false "Number of items per page" default(10)
 // @Success 200 {object} response.StandardResponse{data=ListItemsResponse}
 // @Failure 400 {object} response.StandardResponse "category_id is required or invalid"
+// @Failure 401 {object} response.StandardResponse "Unauthorized"
+// @Failure 403 {object} response.StandardResponse "Permission denied"
+// @Failure 404 {object} response.StandardResponse "Category not found"
 // @Failure 500 {object} response.StandardResponse "Failed to fetch items"
 // @Security BearerAuth
 // @Router /worldview/items [get]
@@ -400,6 +403,27 @@ func (c *WorldviewController) GetItems(ctx *gin.Context) {
 	categoryID, err := strconv.ParseUint(categoryIDStr, 10, 32)
 	if err != nil {
 		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid category_id", err)
+		return
+	}
+
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		response.Error(ctx, http.StatusUnauthorized, http.StatusUnauthorized, "Unauthorized", nil)
+		return
+	}
+
+	// Verify ownership of the category before listing items
+	category, err := c.categoryService.GetByID(*context.New(ctx), uint(categoryID))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Category not found", err)
+		} else {
+			response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to verify category ownership", err)
+		}
+		return
+	}
+	if category.UserID != userID.(uint) {
+		response.Error(ctx, http.StatusForbidden, http.StatusForbidden, "Permission denied", nil)
 		return
 	}
 

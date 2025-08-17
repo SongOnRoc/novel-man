@@ -35,20 +35,21 @@ import type {
 
 import { customInstance } from "../../../axios";
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
 /**
- * Get a list of all chapters for a specific work with pagination
+ * Get a list of all chapters for a specific work, verifying ownership of the work.
  * @summary List all chapters for a work
  */
 export const getChapters = (
   params: GetChaptersParams,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetChapters200>({
-    url: `/chapters`,
-    method: "GET",
-    params,
-    signal,
-  });
+  return customInstance<GetChapters200>(
+    { url: `/chapters`, method: "GET", params, signal },
+    options,
+  );
 };
 
 export const getGetChaptersQueryKey = (params?: GetChaptersParams) => {
@@ -57,22 +58,28 @@ export const getGetChaptersQueryKey = (params?: GetChaptersParams) => {
 
 export const getGetChaptersQueryOptions = <
   TData = Awaited<ReturnType<typeof getChapters>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params: GetChaptersParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getChapters>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetChaptersQueryKey(params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getChapters>>> = ({
     signal,
-  }) => getChapters(params, signal);
+  }) => getChapters(params, requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getChapters>>,
@@ -86,11 +93,19 @@ export type GetChaptersQueryResult = NonNullable<
 >;
 export type GetChaptersQueryError =
   | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse
   | ResponseStandardResponse;
 
 export function useGetChapters<
   TData = Awaited<ReturnType<typeof getChapters>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params: GetChaptersParams,
   options: {
@@ -105,6 +120,7 @@ export function useGetChapters<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -112,7 +128,12 @@ export function useGetChapters<
 };
 export function useGetChapters<
   TData = Awaited<ReturnType<typeof getChapters>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params: GetChaptersParams,
   options?: {
@@ -127,6 +148,7 @@ export function useGetChapters<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -134,13 +156,19 @@ export function useGetChapters<
 };
 export function useGetChapters<
   TData = Awaited<ReturnType<typeof getChapters>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params: GetChaptersParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getChapters>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -152,13 +180,19 @@ export function useGetChapters<
 
 export function useGetChapters<
   TData = Awaited<ReturnType<typeof getChapters>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params: GetChaptersParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getChapters>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -182,15 +216,19 @@ export function useGetChapters<
  */
 export const postChapters = (
   chaptersCreateChapterRequest: ChaptersCreateChapterRequest,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostChapters201>({
-    url: `/chapters`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: chaptersCreateChapterRequest,
-    signal,
-  });
+  return customInstance<PostChapters201>(
+    {
+      url: `/chapters`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: chaptersCreateChapterRequest,
+      signal,
+    },
+    options,
+  );
 };
 
 export const getPostChaptersMutationOptions = <
@@ -203,6 +241,7 @@ export const getPostChaptersMutationOptions = <
     { data: ChaptersCreateChapterRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postChapters>>,
   TError,
@@ -210,13 +249,13 @@ export const getPostChaptersMutationOptions = <
   TContext
 > => {
   const mutationKey = ["postChapters"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postChapters>>,
@@ -224,7 +263,7 @@ export const getPostChaptersMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return postChapters(data);
+    return postChapters(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -252,6 +291,7 @@ export const usePostChapters = <
       { data: ChaptersCreateChapterRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -268,11 +308,14 @@ export const usePostChapters = <
  * Delete a chapter by its ID
  * @summary Delete a chapter
  */
-export const deleteChaptersId = (id: number) => {
-  return customInstance<DeleteChaptersId200>({
-    url: `/chapters/${id}`,
-    method: "DELETE",
-  });
+export const deleteChaptersId = (
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<DeleteChaptersId200>(
+    { url: `/chapters/${id}`, method: "DELETE" },
+    options,
+  );
 };
 
 export const getDeleteChaptersIdMutationOptions = <
@@ -288,6 +331,7 @@ export const getDeleteChaptersIdMutationOptions = <
     { id: number },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteChaptersId>>,
   TError,
@@ -295,13 +339,13 @@ export const getDeleteChaptersIdMutationOptions = <
   TContext
 > => {
   const mutationKey = ["deleteChaptersId"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteChaptersId>>,
@@ -309,7 +353,7 @@ export const getDeleteChaptersIdMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return deleteChaptersId(id);
+    return deleteChaptersId(id, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -341,6 +385,7 @@ export const useDeleteChaptersId = <
       { id: number },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -357,12 +402,15 @@ export const useDeleteChaptersId = <
  * Get a single chapter by its ID
  * @summary Get a single chapter
  */
-export const getChaptersId = (id: number, signal?: AbortSignal) => {
-  return customInstance<GetChaptersId200>({
-    url: `/chapters/${id}`,
-    method: "GET",
-    signal,
-  });
+export const getChaptersId = (
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<GetChaptersId200>(
+    { url: `/chapters/${id}`, method: "GET", signal },
+    options,
+  );
 };
 
 export const getGetChaptersIdQueryKey = (id?: number) => {
@@ -381,15 +429,16 @@ export const getGetChaptersIdQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getChaptersId>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetChaptersIdQueryKey(id);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getChaptersId>>> = ({
     signal,
-  }) => getChaptersId(id, signal);
+  }) => getChaptersId(id, requestOptions, signal);
 
   return {
     queryKey,
@@ -431,6 +480,7 @@ export function useGetChaptersId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -456,6 +506,7 @@ export function useGetChaptersId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -473,6 +524,7 @@ export function useGetChaptersId<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getChaptersId>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -494,6 +546,7 @@ export function useGetChaptersId<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getChaptersId>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -518,13 +571,17 @@ export function useGetChaptersId<
 export const putChaptersId = (
   id: number,
   chaptersUpdateChapterRequest: ChaptersUpdateChapterRequest,
+  options?: SecondParameter<typeof customInstance>,
 ) => {
-  return customInstance<PutChaptersId200>({
-    url: `/chapters/${id}`,
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    data: chaptersUpdateChapterRequest,
-  });
+  return customInstance<PutChaptersId200>(
+    {
+      url: `/chapters/${id}`,
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: chaptersUpdateChapterRequest,
+    },
+    options,
+  );
 };
 
 export const getPutChaptersIdMutationOptions = <
@@ -540,6 +597,7 @@ export const getPutChaptersIdMutationOptions = <
     { id: number; data: ChaptersUpdateChapterRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putChaptersId>>,
   TError,
@@ -547,13 +605,13 @@ export const getPutChaptersIdMutationOptions = <
   TContext
 > => {
   const mutationKey = ["putChaptersId"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof putChaptersId>>,
@@ -561,7 +619,7 @@ export const getPutChaptersIdMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return putChaptersId(id, data);
+    return putChaptersId(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -593,6 +651,7 @@ export const usePutChaptersId = <
       { id: number; data: ChaptersUpdateChapterRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

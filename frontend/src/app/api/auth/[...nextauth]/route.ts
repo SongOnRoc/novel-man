@@ -65,10 +65,10 @@ export const authOptions: NextAuthOptions = {
             ) {
               // Standard format {code, message, data: {...}}
               userProfileData = userProfileResponse.data.data;
-              } else {
+            } else {
               // Direct data format {...}
               userProfileData = userProfileResponse.data;
-              }
+            }
 
             if (userProfileData) {
               // To satisfy NextAuth's internal User type, we must convert the ID to a string here.
@@ -117,18 +117,21 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = customUser.accessToken;
         // The user object from authorize is already structured correctly
         token.user = {
-          id: typeof customUser.id === 'number' ? customUser.id : Number(customUser.id),
+          id:
+            typeof customUser.id === "number"
+              ? customUser.id
+              : Number(customUser.id),
           username: customUser.username,
           email: customUser.email,
         };
-        }
+      }
       return token;
     },
     async session({ session, token }) {
       if (token.accessToken && token.user) {
         session.accessToken = token.accessToken as string;
         session.user = token.user as AuthUser;
-        }
+      }
       return session;
     },
   },

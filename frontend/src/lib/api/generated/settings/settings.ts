@@ -38,20 +38,21 @@ import type {
 
 import { customInstance } from "../../../axios";
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
 /**
- * List all settings with pagination (admin-only, for now)
- * @summary List settings
+ * List all settings with pagination. Requires admin privileges.
+ * @summary List settings (Admin only)
  */
 export const getSettings = (
   params?: GetSettingsParams,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetSettings200>({
-    url: `/settings`,
-    method: "GET",
-    params,
-    signal,
-  });
+  return customInstance<GetSettings200>(
+    { url: `/settings`, method: "GET", params, signal },
+    options,
+  );
 };
 
 export const getGetSettingsQueryKey = (params?: GetSettingsParams) => {
@@ -60,22 +61,26 @@ export const getGetSettingsQueryKey = (params?: GetSettingsParams) => {
 
 export const getGetSettingsQueryOptions = <
   TData = Awaited<ReturnType<typeof getSettings>>,
-  TError = ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params?: GetSettingsParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getSettings>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetSettingsQueryKey(params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getSettings>>> = ({
     signal,
-  }) => getSettings(params, signal);
+  }) => getSettings(params, requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getSettings>>,
@@ -87,11 +92,17 @@ export const getGetSettingsQueryOptions = <
 export type GetSettingsQueryResult = NonNullable<
   Awaited<ReturnType<typeof getSettings>>
 >;
-export type GetSettingsQueryError = ResponseStandardResponse;
+export type GetSettingsQueryError =
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse;
 
 export function useGetSettings<
   TData = Awaited<ReturnType<typeof getSettings>>,
-  TError = ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params: undefined | GetSettingsParams,
   options: {
@@ -106,6 +117,7 @@ export function useGetSettings<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -113,7 +125,10 @@ export function useGetSettings<
 };
 export function useGetSettings<
   TData = Awaited<ReturnType<typeof getSettings>>,
-  TError = ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params?: GetSettingsParams,
   options?: {
@@ -128,6 +143,7 @@ export function useGetSettings<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -135,31 +151,39 @@ export function useGetSettings<
 };
 export function useGetSettings<
   TData = Awaited<ReturnType<typeof getSettings>>,
-  TError = ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params?: GetSettingsParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getSettings>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary List settings
+ * @summary List settings (Admin only)
  */
 
 export function useGetSettings<
   TData = Awaited<ReturnType<typeof getSettings>>,
-  TError = ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params?: GetSettingsParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getSettings>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -183,15 +207,19 @@ export function useGetSettings<
  */
 export const postSettings = (
   settingsSettingRequest: SettingsSettingRequest,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostSettings201>({
-    url: `/settings`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: settingsSettingRequest,
-    signal,
-  });
+  return customInstance<PostSettings201>(
+    {
+      url: `/settings`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: settingsSettingRequest,
+      signal,
+    },
+    options,
+  );
 };
 
 export const getPostSettingsMutationOptions = <
@@ -207,6 +235,7 @@ export const getPostSettingsMutationOptions = <
     { data: SettingsSettingRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postSettings>>,
   TError,
@@ -214,13 +243,13 @@ export const getPostSettingsMutationOptions = <
   TContext
 > => {
   const mutationKey = ["postSettings"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postSettings>>,
@@ -228,7 +257,7 @@ export const getPostSettingsMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return postSettings(data);
+    return postSettings(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -260,6 +289,7 @@ export const usePostSettings = <
       { data: SettingsSettingRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -273,15 +303,18 @@ export const usePostSettings = <
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * Get a setting by user ID
+ * Get a setting by user ID. User can only access their own settings.
  * @summary Get a setting by user ID
  */
-export const getSettingsUserUserId = (userId: number, signal?: AbortSignal) => {
-  return customInstance<GetSettingsUserUserId200>({
-    url: `/settings/user/${userId}`,
-    method: "GET",
-    signal,
-  });
+export const getSettingsUserUserId = (
+  userId: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<GetSettingsUserUserId200>(
+    { url: `/settings/user/${userId}`, method: "GET", signal },
+    options,
+  );
 };
 
 export const getGetSettingsUserUserIdQueryKey = (userId?: number) => {
@@ -291,6 +324,8 @@ export const getGetSettingsUserUserIdQueryKey = (userId?: number) => {
 export const getGetSettingsUserUserIdQueryOptions = <
   TData = Awaited<ReturnType<typeof getSettingsUserUserId>>,
   TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
     | ResponseStandardResponse
     | ResponseStandardResponse
     | ResponseStandardResponse,
@@ -304,16 +339,17 @@ export const getGetSettingsUserUserIdQueryOptions = <
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getGetSettingsUserUserIdQueryKey(userId);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof getSettingsUserUserId>>
-  > = ({ signal }) => getSettingsUserUserId(userId, signal);
+  > = ({ signal }) => getSettingsUserUserId(userId, requestOptions, signal);
 
   return {
     queryKey,
@@ -333,11 +369,15 @@ export type GetSettingsUserUserIdQueryResult = NonNullable<
 export type GetSettingsUserUserIdQueryError =
   | ResponseStandardResponse
   | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse
   | ResponseStandardResponse;
 
 export function useGetSettingsUserUserId<
   TData = Awaited<ReturnType<typeof getSettingsUserUserId>>,
   TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
     | ResponseStandardResponse
     | ResponseStandardResponse
     | ResponseStandardResponse,
@@ -359,6 +399,7 @@ export function useGetSettingsUserUserId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -367,6 +408,8 @@ export function useGetSettingsUserUserId<
 export function useGetSettingsUserUserId<
   TData = Awaited<ReturnType<typeof getSettingsUserUserId>>,
   TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
     | ResponseStandardResponse
     | ResponseStandardResponse
     | ResponseStandardResponse,
@@ -388,6 +431,7 @@ export function useGetSettingsUserUserId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -396,6 +440,8 @@ export function useGetSettingsUserUserId<
 export function useGetSettingsUserUserId<
   TData = Awaited<ReturnType<typeof getSettingsUserUserId>>,
   TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
     | ResponseStandardResponse
     | ResponseStandardResponse
     | ResponseStandardResponse,
@@ -409,6 +455,7 @@ export function useGetSettingsUserUserId<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -423,6 +470,8 @@ export function useGetSettingsUserUserId<
   TError =
     | ResponseStandardResponse
     | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
     | ResponseStandardResponse,
 >(
   userId: number,
@@ -434,6 +483,7 @@ export function useGetSettingsUserUserId<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -452,23 +502,29 @@ export function useGetSettingsUserUserId<
 }
 
 /**
- * Update a setting by user ID
+ * Update a setting by user ID. User can only update their own settings.
  * @summary Update a setting by user ID
  */
 export const putSettingsUserUserId = (
   userId: number,
   settingsSettingRequest: SettingsSettingRequest,
+  options?: SecondParameter<typeof customInstance>,
 ) => {
-  return customInstance<PutSettingsUserUserId200>({
-    url: `/settings/user/${userId}`,
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    data: settingsSettingRequest,
-  });
+  return customInstance<PutSettingsUserUserId200>(
+    {
+      url: `/settings/user/${userId}`,
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: settingsSettingRequest,
+    },
+    options,
+  );
 };
 
 export const getPutSettingsUserUserIdMutationOptions = <
   TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
     | ResponseStandardResponse
     | ResponseStandardResponse
     | ResponseStandardResponse,
@@ -480,6 +536,7 @@ export const getPutSettingsUserUserIdMutationOptions = <
     { userId: number; data: SettingsSettingRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putSettingsUserUserId>>,
   TError,
@@ -487,13 +544,13 @@ export const getPutSettingsUserUserIdMutationOptions = <
   TContext
 > => {
   const mutationKey = ["putSettingsUserUserId"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof putSettingsUserUserId>>,
@@ -501,7 +558,7 @@ export const getPutSettingsUserUserIdMutationOptions = <
   > = (props) => {
     const { userId, data } = props ?? {};
 
-    return putSettingsUserUserId(userId, data);
+    return putSettingsUserUserId(userId, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -514,6 +571,8 @@ export type PutSettingsUserUserIdMutationBody = SettingsSettingRequest;
 export type PutSettingsUserUserIdMutationError =
   | ResponseStandardResponse
   | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse
   | ResponseStandardResponse;
 
 /**
@@ -521,6 +580,8 @@ export type PutSettingsUserUserIdMutationError =
  */
 export const usePutSettingsUserUserId = <
   TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
     | ResponseStandardResponse
     | ResponseStandardResponse
     | ResponseStandardResponse,
@@ -533,6 +594,7 @@ export const usePutSettingsUserUserId = <
       { userId: number; data: SettingsSettingRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -549,11 +611,14 @@ export const usePutSettingsUserUserId = <
  * Delete a setting by its ID
  * @summary Delete a setting by ID
  */
-export const deleteSettingsId = (id: number) => {
-  return customInstance<DeleteSettingsId200>({
-    url: `/settings/${id}`,
-    method: "DELETE",
-  });
+export const deleteSettingsId = (
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<DeleteSettingsId200>(
+    { url: `/settings/${id}`, method: "DELETE" },
+    options,
+  );
 };
 
 export const getDeleteSettingsIdMutationOptions = <
@@ -569,6 +634,7 @@ export const getDeleteSettingsIdMutationOptions = <
     { id: number },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteSettingsId>>,
   TError,
@@ -576,13 +642,13 @@ export const getDeleteSettingsIdMutationOptions = <
   TContext
 > => {
   const mutationKey = ["deleteSettingsId"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteSettingsId>>,
@@ -590,7 +656,7 @@ export const getDeleteSettingsIdMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return deleteSettingsId(id);
+    return deleteSettingsId(id, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -622,6 +688,7 @@ export const useDeleteSettingsId = <
       { id: number },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -638,12 +705,15 @@ export const useDeleteSettingsId = <
  * Get a setting by its ID
  * @summary Get a setting by ID
  */
-export const getSettingsId = (id: number, signal?: AbortSignal) => {
-  return customInstance<GetSettingsId200>({
-    url: `/settings/${id}`,
-    method: "GET",
-    signal,
-  });
+export const getSettingsId = (
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<GetSettingsId200>(
+    { url: `/settings/${id}`, method: "GET", signal },
+    options,
+  );
 };
 
 export const getGetSettingsIdQueryKey = (id?: number) => {
@@ -662,15 +732,16 @@ export const getGetSettingsIdQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getSettingsId>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetSettingsIdQueryKey(id);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getSettingsId>>> = ({
     signal,
-  }) => getSettingsId(id, signal);
+  }) => getSettingsId(id, requestOptions, signal);
 
   return {
     queryKey,
@@ -712,6 +783,7 @@ export function useGetSettingsId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -737,6 +809,7 @@ export function useGetSettingsId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -754,6 +827,7 @@ export function useGetSettingsId<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getSettingsId>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -775,6 +849,7 @@ export function useGetSettingsId<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getSettingsId>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -799,13 +874,17 @@ export function useGetSettingsId<
 export const putSettingsId = (
   id: number,
   settingsSettingRequest: SettingsSettingRequest,
+  options?: SecondParameter<typeof customInstance>,
 ) => {
-  return customInstance<PutSettingsId200>({
-    url: `/settings/${id}`,
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    data: settingsSettingRequest,
-  });
+  return customInstance<PutSettingsId200>(
+    {
+      url: `/settings/${id}`,
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: settingsSettingRequest,
+    },
+    options,
+  );
 };
 
 export const getPutSettingsIdMutationOptions = <
@@ -821,6 +900,7 @@ export const getPutSettingsIdMutationOptions = <
     { id: number; data: SettingsSettingRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putSettingsId>>,
   TError,
@@ -828,13 +908,13 @@ export const getPutSettingsIdMutationOptions = <
   TContext
 > => {
   const mutationKey = ["putSettingsId"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof putSettingsId>>,
@@ -842,7 +922,7 @@ export const getPutSettingsIdMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return putSettingsId(id, data);
+    return putSettingsId(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -874,6 +954,7 @@ export const usePutSettingsId = <
       { id: number; data: SettingsSettingRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -887,23 +968,29 @@ export const usePutSettingsId = <
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * Update the AI model setting for a specific user
+ * Update the AI model setting for a specific user. User can only update their own settings.
  * @summary Update AI model setting for a user
  */
 export const putSettingsUserIdAiModel = (
   userId: number,
   settingsUpdateAIModelRequest: SettingsUpdateAIModelRequest,
+  options?: SecondParameter<typeof customInstance>,
 ) => {
-  return customInstance<PutSettingsUserIdAiModel200>({
-    url: `/settings/${userId}/ai-model`,
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    data: settingsUpdateAIModelRequest,
-  });
+  return customInstance<PutSettingsUserIdAiModel200>(
+    {
+      url: `/settings/${userId}/ai-model`,
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: settingsUpdateAIModelRequest,
+    },
+    options,
+  );
 };
 
 export const getPutSettingsUserIdAiModelMutationOptions = <
   TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
     | ResponseStandardResponse
     | ResponseStandardResponse
     | ResponseStandardResponse,
@@ -915,6 +1002,7 @@ export const getPutSettingsUserIdAiModelMutationOptions = <
     { userId: number; data: SettingsUpdateAIModelRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putSettingsUserIdAiModel>>,
   TError,
@@ -922,13 +1010,13 @@ export const getPutSettingsUserIdAiModelMutationOptions = <
   TContext
 > => {
   const mutationKey = ["putSettingsUserIdAiModel"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof putSettingsUserIdAiModel>>,
@@ -936,7 +1024,7 @@ export const getPutSettingsUserIdAiModelMutationOptions = <
   > = (props) => {
     const { userId, data } = props ?? {};
 
-    return putSettingsUserIdAiModel(userId, data);
+    return putSettingsUserIdAiModel(userId, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -949,6 +1037,8 @@ export type PutSettingsUserIdAiModelMutationBody = SettingsUpdateAIModelRequest;
 export type PutSettingsUserIdAiModelMutationError =
   | ResponseStandardResponse
   | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse
   | ResponseStandardResponse;
 
 /**
@@ -956,6 +1046,8 @@ export type PutSettingsUserIdAiModelMutationError =
  */
 export const usePutSettingsUserIdAiModel = <
   TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
     | ResponseStandardResponse
     | ResponseStandardResponse
     | ResponseStandardResponse,
@@ -968,6 +1060,7 @@ export const usePutSettingsUserIdAiModel = <
       { userId: number; data: SettingsUpdateAIModelRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

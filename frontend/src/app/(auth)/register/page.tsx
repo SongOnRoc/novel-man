@@ -63,7 +63,7 @@ export default function RegisterPage() {
         router.push("/login");
       }, 1500);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error("注册失败", {
         description: error?.message || "该用户名或邮箱已被使用。",
       });
@@ -82,7 +82,7 @@ export default function RegisterPage() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     // We don't need to send `confirmPassword` to the backend.
-    const { confirmPassword, ...registerData } = values;
+    const { confirmPassword: _, ...registerData } = values;
     registerMutation.mutate(registerData);
   }
 

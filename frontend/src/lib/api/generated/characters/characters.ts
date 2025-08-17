@@ -35,20 +35,21 @@ import type {
 
 import { customInstance } from "../../../axios";
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
 /**
- * Get a list of all characters with pagination
- * @summary List all characters
+ * Get a list of the current user's characters with pagination
+ * @summary List user's characters
  */
 export const getCharacters = (
   params?: GetCharactersParams,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetCharacters200>({
-    url: `/characters`,
-    method: "GET",
-    params,
-    signal,
-  });
+  return customInstance<GetCharacters200>(
+    { url: `/characters`, method: "GET", params, signal },
+    options,
+  );
 };
 
 export const getGetCharactersQueryKey = (params?: GetCharactersParams) => {
@@ -57,22 +58,23 @@ export const getGetCharactersQueryKey = (params?: GetCharactersParams) => {
 
 export const getGetCharactersQueryOptions = <
   TData = Awaited<ReturnType<typeof getCharacters>>,
-  TError = ResponseStandardResponse,
+  TError = ResponseStandardResponse | ResponseStandardResponse,
 >(
   params?: GetCharactersParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getCharacters>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetCharactersQueryKey(params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getCharacters>>> = ({
     signal,
-  }) => getCharacters(params, signal);
+  }) => getCharacters(params, requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getCharacters>>,
@@ -84,11 +86,13 @@ export const getGetCharactersQueryOptions = <
 export type GetCharactersQueryResult = NonNullable<
   Awaited<ReturnType<typeof getCharacters>>
 >;
-export type GetCharactersQueryError = ResponseStandardResponse;
+export type GetCharactersQueryError =
+  | ResponseStandardResponse
+  | ResponseStandardResponse;
 
 export function useGetCharacters<
   TData = Awaited<ReturnType<typeof getCharacters>>,
-  TError = ResponseStandardResponse,
+  TError = ResponseStandardResponse | ResponseStandardResponse,
 >(
   params: undefined | GetCharactersParams,
   options: {
@@ -103,6 +107,7 @@ export function useGetCharacters<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -110,7 +115,7 @@ export function useGetCharacters<
 };
 export function useGetCharacters<
   TData = Awaited<ReturnType<typeof getCharacters>>,
-  TError = ResponseStandardResponse,
+  TError = ResponseStandardResponse | ResponseStandardResponse,
 >(
   params?: GetCharactersParams,
   options?: {
@@ -125,6 +130,7 @@ export function useGetCharacters<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -132,31 +138,33 @@ export function useGetCharacters<
 };
 export function useGetCharacters<
   TData = Awaited<ReturnType<typeof getCharacters>>,
-  TError = ResponseStandardResponse,
+  TError = ResponseStandardResponse | ResponseStandardResponse,
 >(
   params?: GetCharactersParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getCharacters>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary List all characters
+ * @summary List user's characters
  */
 
 export function useGetCharacters<
   TData = Awaited<ReturnType<typeof getCharacters>>,
-  TError = ResponseStandardResponse,
+  TError = ResponseStandardResponse | ResponseStandardResponse,
 >(
   params?: GetCharactersParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getCharacters>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -180,15 +188,19 @@ export function useGetCharacters<
  */
 export const postCharacters = (
   charactersCreateCharacterRequest: CharactersCreateCharacterRequest,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostCharacters201>({
-    url: `/characters`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: charactersCreateCharacterRequest,
-    signal,
-  });
+  return customInstance<PostCharacters201>(
+    {
+      url: `/characters`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: charactersCreateCharacterRequest,
+      signal,
+    },
+    options,
+  );
 };
 
 export const getPostCharactersMutationOptions = <
@@ -204,6 +216,7 @@ export const getPostCharactersMutationOptions = <
     { data: CharactersCreateCharacterRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postCharacters>>,
   TError,
@@ -211,13 +224,13 @@ export const getPostCharactersMutationOptions = <
   TContext
 > => {
   const mutationKey = ["postCharacters"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postCharacters>>,
@@ -225,7 +238,7 @@ export const getPostCharactersMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return postCharacters(data);
+    return postCharacters(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -257,6 +270,7 @@ export const usePostCharacters = <
       { data: CharactersCreateCharacterRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -273,11 +287,14 @@ export const usePostCharacters = <
  * Delete a character by its ID
  * @summary Delete a character
  */
-export const deleteCharactersId = (id: number) => {
-  return customInstance<DeleteCharactersId200>({
-    url: `/characters/${id}`,
-    method: "DELETE",
-  });
+export const deleteCharactersId = (
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<DeleteCharactersId200>(
+    { url: `/characters/${id}`, method: "DELETE" },
+    options,
+  );
 };
 
 export const getDeleteCharactersIdMutationOptions = <
@@ -293,6 +310,7 @@ export const getDeleteCharactersIdMutationOptions = <
     { id: number },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteCharactersId>>,
   TError,
@@ -300,13 +318,13 @@ export const getDeleteCharactersIdMutationOptions = <
   TContext
 > => {
   const mutationKey = ["deleteCharactersId"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteCharactersId>>,
@@ -314,7 +332,7 @@ export const getDeleteCharactersIdMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return deleteCharactersId(id);
+    return deleteCharactersId(id, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -346,6 +364,7 @@ export const useDeleteCharactersId = <
       { id: number },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -362,12 +381,15 @@ export const useDeleteCharactersId = <
  * Get a single character by its ID
  * @summary Get a single character
  */
-export const getCharactersId = (id: number, signal?: AbortSignal) => {
-  return customInstance<GetCharactersId200>({
-    url: `/characters/${id}`,
-    method: "GET",
-    signal,
-  });
+export const getCharactersId = (
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<GetCharactersId200>(
+    { url: `/characters/${id}`, method: "GET", signal },
+    options,
+  );
 };
 
 export const getGetCharactersIdQueryKey = (id?: number) => {
@@ -390,15 +412,16 @@ export const getGetCharactersIdQueryOptions = <
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetCharactersIdQueryKey(id);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getCharactersId>>> = ({
     signal,
-  }) => getCharactersId(id, signal);
+  }) => getCharactersId(id, requestOptions, signal);
 
   return {
     queryKey,
@@ -444,6 +467,7 @@ export function useGetCharactersId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -473,6 +497,7 @@ export function useGetCharactersId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -494,6 +519,7 @@ export function useGetCharactersId<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -519,6 +545,7 @@ export function useGetCharactersId<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -543,13 +570,17 @@ export function useGetCharactersId<
 export const putCharactersId = (
   id: number,
   charactersUpdateCharacterRequest: CharactersUpdateCharacterRequest,
+  options?: SecondParameter<typeof customInstance>,
 ) => {
-  return customInstance<PutCharactersId200>({
-    url: `/characters/${id}`,
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    data: charactersUpdateCharacterRequest,
-  });
+  return customInstance<PutCharactersId200>(
+    {
+      url: `/characters/${id}`,
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: charactersUpdateCharacterRequest,
+    },
+    options,
+  );
 };
 
 export const getPutCharactersIdMutationOptions = <
@@ -565,6 +596,7 @@ export const getPutCharactersIdMutationOptions = <
     { id: number; data: CharactersUpdateCharacterRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putCharactersId>>,
   TError,
@@ -572,13 +604,13 @@ export const getPutCharactersIdMutationOptions = <
   TContext
 > => {
   const mutationKey = ["putCharactersId"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof putCharactersId>>,
@@ -586,7 +618,7 @@ export const getPutCharactersIdMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return putCharactersId(id, data);
+    return putCharactersId(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -618,6 +650,7 @@ export const usePutCharactersId = <
       { id: number; data: CharactersUpdateCharacterRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getSession } from "next-auth/react";
+import { getSession, signOut } from "next-auth/react";
 
 // const baseURL = "/api/proxy";
 // Determine the base URL based on the environment (server-side or client-side).
@@ -17,15 +17,22 @@ const baseURL = isServer
  * It takes the axios config and returns a promise.
  * @param config The axios request config
  */
-export const customInstance = <T>(config: any): Promise<T> => {
-  return axiosInstance(config).then((response) => {
-    // Ensure we always return a value, even if response.data is undefined
+export const customInstance = <T>(
+  config: any,
+  headers?: any
+): Promise<T> => {
+  const controller = new AbortController();
+  const promise = axiosInstance({
+    ...config,
+    headers: {
+      ...config.headers,
+      ...headers,
+    },
+    signal: controller.signal,
+  }).then((response) => {
     if (response.data === undefined) {
       return {} as T;
     }
-
-    // The backend uses a standard response format: { code, message, data }.
-    // We are primarily interested in the `data` payload.
     if (
       response.data &&
       typeof response.data === "object" &&
@@ -35,6 +42,13 @@ export const customInstance = <T>(config: any): Promise<T> => {
     }
     return response.data;
   });
+
+  // @ts-ignore
+  promise.cancel = () => {
+    controller.abort();
+  };
+
+  return promise;
 };
 
 /**
@@ -79,22 +93,41 @@ axiosInstance.interceptors.request.use(
 // without modifying the response data structure.
 axiosInstance.interceptors.response.use(
   (response) => {
-    // Pass through the response as-is. Let customInstance handle data extraction.
     return response;
   },
-  (error) => {
-    // Here we can handle global errors, e.g., logging, showing a toast,
-    // or redirecting on 401 Unauthorized.
-    if (error.response) {
-      console.error("API Error Response:", error.response.data);
+  async (error) => {
+    const status = error?.response?.status;
+
+    // Check if the error is due to a cancelled request
+    if (axios.isCancel(error)) {
+      // For cancelled requests, we don't want to log an error to the console
+      // or reject the promise with an error. We can either:
+      // 1. Resolve with a default value
+      // 2. Reject with a specific cancelled error
+      // 3. Just return a rejected promise without additional logging
+      return Promise.reject(new Error("Request was cancelled"));
+    }
+
+    // Browser-side 401 handling: sign out and redirect to login
+    if (!isServer && status === 401) {
+      try {
+        await signOut({ redirect: true, callbackUrl: "/login" });
+      } catch {
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
+        }
+      }
+    }
+
+    // Avoid logging sensitive payloads; only log minimal info
+    if (status && error?.config?.url) {
+      console.error(`API Error ${status} on ${error.config.url}`);
     } else if (error.request) {
-      console.error("API Error Request:", error.request);
+      console.error("API Error Request");
     } else {
       console.error("API Error Message:", error.message);
     }
 
-    // We reject with the error response data if available, or the error itself.
-    // This allows React Query's `onError` handlers to receive the actual error payload.
     return Promise.reject(error.response?.data || error);
   }
 );

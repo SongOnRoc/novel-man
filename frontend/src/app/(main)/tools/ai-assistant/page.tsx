@@ -1,6 +1,6 @@
 "use client";
 
-import { AIAssistant } from "@/components/ai-assistant/AIAssistant";
+import { AIAssistant } from "@/features/ai/components/AIAssistant";
 
 /**
  * AI写作助手页面

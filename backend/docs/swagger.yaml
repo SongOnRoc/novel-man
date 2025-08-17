@@ -1143,7 +1143,8 @@ paths:
       summary: Get a list of books in the the store
   /chapters:
     get:
-      description: Get a list of all chapters for a specific work with pagination
+      description: Get a list of all chapters for a specific work, verifying ownership
+        of the work.
       parameters:
       - description: Work ID
         in: query
@@ -1188,6 +1189,24 @@ paths:
               schema:
                 $ref: '#/components/schemas/response.StandardResponse'
           description: work_id is required or invalid
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Permission denied
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Work not found
         "500":
           content:
             application/json:
@@ -1407,7 +1426,7 @@ paths:
       - chapters
   /characters:
     get:
-      description: Get a list of all characters with pagination
+      description: Get a list of the current user's characters with pagination
       parameters:
       - description: Page number
         in: query
@@ -1440,6 +1459,12 @@ paths:
                     type: string
                 type: object
           description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
         "500":
           content:
             application/json:
@@ -1448,7 +1473,7 @@ paths:
           description: Failed to retrieve characters
       security:
       - BearerAuth: []
-      summary: List all characters
+      summary: List user's characters
       tags:
       - characters
     post:
@@ -1665,7 +1690,8 @@ paths:
       - characters
   /drafts:
     get:
-      description: Get a list of all drafts with pagination
+      description: Get a list of the current user's drafts, optionally filtered by
+        work_id.
       parameters:
       - description: Filter by Work ID
         in: query
@@ -1709,6 +1735,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/response.StandardResponse'
           description: Invalid work_id
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
         "500":
           content:
             application/json:
@@ -1717,7 +1749,7 @@ paths:
           description: Failed to retrieve drafts
       security:
       - BearerAuth: []
-      summary: List all drafts
+      summary: List user's drafts
       tags:
       - drafts
     post:
@@ -1987,7 +2019,8 @@ paths:
       - drafts
   /relationships:
     get:
-      description: List relationships with pagination and filters
+      description: List relationships, optionally filtered by work_id. Verifies ownership
+        if work_id is provided.
       parameters:
       - description: 'Page number (default: 1)'
         in: query
@@ -1999,6 +2032,11 @@ paths:
         name: limit
         schema:
           type: integer
+      - description: Filter by Work ID
+        in: query
+        name: work_id
+        schema:
+          type: integer
       - description: Filter by Source Entity ID
         in: query
         name: sourceEntityId
@@ -2007,6 +2045,16 @@ paths:
       - description: Filter by Source Entity Type
         in: query
         name: sourceEntityType
+        schema:
+          type: string
+      - description: Filter by Target Entity ID
+        in: query
+        name: targetEntityId
+        schema:
+          type: integer
+      - description: Filter by Target Entity Type
+        in: query
+        name: targetEntityType
         schema:
           type: string
       responses:
@@ -2034,6 +2082,24 @@ paths:
               schema:
                 $ref: '#/components/schemas/response.StandardResponse'
           description: Invalid filter parameters
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Permission denied
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Work not found
         "500":
           content:
             application/json:
@@ -2253,7 +2319,7 @@ paths:
       - relationships
   /settings:
     get:
-      description: List all settings with pagination (admin-only, for now)
+      description: List all settings with pagination. Requires admin privileges.
       parameters:
       - description: 'Page number (default: 1)'
         in: query
@@ -2284,6 +2350,18 @@ paths:
                     type: string
                 type: object
           description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Permission denied
         "500":
           content:
             application/json:
@@ -2292,7 +2370,7 @@ paths:
           description: Failed to retrieve settings
       security:
       - BearerAuth: []
-      summary: List settings
+      summary: List settings (Admin only)
       tags:
       - settings
     post:
@@ -2509,7 +2587,8 @@ paths:
       - settings
   /settings/{user_id}/ai-model:
     put:
-      description: Update the AI model setting for a specific user
+      description: Update the AI model setting for a specific user. User can only
+        update their own settings.
       parameters:
       - description: User ID
         in: path
@@ -2549,6 +2628,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/response.StandardResponse'
           description: Invalid user ID or request body
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Permission denied
         "404":
           content:
             application/json:
@@ -2568,7 +2659,7 @@ paths:
       - settings
   /settings/user/{user_id}:
     get:
-      description: Get a setting by user ID
+      description: Get a setting by user ID. User can only access their own settings.
       parameters:
       - description: User ID
         in: path
@@ -2601,6 +2692,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/response.StandardResponse'
           description: Invalid user ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Permission denied
         "404":
           content:
             application/json:
@@ -2619,7 +2722,7 @@ paths:
       tags:
       - settings
     put:
-      description: Update a setting by user ID
+      description: Update a setting by user ID. User can only update their own settings.
       parameters:
       - description: User ID
         in: path
@@ -2659,6 +2762,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/response.StandardResponse'
           description: Invalid user ID or request body
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Permission denied
         "404":
           content:
             application/json:
@@ -2759,7 +2874,7 @@ paths:
           description: Can not find ID
   /works:
     get:
-      description: Get a list of all works with pagination
+      description: Get a list of the current user's works with pagination
       parameters:
       - description: Page number
         in: query
@@ -2797,6 +2912,12 @@ paths:
                     type: string
                 type: object
           description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
         "500":
           content:
             application/json:
@@ -2805,7 +2926,7 @@ paths:
           description: Failed to retrieve works
       security:
       - BearerAuth: []
-      summary: List all works
+      summary: List user's works
       tags:
       - works
     post:
@@ -3356,7 +3477,8 @@ paths:
       - worldview
   /worldview/items:
     get:
-      description: Get all worldview items for a given category
+      description: Get all worldview items for a given category, verifying ownership
+        of the category.
       parameters:
       - description: Category ID
         in: query
@@ -3401,6 +3523,24 @@ paths:
               schema:
                 $ref: '#/components/schemas/response.StandardResponse'
           description: category_id is required or invalid
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Permission denied
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Category not found
         "500":
           content:
             application/json:

@@ -29,21 +29,27 @@ import type {
 
 import { customInstance } from "../../../axios";
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
 /**
  * Completes text based on the provided prompt and context.
  * @summary Text Completion
  */
 export const postAiCompletion = (
   modelsCompletionRequest: ModelsCompletionRequest,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostAiCompletion200>({
-    url: `/ai/completion`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: modelsCompletionRequest,
-    signal,
-  });
+  return customInstance<PostAiCompletion200>(
+    {
+      url: `/ai/completion`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: modelsCompletionRequest,
+      signal,
+    },
+    options,
+  );
 };
 
 export const getPostAiCompletionMutationOptions = <
@@ -56,6 +62,7 @@ export const getPostAiCompletionMutationOptions = <
     { data: ModelsCompletionRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postAiCompletion>>,
   TError,
@@ -63,13 +70,13 @@ export const getPostAiCompletionMutationOptions = <
   TContext
 > => {
   const mutationKey = ["postAiCompletion"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postAiCompletion>>,
@@ -77,7 +84,7 @@ export const getPostAiCompletionMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return postAiCompletion(data);
+    return postAiCompletion(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -105,6 +112,7 @@ export const usePostAiCompletion = <
       { data: ModelsCompletionRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -123,15 +131,19 @@ export const usePostAiCompletion = <
  */
 export const postAiCreateCharacter = (
   modelsCreateCharacterRequest: ModelsCreateCharacterRequest,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostAiCreateCharacter200>({
-    url: `/ai/create-character`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: modelsCreateCharacterRequest,
-    signal,
-  });
+  return customInstance<PostAiCreateCharacter200>(
+    {
+      url: `/ai/create-character`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: modelsCreateCharacterRequest,
+      signal,
+    },
+    options,
+  );
 };
 
 export const getPostAiCreateCharacterMutationOptions = <
@@ -144,6 +156,7 @@ export const getPostAiCreateCharacterMutationOptions = <
     { data: ModelsCreateCharacterRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postAiCreateCharacter>>,
   TError,
@@ -151,13 +164,13 @@ export const getPostAiCreateCharacterMutationOptions = <
   TContext
 > => {
   const mutationKey = ["postAiCreateCharacter"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postAiCreateCharacter>>,
@@ -165,7 +178,7 @@ export const getPostAiCreateCharacterMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return postAiCreateCharacter(data);
+    return postAiCreateCharacter(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -193,6 +206,7 @@ export const usePostAiCreateCharacter = <
       { data: ModelsCreateCharacterRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -211,15 +225,19 @@ export const usePostAiCreateCharacter = <
  */
 export const postAiGenerateIdea = (
   modelsGenerateIdeaRequest: ModelsGenerateIdeaRequest,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostAiGenerateIdea200>({
-    url: `/ai/generate-idea`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: modelsGenerateIdeaRequest,
-    signal,
-  });
+  return customInstance<PostAiGenerateIdea200>(
+    {
+      url: `/ai/generate-idea`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: modelsGenerateIdeaRequest,
+      signal,
+    },
+    options,
+  );
 };
 
 export const getPostAiGenerateIdeaMutationOptions = <
@@ -232,6 +250,7 @@ export const getPostAiGenerateIdeaMutationOptions = <
     { data: ModelsGenerateIdeaRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postAiGenerateIdea>>,
   TError,
@@ -239,13 +258,13 @@ export const getPostAiGenerateIdeaMutationOptions = <
   TContext
 > => {
   const mutationKey = ["postAiGenerateIdea"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postAiGenerateIdea>>,
@@ -253,7 +272,7 @@ export const getPostAiGenerateIdeaMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return postAiGenerateIdea(data);
+    return postAiGenerateIdea(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -281,6 +300,7 @@ export const usePostAiGenerateIdea = <
       { data: ModelsGenerateIdeaRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -299,15 +319,19 @@ export const usePostAiGenerateIdea = <
  */
 export const postAiGenerateOutline = (
   modelsGenerateOutlineRequest: ModelsGenerateOutlineRequest,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostAiGenerateOutline200>({
-    url: `/ai/generate-outline`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: modelsGenerateOutlineRequest,
-    signal,
-  });
+  return customInstance<PostAiGenerateOutline200>(
+    {
+      url: `/ai/generate-outline`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: modelsGenerateOutlineRequest,
+      signal,
+    },
+    options,
+  );
 };
 
 export const getPostAiGenerateOutlineMutationOptions = <
@@ -320,6 +344,7 @@ export const getPostAiGenerateOutlineMutationOptions = <
     { data: ModelsGenerateOutlineRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postAiGenerateOutline>>,
   TError,
@@ -327,13 +352,13 @@ export const getPostAiGenerateOutlineMutationOptions = <
   TContext
 > => {
   const mutationKey = ["postAiGenerateOutline"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postAiGenerateOutline>>,
@@ -341,7 +366,7 @@ export const getPostAiGenerateOutlineMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return postAiGenerateOutline(data);
+    return postAiGenerateOutline(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -369,6 +394,7 @@ export const usePostAiGenerateOutline = <
       { data: ModelsGenerateOutlineRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -387,15 +413,19 @@ export const usePostAiGenerateOutline = <
  */
 export const postAiPolish = (
   modelsPolishRequest: ModelsPolishRequest,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostAiPolish200>({
-    url: `/ai/polish`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: modelsPolishRequest,
-    signal,
-  });
+  return customInstance<PostAiPolish200>(
+    {
+      url: `/ai/polish`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: modelsPolishRequest,
+      signal,
+    },
+    options,
+  );
 };
 
 export const getPostAiPolishMutationOptions = <
@@ -408,6 +438,7 @@ export const getPostAiPolishMutationOptions = <
     { data: ModelsPolishRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postAiPolish>>,
   TError,
@@ -415,13 +446,13 @@ export const getPostAiPolishMutationOptions = <
   TContext
 > => {
   const mutationKey = ["postAiPolish"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postAiPolish>>,
@@ -429,7 +460,7 @@ export const getPostAiPolishMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return postAiPolish(data);
+    return postAiPolish(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -457,6 +488,7 @@ export const usePostAiPolish = <
       { data: ModelsPolishRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

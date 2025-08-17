@@ -5,9 +5,12 @@ import {
   createChapter,
   updateChapter,
   deleteChapter,
-  GetChaptersParams,
-} from "@/lib/api/chapters";
-import { ChapterCreate, ChapterUpdate } from "@/types/chapter";
+} from "@/lib/services/chapters.service";
+import type {
+  ChapterListParams as GetChaptersParams,
+  ChapterCreate,
+  ChapterUpdate,
+} from "@/lib/services/chapters.service";
 
 const chapterKeys = {
   all: ["chapters"] as const,
@@ -50,10 +53,12 @@ export const useUpdateChapter = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: ChapterUpdate }) =>
       updateChapter(id, data),
-    onSuccess: (data) => {
+    onSuccess: (_data, variables) => {
       // When a chapter is updated, invalidate both the list and the specific chapter detail
       queryClient.invalidateQueries({ queryKey: chapterKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: chapterKeys.detail(data.id) });
+      if (variables?.id) {
+        queryClient.invalidateQueries({ queryKey: chapterKeys.detail(variables.id) });
+      }
     },
   });
 };

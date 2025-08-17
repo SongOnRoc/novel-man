@@ -10,17 +10,19 @@ import (
 	"gorm.io/gorm"
 	"novel-man/backend/internal/contracts"
 	"novel-man/backend/internal/contracts/chapters"
+	"novel-man/backend/internal/contracts/works"
 	"novel-man/backend/internal/models"
 	"novel-man/backend/utils/context"
 	"novel-man/backend/utils/response"
 )
 
 type ChapterController struct {
-	service chapters.ChapterService
+	service     chapters.ChapterService
+	workService works.WorkService
 }
 
-func NewChapterController(service chapters.ChapterService) *ChapterController {
-	return &ChapterController{service: service}
+func NewChapterController(service chapters.ChapterService, workService works.WorkService) *ChapterController {
+	return &ChapterController{service: service, workService: workService}
 }
 
 // DTOs
@@ -229,7 +231,7 @@ func (c *ChapterController) DeleteChapter(ctx *gin.Context) {
 
 // ListChapters godoc
 // @Summary List all chapters for a work
-// @Description Get a list of all chapters for a specific work with pagination
+// @Description Get a list of all chapters for a specific work, verifying ownership of the work.
 // @Tags chapters
 // @Produce  json
 // @Param work_id query int true "Work ID"
@@ -237,6 +239,9 @@ func (c *ChapterController) DeleteChapter(ctx *gin.Context) {
 // @Param limit query int false "Number of items per page" default(10)
 // @Success 200 {object} response.StandardResponse{data=ListChaptersResponse}
 // @Failure 400 {object} response.StandardResponse "work_id is required or invalid"
+// @Failure 401 {object} response.StandardResponse "Unauthorized"
+// @Failure 403 {object} response.StandardResponse "Permission denied"
+// @Failure 404 {object} response.StandardResponse "Work not found"
 // @Failure 500 {object} response.StandardResponse "Failed to retrieve chapters"
 // @Security BearerAuth
 // @Router /chapters [get]
@@ -252,6 +257,27 @@ func (c *ChapterController) ListChapters(ctx *gin.Context) {
 	workID, err := strconv.ParseInt(workIDStr, 10, 64)
 	if err != nil {
 		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid work_id", err)
+		return
+	}
+
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		response.Error(ctx, http.StatusUnauthorized, http.StatusUnauthorized, "Unauthorized", nil)
+		return
+	}
+
+	// Verify ownership of the work before listing chapters
+	work, err := c.workService.GetByID(*context.New(ctx), workID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Work not found", err)
+		} else {
+			response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to verify work ownership", err)
+		}
+		return
+	}
+	if work.UserID != userID.(uint) {
+		response.Error(ctx, http.StatusForbidden, http.StatusForbidden, "Permission denied", nil)
 		return
 	}
 

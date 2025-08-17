@@ -34,20 +34,21 @@ import type {
 
 import { customInstance } from "../../../axios";
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
 /**
- * List relationships with pagination and filters
+ * List relationships, optionally filtered by work_id. Verifies ownership if work_id is provided.
  * @summary List relationships
  */
 export const getRelationships = (
   params?: GetRelationshipsParams,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetRelationships200>({
-    url: `/relationships`,
-    method: "GET",
-    params,
-    signal,
-  });
+  return customInstance<GetRelationships200>(
+    { url: `/relationships`, method: "GET", params, signal },
+    options,
+  );
 };
 
 export const getGetRelationshipsQueryKey = (
@@ -58,7 +59,12 @@ export const getGetRelationshipsQueryKey = (
 
 export const getGetRelationshipsQueryOptions = <
   TData = Awaited<ReturnType<typeof getRelationships>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params?: GetRelationshipsParams,
   options?: {
@@ -69,16 +75,17 @@ export const getGetRelationshipsQueryOptions = <
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getGetRelationshipsQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof getRelationships>>
-  > = ({ signal }) => getRelationships(params, signal);
+  > = ({ signal }) => getRelationships(params, requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getRelationships>>,
@@ -92,11 +99,19 @@ export type GetRelationshipsQueryResult = NonNullable<
 >;
 export type GetRelationshipsQueryError =
   | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse
   | ResponseStandardResponse;
 
 export function useGetRelationships<
   TData = Awaited<ReturnType<typeof getRelationships>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params: undefined | GetRelationshipsParams,
   options: {
@@ -115,6 +130,7 @@ export function useGetRelationships<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -122,7 +138,12 @@ export function useGetRelationships<
 };
 export function useGetRelationships<
   TData = Awaited<ReturnType<typeof getRelationships>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params?: GetRelationshipsParams,
   options?: {
@@ -141,6 +162,7 @@ export function useGetRelationships<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -148,7 +170,12 @@ export function useGetRelationships<
 };
 export function useGetRelationships<
   TData = Awaited<ReturnType<typeof getRelationships>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params?: GetRelationshipsParams,
   options?: {
@@ -159,6 +186,7 @@ export function useGetRelationships<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -170,7 +198,12 @@ export function useGetRelationships<
 
 export function useGetRelationships<
   TData = Awaited<ReturnType<typeof getRelationships>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params?: GetRelationshipsParams,
   options?: {
@@ -181,6 +214,7 @@ export function useGetRelationships<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -204,15 +238,19 @@ export function useGetRelationships<
  */
 export const postRelationships = (
   relationshipsRelationshipRequest: RelationshipsRelationshipRequest,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostRelationships201>({
-    url: `/relationships`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: relationshipsRelationshipRequest,
-    signal,
-  });
+  return customInstance<PostRelationships201>(
+    {
+      url: `/relationships`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: relationshipsRelationshipRequest,
+      signal,
+    },
+    options,
+  );
 };
 
 export const getPostRelationshipsMutationOptions = <
@@ -225,6 +263,7 @@ export const getPostRelationshipsMutationOptions = <
     { data: RelationshipsRelationshipRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postRelationships>>,
   TError,
@@ -232,13 +271,13 @@ export const getPostRelationshipsMutationOptions = <
   TContext
 > => {
   const mutationKey = ["postRelationships"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postRelationships>>,
@@ -246,7 +285,7 @@ export const getPostRelationshipsMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return postRelationships(data);
+    return postRelationships(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -274,6 +313,7 @@ export const usePostRelationships = <
       { data: RelationshipsRelationshipRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -290,11 +330,14 @@ export const usePostRelationships = <
  * Delete a relationship by its ID
  * @summary Delete a relationship
  */
-export const deleteRelationshipsId = (id: number) => {
-  return customInstance<DeleteRelationshipsId200>({
-    url: `/relationships/${id}`,
-    method: "DELETE",
-  });
+export const deleteRelationshipsId = (
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<DeleteRelationshipsId200>(
+    { url: `/relationships/${id}`, method: "DELETE" },
+    options,
+  );
 };
 
 export const getDeleteRelationshipsIdMutationOptions = <
@@ -310,6 +353,7 @@ export const getDeleteRelationshipsIdMutationOptions = <
     { id: number },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteRelationshipsId>>,
   TError,
@@ -317,13 +361,13 @@ export const getDeleteRelationshipsIdMutationOptions = <
   TContext
 > => {
   const mutationKey = ["deleteRelationshipsId"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteRelationshipsId>>,
@@ -331,7 +375,7 @@ export const getDeleteRelationshipsIdMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return deleteRelationshipsId(id);
+    return deleteRelationshipsId(id, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -363,6 +407,7 @@ export const useDeleteRelationshipsId = <
       { id: number },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -379,12 +424,15 @@ export const useDeleteRelationshipsId = <
  * Get a relationship by its ID
  * @summary Get a relationship by ID
  */
-export const getRelationshipsId = (id: number, signal?: AbortSignal) => {
-  return customInstance<GetRelationshipsId200>({
-    url: `/relationships/${id}`,
-    method: "GET",
-    signal,
-  });
+export const getRelationshipsId = (
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<GetRelationshipsId200>(
+    { url: `/relationships/${id}`, method: "GET", signal },
+    options,
+  );
 };
 
 export const getGetRelationshipsIdQueryKey = (id?: number) => {
@@ -407,15 +455,16 @@ export const getGetRelationshipsIdQueryOptions = <
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetRelationshipsIdQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof getRelationshipsId>>
-  > = ({ signal }) => getRelationshipsId(id, signal);
+  > = ({ signal }) => getRelationshipsId(id, requestOptions, signal);
 
   return {
     queryKey,
@@ -461,6 +510,7 @@ export function useGetRelationshipsId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -490,6 +540,7 @@ export function useGetRelationshipsId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -511,6 +562,7 @@ export function useGetRelationshipsId<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -536,6 +588,7 @@ export function useGetRelationshipsId<
         TData
       >
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -560,13 +613,17 @@ export function useGetRelationshipsId<
 export const putRelationshipsId = (
   id: number,
   relationshipsRelationshipRequest: RelationshipsRelationshipRequest,
+  options?: SecondParameter<typeof customInstance>,
 ) => {
-  return customInstance<PutRelationshipsId200>({
-    url: `/relationships/${id}`,
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    data: relationshipsRelationshipRequest,
-  });
+  return customInstance<PutRelationshipsId200>(
+    {
+      url: `/relationships/${id}`,
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: relationshipsRelationshipRequest,
+    },
+    options,
+  );
 };
 
 export const getPutRelationshipsIdMutationOptions = <
@@ -582,6 +639,7 @@ export const getPutRelationshipsIdMutationOptions = <
     { id: number; data: RelationshipsRelationshipRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putRelationshipsId>>,
   TError,
@@ -589,13 +647,13 @@ export const getPutRelationshipsIdMutationOptions = <
   TContext
 > => {
   const mutationKey = ["putRelationshipsId"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof putRelationshipsId>>,
@@ -603,7 +661,7 @@ export const getPutRelationshipsIdMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return putRelationshipsId(id, data);
+    return putRelationshipsId(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -635,6 +693,7 @@ export const usePutRelationshipsId = <
       { id: number; data: RelationshipsRelationshipRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

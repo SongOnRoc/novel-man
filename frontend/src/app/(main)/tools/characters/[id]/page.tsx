@@ -1,26 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Edit, Trash2, BookOpen } from "lucide-react";
 import {
   useCharacter,
   useDeleteCharacter,
 } from "@/hooks/character/useCharacters";
-import { Character } from "@/types/character";
-// import { CharacterRelations } from "@/components/character/CharacterRelations";
-import { useWorks } from "@/hooks/work/useWorks";
+import { useWorkList } from "@/hooks/work/useWorkService";
+import { useRelationshipList } from "@/hooks/relationship/useRelationshipService";
+import { Character } from "@/lib/services/characters.service";
+import { Work } from "@/lib/services/work.service";
 
 export default function CharacterDetailPage() {
   const params = useParams();
@@ -29,22 +28,37 @@ export default function CharacterDetailPage() {
     Array.isArray(params.id) ? params.id[0] : params.id,
   );
 
-  const { data: character, isLoading, error } = useCharacter(characterId);
+  const { data: characterResponse, isLoading, error } = useCharacter(characterId);
   const deleteCharacterMutation = useDeleteCharacter();
-  const { data: worksData } = useWorks();
-  const works = worksData?.data || [];
+  const { data: worksData } = useWorkList({});
+  const { data: relationshipData } = useRelationshipList(
+    {
+      targetEntityId: characterId,
+      targetEntityType: "character",
+      sourceEntityType: "work",
+    },
+    { enabled: !!characterId },
+  );
+  const character = characterResponse?.data as Character;
+  const works = (worksData?.data as Work[]) || [];
+  const relationship = (relationshipData?.data as any[])?.[0];
 
   const workTitle =
-    character && works.find((w: any) => w.id === character.work_id)?.title;
+    relationship &&
+    works.find((w: Work) => w.id === relationship.source_entity_id)?.title;
 
   // 处理删除角色
   const handleDelete = async () => {
     if (!character) return;
 
-    if (confirm(`确定要删除角色 "${character.name}" 吗？此操作不可撤销。`)) {
+    if (
+      confirm(`确定要删除角色 "${character.name}" 吗？此操作不可撤销。`)
+    ) {
       try {
-        await deleteCharacterMutation.mutateAsync(character.id);
-        router.push(`/tools/characters`);
+        if (character.id) {
+          await deleteCharacterMutation.mutateAsync(character.id);
+          router.push(`/tools/characters`);
+        }
       } catch (err) {
         console.error("Error deleting character:", err);
         // Optionally, show an error message to the user
@@ -124,15 +138,17 @@ export default function CharacterDetailPage() {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-center mb-4">
-                {character.avatarUrl ? (
-                  <img
-                    src={character.avatarUrl}
-                    alt={character.name}
-                    className="rounded-full h-32 w-32 object-cover border-4 border-primary/20"
+                {character.avatar_url ? (
+                  <Image
+                    src={character.avatar_url}
+                    alt={character.name || ""}
+                    width={128}
+                    height={128}
+                    className="rounded-full object-cover border-4 border-primary/20"
                   />
                 ) : (
                   <div className="rounded-full h-32 w-32 bg-muted flex items-center justify-center text-2xl font-bold">
-                    {character.name.charAt(0)}
+                    {(character.name || "").charAt(0)}
                   </div>
                 )}
               </div>
@@ -148,14 +164,14 @@ export default function CharacterDetailPage() {
               <div>
                 <h3 className="font-medium mb-1">创建时间</h3>
                 <p className="text-sm text-muted-foreground">
-                  {new Date(character.createdAt).toLocaleDateString()}
+                  {new Date(character.created_at!).toLocaleDateString()}
                 </p>
               </div>
 
               <div>
                 <h3 className="font-medium mb-1">最后更新</h3>
                 <p className="text-sm text-muted-foreground">
-                  {new Date(character.updatedAt).toLocaleDateString()}
+                  {new Date(character.updated_at!).toLocaleDateString()}
                 </p>
               </div>
             </CardContent>
@@ -179,9 +195,9 @@ export default function CharacterDetailPage() {
                   <CardTitle>背景故事</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {character.background ? (
+                  {character.background_story ? (
                     <p className="whitespace-pre-line">
-                      {character.background}
+                      {character.background_story}
                     </p>
                   ) : (
                     <p className="text-muted-foreground">暂无背景故事</p>

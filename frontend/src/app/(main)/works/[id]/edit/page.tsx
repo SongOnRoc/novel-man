@@ -26,9 +26,9 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useWork, useUpdateWork } from "@/hooks/work/useWorks";
+import { useWorkById, useUpdateWork } from "@/hooks/work/useWorkService";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UpdateWorkData } from "@/types/work";
+import { Work, UpdateWorkPayload } from "@/lib/services/work.service";
 
 // 定义表单验证模式
 const formSchema = z.object({
@@ -63,7 +63,8 @@ export default function EditWorkPage() {
   const params = useParams();
   const workId = Number(params.id);
 
-  const { data: work, isLoading } = useWork(workId);
+  const { data: workResponse, isLoading } = useWorkById(workId);
+  const work = workResponse?.data as Work;
   const { mutate: updateWork, isPending: isSubmitting } = useUpdateWork();
 
   // 初始化表单
@@ -80,20 +81,19 @@ export default function EditWorkPage() {
   useEffect(() => {
     if (work) {
       form.reset({
-        title: work.title,
-        description: work.description,
-        category: work.category,
-        status: work.status,
+        title: work.title || '',
+        description: work.description || '',
+        category: work.category || '',
+        status: work.status || '',
       });
     }
   }, [work, form]);
 
   // 表单提交处理
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const updateData: UpdateWorkData = {
+    const updateData: UpdateWorkPayload = {
       ...values,
       description: values.description || "",
-      status: values.status as "ongoing" | "completed" | "on_hold",
     };
     updateWork(
       { id: workId, data: updateData },

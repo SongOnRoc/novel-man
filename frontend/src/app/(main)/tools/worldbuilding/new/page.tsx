@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,53 +12,78 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { ArrowLeft, Save } from "lucide-react";
-import { useWorldview } from "@/hooks/worldbuilding/useWorldview";
+import {
+  useCreateWorldviewItem,
+  useWorldviewCategories,
+} from "@/hooks/worldbuilding/useWorldviewService";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import {
+  WorldviewCategory,
+  WorldviewCategoryList,
+} from "@/lib/services/worldview.service";
+
+const worldItemFormSchema = z.object({
+  name: z.string().min(1, { message: "条目名称不能为空" }),
+  description: z.string().optional(),
+  category_id: z.string().min(1, { message: "必须选择一个分类" }),
+});
+
+type WorldItemFormValues = z.infer<typeof worldItemFormSchema>;
 
 export default function NewWorldItemPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const categoryId = searchParams.get("categoryId");
-  const { createItem, mutateCategories } = useWorldview();
+  const categoryIdFromUrl = searchParams.get("categoryId");
+  const { mutate: createItem, isPending: isCreating } =
+    useCreateWorldviewItem();
+  const { data: categoriesResponse, isLoading: isLoadingCategories } =
+    useWorldviewCategories({ limit: 999 });
+  const categories = (categoriesResponse as WorldviewCategoryList)?.data || [];
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const form = useForm<WorldItemFormValues>({
+    resolver: zodResolver(worldItemFormSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      category_id: categoryIdFromUrl || "",
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = (values: WorldItemFormValues) => {
+    const payload = {
+      ...values,
+      category_id: parseInt(values.category_id, 10),
+    };
 
-    if (!categoryId) {
-      setError("未指定分类ID，无法创建条目。");
-      return;
-    }
-
-    if (!name.trim()) {
-      setError("条目名称不能为空。");
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      await createItem({
-        name,
-        description,
-        categoryId: parseInt(categoryId, 10),
-      });
-      // After creating, redirect back to the main page
-      // We also trigger a mutation for the items of that category, though the hook setup is simple
-      // A better hook would handle this more gracefully
-      router.push("/tools/worldbuilding");
-    } catch (err) {
-      setError("创建条目失败。");
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
-    }
+    createItem(payload, {
+      onSuccess: () => {
+        toast.success("条目创建成功");
+        router.push("/tools/worldbuilding");
+      },
+      onError: (error: Error) => {
+        toast.error(`创建失败: ${error.message}`);
+        console.error(error);
+      },
+    });
   };
 
   return (
@@ -74,49 +98,91 @@ export default function NewWorldItemPage() {
       </div>
 
       <Card>
-        <form onSubmit={handleSubmit}>
-          <CardHeader>
-            <CardTitle>条目信息</CardTitle>
-            <CardDescription>
-              为当前选择的分类创建一个新的世界观条目。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="name">条目名称</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="例如：灵根、筑基期"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <CardHeader>
+              <CardTitle>条目信息</CardTitle>
+              <CardDescription>填写新世界观条目的详细信息。</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>条目名称 *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="例如：灵根、筑基期" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">条目描述</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="简要描述这个设定的内容。"
-                rows={5}
+              <FormField
+                control={form.control}
+                name="category_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>所属分类 *</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      disabled={isLoadingCategories}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="选择一个分类..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent position="popper">
+                        {categories.map((category: WorldviewCategory) => (
+                          <SelectItem
+                            key={category.id}
+                            value={category.id!.toString()}
+                          >
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-          </CardContent>
-          <CardFooter className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-            >
-              取消
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              <Save className="mr-2 h-4 w-4" />
-              {isSubmitting ? "保存中..." : "保存"}
-            </Button>
-          </CardFooter>
-        </form>
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>条目描述</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="简要描述这个设定的内容。"
+                        rows={5}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+            <CardFooter className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.back()}
+                disabled={isCreating}
+              >
+                取消
+              </Button>
+              <Button type="submit" disabled={isCreating}>
+                <Save className="mr-2 h-4 w-4" />
+                {isCreating ? "保存中..." : "保存"}
+              </Button>
+            </CardFooter>
+          </form>
+        </Form>
       </Card>
     </div>
   );

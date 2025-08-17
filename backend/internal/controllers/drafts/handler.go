@@ -257,8 +257,8 @@ func (c *DraftController) DeleteDraft(ctx *gin.Context) {
 }
 
 // ListDrafts godoc
-// @Summary List all drafts
-// @Description Get a list of all drafts with pagination
+// @Summary List user's drafts
+// @Description Get a list of the current user's drafts, optionally filtered by work_id.
 // @Tags drafts
 // @Produce  json
 // @Param work_id query int false "Filter by Work ID"
@@ -266,6 +266,7 @@ func (c *DraftController) DeleteDraft(ctx *gin.Context) {
 // @Param limit query int false "Number of items per page" default(10)
 // @Success 200 {object} response.StandardResponse{data=ListDraftsResponse}
 // @Failure 400 {object} response.StandardResponse "Invalid work_id"
+// @Failure 401 {object} response.StandardResponse "Unauthorized"
 // @Failure 500 {object} response.StandardResponse "Failed to retrieve drafts"
 // @Security BearerAuth
 // @Router /drafts [get]
@@ -274,7 +275,15 @@ func (c *DraftController) ListDrafts(ctx *gin.Context) {
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
 	workIDStr := ctx.Query("work_id")
 
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		response.Error(ctx, http.StatusUnauthorized, http.StatusUnauthorized, "Unauthorized", nil)
+		return
+	}
+
 	filters := make(contracts.Filters)
+	filters["user_id"] = userID.(uint)
+
 	if workIDStr != "" {
 		workID, err := strconv.ParseInt(workIDStr, 10, 64)
 		if err != nil {

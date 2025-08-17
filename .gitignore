@@ -37,5 +37,7 @@ cdk
 novel-editor
 .roo
 *.exe
-novel_man.db
+*.db
+*.db-shm
+*.db-wal
 memory-bank

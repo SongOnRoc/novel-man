@@ -36,17 +36,21 @@ import type {
 
 import { customInstance } from "../../../axios";
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
 /**
- * Get a list of all drafts with pagination
- * @summary List all drafts
+ * Get a list of the current user's drafts, optionally filtered by work_id.
+ * @summary List user's drafts
  */
-export const getDrafts = (params?: GetDraftsParams, signal?: AbortSignal) => {
-  return customInstance<GetDrafts200>({
-    url: `/drafts`,
-    method: "GET",
-    params,
-    signal,
-  });
+export const getDrafts = (
+  params?: GetDraftsParams,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<GetDrafts200>(
+    { url: `/drafts`, method: "GET", params, signal },
+    options,
+  );
 };
 
 export const getGetDraftsQueryKey = (params?: GetDraftsParams) => {
@@ -55,22 +59,26 @@ export const getGetDraftsQueryKey = (params?: GetDraftsParams) => {
 
 export const getGetDraftsQueryOptions = <
   TData = Awaited<ReturnType<typeof getDrafts>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params?: GetDraftsParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getDrafts>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetDraftsQueryKey(params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getDrafts>>> = ({
     signal,
-  }) => getDrafts(params, signal);
+  }) => getDrafts(params, requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getDrafts>>,
@@ -84,11 +92,15 @@ export type GetDraftsQueryResult = NonNullable<
 >;
 export type GetDraftsQueryError =
   | ResponseStandardResponse
+  | ResponseStandardResponse
   | ResponseStandardResponse;
 
 export function useGetDrafts<
   TData = Awaited<ReturnType<typeof getDrafts>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params: undefined | GetDraftsParams,
   options: {
@@ -103,6 +115,7 @@ export function useGetDrafts<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -110,7 +123,10 @@ export function useGetDrafts<
 };
 export function useGetDrafts<
   TData = Awaited<ReturnType<typeof getDrafts>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params?: GetDraftsParams,
   options?: {
@@ -125,6 +141,7 @@ export function useGetDrafts<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -132,31 +149,39 @@ export function useGetDrafts<
 };
 export function useGetDrafts<
   TData = Awaited<ReturnType<typeof getDrafts>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params?: GetDraftsParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getDrafts>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary List all drafts
+ * @summary List user's drafts
  */
 
 export function useGetDrafts<
   TData = Awaited<ReturnType<typeof getDrafts>>,
-  TError = ResponseStandardResponse | ResponseStandardResponse,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
 >(
   params?: GetDraftsParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getDrafts>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -180,15 +205,19 @@ export function useGetDrafts<
  */
 export const postDrafts = (
   draftsCreateDraftRequest: DraftsCreateDraftRequest,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostDrafts201>({
-    url: `/drafts`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: draftsCreateDraftRequest,
-    signal,
-  });
+  return customInstance<PostDrafts201>(
+    {
+      url: `/drafts`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: draftsCreateDraftRequest,
+      signal,
+    },
+    options,
+  );
 };
 
 export const getPostDraftsMutationOptions = <
@@ -204,6 +233,7 @@ export const getPostDraftsMutationOptions = <
     { data: DraftsCreateDraftRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postDrafts>>,
   TError,
@@ -211,13 +241,13 @@ export const getPostDraftsMutationOptions = <
   TContext
 > => {
   const mutationKey = ["postDrafts"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postDrafts>>,
@@ -225,7 +255,7 @@ export const getPostDraftsMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return postDrafts(data);
+    return postDrafts(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -257,6 +287,7 @@ export const usePostDrafts = <
       { data: DraftsCreateDraftRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -273,11 +304,14 @@ export const usePostDrafts = <
  * Delete a draft by its ID
  * @summary Delete a draft
  */
-export const deleteDraftsId = (id: number) => {
-  return customInstance<DeleteDraftsId200>({
-    url: `/drafts/${id}`,
-    method: "DELETE",
-  });
+export const deleteDraftsId = (
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<DeleteDraftsId200>(
+    { url: `/drafts/${id}`, method: "DELETE" },
+    options,
+  );
 };
 
 export const getDeleteDraftsIdMutationOptions = <
@@ -293,6 +327,7 @@ export const getDeleteDraftsIdMutationOptions = <
     { id: number },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteDraftsId>>,
   TError,
@@ -300,13 +335,13 @@ export const getDeleteDraftsIdMutationOptions = <
   TContext
 > => {
   const mutationKey = ["deleteDraftsId"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteDraftsId>>,
@@ -314,7 +349,7 @@ export const getDeleteDraftsIdMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return deleteDraftsId(id);
+    return deleteDraftsId(id, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -346,6 +381,7 @@ export const useDeleteDraftsId = <
       { id: number },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -362,12 +398,15 @@ export const useDeleteDraftsId = <
  * Get a single draft by its ID
  * @summary Get a single draft
  */
-export const getDraftsId = (id: number, signal?: AbortSignal) => {
-  return customInstance<GetDraftsId200>({
-    url: `/drafts/${id}`,
-    method: "GET",
-    signal,
-  });
+export const getDraftsId = (
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<GetDraftsId200>(
+    { url: `/drafts/${id}`, method: "GET", signal },
+    options,
+  );
 };
 
 export const getGetDraftsIdQueryKey = (id?: number) => {
@@ -386,15 +425,16 @@ export const getGetDraftsIdQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getDraftsId>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetDraftsIdQueryKey(id);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getDraftsId>>> = ({
     signal,
-  }) => getDraftsId(id, signal);
+  }) => getDraftsId(id, requestOptions, signal);
 
   return {
     queryKey,
@@ -436,6 +476,7 @@ export function useGetDraftsId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -461,6 +502,7 @@ export function useGetDraftsId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -478,6 +520,7 @@ export function useGetDraftsId<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getDraftsId>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -499,6 +542,7 @@ export function useGetDraftsId<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getDraftsId>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -523,13 +567,17 @@ export function useGetDraftsId<
 export const putDraftsId = (
   id: number,
   draftsUpdateDraftRequest: DraftsUpdateDraftRequest,
+  options?: SecondParameter<typeof customInstance>,
 ) => {
-  return customInstance<PutDraftsId200>({
-    url: `/drafts/${id}`,
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    data: draftsUpdateDraftRequest,
-  });
+  return customInstance<PutDraftsId200>(
+    {
+      url: `/drafts/${id}`,
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: draftsUpdateDraftRequest,
+    },
+    options,
+  );
 };
 
 export const getPutDraftsIdMutationOptions = <
@@ -545,6 +593,7 @@ export const getPutDraftsIdMutationOptions = <
     { id: number; data: DraftsUpdateDraftRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putDraftsId>>,
   TError,
@@ -552,13 +601,13 @@ export const getPutDraftsIdMutationOptions = <
   TContext
 > => {
   const mutationKey = ["putDraftsId"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof putDraftsId>>,
@@ -566,7 +615,7 @@ export const getPutDraftsIdMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return putDraftsId(id, data);
+    return putDraftsId(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -598,6 +647,7 @@ export const usePutDraftsId = <
       { id: number; data: DraftsUpdateDraftRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -614,12 +664,15 @@ export const usePutDraftsId = <
  * Publish a draft by its ID, creating a new chapter and deleting the draft
  * @summary Publish a draft to a chapter
  */
-export const postDraftsIdPublish = (id: number, signal?: AbortSignal) => {
-  return customInstance<PostDraftsIdPublish200>({
-    url: `/drafts/${id}/publish`,
-    method: "POST",
-    signal,
-  });
+export const postDraftsIdPublish = (
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<PostDraftsIdPublish200>(
+    { url: `/drafts/${id}/publish`, method: "POST", signal },
+    options,
+  );
 };
 
 export const getPostDraftsIdPublishMutationOptions = <
@@ -635,6 +688,7 @@ export const getPostDraftsIdPublishMutationOptions = <
     { id: number },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postDraftsIdPublish>>,
   TError,
@@ -642,13 +696,13 @@ export const getPostDraftsIdPublishMutationOptions = <
   TContext
 > => {
   const mutationKey = ["postDraftsIdPublish"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postDraftsIdPublish>>,
@@ -656,7 +710,7 @@ export const getPostDraftsIdPublishMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return postDraftsIdPublish(id);
+    return postDraftsIdPublish(id, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -688,6 +742,7 @@ export const usePostDraftsIdPublish = <
       { id: number },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

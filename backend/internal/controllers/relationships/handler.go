@@ -6,21 +6,24 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"novel-man/backend/internal/contracts"
 	"novel-man/backend/internal/contracts/relationships"
+	"novel-man/backend/internal/contracts/works"
 	"novel-man/backend/internal/models"
 	"novel-man/backend/utils/context"
 	"novel-man/backend/utils/response"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type RelationshipController struct {
-	service relationships.RelationshipService
+	service     relationships.RelationshipService
+	workService works.WorkService
 }
 
-func NewRelationshipController(service relationships.RelationshipService) *RelationshipController {
-	return &RelationshipController{service: service}
+func NewRelationshipController(service relationships.RelationshipService, workService works.WorkService) *RelationshipController {
+	return &RelationshipController{service: service, workService: workService}
 }
 
 // DTOs
@@ -221,25 +224,67 @@ func (c *RelationshipController) DeleteRelationship(ctx *gin.Context) {
 
 // ListRelationships godoc
 // @Summary List relationships
-// @Description List relationships with pagination and filters
+// @Description List relationships, optionally filtered by work_id. Verifies ownership if work_id is provided.
 // @Tags relationships
 // @Produce  json
 // @Param   page  query  int  false  "Page number (default: 1)"
 // @Param   limit query  int  false  "Number of items per page (default: 10)"
+// @Param   work_id query int false "Filter by Work ID"
 // @Param   sourceEntityId query int false "Filter by Source Entity ID"
 // @Param   sourceEntityType query string false "Filter by Source Entity Type"
+// @Param   targetEntityId query int false "Filter by Target Entity ID"
+// @Param   targetEntityType query string false "Filter by Target Entity Type"
 // @Success 200   {object}  response.StandardResponse{data=ListRelationshipsResponse}
 // @Failure 400   {object}  response.StandardResponse "Invalid filter parameters"
+// @Failure 401 {object} response.StandardResponse "Unauthorized"
+// @Failure 403 {object} response.StandardResponse "Permission denied"
+// @Failure 404 {object} response.StandardResponse "Work not found"
 // @Failure 500   {object}  response.StandardResponse "Failed to retrieve relationships"
 // @Security BearerAuth
 // @Router /relationships [get]
 func (c *RelationshipController) ListRelationships(ctx *gin.Context) {
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
+	workIDStr := ctx.Query("work_id")
 	sourceEntityIDStr := ctx.Query("sourceEntityId")
 	sourceEntityType := ctx.Query("sourceEntityType")
+	targetEntityIDStr := ctx.Query("targetEntityId")
+	targetEntityType := ctx.Query("targetEntityType")
+
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		response.Error(ctx, http.StatusUnauthorized, http.StatusUnauthorized, "Unauthorized", nil)
+		return
+	}
 
 	filters := make(contracts.Filters)
+	// Always filter by user_id for any relationships that are not global (work_id is not null)
+	filters["user_id"] = userID.(uint)
+
+	if workIDStr != "" {
+		workID, err := strconv.ParseInt(workIDStr, 10, 64)
+		if err != nil {
+			response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid work_id", err)
+			return
+		}
+
+		// Verify ownership of the work
+		work, err := c.workService.GetByID(*context.New(ctx), workID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Work not found", err)
+			} else {
+				response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to verify work ownership", err)
+			}
+			return
+		}
+		if work.UserID != userID.(uint) {
+			response.Error(ctx, http.StatusForbidden, http.StatusForbidden, "Permission denied", nil)
+			return
+		}
+		filters["work_id"] = workID
+	}
+
 	if sourceEntityIDStr != "" {
 		sourceEntityID, err := strconv.ParseUint(sourceEntityIDStr, 10, 32)
 		if err != nil {
@@ -250,6 +295,17 @@ func (c *RelationshipController) ListRelationships(ctx *gin.Context) {
 	}
 	if sourceEntityType != "" {
 		filters["source_entity_type"] = sourceEntityType
+	}
+	if targetEntityIDStr != "" {
+		targetEntityID, err := strconv.ParseUint(targetEntityIDStr, 10, 32)
+		if err != nil {
+			response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid targetEntityId", err)
+			return
+		}
+		filters["targetEntityId"] = uint(targetEntityID)
+	}
+	if targetEntityType != "" {
+		filters["targetEntityType"] = targetEntityType
 	}
 
 	relationships, total, err := c.service.List(*context.New(ctx), page, limit, filters)

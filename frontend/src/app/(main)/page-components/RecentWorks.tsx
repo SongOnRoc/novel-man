@@ -39,8 +39,9 @@ const recentWorks: Work[] = [
 
 // 最近作品组件
 export function RecentWorks() {
+  // 最近作品：放置于布局的左侧主列，列跨度由父级容器控制
   return (
-    <Card className="col-span-3">
+    <Card className="h-full">
       <CardHeader>
         <CardTitle>最近作品</CardTitle>
         <CardDescription>您最近更新的作品列表</CardDescription>
@@ -50,7 +51,7 @@ export function RecentWorks() {
           {recentWorks.map((work) => (
             <div
               key={work.id}
-              className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0"
+              className="flex items-center justify-between gap-3 border-b pb-4 last:border-0 last:pb-0 hover:bg-accent/40 rounded-md px-2 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <BookOpen className="h-10 w-10 rounded-md border p-2 text-primary" />

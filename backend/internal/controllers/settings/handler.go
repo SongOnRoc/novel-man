@@ -6,13 +6,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"novel-man/backend/internal/contracts"
 	"novel-man/backend/internal/contracts/settings"
 	"novel-man/backend/internal/models"
 	"novel-man/backend/utils/context"
 	"novel-man/backend/utils/response"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type SettingController struct {
@@ -49,7 +50,7 @@ type SettingResponse struct {
 }
 
 type ListSettingsResponse struct {
-	Data       []SettingResponse     `json:"data"`
+	Data       []SettingResponse   `json:"data"`
 	Pagination response.Pagination `json:"pagination"`
 }
 
@@ -223,19 +224,28 @@ func (c *SettingController) DeleteSetting(ctx *gin.Context) {
 }
 
 // ListSettings godoc
-// @Summary List settings
-// @Description List all settings with pagination (admin-only, for now)
+// @Summary List settings (Admin only)
+// @Description List all settings with pagination. Requires admin privileges.
 // @Tags settings
 // @Produce  json
 // @Param   page  query  int  false  "Page number (default: 1)"
 // @Param   limit query  int  false  "Number of items per page (default: 10)"
 // @Success 200 {object} response.StandardResponse{data=ListSettingsResponse}
+// @Failure 401 {object} response.StandardResponse "Unauthorized"
+// @Failure 403 {object} response.StandardResponse "Permission denied"
 // @Failure 500 {object} response.StandardResponse "Failed to retrieve settings"
 // @Security BearerAuth
 // @Router /settings [get]
 func (c *SettingController) ListSettings(ctx *gin.Context) {
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
+
+	// Basic admin check (e.g., userID == 1)
+	userID, exists := ctx.Get("userID")
+	if !exists || userID.(uint) != 1 {
+		response.Error(ctx, http.StatusForbidden, http.StatusForbidden, "Permission denied", nil)
+		return
+	}
 
 	settings, total, err := c.service.List(*context.New(ctx), page, limit, make(contracts.Filters))
 	if err != nil {
@@ -260,24 +270,32 @@ func (c *SettingController) ListSettings(ctx *gin.Context) {
 
 // GetSettingByUserID godoc
 // @Summary Get a setting by user ID
-// @Description Get a setting by user ID
+// @Description Get a setting by user ID. User can only access their own settings.
 // @Tags settings
 // @Produce  json
 // @Param   user_id  path  int  true  "User ID"
 // @Success 200 {object} response.StandardResponse{data=SettingResponse}
 // @Failure 400 {object} response.StandardResponse "Invalid user ID"
+// @Failure 401 {object} response.StandardResponse "Unauthorized"
+// @Failure 403 {object} response.StandardResponse "Permission denied"
 // @Failure 404 {object} response.StandardResponse "Setting not found"
 // @Failure 500 {object} response.StandardResponse "Failed to get setting"
 // @Security BearerAuth
 // @Router /settings/user/{user_id} [get]
 func (c *SettingController) GetSettingByUserID(ctx *gin.Context) {
-	userID, err := strconv.ParseUint(ctx.Param("user_id"), 10, 32)
+	targetUserID, err := strconv.ParseUint(ctx.Param("user_id"), 10, 32)
 	if err != nil {
 		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid user ID", err)
 		return
 	}
 
-	setting, err := c.service.GetByUserID(*context.New(ctx), uint(userID))
+	currentUserID, exists := ctx.Get("userID")
+	if !exists || currentUserID.(uint) != uint(targetUserID) {
+		response.Error(ctx, http.StatusForbidden, http.StatusForbidden, "Permission denied", nil)
+		return
+	}
+
+	setting, err := c.service.GetByUserID(*context.New(ctx), uint(targetUserID))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Setting not found", err)
@@ -292,7 +310,7 @@ func (c *SettingController) GetSettingByUserID(ctx *gin.Context) {
 
 // UpdateSettingByUserID godoc
 // @Summary Update a setting by user ID
-// @Description Update a setting by user ID
+// @Description Update a setting by user ID. User can only update their own settings.
 // @Tags settings
 // @Accept  json
 // @Produce  json
@@ -300,14 +318,22 @@ func (c *SettingController) GetSettingByUserID(ctx *gin.Context) {
 // @Param   setting  body  SettingRequest  true  "Setting update info"
 // @Success 200 {object} response.StandardResponse{data=SettingResponse}
 // @Failure 400 {object} response.StandardResponse "Invalid user ID or request body"
+// @Failure 401 {object} response.StandardResponse "Unauthorized"
+// @Failure 403 {object} response.StandardResponse "Permission denied"
 // @Failure 404 {object} response.StandardResponse "Setting not found"
 // @Failure 500 {object} response.StandardResponse "Failed to update setting"
 // @Security BearerAuth
 // @Router /settings/user/{user_id} [put]
 func (c *SettingController) UpdateSettingByUserID(ctx *gin.Context) {
-	userID, err := strconv.ParseUint(ctx.Param("user_id"), 10, 32)
+	targetUserID, err := strconv.ParseUint(ctx.Param("user_id"), 10, 32)
 	if err != nil {
 		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid user ID", err)
+		return
+	}
+
+	currentUserID, exists := ctx.Get("userID")
+	if !exists || currentUserID.(uint) != uint(targetUserID) {
+		response.Error(ctx, http.StatusForbidden, http.StatusForbidden, "Permission denied", nil)
 		return
 	}
 
@@ -317,7 +343,7 @@ func (c *SettingController) UpdateSettingByUserID(ctx *gin.Context) {
 		return
 	}
 
-	setting, err := c.service.GetByUserID(*context.New(ctx), uint(userID))
+	setting, err := c.service.GetByUserID(*context.New(ctx), uint(targetUserID))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Setting not found", err)
@@ -333,7 +359,7 @@ func (c *SettingController) UpdateSettingByUserID(ctx *gin.Context) {
 	setting.FontSize = req.FontSize
 	setting.LineHeight = req.LineHeight
 
-	if err := c.service.UpdateByUserID(*context.New(ctx), uint(userID), setting); err != nil {
+	if err := c.service.UpdateByUserID(*context.New(ctx), uint(targetUserID), setting); err != nil {
 		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to update setting", err)
 		return
 	}
@@ -343,7 +369,7 @@ func (c *SettingController) UpdateSettingByUserID(ctx *gin.Context) {
 
 // UpdateAIModel godoc
 // @Summary Update AI model setting for a user
-// @Description Update the AI model setting for a specific user
+// @Description Update the AI model setting for a specific user. User can only update their own settings.
 // @Tags settings
 // @Accept  json
 // @Produce  json
@@ -351,14 +377,22 @@ func (c *SettingController) UpdateSettingByUserID(ctx *gin.Context) {
 // @Param   ai_model  body  UpdateAIModelRequest  true  "AI Model"
 // @Success 200 {object} response.StandardResponse{data=SettingResponse}
 // @Failure 400 {object} response.StandardResponse "Invalid user ID or request body"
+// @Failure 401 {object} response.StandardResponse "Unauthorized"
+// @Failure 403 {object} response.StandardResponse "Permission denied"
 // @Failure 404 {object} response.StandardResponse "Setting not found"
 // @Failure 500 {object} response.StandardResponse "Failed to update AI model"
 // @Security BearerAuth
 // @Router /settings/{user_id}/ai-model [put]
 func (c *SettingController) UpdateAIModel(ctx *gin.Context) {
-	userID, err := strconv.ParseUint(ctx.Param("user_id"), 10, 32)
+	targetUserID, err := strconv.ParseUint(ctx.Param("user_id"), 10, 32)
 	if err != nil {
 		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid user ID", err)
+		return
+	}
+
+	currentUserID, exists := ctx.Get("userID")
+	if !exists || currentUserID.(uint) != uint(targetUserID) {
+		response.Error(ctx, http.StatusForbidden, http.StatusForbidden, "Permission denied", nil)
 		return
 	}
 
@@ -368,7 +402,7 @@ func (c *SettingController) UpdateAIModel(ctx *gin.Context) {
 		return
 	}
 
-	setting, err := c.service.GetByUserID(*context.New(ctx), uint(userID))
+	setting, err := c.service.GetByUserID(*context.New(ctx), uint(targetUserID))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Setting not found", err)
@@ -380,7 +414,7 @@ func (c *SettingController) UpdateAIModel(ctx *gin.Context) {
 
 	setting.AIModel = req.AIModel
 
-	if err := c.service.UpdateByUserID(*context.New(ctx), uint(userID), setting); err != nil {
+	if err := c.service.UpdateByUserID(*context.New(ctx), uint(targetUserID), setting); err != nil {
 		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to update AI model", err)
 		return
 	}

@@ -239,14 +239,15 @@ func (c *WorkController) DeleteWork(ctx *gin.Context) {
 }
 
 // ListWorks godoc
-// @Summary List all works
-// @Description Get a list of all works with pagination
+// @Summary List user's works
+// @Description Get a list of the current user's works with pagination
 // @Tags works
 // @Produce  json
 // @Param page query int false "Page number" default(1)
 // @Param limit query int false "Number of items per page" default(10)
 // @Param status query string false "Filter by status"
 // @Success 200 {object} response.StandardResponse{data=ListWorksResponse}
+// @Failure 401 {object} response.StandardResponse "Unauthorized"
 // @Failure 500 {object} response.StandardResponse "Failed to retrieve works"
 // @Security BearerAuth
 // @Router /works [get]
@@ -255,7 +256,17 @@ func (c *WorkController) ListWorks(ctx *gin.Context) {
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
 	status := ctx.Query("status")
 
+	// 1. 从 Gin Context 获取 userID
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		response.Error(ctx, http.StatusUnauthorized, http.StatusUnauthorized, "Unauthorized", nil)
+		return
+	}
+
+	// 2. 创建过滤器并强制加入 userID
 	filters := make(contracts.Filters)
+	filters["user_id"] = userID.(uint) // 强制按用户ID过滤
+
 	if status != "" {
 		filters["status"] = status
 	}

@@ -36,17 +36,21 @@ import type {
 
 import { customInstance } from "../../../axios";
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
 /**
- * Get a list of all works with pagination
- * @summary List all works
+ * Get a list of the current user's works with pagination
+ * @summary List user's works
  */
-export const getWorks = (params?: GetWorksParams, signal?: AbortSignal) => {
-  return customInstance<GetWorks200>({
-    url: `/works`,
-    method: "GET",
-    params,
-    signal,
-  });
+export const getWorks = (
+  params?: GetWorksParams,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<GetWorks200>(
+    { url: `/works`, method: "GET", params, signal },
+    options,
+  );
 };
 
 export const getGetWorksQueryKey = (params?: GetWorksParams) => {
@@ -55,22 +59,23 @@ export const getGetWorksQueryKey = (params?: GetWorksParams) => {
 
 export const getGetWorksQueryOptions = <
   TData = Awaited<ReturnType<typeof getWorks>>,
-  TError = ResponseStandardResponse,
+  TError = ResponseStandardResponse | ResponseStandardResponse,
 >(
   params?: GetWorksParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getWorks>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetWorksQueryKey(params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getWorks>>> = ({
     signal,
-  }) => getWorks(params, signal);
+  }) => getWorks(params, requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getWorks>>,
@@ -82,11 +87,13 @@ export const getGetWorksQueryOptions = <
 export type GetWorksQueryResult = NonNullable<
   Awaited<ReturnType<typeof getWorks>>
 >;
-export type GetWorksQueryError = ResponseStandardResponse;
+export type GetWorksQueryError =
+  | ResponseStandardResponse
+  | ResponseStandardResponse;
 
 export function useGetWorks<
   TData = Awaited<ReturnType<typeof getWorks>>,
-  TError = ResponseStandardResponse,
+  TError = ResponseStandardResponse | ResponseStandardResponse,
 >(
   params: undefined | GetWorksParams,
   options: {
@@ -101,6 +108,7 @@ export function useGetWorks<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -108,7 +116,7 @@ export function useGetWorks<
 };
 export function useGetWorks<
   TData = Awaited<ReturnType<typeof getWorks>>,
-  TError = ResponseStandardResponse,
+  TError = ResponseStandardResponse | ResponseStandardResponse,
 >(
   params?: GetWorksParams,
   options?: {
@@ -123,6 +131,7 @@ export function useGetWorks<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -130,31 +139,33 @@ export function useGetWorks<
 };
 export function useGetWorks<
   TData = Awaited<ReturnType<typeof getWorks>>,
-  TError = ResponseStandardResponse,
+  TError = ResponseStandardResponse | ResponseStandardResponse,
 >(
   params?: GetWorksParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getWorks>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary List all works
+ * @summary List user's works
  */
 
 export function useGetWorks<
   TData = Awaited<ReturnType<typeof getWorks>>,
-  TError = ResponseStandardResponse,
+  TError = ResponseStandardResponse | ResponseStandardResponse,
 >(
   params?: GetWorksParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getWorks>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -178,15 +189,19 @@ export function useGetWorks<
  */
 export const postWorks = (
   worksCreateWorkRequest: WorksCreateWorkRequest,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostWorks201>({
-    url: `/works`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: worksCreateWorkRequest,
-    signal,
-  });
+  return customInstance<PostWorks201>(
+    {
+      url: `/works`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: worksCreateWorkRequest,
+      signal,
+    },
+    options,
+  );
 };
 
 export const getPostWorksMutationOptions = <
@@ -202,6 +217,7 @@ export const getPostWorksMutationOptions = <
     { data: WorksCreateWorkRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postWorks>>,
   TError,
@@ -209,13 +225,13 @@ export const getPostWorksMutationOptions = <
   TContext
 > => {
   const mutationKey = ["postWorks"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postWorks>>,
@@ -223,7 +239,7 @@ export const getPostWorksMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return postWorks(data);
+    return postWorks(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -255,6 +271,7 @@ export const usePostWorks = <
       { data: WorksCreateWorkRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -271,11 +288,14 @@ export const usePostWorks = <
  * Delete a work by its ID
  * @summary Delete a work
  */
-export const deleteWorksId = (id: number) => {
-  return customInstance<DeleteWorksId200>({
-    url: `/works/${id}`,
-    method: "DELETE",
-  });
+export const deleteWorksId = (
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<DeleteWorksId200>(
+    { url: `/works/${id}`, method: "DELETE" },
+    options,
+  );
 };
 
 export const getDeleteWorksIdMutationOptions = <
@@ -291,6 +311,7 @@ export const getDeleteWorksIdMutationOptions = <
     { id: number },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteWorksId>>,
   TError,
@@ -298,13 +319,13 @@ export const getDeleteWorksIdMutationOptions = <
   TContext
 > => {
   const mutationKey = ["deleteWorksId"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteWorksId>>,
@@ -312,7 +333,7 @@ export const getDeleteWorksIdMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return deleteWorksId(id);
+    return deleteWorksId(id, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -344,6 +365,7 @@ export const useDeleteWorksId = <
       { id: number },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -360,12 +382,15 @@ export const useDeleteWorksId = <
  * Get a single work by its ID
  * @summary Get a single work
  */
-export const getWorksId = (id: number, signal?: AbortSignal) => {
-  return customInstance<GetWorksId200>({
-    url: `/works/${id}`,
-    method: "GET",
-    signal,
-  });
+export const getWorksId = (
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<GetWorksId200>(
+    { url: `/works/${id}`, method: "GET", signal },
+    options,
+  );
 };
 
 export const getGetWorksIdQueryKey = (id?: number) => {
@@ -384,15 +409,16 @@ export const getGetWorksIdQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getWorksId>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
 ) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetWorksIdQueryKey(id);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getWorksId>>> = ({
     signal,
-  }) => getWorksId(id, signal);
+  }) => getWorksId(id, requestOptions, signal);
 
   return {
     queryKey,
@@ -434,6 +460,7 @@ export function useGetWorksId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -459,6 +486,7 @@ export function useGetWorksId<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -476,6 +504,7 @@ export function useGetWorksId<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getWorksId>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -497,6 +526,7 @@ export function useGetWorksId<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getWorksId>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -521,13 +551,17 @@ export function useGetWorksId<
 export const putWorksId = (
   id: number,
   worksUpdateWorkRequest: WorksUpdateWorkRequest,
+  options?: SecondParameter<typeof customInstance>,
 ) => {
-  return customInstance<PutWorksId200>({
-    url: `/works/${id}`,
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    data: worksUpdateWorkRequest,
-  });
+  return customInstance<PutWorksId200>(
+    {
+      url: `/works/${id}`,
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: worksUpdateWorkRequest,
+    },
+    options,
+  );
 };
 
 export const getPutWorksIdMutationOptions = <
@@ -543,6 +577,7 @@ export const getPutWorksIdMutationOptions = <
     { id: number; data: WorksUpdateWorkRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putWorksId>>,
   TError,
@@ -550,13 +585,13 @@ export const getPutWorksIdMutationOptions = <
   TContext
 > => {
   const mutationKey = ["putWorksId"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof putWorksId>>,
@@ -564,7 +599,7 @@ export const getPutWorksIdMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return putWorksId(id, data);
+    return putWorksId(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -596,6 +631,7 @@ export const usePutWorksId = <
       { id: number; data: WorksUpdateWorkRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -612,12 +648,15 @@ export const usePutWorksId = <
  * Publish a work by its ID
  * @summary Publish a work
  */
-export const postWorksIdPublish = (id: number, signal?: AbortSignal) => {
-  return customInstance<PostWorksIdPublish200>({
-    url: `/works/${id}/publish`,
-    method: "POST",
-    signal,
-  });
+export const postWorksIdPublish = (
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<PostWorksIdPublish200>(
+    { url: `/works/${id}/publish`, method: "POST", signal },
+    options,
+  );
 };
 
 export const getPostWorksIdPublishMutationOptions = <
@@ -633,6 +672,7 @@ export const getPostWorksIdPublishMutationOptions = <
     { id: number },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postWorksIdPublish>>,
   TError,
@@ -640,13 +680,13 @@ export const getPostWorksIdPublishMutationOptions = <
   TContext
 > => {
   const mutationKey = ["postWorksIdPublish"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postWorksIdPublish>>,
@@ -654,7 +694,7 @@ export const getPostWorksIdPublishMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return postWorksIdPublish(id);
+    return postWorksIdPublish(id, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -686,6 +726,7 @@ export const usePostWorksIdPublish = <
       { id: number },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

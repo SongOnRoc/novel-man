@@ -10,36 +10,63 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { ArrowLeft, Edit, Trash2 } from "lucide-react";
-import { useWorldview } from "@/hooks/worldbuilding/useWorldview";
+import {
+  useWorldviewItem,
+  useDeleteWorldviewItem,
+} from "@/hooks/worldbuilding/useWorldviewService";
+import { WorldviewItem } from "@/lib/services/worldview.service";
+import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function WorldItemDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { getItem, deleteItem, mutateCategories } = useWorldview();
   const itemId = params.id
     ? parseInt(Array.isArray(params.id) ? params.id[0] : params.id, 10)
     : null;
 
-  const { item, itemError, mutateItem } = getItem(itemId);
+  const {
+    data: itemResponse,
+    isLoading,
+    error,
+  } = useWorldviewItem(itemId!);
+  const { mutate: deleteItem, isPending: isDeleting } = useDeleteWorldviewItem();
+
+  const item = itemResponse as WorldviewItem;
 
   const handleDelete = async () => {
     if (!item) return;
 
-    if (confirm(`确定要删除条目 "${item.name}" 吗？`)) {
-      try {
-        await deleteItem(item.id);
-        // After deleting, we should go back and refresh the categories/items
-        mutateCategories(); // This will trigger a re-fetch of categories, and indirectly items if a category is selected
-        router.push("/tools/worldbuilding");
-      } catch (err) {
-        console.error("删除失败", err);
-        alert("删除失败");
-      }
-    }
+    toast(`确定要删除条目 "${item.name}" 吗？`, {
+      action: {
+        label: "删除",
+        onClick: () =>
+          deleteItem(item.id!, {
+            onSuccess: () => {
+              toast.success("删除成功");
+              router.push("/tools/worldbuilding");
+            },
+            onError: (e: Error) => toast.error(`删除失败: ${e.message}`),
+          }),
+      },
+      cancel: {
+        label: "取消",
+        onClick: () => {},
+      },
+    });
   };
 
-  if (itemError) return <div>加载失败...</div>;
-  if (!item) return <div>加载中...</div>;
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-48" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  if (error) return <div>加载失败...</div>;
+  if (!item) return <div>未找到条目。</div>;
 
   return (
     <div className="space-y-6">
@@ -57,9 +84,14 @@ export default function WorldItemDetailPage() {
             <Edit className="mr-2 h-4 w-4" />
             编辑
           </Button>
-          <Button variant="destructive" size="sm" onClick={handleDelete}>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleDelete}
+            disabled={isDeleting}
+          >
             <Trash2 className="mr-2 h-4 w-4" />
-            删除
+            {isDeleting ? "删除中..." : "删除"}
           </Button>
         </div>
       </div>
@@ -68,8 +100,8 @@ export default function WorldItemDetailPage() {
         <CardHeader>
           <CardTitle className="text-2xl">{item.name}</CardTitle>
           <CardDescription>
-            创建于: {new Date(item.createdAt).toLocaleDateString()} | 更新于:{" "}
-            {new Date(item.updatedAt).toLocaleDateString()}
+            创建于: {new Date(item.created_at!).toLocaleDateString()} | 更新于:{" "}
+            {new Date(item.updated_at!).toLocaleDateString()}
           </CardDescription>
         </CardHeader>
         <CardContent>

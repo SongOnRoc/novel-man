@@ -266,13 +266,14 @@ func (c *CharacterController) DeleteCharacter(ctx *gin.Context) {
 }
 
 // ListCharacters godoc
-// @Summary List all characters
-// @Description Get a list of all characters with pagination
+// @Summary List user's characters
+// @Description Get a list of the current user's characters with pagination
 // @Tags characters
 // @Produce  json
 // @Param page query int false "Page number" default(1)
 // @Param limit query int false "Number of items per page" default(10)
 // @Success 200 {object} response.StandardResponse{data=ListCharactersResponse}
+// @Failure 401 {object} response.StandardResponse "Unauthorized"
 // @Failure 500 {object} response.StandardResponse "Failed to retrieve characters"
 // @Security BearerAuth
 // @Router /characters [get]
@@ -280,7 +281,14 @@ func (c *CharacterController) ListCharacters(ctx *gin.Context) {
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
 
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		response.Error(ctx, http.StatusUnauthorized, http.StatusUnauthorized, "Unauthorized", nil)
+		return
+	}
+
 	filters := make(contracts.Filters)
+	filters["user_id"] = userID.(uint)
 
 	characters, total, err := c.service.List(*context.New(ctx), page, limit, filters)
 	if err != nil {

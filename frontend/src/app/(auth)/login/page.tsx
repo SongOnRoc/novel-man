@@ -68,6 +68,7 @@ export default function LoginPage() {
         });
       }
     } catch (error) {
+      console.error("Login error:", error);
       toast.error("登录失败", {
         description: "登录过程中发生错误，请稍后重试。",
       });

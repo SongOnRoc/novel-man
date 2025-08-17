@@ -61,11 +61,11 @@ export function QuickActions() {
               className="h-auto justify-start gap-3 p-4 text-left"
               asChild
             >
-              <a href={action.href}>
-                <div className="rounded-full bg-primary/10 p-1.5 text-primary">
+              <a href={action.href} className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   {action.icon}
                 </div>
-                <div>
+                <div className="flex-1">
                   <div className="font-semibold">{action.title}</div>
                   <div className="text-sm text-muted-foreground">
                     {action.description}

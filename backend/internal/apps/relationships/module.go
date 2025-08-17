@@ -9,6 +9,7 @@ import (
 	"novel-man/backend/internal/middlewares/resource"
 	"novel-man/backend/internal/repositories/gorm"
 	relationships_service "novel-man/backend/internal/services/relationships"
+	works_service "novel-man/backend/internal/services/works"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,6 +23,7 @@ func init() {
 	// 注册服务实现
 	container.Container.Provide(gorm.NewRelationshipGormRepository)
 	container.Container.Provide(relationships_service.NewRelationshipService)
+	container.Container.Provide(works_service.NewWorkService) // Ensure WorkService is provided
 	container.Container.Provide(relationships.NewRelationshipController)
 }
 

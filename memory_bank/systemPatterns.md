@@ -1,41 +1,78 @@
-# 系统模式
-记录项目中使用的重复模式和标准。
+# 系统模式 (System Patterns) - 前端核心架构
 
----
-### 命令驱动架构
-[2025-07-17 16:48:00] - 采用 Cobra 实现命令行界面，用于管理不同的服务进程（API, Worker, Scheduler）。这种模式将应用的不同部分解耦，使其可以独立启动和部署。
+本文档记录了 novel-man 项目**最终前端架构设计蓝图**的核心模式，作为所有前端开发工作的最高准则。
 
----
-### 模块化应用设计
-[2025-07-17 16:48:00] - 后端业务逻辑将按功能模块进行划分（如 `works`, `chapters`），每个模块都位于 `internal/apps/` 下的独立目录中。每个模块内部包含自己的模型、路由处理函数、中间件等，实现高内聚、低耦合。
+## 1. 设计哲学
 
----
-### 缓存旁路模式 (Cache-Aside Pattern)
-[2025-07-17 16:48:00] - 对于需要高性能读写的场景（如库存管理），将采用数据库（GORM）和缓存（Redis）相结合的方式。读取时先查缓存，缓存未命中则查询数据库并写回缓存；写入时则更新数据库和缓存。
+-   **类型安全至上 (Type-Safety First):** 整个应用的数据流必须是端到端类型安全的。
+-   **关注点分离 (Separation of Concerns):** 严格划分 UI、状态管理、业务逻辑和数据获取的边界。
+-   **自动化驱动 (Automation-Driven):** 重复性的工作必须通过工具链自动化，以保证一致性和效率。
+-   **设计系统先行 (Design System First):** 所有 UI 都必须基于一个统一的、由 Token 驱动的设计系统。
 
----
-### 中间件实现横切关注点
-[2025-07-17 16:48:00] - 认证、授权、日志、恢复等横切关注点将通过 Gin 的中间件机制来实现。这有助于保持路由处理函数的核心业务逻辑纯净、简洁。
+## 2. 技术栈与工具链
 
----
-### 前后端数据一致性校验
-[2025-07-19 23:43:00] - 在实现任何涉及数据交互的功能时，必须强制要求前后端的数据模型和验证规则（如字段名、类型、长度限制、格式等）保持完全一致。前端验证用于提升用户体验，后端验证用于保证数据安全和完整性。
+-   **核心框架:** Next.js (App Router), React
+-   **语言:** TypeScript (Strict Mode)
+-   **UI & 样式:** `shadcn/ui`, `Radix UI`, `Tailwind CSS`, `CVA`
+-   **状态管理:** `@tanstack/react-query` (服务端), `Zustand` (客户端)
+-   **数据请求:** `Axios`
+-   **表单处理:** `React Hook Form` + `Zod`
+-   **API 代码生成:** `Orval` (核心工具，用于生成类型和 `react-query` 客户端)
+-   **包管理器:** `pnpm`
 
----
-### 后端严格请求体验证
-[2025-07-19 23:43:00] - 后端API在绑定请求体（Request Body）时，必须配置为严格模式，即不允许任何未在模型中定义的额外字段。这可以防止潜在的参数污染攻击，并确保API的健壮性。
+## 3. 分层数据流架构 (核心模式)
 
----
-### 客户端计算优先原则
+严格遵循“关注点分离”原则，所有数据请求必须遵循以下流程：
 
----
-### 最终的、分层感知的、基于组合的统一服务架构模式
-[2025-07-30 18:15:00] - 采用最终的、分层感知的、基于组合的统一服务架构模式，该模式严格遵循 contracts, repositories, services, controllers, apps 的分层架构。通过接口组合实现抽象，通过结构体嵌入实现代码复用，确保系统具有高内聚、低耦合的特性。该模式与项目中已有的"模块化自注册"模式保持高度一致，为后续所有模块重构提供了统一的标准。
+**UI Component -> Hook -> Service -> Generated Client -> BFF**
 
----
-### 通用中间件架构模式
-[2025-08-02 16:45:00] - 采用通用中间件架构模式，通过统一的中间件接口和自动注册机制，实现中间件的灵活管理和使用。该模式支持依赖注入，允许各模块按需获取所需的中间件，并能够轻松扩展新的中间件类型。
-[2025-07-20 13:28:29] - 需要消耗性能的任务，或者大并发下可能占用大量cpu或者内存的任务，都需要优先放到客户端来做。这可以有效降低服务器的CPU负载，提升系统的整体性能和可伸缩性。
----
-### 最终的后端架构模式
-[2025-08-04 10:10:00] - 记录最终的后端架构模式，该模式严格遵循 contracts, repositories, services, controllers, apps 的分层架构。通过接口组合实现抽象，通过结构体嵌入实现代码复用，确保系统具有高内聚、低耦合的特性。该模式与项目中已有的"模块化自注册"模式保持高度一致，为后续所有模块开发提供了统一的标准。
+1.  **UI Layer (Components)**: 职责是渲染 UI 和处理用户交互。**规范**: 只通过 Hooks 获取数据和执行操作。
+2.  **Hooks Layer**: 使用 `@tanstack/react-query` 连接 UI 与业务逻辑，管理服务端状态（缓存、加载、错误）。**规范**: 每个核心数据实体都有对应的 Hooks。
+3.  **Services Layer**: 封装业务逻辑，为 Hooks 提供清晰的函数。此处可组合多个 Generated Client 调用。
+4.  **Generated Client Layer**: 由 `Orval` 自动生成，提供类型安全的、基于 `react-query` 的 Hooks。**规范**: 禁止手动修改，通过 `pnpm api:generate` 更新。
+5.  **Axios Instance**: 统一的 HTTP 客户端，负责请求 BFF，并通过拦截器处理认证和全局错误。
+
+## 4. BFF (Backend for Frontend) 策略
+
+采用**混合模式**:
+-   **默认透明代理**: `axios` 默认请求 `/api/proxy/[...path]`，由 `Orval` 生成的客户端自动使用。
+-   **按需抽象代理**: 复杂场景下（如 API 聚合），创建专门的 API 路由，并**复用** `Orval` 生成的客户端代码。
+
+## 5. 组件系统设计
+
+-   **基础层 (Headless UI)**: 使用 `Radix UI` (通过 `shadcn/ui`) 提供功能完备、可访问性强的无样式组件。
+-   **样式层 (Styling)**: 使用 `Tailwind CSS` 注入样式，通过 CSS 变量支持主题化。
+-   **变体层 (Variants)**: 使用 `CVA` (class-variance-authority) 管理组件的所有视觉变体，确保类型安全。
+
+## 6. 核心开发工作流
+
+1.  **API 定义先行**: 后端提供或更新 `swagger.json`。
+2.  **前端自动化同步**: 开发者在前端项目根目录运行 `pnpm api:generate` 命令。
+3.  **代码实现**: 遵循分层数据流架构，从 Service 层开始，逐层向上实现业务逻辑和 UI。
+
+## 7. 核心组件实现清单 (MVP)
+
+### 7.1. 核心原子组件库
+
+| 组件类别 | 核心组件 | 依赖/实现技术 | 核心职能 |
+| :--- | :--- | :--- | :--- |
+| **布局 & 容器** | `Card`, `Dialog`, `Popover`, `Tooltip`, `Resizable Panel` | `shadcn/ui`, `Radix UI` | 内容组织、模态交互、信息提示、可伸缩布局 |
+| **表单 & 输入** | `Button`, `Input`, `Select`, `Switch`, `Checkbox`, `Label`, `Form` | `shadcn/ui`, `React Hook Form`, `Zod`, `CVA` | 用户交互、数据提交、状态管理与校验 |
+| **数据展示** | `Table`, `Avatar`, `Badge`, `Progress`, `Data List` | `shadcn/ui`, `TanStack Table` | 结构化数据显示、身份标识、状态展示、列表渲染 |
+| **导航** | `Dropdown Menu`, `Tabs`, `Navigation Menu`, `Pagination` | `shadcn/ui` | 页面与功能导航、视图切换、分页控制 |
+| **反馈 & 通知** | `Sonner (Toast)`, `Alert`, `Skeleton` | `Sonner`, `shadcn/ui` | 操作反馈、状态通知、加载状态指示 |
+
+### 7.2. 功能与业务组件
+
+| 组件类别 | 核心组件 | 依赖/实现技术 | 核心职能 |
+| :--- | :--- | :--- | :--- |
+| **核心布局** | `MainLayout`, `Sidebar`, `Header` | `Resizable Panel`, `Navigation Menu`, `Dropdown Menu` | 搭建应用主界面框架，提供全局导航与用户入口 |
+| **核心功能** | `Editor` (富文本编辑器) | `Tiptap`, `shadcn/ui` | 提供稳定、高效的写作和格式化体验 |
+| | `AIAssistant` (AI 助手) | `React Query`, `Sonner`, `Popover` | 在编辑器中提供 AI 续写、润色等上下文服务 |
+| **业务-作品管理** | `WorkCard`, `WorkList` | `Card`, `Data List`, `React Query` | 展示和管理用户的作品列表 |
+| | `WorkForm` (创建/编辑) | `Form`, `Dialog`, `React Hook Form` | 用于创建和编辑作品信息 |
+| **业务-内容管理**| `ChapterList`, `DraftList` | `Data List`, `React Query`, `Table` | 管理和展示章节、草稿列表 |
+| **业务-素材管理**| `CharacterCard`, `WorldviewItemCard` | `Card`, `Avatar`, `Badge` | 展示和管理角色与世界观设定 |
+| **认证与用户** | `LoginForm`, `RegisterForm` | `Form`, `Card`, `React Hook Form` | 处理用户登录和注册流程 |
+| | `UserNav` (用户导航菜单) | `Dropdown Menu`, `Avatar` | 展示用户登录状态，提供设置、登出入口 |
+| **应用设置** | `SettingsForm`, `ThemeToggle` | `Form`, `Tabs`, `Switch` | 允许用户修改应用主题、编辑器及 AI 等偏好设置 |

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -21,20 +20,54 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { ArrowLeft, Save } from "lucide-react";
 import {
   useCharacter,
   useUpdateCharacter,
 } from "@/hooks/character/useCharacters";
-import { useWorks } from "@/hooks/work/useWorks";
-// import { useCharacterRelations } from "@/hooks/character/useCharacterRelations";
-// import { CharacterRelationManager } from "@/components/character/CharacterRelationManager";
+import { useWorkList } from "@/hooks/work/useWorkService";
 import {
-  Character,
-  // CharacterRelationship,
-  // RelationshipType,
-} from "@/types/character";
+  useRelationshipList,
+  useCreateRelationship,
+  useDeleteRelationship,
+} from "@/hooks/relationship/useRelationshipService";
 import { Separator } from "@/components/ui/separator";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { CharacterUpdate, Character } from "@/lib/services/characters.service";
+import { Work } from "@/lib/services/work.service";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const characterFormSchema = z.object({
+  name: z.string().min(1, { message: "角色名称不能为空" }),
+  workId: z.string().min(1, { message: "必须选择一个所属作品" }),
+  gender: z.string().optional(),
+  age: z.coerce.number().optional(),
+  occupation: z.string().optional(),
+  personality: z.string().optional(),
+  abilities: z.string().optional(),
+  background: z.string().optional(),
+  appearance: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+type CharacterFormValues = z.infer<typeof characterFormSchema>;
+
+interface Relationship {
+  id?: number;
+  source_entity_id?: number;
+  // Add other properties of relationship here
+}
 
 export default function EditCharacterPage() {
   const router = useRouter();
@@ -43,72 +76,104 @@ export default function EditCharacterPage() {
     Array.isArray(params.id) ? params.id[0] : params.id,
   );
 
-  const {
-    data: character,
-    isLoading,
-    error: fetchError,
-  } = useCharacter(characterId);
-  const updateCharacterMutation = useUpdateCharacter();
-  const { data: worksData } = useWorks();
-  const works = worksData?.data || [];
+  const { data: characterResponse, isLoading: isLoadingCharacter } =
+    useCharacter(characterId);
+  const { data: worksData } = useWorkList({});
+  const { data: relationshipData, isLoading: isLoadingRelationship } =
+    useRelationshipList(
+      {
+        targetEntityId: characterId,
+        targetEntityType: "character",
+        sourceEntityType: "work",
+      },
+      { enabled: !!characterId },
+    );
 
-  const [formData, setFormData] = useState<Partial<Character>>({});
-  const [error, setError] = useState<string | null>(null);
+  const { mutate: updateCharacter, isPending: isUpdatingCharacter } =
+    useUpdateCharacter();
+  const { mutate: createRelationship, isPending: isCreatingRelationship } =
+    useCreateRelationship();
+  const { mutate: deleteRelationship, isPending: isDeletingRelationship } =
+    useDeleteRelationship();
+
+  const works = (worksData?.data as { data?: Work[] })?.data || [];
+  const character = characterResponse?.data as Character;
+  const relationship = (
+    relationshipData?.data as { data?: Relationship[] }
+  )?.data?.[0];
+
+  const form = useForm<CharacterFormValues>({
+    resolver: zodResolver(characterFormSchema),
+  });
 
   useEffect(() => {
-    if (character) {
-      setFormData(character);
-    }
-  }, [character]);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!characterId) {
-      setError("无效的角色ID，无法更新。");
-      return;
-    }
-
-    if (!formData.name) {
-      setError("角色名称不能为空");
-      return;
-    }
-
-    setError(null);
-
-    try {
-      await updateCharacterMutation.mutateAsync({
-        id: characterId,
-        data: formData,
+    if (character && relationship) {
+      form.reset({
+        name: character.name || "",
+        workId: relationship.source_entity_id?.toString() || "",
+        gender: character.gender || "",
+        age: character.age || 0,
+        occupation: character.occupation || "",
+        personality: character.personality || "",
+        abilities: character.abilities || "",
+        background: character.background_story || "",
+        appearance: character.appearance || "",
+        notes: character.notes || "",
       });
-      router.push(`/tools/characters/${characterId}`);
-    } catch (err) {
-      setError("更新角色时发生错误");
-      console.error("Error updating character:", err);
     }
+  }, [character, relationship, form]);
+
+  const onSubmit = (values: CharacterFormValues) => {
+    const { workId, ...characterData } = values;
+
+    const updatePayload: CharacterUpdate = {
+      ...characterData,
+      age: characterData.age || 0,
+    };
+
+    updateCharacter(
+      { id: characterId, data: updatePayload },
+      {
+        onSuccess: () => {
+          const newWorkId = parseInt(workId, 10);
+          const oldWorkId = relationship?.source_entity_id;
+
+          if (relationship && newWorkId !== oldWorkId) {
+            deleteRelationship(
+              { id: relationship.id! },
+              {
+                onSuccess: () => {
+                  createRelationship(
+                    {
+                      data: {
+                        source_entity_id: newWorkId,
+                        source_entity_type: "work",
+                        target_entity_id: characterId,
+                        target_entity_type: "character",
+                        relationship_type: "associates",
+                      },
+                    },
+                    {
+                      onSuccess: () => router.push(`/tools/characters`),
+                    },
+                  );
+                },
+              },
+            );
+          } else {
+            router.push(`/tools/characters`);
+          }
+        },
+      },
+    );
   };
+
+  const isLoading = isLoadingCharacter || isLoadingRelationship;
+  const isPending =
+    isUpdatingCharacter || isCreatingRelationship || isDeletingRelationship;
 
   if (isLoading) {
-    return <div className="text-center p-8">加载角色数据中...</div>;
-  }
-
-  if (fetchError) {
-    return (
-      <div className="text-center text-destructive p-8">
-        加载数据失败: {fetchError.message}
-      </div>
-    );
+    return <Skeleton className="h-96 w-full" />;
   }
 
   return (
@@ -123,181 +188,220 @@ export default function EditCharacterPage() {
       </div>
 
       <Card>
-        <form onSubmit={handleSubmit}>
-          <CardHeader>
-            <CardTitle>角色信息</CardTitle>
-            <CardDescription>
-              修改角色的基本信息，带 * 的字段为必填项
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Basic Info Form */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">角色名称 *</Label>
-                <Input
-                  id="name"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <CardHeader>
+              <CardTitle>角色信息</CardTitle>
+              <CardDescription>
+                修改角色的基本信息，带 * 的字段为必填项
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
                   name="name"
-                  value={formData.name || ""}
-                  onChange={handleChange}
-                  placeholder="输入角色名称"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>角色名称 *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="输入角色名称" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="occupation">职业/身份</Label>
-                <Input
-                  id="occupation"
+                <FormField
+                  control={form.control}
                   name="occupation"
-                  value={formData.occupation || ""}
-                  onChange={handleChange}
-                  placeholder="如：修真者、丹药师"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>职业/身份</FormLabel>
+                      <FormControl>
+                        <Input placeholder="如：修真者、丹药师" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="age">年龄</Label>
-                <Input
-                  id="age"
+                <FormField
+                  control={form.control}
                   name="age"
-                  type="number"
-                  value={formData.age || ""}
-                  onChange={handleChange}
-                  placeholder="输入年龄"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>年龄</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="输入年龄" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="gender"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>性别</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="选择性别" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="male">男</SelectItem>
+                          <SelectItem value="female">女</SelectItem>
+                          <SelectItem value="other">其他</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="gender">性别</Label>
-                <Select
-                  value={formData.gender || ""}
-                  onValueChange={(value) => handleSelectChange("gender", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="选择性别" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">男</SelectItem>
-                    <SelectItem value="female">女</SelectItem>
-                    <SelectItem value="other">其他</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+              <Separator />
 
-            <Separator />
-
-            <div className="space-y-2">
-              <Label htmlFor="work_id">所属作品 *</Label>
-              <Select
-                value={formData.work_id?.toString() || ""}
-                onValueChange={(value) => handleSelectChange("work_id", value)}
-              >
-                <SelectTrigger id="work_id">
-                  <SelectValue placeholder="选择一个作品..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {works.map((work: any) => (
-                    <SelectItem key={work.id} value={work.id.toString()}>
-                      {work.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="personality">性格特点（用逗号分隔）</Label>
-                <Input
-                  id="personality"
-                  name="personality"
-                  value={formData.personality || ""}
-                  onChange={handleChange}
-                  placeholder="如：坚韧,聪慧,重情义"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="abilities">能力（用逗号分隔）</Label>
-                <Input
-                  id="abilities"
-                  name="abilities"
-                  value={formData.abilities || ""}
-                  onChange={handleChange}
-                  placeholder="如：火属性灵力,炼丹术,剑法"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="background">背景故事</Label>
-              <Textarea
-                id="background"
-                name="background"
-                value={formData.background || ""}
-                onChange={handleChange}
-                placeholder="描述角色的背景故事、经历和动机"
-                rows={5}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="appearance">外貌描述</Label>
-              <Textarea
-                id="appearance"
-                name="appearance"
-                value={formData.appearance || ""}
-                onChange={handleChange}
-                placeholder="描述角色的外貌特征、穿着和气质"
-                rows={3}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes">笔记</Label>
-              <Textarea
-                id="notes"
-                name="notes"
-                value={formData.notes || ""}
-                onChange={handleChange}
-                placeholder="其他需要记录的信息"
-                rows={3}
-              />
-            </div>
-
-            {error && <div className="text-destructive text-sm">{error}</div>}
-
-            <Separator />
-
-            {/* Relations Manager - Temporarily Disabled */}
-            {/* {characterId && (
-              <CharacterRelationManager
-                characterId={characterId}
-                allCharacters={allCharacters.filter(
-                  (c) => c.workId === formData.workId && c.id !== characterId
+              <FormField
+                control={form.control}
+                name="workId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>所属作品 *</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="选择一个作品..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {works.map((work) => (
+                          <SelectItem
+                            key={work.id}
+                            value={work.id?.toString() ?? ""}
+                          >
+                            {work.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
                 )}
-                relations={relations}
-                onAddRelation={addRelation}
-                onDeleteRelation={deleteRelation}
-                onUpdateRelationType={updateRelationType}
               />
-            )} */}
-          </CardContent>
-          <CardFooter className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={() => router.back()}
-            >
-              取消
-            </Button>
-            <Button type="submit" disabled={updateCharacterMutation.isPending}>
-              {updateCharacterMutation.isPending ? "保存中..." : "保存更改"}
-              <Save className="ml-2 h-4 w-4" />
-            </Button>
-          </CardFooter>
-        </form>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="personality"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>性格特点</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="如：坚韧,聪慧,重情义"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>用逗号分隔</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="abilities"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>能力</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="如：火属性灵力,炼丹术,剑法"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>用逗号分隔</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="background"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>背景故事</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="描述角色的背景故事、经历和动机"
+                        rows={5}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="appearance"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>外貌描述</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="描述角色的外貌特征、穿着和气质"
+                        rows={3}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>笔记</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="其他需要记录的信息"
+                        rows={3}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+            <CardFooter className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => router.back()}
+                disabled={isPending}
+              >
+                取消
+              </Button>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "保存中..." : "保存更改"}
+                <Save className="ml-2 h-4 w-4" />
+              </Button>
+            </CardFooter>
+          </form>
+        </Form>
       </Card>
     </div>
   );

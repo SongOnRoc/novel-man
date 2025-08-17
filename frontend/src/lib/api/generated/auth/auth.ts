@@ -33,21 +33,27 @@ import type {
 
 import { customInstance } from "../../../axios";
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
 /**
  * Log in a user with identifier (username or email) and password
  * @summary Log in a user
  */
 export const postAuthLogin = (
   authLoginRequest: AuthLoginRequest,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostAuthLogin200>({
-    url: `/auth/login`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: authLoginRequest,
-    signal,
-  });
+  return customInstance<PostAuthLogin200>(
+    {
+      url: `/auth/login`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: authLoginRequest,
+      signal,
+    },
+    options,
+  );
 };
 
 export const getPostAuthLoginMutationOptions = <
@@ -60,6 +66,7 @@ export const getPostAuthLoginMutationOptions = <
     { data: AuthLoginRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postAuthLogin>>,
   TError,
@@ -67,13 +74,13 @@ export const getPostAuthLoginMutationOptions = <
   TContext
 > => {
   const mutationKey = ["postAuthLogin"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postAuthLogin>>,
@@ -81,7 +88,7 @@ export const getPostAuthLoginMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return postAuthLogin(data);
+    return postAuthLogin(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -109,6 +116,7 @@ export const usePostAuthLogin = <
       { data: AuthLoginRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -125,12 +133,14 @@ export const usePostAuthLogin = <
  * Log out the current authenticated user. In a stateless JWT implementation, this is a client-side action.
  * @summary Log out a user
  */
-export const postAuthLogout = (signal?: AbortSignal) => {
-  return customInstance<PostAuthLogout200>({
-    url: `/auth/logout`,
-    method: "POST",
-    signal,
-  });
+export const postAuthLogout = (
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<PostAuthLogout200>(
+    { url: `/auth/logout`, method: "POST", signal },
+    options,
+  );
 };
 
 export const getPostAuthLogoutMutationOptions = <
@@ -143,6 +153,7 @@ export const getPostAuthLogoutMutationOptions = <
     void,
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postAuthLogout>>,
   TError,
@@ -150,19 +161,19 @@ export const getPostAuthLogoutMutationOptions = <
   TContext
 > => {
   const mutationKey = ["postAuthLogout"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postAuthLogout>>,
     void
   > = () => {
-    return postAuthLogout();
+    return postAuthLogout(requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -188,6 +199,7 @@ export const usePostAuthLogout = <
       void,
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -204,12 +216,14 @@ export const usePostAuthLogout = <
  * Get the current authenticated user's information
  * @summary Get current user info
  */
-export const getAuthMe = (signal?: AbortSignal) => {
-  return customInstance<GetAuthMe200>({
-    url: `/auth/me`,
-    method: "GET",
-    signal,
-  });
+export const getAuthMe = (
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<GetAuthMe200>(
+    { url: `/auth/me`, method: "GET", signal },
+    options,
+  );
 };
 
 export const getGetAuthMeQueryKey = () => {
@@ -223,14 +237,15 @@ export const getGetAuthMeQueryOptions = <
   query?: Partial<
     UseQueryOptions<Awaited<ReturnType<typeof getAuthMe>>, TError, TData>
   >;
+  request?: SecondParameter<typeof customInstance>;
 }) => {
-  const { query: queryOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetAuthMeQueryKey();
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getAuthMe>>> = ({
     signal,
-  }) => getAuthMe(signal);
+  }) => getAuthMe(requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getAuthMe>>,
@@ -262,6 +277,7 @@ export function useGetAuthMe<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -283,6 +299,7 @@ export function useGetAuthMe<
         >,
         "initialData"
       >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -296,6 +313,7 @@ export function useGetAuthMe<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getAuthMe>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -313,6 +331,7 @@ export function useGetAuthMe<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getAuthMe>>, TError, TData>
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -336,15 +355,19 @@ export function useGetAuthMe<
  */
 export const postAuthRegister = (
   authRegisterRequest: AuthRegisterRequest,
+  options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostAuthRegister201>({
-    url: `/auth/register`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: authRegisterRequest,
-    signal,
-  });
+  return customInstance<PostAuthRegister201>(
+    {
+      url: `/auth/register`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: authRegisterRequest,
+      signal,
+    },
+    options,
+  );
 };
 
 export const getPostAuthRegisterMutationOptions = <
@@ -360,6 +383,7 @@ export const getPostAuthRegisterMutationOptions = <
     { data: AuthRegisterRequest },
     TContext
   >;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postAuthRegister>>,
   TError,
@@ -367,13 +391,13 @@ export const getPostAuthRegisterMutationOptions = <
   TContext
 > => {
   const mutationKey = ["postAuthRegister"];
-  const { mutation: mutationOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postAuthRegister>>,
@@ -381,7 +405,7 @@ export const getPostAuthRegisterMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return postAuthRegister(data);
+    return postAuthRegister(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -413,6 +437,7 @@ export const usePostAuthRegister = <
       { data: AuthRegisterRequest },
       TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

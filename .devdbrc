@@ -1,0 +1,6 @@
+[
+  {
+    "type": "sqlite",
+    "path": "d:\\Dev\\github\\novel-man\\backend\\novel_man.db"
+  }
+]
