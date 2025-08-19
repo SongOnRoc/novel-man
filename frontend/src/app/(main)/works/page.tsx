@@ -1,12 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { WorkCard } from "@/features/works/components/WorkCard";
-import { NewWorkButton } from "@/features/works/components/NewWorkButton";
-import { useWorkList, useDeleteWork } from "@/hooks/work/useWorkService";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Work, WorksList } from "@/lib/services/work.service";
+import React, { useMemo } from "react";
+
 import {
   Pagination,
   PaginationContent,
@@ -15,9 +11,14 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
+import { NewWorkButton } from "@/features/works/components/NewWorkButton";
+import { WorkCard } from "@/features/works/components/WorkCard";
+import { useWorkList, useDeleteWork } from "@/hooks/work/useWorkService";
+import { Work, WorksList } from "@/lib/services/work.service";
 
 // 作品列表页面组件
-export default function WorksPage() {
+export default function WorksPage(): React.ReactElement {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -32,7 +33,7 @@ export default function WorksPage() {
   const works = (worksResponse as WorksList)?.data || [];
   const pagination = (worksResponse as WorksList)?.pagination;
 
-  const handleDeleteWork = (workId: number) => {
+  const handleDeleteWork = (workId: number): void => {
     if (window.confirm("确定要删除这个作品吗？此操作不可撤销。")) {
       deleteWork(workId);
     }
@@ -102,9 +103,7 @@ export default function WorksPage() {
           <PaginationContent>
             {page > 1 && (
               <PaginationItem>
-                <PaginationPrevious
-                  href={`/works?page=${page - 1}`}
-                />
+                <PaginationPrevious href={`/works?page=${page - 1}`} />
               </PaginationItem>
             )}
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(
@@ -121,9 +120,7 @@ export default function WorksPage() {
             )}
             {page < totalPages && (
               <PaginationItem>
-                <PaginationNext
-                  href={`/works?page=${page + 1}`}
-                />
+                <PaginationNext href={`/works?page=${page + 1}`} />
               </PaginationItem>
             )}
           </PaginationContent>

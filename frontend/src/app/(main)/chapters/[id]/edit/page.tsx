@@ -1,21 +1,24 @@
 "use client";
 
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { TiptapEditor } from "@/features/editor/components/TiptapEditor";
 import {
   useChapterById,
   useUpdateChapter,
 } from "@/hooks/chapter/useChapterService";
-import { Chapter, UpdateChapterPayload } from "@/lib/services/chapter.service";
-import { useParams, useRouter } from "next/navigation";
+import {
+  ChapterForClient,
+  UpdateChapterPayloadForClient,
+} from "@/lib/services/chapter.service";
 
-import { TiptapEditor } from "@/features/editor/components/TiptapEditor";
-import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
-
-const EditChapterPage = () => {
+const EditChapterPage = (): React.ReactElement => {
   const params = useParams();
   const router = useRouter();
   const [targetCount, setTargetCount] = useState(2000);
@@ -24,7 +27,7 @@ const EditChapterPage = () => {
   const { data: chapterResponse, isLoading, error } = useChapterById(chapterId);
   const { mutate: updateChapter, isPending: isSaving } = useUpdateChapter();
 
-  const chapter = chapterResponse as Chapter;
+  const chapter = chapterResponse as ChapterForClient;
 
   useEffect(() => {
     if (error) {
@@ -32,14 +35,19 @@ const EditChapterPage = () => {
     }
   }, [error]);
 
-  const handleBack = () => {
+  const handleBack = (): void => {
     router.back();
   };
 
-  const handleSave = (data: { title: string; content: string }) => {
-    const payload: UpdateChapterPayload = {
+  const handleSave = (data: {
+    title: string;
+    content: string;
+    wordCount: number;
+  }): void => {
+    const payload: UpdateChapterPayloadForClient = {
       title: data.title,
       content: data.content,
+      wordCount: data.wordCount,
     };
     updateChapter(
       { id: chapterId, data: payload },
@@ -54,15 +62,15 @@ const EditChapterPage = () => {
     );
   };
 
-  const handleSaveClick = () => {
+  const handleSaveClick = (): void => {
     if (!chapter) return;
 
-    const saveData = {
-      title: chapter.title || "",
-      content: chapter.content || "",
-    };
-
-    handleSave(saveData);
+    // This manual save button is a bit redundant with auto-save,
+    // and we don't have a clean way to get the latest word count here.
+    // The editor's internal onSave (triggered by toolbar button or auto-save)
+    // is the primary mechanism.
+    // A better solution would be to expose a `save` method via a ref from TiptapEditor.
+    toast.info("Please use the save button in the editor toolbar.");
   };
 
   if (isLoading) {
@@ -107,7 +115,7 @@ const EditChapterPage = () => {
           placeholder="Start writing your chapter..."
           autoFocus
           contentId={chapter.id!.toString()}
-          workId={chapter.work_id!.toString()}
+          workId={chapter.workId!.toString()}
           containerId={`editor-${chapter.id}`}
           targetCount={targetCount}
           onTargetCountChange={setTargetCount}
@@ -127,7 +135,7 @@ const EditChapterPage = () => {
 
       <div className="flex justify-between">
         <Button variant="outline" asChild>
-          <Link href={`/works/${chapter?.work_id}/chapters`}>
+          <Link href={`/works/${chapter?.workId}/chapters`}>
             Back to Chapter List
           </Link>
         </Button>

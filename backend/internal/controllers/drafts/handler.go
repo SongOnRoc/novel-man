@@ -30,6 +30,7 @@ type CreateDraftRequest struct {
 	Content     string `json:"content"`
 	Description string `json:"description"`
 	Status      string `json:"status"`
+	WordCount   int    `json:"word_count"`
 }
 
 type UpdateDraftRequest struct {
@@ -37,6 +38,7 @@ type UpdateDraftRequest struct {
 	Content     string `json:"content"`
 	Description string `json:"description"`
 	Status      string `json:"status"`
+	WordCount   int    `json:"word_count"`
 }
 
 type DraftResponse struct {
@@ -132,7 +134,7 @@ func (c *DraftController) CreateDraft(ctx *gin.Context) {
 		Content:     req.Content,
 		Description: req.Description,
 		Status:      req.Status,
-		WordCount:   len([]rune(req.Content)),
+		WordCount:   req.WordCount,
 	}
 
 	if err := c.service.Create(*context.New(ctx), draft); err != nil {
@@ -214,7 +216,7 @@ func (c *DraftController) UpdateDraft(ctx *gin.Context) {
 
 	draft.Title = req.Title
 	draft.Content = req.Content
-	draft.WordCount = len([]rune(req.Content))
+	draft.WordCount = req.WordCount
 	draft.Description = req.Description
 	draft.Status = req.Status
 

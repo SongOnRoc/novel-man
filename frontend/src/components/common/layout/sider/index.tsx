@@ -1,10 +1,12 @@
 'use client';
 
 import * as React from 'react';
+
 import { cn } from '@/lib/utils';
-import { SidebarHeader } from './header';
+
 import { SidebarContent } from './content';
 import { SidebarFooter } from './footer';
+import { SidebarHeader } from './header';
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;

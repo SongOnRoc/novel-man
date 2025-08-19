@@ -1,3 +1,4 @@
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +18,7 @@ export function StatsCard({
   description,
   icon,
   className,
-}: StatsCardProps) {
+}: StatsCardProps): React.ReactElement {
   return (
     <Card className={cn("overflow-hidden", className)}>
       <CardHeader className="flex flex-row items-center justify-between pb-2">

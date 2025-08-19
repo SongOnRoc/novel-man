@@ -1,4 +1,14 @@
+import {
+  MoreVertical,
+  Edit,
+  Eye,
+  ArrowUp,
+  ArrowDown,
+  Search,
+} from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,91 +32,76 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  MoreVertical,
-  Edit,
-  Eye,
-  ArrowUp,
-  ArrowDown,
-  Search,
-} from "lucide-react";
-import Link from "next/link";
 
-import { Chapter } from "@/types/chapter";
-import { Volume } from "@/types/work";
+import { Chapter } from "@/lib/services/chapter.service";
+// TODO: Add Volume type when backend API is ready
+// import { Volume } from "@/lib/services/work.service";
 
 // Chapter list properties
 interface ChapterListProps {
   chapters: Chapter[];
-  volumes: Volume[];
+  // TODO: Add volumes when backend API is ready
+  // volumes: Volume[];
   onDeleteChapter: (chapterId: number) => void;
-  onUpdateStatus: (chapterId: number, status: "draft" | "published") => void;
+  onUpdateStatus: (chapterId: number, status: string) => void;
 }
 
 // Chapter list component
 export function ChapterList({
   chapters,
-  volumes,
+  // volumes,
   onDeleteChapter,
   onUpdateStatus,
 }: ChapterListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [selectedVolume, setSelectedVolume] = useState<string>("all");
+  // TODO: Enable volume filter when backend API is ready
+  // const [selectedVolume, setSelectedVolume] = useState<string>("all");
 
   const filteredAndSortedChapters = useMemo(() => {
     let filtered = chapters;
 
+    // TODO: Enable volume filter when backend API is ready
+    /*
     if (selectedVolume !== "all") {
       const isUnclassified = selectedVolume === "unclassified";
       if (isUnclassified) {
         filtered = filtered.filter(
           (chapter) =>
-            chapter.volumeId === null || chapter.volumeId === undefined,
+            chapter.volume_id === null || chapter.volume_id === undefined,
         );
       } else {
         const volumeIdNumber = parseInt(selectedVolume, 10);
         filtered = filtered.filter(
-          (chapter) => chapter.volumeId === volumeIdNumber,
+          (chapter) => chapter.volume_id === volumeIdNumber,
         );
       }
     }
+    */
 
     if (searchTerm) {
-      filtered = filtered.filter((chapter) =>
-        chapter.title.toLowerCase().includes(searchTerm.toLowerCase()),
+      filtered = filtered.filter(
+        (chapter) =>
+          chapter.title &&
+          chapter.title.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
     const sorted = [...filtered].sort((a, b) => {
+      const orderA = a.display_order ?? 0;
+      const orderB = b.display_order ?? 0;
       if (sortOrder === "asc") {
-        return a.order - b.order;
+        return orderA - orderB;
       } else {
-        return b.order - a.order;
+        return orderB - orderA;
       }
     });
 
     return sorted;
-  }, [chapters, searchTerm, sortOrder, selectedVolume]);
+    // }, [chapters, searchTerm, sortOrder, selectedVolume]);
+  }, [chapters, searchTerm, sortOrder]);
 
-  const chaptersByVolume = filteredAndSortedChapters.reduce<
-    Record<string, Chapter[]>
-  >((acc, chapter) => {
-    const volumeId = chapter.volumeId?.toString() || "unclassified";
-    if (!acc[volumeId]) {
-      acc[volumeId] = [];
-    }
-    acc[volumeId].push(chapter);
-    return acc;
-  }, {});
-
-  const getVolumeTitle = (volumeId: string) => {
-    if (volumeId === "unclassified") return "未分卷";
-    const volume = volumes.find((v) => v.id.toString() === volumeId);
-    return volume ? volume.title : "未知分卷";
-  };
-
-  const getStatusBadge = (status: Chapter["status"]) => {
+  const getStatusBadge = (status?: string) => {
     switch (status) {
       case "draft":
         return (
@@ -131,7 +126,7 @@ export function ChapterList({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>章节列表</CardTitle>
-            <CardDescription>管理您的章节，可按分卷查看。</CardDescription>
+            <CardDescription>管理您的章节。</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <div className="relative">
@@ -144,7 +139,8 @@ export function ChapterList({
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Select value={selectedVolume} onValueChange={setSelectedVolume}>
+            {/* TODO: Enable volume filter when backend API is ready */}
+            {/* <Select value={selectedVolume} onValueChange={setSelectedVolume}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="筛选分卷" />
               </SelectTrigger>
@@ -157,7 +153,7 @@ export function ChapterList({
                 ))}
                 <SelectItem value="unclassified">未分卷</SelectItem>
               </SelectContent>
-            </Select>
+            </Select> */}
             <Button
               variant="outline"
               size="icon"
@@ -182,86 +178,97 @@ export function ChapterList({
           </div>
         ) : (
           <div className="space-y-6">
-            {Object.entries(chaptersByVolume).map(
-              ([volumeId, volumeChapters]) => (
-                <div key={volumeId} className="space-y-4">
-                  <h3 className="border-b pb-2 text-lg font-semibold tracking-tight">
-                    {getVolumeTitle(volumeId)}
-                  </h3>
-                  {volumeChapters.map((chapter) => (
-                    <div
-                      key={chapter.id}
-                      className="flex items-center justify-between rounded-lg border p-3 shadow-sm"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-md border bg-background text-muted-foreground">
-                          {chapter.order}
-                        </div>
-                        <div>
-                          <div className="font-medium">{chapter.title}</div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span>{chapter.wordCount} 字</span>
-                            <span>•</span>
-                            <span>
-                              更新于{" "}
-                              {new Date(chapter.updatedAt).toLocaleDateString()}
-                            </span>
-                            <span>•</span>
-                            {getStatusBadge(chapter.status)}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" asChild>
-                          <Link href={`/chapters/${chapter.id}/preview`}>
-                            <Eye className="h-4 w-4" />
-                            <span className="sr-only">预览</span>
-                          </Link>
-                        </Button>
-                        <Button variant="ghost" size="icon" asChild>
-                          <Link href={`/chapters/${chapter.id}/edit`}>
-                            <Edit className="h-4 w-4" />
-                            <span className="sr-only">编辑</span>
-                          </Link>
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            {chapter.status === "draft" ? (
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  onUpdateStatus(chapter.id, "published")
-                                }
-                              >
-                                发布章节
-                              </DropdownMenuItem>
-                            ) : (
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  onUpdateStatus(chapter.id, "draft")
-                                }
-                              >
-                                设为草稿
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem
-                              className="text-destructive"
-                              onClick={() => onDeleteChapter(chapter.id)}
-                            >
-                              删除章节
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+            <div className="space-y-4">
+              {filteredAndSortedChapters.map((chapter) => (
+                <div
+                  key={chapter.id}
+                  className="flex items-center justify-between rounded-lg border p-3 shadow-sm"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md border bg-background text-muted-foreground">
+                      {chapter.display_order ?? "-"}
+                    </div>
+                    <div>
+                      <div className="font-medium">{chapter.title}</div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>{chapter.word_count ?? 0} 字</span>
+                        <span>•</span>
+                        <span>
+                          更新于{" "}
+                          {chapter.updated_at
+                            ? new Date(chapter.updated_at).toLocaleDateString()
+                            : "N/A"}
+                        </span>
+                        <span>•</span>
+                        {getStatusBadge(chapter.status)}
                       </div>
                     </div>
-                  ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      asChild
+                      disabled={!chapter.id}
+                    >
+                      <Link href={`/chapters/${chapter.id}/preview`}>
+                        <Eye className="h-4 w-4" />
+                        <span className="sr-only">预览</span>
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      asChild
+                      disabled={!chapter.id}
+                    >
+                      <Link href={`/chapters/${chapter.id}/edit`}>
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">编辑</span>
+                      </Link>
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" disabled={!chapter.id}>
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {chapter.status === "draft" ? (
+                          <DropdownMenuItem
+                            disabled={!chapter.id}
+                            onClick={() =>
+                              chapter.id &&
+                              onUpdateStatus(chapter.id, "published")
+                            }
+                          >
+                            发布章节
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem
+                            disabled={!chapter.id}
+                            onClick={() =>
+                              chapter.id && onUpdateStatus(chapter.id, "draft")
+                            }
+                          >
+                            设为草稿
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          disabled={!chapter.id}
+                          onClick={() =>
+                            chapter.id && onDeleteChapter(chapter.id)
+                          }
+                        >
+                          删除章节
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
-              ),
-            )}
+              ))}
+            </div>
           </div>
         )}
       </CardContent>

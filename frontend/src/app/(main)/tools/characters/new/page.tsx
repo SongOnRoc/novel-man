@@ -1,6 +1,12 @@
 "use client";
 
+import React from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,15 +16,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -28,15 +25,23 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { ArrowLeft, Save } from "lucide-react";
-import { useCreateCharacter } from "@/hooks/character/useCharacters";
-import { useWorkList } from "@/hooks/work/useWorkService";
-import { useCreateRelationship } from "@/hooks/relationship/useRelationshipService";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { CharacterCreate, Character } from "@/lib/services/characters.service";
+import { Textarea } from "@/components/ui/textarea";
+import { useCreateCharacter } from "@/hooks/character/useCharacters";
+import { useCreateRelationship } from "@/hooks/relationship/useRelationshipService";
+import { useWorkList } from "@/hooks/work/useWorkService";
+import {
+  CreateCharacterPayload,
+  Character,
+} from "@/lib/services/characters.service";
 import { Work, WorksList } from "@/lib/services/work.service";
 
 const characterFormSchema = z.object({
@@ -54,7 +59,7 @@ const characterFormSchema = z.object({
 
 type CharacterFormValues = z.infer<typeof characterFormSchema>;
 
-export default function NewCharacterPage() {
+export default function NewCharacterPage(): React.ReactElement {
   const router = useRouter();
   const { mutate: createCharacter, isPending: isCreatingCharacter } =
     useCreateCharacter();
@@ -79,10 +84,10 @@ export default function NewCharacterPage() {
     },
   });
 
-  const onSubmit = (values: CharacterFormValues) => {
+  const onSubmit = (values: CharacterFormValues): void => {
     const { workId, ...characterData } = values;
 
-    const newCharacterPayload: CharacterCreate = {
+    const newCharacterPayload: CreateCharacterPayload = {
       ...characterData,
       age: characterData.age || 0,
     };
@@ -109,7 +114,7 @@ export default function NewCharacterPage() {
                 console.error("关联角色与作品失败:", error);
                 // Handle relationship creation error
               },
-            },
+            }
           );
         }
       },
@@ -176,7 +181,11 @@ export default function NewCharacterPage() {
                     <FormItem>
                       <FormLabel>年龄</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="输入年龄" {...field} />
+                        <Input
+                          type="number"
+                          placeholder="输入年龄"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -250,10 +259,7 @@ export default function NewCharacterPage() {
                     <FormItem>
                       <FormLabel>性格特点</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="如：坚韧,聪慧,重情义"
-                          {...field}
-                        />
+                        <Input placeholder="如：坚韧,聪慧,重情义" {...field} />
                       </FormControl>
                       <FormDescription>用逗号分隔</FormDescription>
                       <FormMessage />

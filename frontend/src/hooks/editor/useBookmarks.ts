@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect } from "react";
-import { Bookmark } from "@/types/editor";
 import { Editor } from "@tiptap/react";
+import { useState, useCallback, useEffect } from "react";
+
+import { Bookmark } from "@/types/editor";
 
 // 书签管理Hook
 export function useBookmarks(editor: Editor | null, contentId: string) {

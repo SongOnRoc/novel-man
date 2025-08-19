@@ -1,23 +1,25 @@
 "use client";
 
-import { AIPromptForm } from "./AIPromptForm";
-import { AIResponse } from "./AIResponse";
+import { Loader } from "lucide-react";
+import React, { useState } from "react";
+
 import {
   usePolishTextMutation,
   useGetCompletionMutation,
   useGenerateOutlineMutation,
   useCreateCharacterMutation,
 } from "@/hooks/ai/useAIAssistant";
+import { cn } from "@/lib/utils";
 import {
   AIContext,
-  PolishTextRequest,
-  GetCompletionRequest,
-  GenerateOutlineRequest,
-  CreateCharacterRequest,
-} from "@/types/ai";
-import { cn } from "@/lib/utils";
-import { Loader } from "lucide-react";
-import { useState } from "react";
+  CompletionResponse,
+  CreateCharacterResponse,
+  GenerateOutlineResponse,
+  PolishResponse,
+} from "@/lib/services/ai.service";
+
+import { AIPromptForm } from "./AIPromptForm";
+import { AIResponse } from "./AIResponse";
 
 interface AIAssistantProps {
   selectedText?: string;
@@ -29,7 +31,7 @@ interface AIAssistantProps {
   characterIds?: number[];
 }
 
-export const LoadingIndicator = () => (
+export const LoadingIndicator = (): React.ReactElement => (
   <div className="flex flex-col items-center justify-center h-full min-h-[250px] text-muted-foreground">
     <Loader className="h-8 w-8 animate-spin mb-4" />
     <p className="text-lg">AI 正在思考中...</p>
@@ -44,7 +46,7 @@ export function AIAssistant({
   className = "",
   workId,
   characterIds,
-}: AIAssistantProps) {
+}: AIAssistantProps): React.ReactElement {
   const [style, setStyle] = useState("default");
   const [isPersonalized, setIsPersonalized] = useState(false);
 
@@ -81,9 +83,9 @@ export function AIAssistant({
     currentSelectedText?: string
   ) => {
     const context: AIContext = {
-      workId,
-      characterIds: isPersonalized ? characterIds : undefined,
-      stylePreference: style !== "default" ? style : undefined,
+      work_id: workId,
+      character_ids: isPersonalized ? characterIds : undefined,
+      style_preference: style !== "default" ? style : undefined,
     };
 
     const textForRequest = currentSelectedText || selectedText || "";

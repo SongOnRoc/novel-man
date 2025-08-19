@@ -22,3 +22,10 @@ export const defaultEditorSettings: EditorSettings = {
   enableAutoSave: true,
   autoSaveInterval: 30,
 };
+
+export interface Bookmark {
+  id: string;
+  position: number;
+  label: string;
+  createdAt: string;
+}

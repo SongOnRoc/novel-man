@@ -1,29 +1,34 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
-import Placeholder from "@tiptap/extension-placeholder";
-import TextAlign from "@tiptap/extension-text-align";
 import Document from "@tiptap/extension-document";
 import Highlight from "@tiptap/extension-highlight";
-import { EditorToolbar } from "./EditorToolbar";
+import Placeholder from "@tiptap/extension-placeholder";
+import TextAlign from "@tiptap/extension-text-align";
+import Underline from "@tiptap/extension-underline";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { useState, useEffect, useCallback } from "react";
+
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AIFloatingButton } from "@/features/ai/components/AIFloatingButton";
+import { BookmarkExtension } from "@/lib/editor/BookmarkExtension";
+import { FindExtension } from "@/lib/editor/FindExtension";
 import {
   EditorContent as EditorContentType,
   EditorSettings,
   defaultEditorSettings,
 } from "@/types/editor";
-import { BookmarkExtension } from "@/lib/editor/BookmarkExtension";
-import { AIFloatingButton } from "@/features/ai/components/AIFloatingButton";
-import { FindExtension } from "@/lib/editor/FindExtension";
+
+import { EditorToolbar } from "./EditorToolbar";
 
 // Tiptap编辑器属性
 interface TiptapEditorProps {
   initialContent?: EditorContentType; // 初始内容
-  onSave?: (content: EditorContentType) => void; // 保存回调
+  onSave?: (
+    content: EditorContentType & { wordCount: number }
+  ) => void; // 保存回调
   placeholder?: string; // 占位文本
   autoFocus?: boolean; // 是否自动聚焦
   contentId?: string; // 内容ID，用于书签等
@@ -32,28 +37,28 @@ interface TiptapEditorProps {
   targetCount?: number;
   onTargetCountChange?: (newTarget: number) => void;
   isSaving?: boolean; // 是否正在保存
+  onContentUpdate?: (data: {
+    title: string;
+    content: string;
+    wordCount: number;
+  }) => void;
 }
 
 // 计算字数的函数
 function countWords(html: string): number {
   if (!html) return 0;
 
-  // 创建临时元素来解析HTML
+  // Create a temporary element to parse the HTML
   const temp = document.createElement("div");
   temp.innerHTML = html;
 
-  // 获取纯文本内容
+  // Get the plain text content
   const text = temp.textContent || temp.innerText || "";
 
-  // 移除多余空白字符
-  const trimmedText = text.trim();
-  if (!trimmedText) return 0;
-
-  // 匹配中文字符和英文单词
-  const chineseChars = trimmedText.match(/[\u4e00-\u9fa5]/g) || [];
-  const englishWords = trimmedText.match(/[a-zA-Z]+/g) || [];
-
-  return chineseChars.length + englishWords.length;
+  // Remove all whitespace characters (spaces, newlines, tabs, etc.)
+  // and then return the length of the remaining string.
+  // This provides a more accurate character count, especially for CJK languages.
+  return text.replace(/\s/g, "").length;
 }
 
 // 自定义Document扩展，支持章节内定位
@@ -116,6 +121,7 @@ export function TiptapEditor({
   targetCount,
   onTargetCountChange,
   isSaving: isSavingProp = false, // 从props接收isSaving状态
+  onContentUpdate,
 }: TiptapEditorProps) {
   // 标题状态
   const [title, setTitle] = useState(initialContent.title);
@@ -155,8 +161,16 @@ export function TiptapEditor({
     content: initialContent.content,
     autofocus: autoFocus,
     onUpdate: ({ editor }) => {
-      // 更新字数统计
-      setWordCount(countWords(editor.getHTML()));
+      const html = editor.getHTML();
+      const newWordCount = countWords(html);
+      setWordCount(newWordCount);
+      if (onContentUpdate) {
+        onContentUpdate({
+          title,
+          content: html,
+          wordCount: newWordCount,
+        });
+      }
     },
   });
 
@@ -174,7 +188,7 @@ export function TiptapEditor({
     if (onSave) {
       try {
         const content = getCurrentContent();
-        await onSave(content);
+        await onSave({ ...content, wordCount });
       } finally {
         // 保存状态由外部控制
       }
@@ -221,7 +235,7 @@ export function TiptapEditor({
       const content = getCurrentContent();
       if (content.title || content.content !== "<p></p>") {
         console.log("自动保存...");
-        onSave(content);
+        onSave({ ...content, wordCount });
       }
     }, settings.autoSaveInterval * 1000);
 
@@ -263,7 +277,17 @@ export function TiptapEditor({
         <Input
           id="title"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => {
+            const newTitle = e.target.value;
+            setTitle(newTitle);
+            if (onContentUpdate && editor) {
+              onContentUpdate({
+                title: newTitle,
+                content: editor.getHTML(),
+                wordCount,
+              });
+            }
+          }}
           placeholder="输入标题..."
           className="border-none text-xl font-semibold focus-visible:ring-0 px-0"
         />

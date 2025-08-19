@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { Editor } from "@tiptap/react";
+import { Search, ChevronDown, ChevronUp } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Search, ChevronDown, ChevronUp } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 interface FindReplaceProps {
   editor: Editor | null;

@@ -1,6 +1,8 @@
 "use client";
 
+import { Sparkles } from "lucide-react";
 import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -10,8 +12,8 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { AIAssistant } from "./AIAssistant";
-import { Sparkles } from "lucide-react";
 
 interface AIFloatingButtonProps {
   selectedText?: string;

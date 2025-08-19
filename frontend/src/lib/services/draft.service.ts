@@ -4,6 +4,13 @@
  * following the layered data flow architecture.
  */
 
+import type {
+  DraftsDraftResponse,
+  DraftsCreateDraftRequest,
+  DraftsUpdateDraftRequest,
+  GetDraftsParams,
+  DraftsListDraftsResponse,
+} from "@/lib/api/generated/api10.schemas";
 import {
   getDrafts as apiGetDrafts,
   postDrafts as apiCreateDraft,
@@ -11,14 +18,10 @@ import {
   putDraftsId as apiUpdateDraft,
   deleteDraftsId as apiDeleteDraft,
   postDraftsIdPublish as apiPublishDraft,
-} from '@/lib/api/generated/drafts/drafts';
-import type {
-  DraftsDraftResponse,
-  DraftsCreateDraftRequest,
-  DraftsUpdateDraftRequest,
-  GetDraftsParams,
-  DraftsListDraftsResponse,
-} from '@/lib/api/generated/api10.schemas';
+} from "@/lib/api/generated/drafts/drafts";
+
+// transform snake_case to camelCase
+import { SnakeToCamelCase } from "@/types/type-utils";
 
 // =================================================================
 // Re-exporting Core Draft Types for Application-wide Use
@@ -29,6 +32,20 @@ export type CreateDraftPayload = DraftsCreateDraftRequest;
 export type UpdateDraftPayload = DraftsUpdateDraftRequest;
 export type DraftsParams = GetDraftsParams;
 export type DraftListResponse = DraftsListDraftsResponse;
+// A client-facing Draft type with camelCase properties for better DX in the frontend.
+export type DraftForClient = SnakeToCamelCase<Draft>;
+
+/**
+ * A client-facing version of the DraftListResponse, where the `data` array
+ * consists of `DraftForClient` objects.
+ */
+export type DraftListResponseForClient = Omit<DraftListResponse, "data"> & {
+  data?: DraftForClient[];
+};
+
+// Client-facing payload types
+export type CreateDraftPayloadForClient = SnakeToCamelCase<CreateDraftPayload>;
+export type UpdateDraftPayloadForClient = SnakeToCamelCase<UpdateDraftPayload>;
 
 /**
  * Fetches a paginated list of drafts for a specific work.

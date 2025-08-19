@@ -1,7 +1,10 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { ArrowLeft, Edit, Trash2, BookOpen } from "lucide-react";
 import Image from "next/image";
+import { useParams, useRouter } from "next/navigation";
+import React from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,17 +14,17 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Edit, Trash2, BookOpen } from "lucide-react";
+import { CharacterRelations } from "@/features/characters/components/CharacterRelations";
 import {
   useCharacter,
   useDeleteCharacter,
 } from "@/hooks/character/useCharacters";
-import { useWorkList } from "@/hooks/work/useWorkService";
 import { useRelationshipList } from "@/hooks/relationship/useRelationshipService";
+import { useWorkList } from "@/hooks/work/useWorkService";
 import { Character } from "@/lib/services/characters.service";
 import { Work } from "@/lib/services/work.service";
-
-export default function CharacterDetailPage() {
+ 
+ export default function CharacterDetailPage(): React.ReactElement {
   const params = useParams();
   const router = useRouter();
   const characterId = Number(
@@ -48,7 +51,7 @@ export default function CharacterDetailPage() {
     works.find((w: Work) => w.id === relationship.source_entity_id)?.title;
 
   // 处理删除角色
-  const handleDelete = async () => {
+  const handleDelete = async (): Promise<void> => {
     if (!character) return;
 
     if (
@@ -256,17 +259,7 @@ export default function CharacterDetailPage() {
             </TabsContent>
 
             <TabsContent value="relationships" className="mt-4">
-              {/* <CharacterRelations characterId={character.id.toString()} /> */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>关系网络</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    此功能正在基于新的通用关系模型进行重构，敬请期待。
-                  </p>
-                </CardContent>
-              </Card>
+              <CharacterRelations characterId={character.id!.toString()} />
             </TabsContent>
           </Tabs>
         </div>

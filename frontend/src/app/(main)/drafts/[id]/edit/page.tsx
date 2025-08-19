@@ -1,18 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useDraftById, useUpdateDraft } from "@/hooks/draft/useDraftService";
-import { Draft, UpdateDraftPayload } from "@/lib/services/draft.service";
-import { useParams, useRouter } from "next/navigation";
-
-import { TiptapEditor } from "@/features/editor/components/TiptapEditor";
-import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
-const EditDraftPage = () => {
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { TiptapEditor } from "@/features/editor/components/TiptapEditor";
+import { useDraftById, useUpdateDraft } from "@/hooks/draft/useDraftService";
+import { DraftForClient, UpdateDraftPayload } from "@/lib/services/draft.service";
+
+const EditDraftPage = (): React.ReactElement => {
   const params = useParams();
   const router = useRouter();
   const [targetCount, setTargetCount] = useState(2000);
@@ -21,7 +21,7 @@ const EditDraftPage = () => {
   const { data: draftResponse, isLoading, error } = useDraftById(draftId);
   const { mutate: updateDraft, isPending: isSaving } = useUpdateDraft();
 
-  const draft = draftResponse as Draft;
+  const draft = draftResponse as DraftForClient;
 
   useEffect(() => {
     if (error) {
@@ -29,14 +29,19 @@ const EditDraftPage = () => {
     }
   }, [error]);
 
-  const handleBack = () => {
+  const handleBack = (): void => {
     router.back();
   };
 
-  const handleSave = (data: { title: string; content: string }) => {
+  const handleSave = (data: {
+    title: string;
+    content: string;
+    wordCount: number;
+  }): void => {
     const payload: UpdateDraftPayload = {
       title: data.title,
       content: data.content,
+      word_count: data.wordCount,
     };
     updateDraft(
       { id: draftId, data: payload },
@@ -51,15 +56,10 @@ const EditDraftPage = () => {
     );
   };
 
-  const handleSaveClick = () => {
+  const handleSaveClick = (): void => {
     if (!draft) return;
 
-    const saveData = {
-      title: draft.title || "",
-      content: draft.content || "",
-    };
-
-    handleSave(saveData);
+    toast.info("Please use the save button in the editor toolbar.");
   };
 
   if (isLoading) {
@@ -104,7 +104,7 @@ const EditDraftPage = () => {
           placeholder="Start writing your draft..."
           autoFocus
           contentId={draft.id!.toString()}
-          workId={draft.work_id!.toString()}
+          workId={draft.workId!.toString()}
           containerId={`editor-${draft.id}`}
           targetCount={targetCount}
           onTargetCountChange={setTargetCount}
@@ -120,7 +120,7 @@ const EditDraftPage = () => {
 
       <div className="flex justify-between">
         <Button variant="outline" asChild>
-          <Link href={`/works/${draft?.work_id}/drafts`}>
+          <Link href={`/works/${draft?.workId}/drafts`}>
             Back to Draft List
           </Link>
         </Button>

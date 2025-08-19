@@ -1,18 +1,5 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import {
   Sparkles,
   PenSquare,
@@ -22,6 +9,21 @@ import {
   UserPlus,
   FileText,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { useState, useMemo } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 interface AIPromptFormProps {
@@ -35,7 +37,6 @@ interface AIPromptFormProps {
   onPersonalizedChange: (value: boolean) => void;
 }
 
-import type { LucideIcon } from "lucide-react";
 
 type QuickAction = {
   type: string; // 使用 string 替代 AIPromptType

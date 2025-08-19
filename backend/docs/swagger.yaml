@@ -88,6 +88,8 @@ components:
           type: string
         volume_id:
           type: integer
+        word_count:
+          type: integer
         work_id:
           type: integer
       required:
@@ -115,6 +117,8 @@ components:
         title:
           type: string
         volume_id:
+          type: integer
+        word_count:
           type: integer
       type: object
     characters.CharacterResponse:
@@ -255,6 +259,8 @@ components:
           type: string
         title:
           type: string
+        word_count:
+          type: integer
         work_id:
           type: integer
       required:
@@ -303,6 +309,8 @@ components:
           type: string
         title:
           type: string
+        word_count:
+          type: integer
       type: object
     models.AIContext:
       properties:

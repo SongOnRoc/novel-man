@@ -1,9 +1,11 @@
 'use client';
 
-import { ChapterForm } from '@/features/chapters/components/chapter-form';
 import { useSearchParams } from 'next/navigation';
+import React from 'react';
 
-const NewChapterPage = () => {
+import { ChapterForm } from '@/features/chapters/components/chapter-form';
+
+const NewChapterPage = (): React.ReactElement => {
   const searchParams = useSearchParams();
   const workId = searchParams.get('workId');
 

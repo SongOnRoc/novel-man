@@ -55,6 +55,7 @@ export interface ChaptersCreateChapterRequest {
   status?: string;
   title: string;
   volume_id?: number;
+  word_count?: number;
   work_id: number;
 }
 
@@ -69,6 +70,7 @@ export interface ChaptersUpdateChapterRequest {
   status?: string;
   title?: string;
   volume_id?: number;
+  word_count?: number;
 }
 
 export interface CharactersCharacterResponse {
@@ -149,6 +151,7 @@ export interface DraftsCreateDraftRequest {
   description?: string;
   status?: string;
   title: string;
+  word_count?: number;
   work_id?: number;
 }
 
@@ -175,6 +178,7 @@ export interface DraftsUpdateDraftRequest {
   description?: string;
   status?: string;
   title?: string;
+  word_count?: number;
 }
 
 export interface ModelsAIContext {

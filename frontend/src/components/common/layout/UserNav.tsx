@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { signOut } from "next-auth/react";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,8 +15,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUserQuery } from "@/hooks/auth/useUserQuery";
-import { signOut } from "next-auth/react";
-import Link from "next/link";
 
 export function UserNav() {
   const { data: user, isLoading } = useUserQuery();

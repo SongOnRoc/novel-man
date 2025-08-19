@@ -1,22 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ChapterList } from "@/features/chapters/components/chapter-list";
-import { useWorkList } from "@/hooks/work/useWorkService";
-import { useChapterList } from "@/hooks/chapter/useChapterService";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useMemo } from "react";
+
 import { Button } from "@/components/ui/button";
-import { WorksList } from "@/lib/services/work.service";
-import { ChapterListResponse } from "@/lib/services/chapter.service";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Pagination,
   PaginationContent,
@@ -25,6 +13,19 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ChapterList } from "@/features/chapters/components/chapter-list";
+import { useChapterList } from "@/hooks/chapter/useChapterService";
+import { useWorkList } from "@/hooks/work/useWorkService";
+import { ChapterForClient } from "@/lib/services/chapter.service";
+import { WorksList } from "@/lib/services/work.service";
 
 interface ChapterContentProps {
   workId: number;
@@ -36,14 +37,14 @@ const ChapterContent = ({
   workId,
   page,
   onPageChange,
-}: ChapterContentProps) => {
+}: ChapterContentProps): React.ReactElement => {
   const { data: chaptersResponse, isLoading: isLoadingChapters } =
     useChapterList({
-      work_id: workId,
+      workId: workId,
       page: page,
     });
-  const chapters = (chaptersResponse as ChapterListResponse)?.data || [];
-  const pagination = (chaptersResponse as ChapterListResponse)?.pagination;
+  const chapters = chaptersResponse?.data || [];
+  const pagination = chaptersResponse?.pagination;
 
   const totalPages = useMemo(() => {
     if (!pagination || !pagination.total || !pagination.limit) {
@@ -123,7 +124,7 @@ const ChapterContent = ({
   );
 };
 
-export default function ChaptersPage() {
+export default function ChaptersPage(): React.ReactElement {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: worksResponse, isLoading: isLoadingWorks } = useWorkList({});
@@ -140,15 +141,15 @@ export default function ChaptersPage() {
     [workId]
   );
 
-  const handleSelectWork = (workId: string) => {
+  const handleSelectWork = (workId: string): void => {
     router.push(`/chapters?workId=${workId}&page=1`);
   };
 
-  const handlePageChange = (newPage: number) => {
+  const handlePageChange = (newPage: number): void => {
     router.push(`/chapters?workId=${selectedWorkId}&page=${newPage}`);
   };
 
-  const renderContent = () => {
+  const renderContent = (): React.ReactElement => {
     if (isLoadingWorks) {
       return <Skeleton className="h-[400px] w-full" />;
     }
@@ -181,7 +182,8 @@ export default function ChaptersPage() {
             Chapter Management
           </h1>
           <p className="text-muted-foreground">
-            Manage your work&apos;s chapters, create new ones, or edit existing ones.
+            Manage your work&apos;s chapters, create new ones, or edit existing
+            ones.
           </p>
         </div>
         <div className="flex items-center gap-2">

@@ -5,6 +5,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+
 import { getCurrentUserService } from "@/lib/services/auth.service";
 
 // We define a query key to uniquely identify this query.

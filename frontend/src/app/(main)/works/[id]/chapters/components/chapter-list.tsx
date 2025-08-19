@@ -1,10 +1,17 @@
 "use client";
 
-import {
-  useChapterList,
-  useDeleteChapter,
-} from "@/hooks/chapter/useChapterService";
+import { PlusCircle, MoreHorizontal } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import React from "react";
+
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -13,22 +20,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PlusCircle, MoreHorizontal } from "lucide-react";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+  useChapterList,
+  useDeleteChapter,
+} from "@/hooks/chapter/useChapterService";
 import { Chapter, ChapterListResponse } from "@/lib/services/chapter.service";
 
 interface ChapterListProps {
   workId: number;
 }
 
-export const ChapterList = ({ workId }: ChapterListProps) => {
+export const ChapterList = ({ workId }: ChapterListProps): React.ReactElement => {
   const router = useRouter();
   const { data: chaptersResponse, isLoading } = useChapterList({
     work_id: workId,
@@ -37,8 +39,8 @@ export const ChapterList = ({ workId }: ChapterListProps) => {
 
   const chapters = (chaptersResponse as ChapterListResponse)?.data || [];
 
-  const handleDelete = (id: number) => {
-    deleteChapterMutation.mutate({ id });
+  const handleDelete = (id: number): void => {
+    deleteChapterMutation.mutate(id);
   };
 
   if (isLoading) {

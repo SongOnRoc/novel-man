@@ -5,6 +5,8 @@
  * logic like query invalidation.
  */
 
+import { useQueryClient } from '@tanstack/react-query';
+
 import {
   useGetRelationships,
   usePostRelationships,
@@ -14,7 +16,6 @@ import type {
   RelationshipListParams,
   CreateRelationshipPayload,
 } from '@/lib/services/relationship.service';
-import { useQueryClient } from '@tanstack/react-query';
 
 /**
  * Centralized query keys for relationships.

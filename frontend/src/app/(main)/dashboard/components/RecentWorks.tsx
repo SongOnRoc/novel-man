@@ -1,3 +1,6 @@
+import React from "react";
+import { FileText, BookOpen } from "lucide-react";
+
 import {
   Card,
   CardContent,
@@ -5,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { FileText, BookOpen } from "lucide-react";
 
 // 模拟作品数据的类型
 interface Work {
@@ -38,7 +40,7 @@ const recentWorks: Work[] = [
 ];
 
 // 最近作品组件
-export function RecentWorks() {
+export function RecentWorks(): React.ReactElement {
   // 最近作品：放置于布局的左侧主列，列跨度由父级容器控制
   return (
     <Card className="h-full">

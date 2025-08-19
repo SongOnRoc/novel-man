@@ -1,6 +1,13 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import React from "react";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,11 +27,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { useCreateWork } from "@/hooks/work/useWorkService";
 import { CreateWorkPayload } from "@/lib/services/work.service";
 
@@ -55,7 +57,7 @@ const categoryOptions = [
 ];
 
 // 新作品页面组件
-export default function NewWorkPage() {
+export default function NewWorkPage(): React.ReactElement {
   const router = useRouter();
   const { mutate: createWork, isPending: isSubmitting } = useCreateWork();
 
@@ -70,7 +72,7 @@ export default function NewWorkPage() {
   });
 
   // 表单提交处理
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof formSchema>): void {
     const newWorkData: CreateWorkPayload = {
       ...values,
       description: values.description || "",

@@ -1,7 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft, Save } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,15 +16,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -29,24 +25,32 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { ArrowLeft, Save } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import {
   useCharacter,
   useUpdateCharacter,
 } from "@/hooks/character/useCharacters";
-import { useWorkList } from "@/hooks/work/useWorkService";
 import {
   useRelationshipList,
   useCreateRelationship,
   useDeleteRelationship,
 } from "@/hooks/relationship/useRelationshipService";
-import { Separator } from "@/components/ui/separator";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { CharacterUpdate, Character } from "@/lib/services/characters.service";
+import { useWorkList } from "@/hooks/work/useWorkService";
+import {
+  UpdateCharacterPayload,
+  Character,
+} from "@/lib/services/characters.service";
 import { Work } from "@/lib/services/work.service";
-import { Skeleton } from "@/components/ui/skeleton";
 
 const characterFormSchema = z.object({
   name: z.string().min(1, { message: "角色名称不能为空" }),
@@ -69,11 +73,11 @@ interface Relationship {
   // Add other properties of relationship here
 }
 
-export default function EditCharacterPage() {
+export default function EditCharacterPage(): React.ReactElement {
   const router = useRouter();
   const params = useParams();
   const characterId = Number(
-    Array.isArray(params.id) ? params.id[0] : params.id,
+    Array.isArray(params.id) ? params.id[0] : params.id
   );
 
   const { data: characterResponse, isLoading: isLoadingCharacter } =
@@ -86,7 +90,7 @@ export default function EditCharacterPage() {
         targetEntityType: "character",
         sourceEntityType: "work",
       },
-      { enabled: !!characterId },
+      { enabled: !!characterId }
     );
 
   const { mutate: updateCharacter, isPending: isUpdatingCharacter } =
@@ -98,9 +102,8 @@ export default function EditCharacterPage() {
 
   const works = (worksData?.data as { data?: Work[] })?.data || [];
   const character = characterResponse?.data as Character;
-  const relationship = (
-    relationshipData?.data as { data?: Relationship[] }
-  )?.data?.[0];
+  const relationship = (relationshipData?.data as { data?: Relationship[] })
+    ?.data?.[0];
 
   const form = useForm<CharacterFormValues>({
     resolver: zodResolver(characterFormSchema),
@@ -123,10 +126,10 @@ export default function EditCharacterPage() {
     }
   }, [character, relationship, form]);
 
-  const onSubmit = (values: CharacterFormValues) => {
+  const onSubmit = (values: CharacterFormValues): void => {
     const { workId, ...characterData } = values;
 
-    const updatePayload: CharacterUpdate = {
+    const updatePayload: UpdateCharacterPayload = {
       ...characterData,
       age: characterData.age || 0,
     };
@@ -155,16 +158,16 @@ export default function EditCharacterPage() {
                     },
                     {
                       onSuccess: () => router.push(`/tools/characters`),
-                    },
+                    }
                   );
                 },
-              },
+              }
             );
           } else {
             router.push(`/tools/characters`);
           }
         },
-      },
+      }
     );
   };
 
@@ -231,7 +234,11 @@ export default function EditCharacterPage() {
                     <FormItem>
                       <FormLabel>年龄</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="输入年龄" {...field} />
+                        <Input
+                          type="number"
+                          placeholder="输入年龄"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -272,10 +279,7 @@ export default function EditCharacterPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>所属作品 *</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="选择一个作品..." />
@@ -305,10 +309,7 @@ export default function EditCharacterPage() {
                     <FormItem>
                       <FormLabel>性格特点</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="如：坚韧,聪慧,重情义"
-                          {...field}
-                        />
+                        <Input placeholder="如：坚韧,聪慧,重情义" {...field} />
                       </FormControl>
                       <FormDescription>用逗号分隔</FormDescription>
                       <FormMessage />

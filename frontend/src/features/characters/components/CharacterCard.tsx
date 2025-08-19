@@ -1,4 +1,7 @@
-import { Character } from "@/types/character";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -6,9 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp } from "lucide-react";
-import { useState } from "react";
+import { Character } from "@/lib/services/characters.service";
 
 interface CharacterCardProps {
   character: Character;
@@ -31,7 +32,9 @@ export function CharacterCard({
     if ((e.target as HTMLElement).closest("button")) {
       return;
     }
-    onSelect?.(character.name);
+    if (character.name) {
+      onSelect?.(character.name);
+    }
   };
 
   return (
@@ -77,11 +80,11 @@ export function CharacterCard({
             </div>
           )}
 
-          {character.background && (
+          {character.background_story && (
             <div className="mb-2">
               <span className="font-medium">背景：</span>
               <p className="mt-1 text-muted-foreground line-clamp-3">
-                {character.background}
+                {character.background_story}
               </p>
             </div>
           )}

@@ -1,10 +1,13 @@
-import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
-import { EditorToolbar } from "./EditorToolbar";
-import { useBookmarks } from "@/hooks/editor/useBookmarks";
 import { Editor } from "@tiptap/react";
+import React from "react";
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+
+import { useBookmarks } from "@/hooks/editor/useBookmarks";
+
+import { EditorToolbar } from "./EditorToolbar";
+
 
 // Mock 子组件
 vi.mock("./BookmarkManager", () => ({

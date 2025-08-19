@@ -4,13 +4,6 @@
  * following the layered data flow architecture.
  */
 
-import {
-  getWorks,
-  postWorks,
-  getWorksId,
-  putWorksId,
-  deleteWorksId,
-} from "@/lib/api/generated/works/works";
 import type {
   WorksWorkResponse,
   WorksCreateWorkRequest,
@@ -18,6 +11,13 @@ import type {
   GetWorksParams,
   WorksListWorksResponse,
 } from "@/lib/api/generated/api10.schemas";
+import {
+  getWorks,
+  postWorks,
+  getWorksId,
+  putWorksId,
+  deleteWorksId,
+} from "@/lib/api/generated/works/works";
 
 // =================================================================
 // Re-exporting Core Work Types for Application-wide Use

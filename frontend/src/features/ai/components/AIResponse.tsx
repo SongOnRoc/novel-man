@@ -1,10 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { useCreateDraft } from "@/hooks/draft/useDraftService";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Clipboard,
   Save,
@@ -14,7 +9,14 @@ import {
   Replace,
   Loader,
 } from "lucide-react";
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { useCreateDraft } from "@/hooks/draft/useDraftService";
 import { cn } from "@/lib/utils";
+
 import { LoadingIndicator } from "./AIAssistant";
 
 interface AIResponseProps {
@@ -53,7 +55,7 @@ export function AIResponse({
   const saveToDraft = async () => {
     if (!response) return;
     try {
-      // @ts-ignore
+      // @ts-expect-error: todo: fix type later
       await createDraft({ data: { title: 'AI Draft', content: response } });
       // In a real app, you'd use a toast notification
       alert("已成功保存到草稿箱！");

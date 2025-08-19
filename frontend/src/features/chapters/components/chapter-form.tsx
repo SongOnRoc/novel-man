@@ -1,8 +1,11 @@
 "use client";
 
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import React from "react";
 import * as z from "zod";
+
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -12,24 +15,20 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { TiptapEditor } from "@/features/editor/components/TiptapEditor";
 import {
   useCreateChapter,
   useUpdateChapter,
 } from "@/hooks/chapter/useChapterService";
-import { useRouter } from "next/navigation";
-import { Chapter, CreateChapterPayload } from "@/lib/services/chapter.service";
+import { ChapterForClient } from "@/lib/services/chapter.service";
 
 const formSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  content: z.string().optional(),
   status: z.string().optional(),
 });
 
 interface ChapterFormProps {
   workId: number;
-  chapter?: Chapter;
+  chapter?: ChapterForClient;
 }
 
 export const ChapterForm = ({ workId, chapter }: ChapterFormProps) => {
@@ -37,19 +36,39 @@ export const ChapterForm = ({ workId, chapter }: ChapterFormProps) => {
   const createChapterMutation = useCreateChapter();
   const updateChapterMutation = useUpdateChapter();
 
+  // Separate state for editor content
+  const [editorData, setEditorData] = React.useState({
+    title: chapter?.title || "",
+    content: chapter?.content || "",
+    wordCount: chapter?.wordCount || 0,
+  });
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: chapter?.title || "",
-      content: chapter?.content || "",
       status: chapter?.status || "draft",
     },
   });
 
+  const handleContentUpdate = (data: {
+    title: string;
+    content: string;
+    wordCount: number;
+  }) => {
+    setEditorData(data);
+  };
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    const payload = {
+      ...values,
+      title: editorData.title,
+      content: editorData.content,
+      wordCount: editorData.wordCount,
+    };
+
     if (chapter) {
       updateChapterMutation.mutate(
-        { id: chapter.id!, data: values },
+        { id: chapter.id!, data: payload },
         {
           onSuccess: () => {
             router.push(`/works/${workId}/chapters`);
@@ -58,7 +77,7 @@ export const ChapterForm = ({ workId, chapter }: ChapterFormProps) => {
       );
     } else {
       createChapterMutation.mutate(
-        { ...values, work_id: workId },
+        { ...payload, workId: workId },
         {
           onSuccess: () => {
             router.push(`/works/${workId}/chapters`);
@@ -71,33 +90,21 @@ export const ChapterForm = ({ workId, chapter }: ChapterFormProps) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
-              <FormControl>
-                <Input placeholder="Chapter title" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+        <TiptapEditor
+          initialContent={{
+            title: editorData.title,
+            content: editorData.content,
+          }}
+          onContentUpdate={handleContentUpdate}
+          placeholder="Start writing your chapter..."
         />
-        <FormField
-          control={form.control}
-          name="content"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Content</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Chapter content" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit">
+        {/* You can add other form fields here if needed, e.g., for status */}
+        <Button
+          type="submit"
+          disabled={
+            createChapterMutation.isPending || updateChapterMutation.isPending
+          }
+        >
           {chapter ? "Update Chapter" : "Create Chapter"}
         </Button>
       </form>

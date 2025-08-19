@@ -1,12 +1,13 @@
 "use client";
 
+import React from "react";
 import { AIAssistant } from "@/features/ai/components/AIAssistant";
 
 /**
  * AI写作助手页面
  * 提供完整的AI写作辅助功能
  */
-export default function AIAssistantPage() {
+export default function AIAssistantPage(): React.ReactElement {
   return (
     <div className="container max-w-5xl py-6">
       <div className="mb-8">

@@ -1,5 +1,7 @@
 import axios from "axios";
 import { getSession, signOut } from "next-auth/react";
+import { toCamelCase, toSnakeCase } from "@/lib/utils";
+
 
 // const baseURL = "/api/proxy";
 // Determine the base URL based on the environment (server-side or client-side).
@@ -43,7 +45,7 @@ export const customInstance = <T>(
     return response.data;
   });
 
-  // @ts-ignore
+  // @ts-expect-error: todo: fix type later
   promise.cancel = () => {
     controller.abort();
   };
@@ -75,6 +77,15 @@ axiosInstance.interceptors.request.use(
         config.headers.Authorization = `Bearer ${session.accessToken}`;
       }
     }
+
+    // Transform request params and data to snake_case
+    if (config.params) {
+      config.params = toSnakeCase(config.params);
+    }
+    if (config.data) {
+      config.data = toSnakeCase(config.data);
+    }
+
     return config;
   },
   (error) => {
@@ -93,6 +104,10 @@ axiosInstance.interceptors.request.use(
 // without modifying the response data structure.
 axiosInstance.interceptors.response.use(
   (response) => {
+    // Transform response data to camelCase
+    if (response.data) {
+      response.data = toCamelCase(response.data);
+    }
     return response;
   },
   async (error) => {

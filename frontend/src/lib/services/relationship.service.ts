@@ -3,17 +3,17 @@
  * @description This service handles all relationship-related API calls.
  */
 
-import {
-  getRelationships,
-  postRelationships,
-  deleteRelationshipsId,
-} from "@/lib/api/generated/relationships/relationships";
 import type {
   RelationshipsRelationshipResponse,
   RelationshipsRelationshipRequest,
   GetRelationshipsParams,
   RelationshipsListRelationshipsResponse,
 } from "@/lib/api/generated/api10.schemas";
+import {
+  getRelationships,
+  postRelationships,
+  deleteRelationshipsId,
+} from "@/lib/api/generated/relationships/relationships";
 
 // =================================================================
 // Re-exporting Core Relationship Types for Application-wide Use

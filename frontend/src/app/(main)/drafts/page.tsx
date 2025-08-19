@@ -1,29 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { DraftCard } from "@/features/drafts/components/DraftCard";
-import { Button } from "@/components/ui/button";
 import { FilePlus } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  useDraftList,
-  useDeleteDraft,
-  usePublishDraft,
-} from "@/hooks/draft/useDraftService";
-import { useWorkList } from "@/hooks/work/useWorkService";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Draft, DraftListResponse } from "@/lib/services/draft.service";
-import { WorksList } from "@/lib/services/work.service";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
+import { Button } from "@/components/ui/button";
 import {
   Pagination,
   PaginationContent,
@@ -32,10 +15,28 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DraftCard } from "@/features/drafts/components/DraftCard";
+import {
+  useDraftList,
+  useDeleteDraft,
+  usePublishDraft,
+} from "@/hooks/draft/useDraftService";
+import { useWorkList } from "@/hooks/work/useWorkService";
+import { DraftForClient } from "@/lib/services/draft.service";
+import { WorksList } from "@/lib/services/work.service";
 
 type DraftType = "all" | "chapter" | "note";
 
-export default function DraftsPage() {
+export default function DraftsPage(): React.ReactElement {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -52,15 +53,15 @@ export default function DraftsPage() {
 
   const [draftType, setDraftType] = useState<DraftType>("all");
   const { data: draftsResponse, isLoading } = useDraftList({
-    work_id: selectedWorkId,
+    workId: selectedWorkId,
     page: page,
   });
   const { data: worksResponse, isLoading: isLoadingWorks } = useWorkList({});
   const deleteDraftMutation = useDeleteDraft();
   const publishDraftMutation = usePublishDraft();
 
-  const drafts = (draftsResponse as DraftListResponse)?.data || [];
-  const pagination = (draftsResponse as DraftListResponse)?.pagination;
+  const drafts = draftsResponse?.data || [];
+  const pagination = draftsResponse?.pagination;
   const works = (worksResponse as WorksList)?.data || [];
 
   const totalPages = useMemo(() => {
@@ -70,7 +71,7 @@ export default function DraftsPage() {
     return Math.ceil(pagination.total / pagination.limit);
   }, [pagination]);
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: number): void => {
     if (window.confirm("Are you sure you want to delete this draft?")) {
       deleteDraftMutation.mutate(id, {
         onSuccess: () => {
@@ -83,7 +84,7 @@ export default function DraftsPage() {
     }
   };
 
-  const handlePublish = (id: number) => {
+  const handlePublish = (id: number): void => {
     if (window.confirm("Are you sure you want to publish this draft?")) {
       publishDraftMutation.mutate(id, {
         onSuccess: () => {
@@ -96,15 +97,15 @@ export default function DraftsPage() {
     }
   };
 
-  const handleSelectWork = (workId: string) => {
+  const handleSelectWork = (workId: string): void => {
     router.push(`/drafts?workId=${workId}&page=1`);
   };
 
-  const handlePageChange = (newPage: number) => {
+  const handlePageChange = (newPage: number): void => {
     router.push(`/drafts?workId=${selectedWorkId}&page=${newPage}`);
   };
 
-  const renderContent = () => {
+  const renderContent = (): React.ReactElement => {
     if (!selectedWorkId) {
       return (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
@@ -130,7 +131,7 @@ export default function DraftsPage() {
       return (
         <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {drafts.map((draft: Draft) => (
+            {drafts.map((draft) => (
               <DraftCard
                 key={draft.id}
                 draft={draft}

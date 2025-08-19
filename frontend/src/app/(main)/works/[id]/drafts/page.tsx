@@ -1,10 +1,13 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { DraftList } from "./components/draft-list";
+import React from "react";
+
 import { useWorkById } from "@/hooks/work/useWorkService";
 
-const DraftsPage = () => {
+import { DraftList } from "./components/draft-list";
+
+const DraftsPage = (): React.ReactElement => {
   const params = useParams();
   const workId = typeof params.id === "string" ? parseInt(params.id, 10) : NaN;
   const { isLoading } = useWorkById(workId);

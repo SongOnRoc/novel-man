@@ -1,3 +1,4 @@
+import React from "react";
 import { MainLayoutGuard } from "@/components/common/layout/MainLayoutGuard";
 
 /**
@@ -9,6 +10,6 @@ export default function MainRouteLayout({
   children,
 }: {
   children: React.ReactNode;
-}) {
+}): React.ReactElement {
   return <MainLayoutGuard>{children}</MainLayoutGuard>;
 }

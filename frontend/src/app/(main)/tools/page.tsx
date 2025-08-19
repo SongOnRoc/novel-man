@@ -1,7 +1,10 @@
 "use client";
 
+import { PlusCircle, Users, Globe, Sparkles, BookOpen } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -17,19 +19,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PlusCircle, Users, Globe, Sparkles, BookOpen } from "lucide-react";
-import Link from "next/link";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AIAssistant } from "@/features/ai/components/AIAssistant";
+import {
+  useWorkCharacters,
+  useWorkWorldview,
+} from "@/hooks/work/useWorkService";
+// import { useAIAssistant } from "@/hooks/ai/useAIAssistant";
+import { useWorkList } from "@/hooks/work/useWorkService";
 import { useWorldviewCategories } from "@/hooks/worldbuilding/useWorldviewService";
+import { Character } from "@/lib/services/characters.service";
+import { Work } from "@/lib/services/work.service";
 import {
   WorldviewCategory,
   WorldviewItem,
 } from "@/lib/services/worldview.service";
-import { useWorkCharacters, useWorkWorldview } from "@/hooks/work/useWorkService";
-// import { useAIAssistant } from "@/hooks/ai/useAIAssistant";
-import { useWorkList } from "@/hooks/work/useWorkService";
-import { Character } from "@/lib/services/characters.service";
-import { Work } from "@/lib/services/work.service";
-import { AIAssistant } from "@/features/ai/components/AIAssistant";
 
 export default function ToolsPage() {
   // 状态
@@ -51,9 +55,8 @@ export default function ToolsPage() {
     isLoading: isLoadingCharacters,
     error: charactersError,
   } = useWorkCharacters(parseInt(selectedWorkId, 10));
-  const { items: worldItems, isLoading: isLoadingWorldItems } = useWorkWorldview(
-    parseInt(selectedWorkId, 10)
-  );
+  const { items: worldItems, isLoading: isLoadingWorldItems } =
+    useWorkWorldview(parseInt(selectedWorkId, 10));
 
   // 处理URL参数和客户端水合问题
   useEffect(() => {
@@ -78,8 +81,7 @@ export default function ToolsPage() {
   useEffect(() => {
     if (worldviewCategoriesResponse?.data) {
       setWorldviewCategories(
-        (worldviewCategoriesResponse.data as { data: WorldviewCategory[] })
-          .data,
+        (worldviewCategoriesResponse.data as { data: WorldviewCategory[] }).data
       );
     }
   }, [worldviewCategoriesResponse]);

@@ -5,7 +5,9 @@
  * data fetching, caching, and mutations.
  */
 
-import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query';
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+
 import {
   getDraftsService,
   getDraftByIdService,
@@ -13,22 +15,38 @@ import {
   updateDraftService,
   deleteDraftService,
   publishDraftService,
-} from '@/lib/services/draft.service';
+} from "@/lib/services/draft.service";
 import type {
   DraftsParams,
   CreateDraftPayload,
   UpdateDraftPayload,
-} from '@/lib/services/draft.service';
-import { useRouter } from 'next/navigation';
+  DraftListResponseForClient,
+  DraftForClient,
+} from "@/lib/services/draft.service";
+import { toSnakeCase } from "@/lib/utils";
+import { SnakeToCamelCase } from "@/types/type-utils";
+
+// Client-facing payload types with camelCase properties
+export type CreateDraftPayloadForClient = SnakeToCamelCase<CreateDraftPayload>;
+export type UpdateDraftPayloadForClient = SnakeToCamelCase<UpdateDraftPayload>;
+
+/**
+ * Custom parameter type for the useDraftList hook.
+ * This allows the UI layer to use camelCase (workId) while the underlying
+ * service and API layers expect snake_case (work_id).
+ */
+export type UseDraftListParams = Omit<DraftsParams, "work_id"> & {
+  workId?: number;
+};
 
 /**
  * Centralized query keys for drafts.
  */
 const draftKeys = {
-  all: ['drafts'] as const,
-  lists: () => [...draftKeys.all, 'list'] as const,
+  all: ["drafts"] as const,
+  lists: () => [...draftKeys.all, "list"] as const,
   list: (params: DraftsParams) => [...draftKeys.lists(), params] as const,
-  details: () => [...draftKeys.all, 'detail'] as const,
+  details: () => [...draftKeys.all, "detail"] as const,
   detail: (id: number) => [...draftKeys.details(), id] as const,
 };
 
@@ -36,11 +54,23 @@ const draftKeys = {
  * Hook to fetch a paginated list of drafts for a specific work.
  * @param params - The query parameters for fetching drafts.
  */
-export const useDraftList = (params: DraftsParams) => {
+export const useDraftList = (params: UseDraftListParams) => {
+  const { workId, ...rest } = params;
+
+  // Transform to the snake_case format expected by the API service
+  const serviceParams: DraftsParams = {
+    work_id: workId,
+    ...rest,
+  };
+
   return useQuery({
-    queryKey: draftKeys.list(params),
-    queryFn: () => getDraftsService(params),
-    enabled: !!params.work_id,
+    // We use the client-facing params for the queryKey to ensure consistency
+    // in how the key is generated and used throughout the app.
+    queryKey: draftKeys.list(serviceParams),
+    queryFn: () =>
+      getDraftsService(serviceParams) as unknown as DraftListResponseForClient,
+    // The query is enabled only if workId is provided.
+    enabled: !!workId,
   });
 };
 
@@ -53,6 +83,7 @@ export const useDraftById = (id: number) => {
     queryKey: draftKeys.detail(id),
     queryFn: () => getDraftByIdService(id),
     enabled: !!id,
+    select: (data) => data as DraftForClient,
   });
 };
 
@@ -63,7 +94,9 @@ export const useDraftById = (id: number) => {
 export const useCreateDraft = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (draftData: CreateDraftPayload) => createDraftService(draftData),
+    mutationFn: (draftData: CreateDraftPayloadForClient) => {
+      return createDraftService(draftData as unknown as CreateDraftPayload);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: draftKeys.lists() });
     },
@@ -77,8 +110,18 @@ export const useCreateDraft = () => {
 export const useUpdateDraft = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: UpdateDraftPayload }) =>
-      updateDraftService(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: UpdateDraftPayloadForClient;
+    }) => {
+      return updateDraftService(
+        id,
+        data as unknown as UpdateDraftPayload
+      );
+    },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: draftKeys.lists() });
       queryClient.invalidateQueries({
@@ -113,7 +156,7 @@ export const usePublishDraft = () => {
     mutationFn: (id: number) => publishDraftService(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: draftKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: ['chapters', 'list'] });
+      queryClient.invalidateQueries({ queryKey: ["chapters", "list"] });
       router.refresh();
     },
   });

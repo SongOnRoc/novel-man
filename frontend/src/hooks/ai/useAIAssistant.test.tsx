@@ -1,14 +1,16 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import * as aiApi from "@/lib/api/ai";
+
 import {
   usePolishTextMutation,
   useGetCompletionMutation,
   useGenerateOutlineMutation,
   useCreateCharacterMutation,
 } from "./useAIAssistant";
+
+import * as aiApi from "@/lib/api/ai";
 import {
   PolishTextRequest,
   GetCompletionRequest,

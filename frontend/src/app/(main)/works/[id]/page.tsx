@@ -1,8 +1,10 @@
 "use client";
 
-import { useWorkById } from "@/hooks/work/useWorkService";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Work } from "@/lib/services/work.service";
+
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,9 +13,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { useWorkById } from "@/hooks/work/useWorkService";
+import { Work } from "@/lib/services/work.service";
 
 export default function WorkDetailsPage() {
   const params = useParams();
@@ -71,7 +72,9 @@ export default function WorkDetailsPage() {
         </Button>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{work.title}</h1>
-          <p className="text-muted-foreground">{work.category} - {work.status}</p>
+          <p className="text-muted-foreground">
+            {work.category} - {work.status}
+          </p>
         </div>
       </div>
 

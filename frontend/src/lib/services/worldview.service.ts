@@ -3,17 +3,6 @@
  * @description This service handles all worldview-related API calls.
  */
 
-import {
-  getWorldviewCategories,
-  postWorldviewCategories,
-  putWorldviewCategoriesId,
-  deleteWorldviewCategoriesId,
-  getWorldviewItems,
-  postWorldviewItems,
-  getWorldviewItemsId,
-  putWorldviewItemsId,
-  deleteWorldviewItemsId,
-} from '@/lib/api/generated/worldview/worldview';
 import type {
   WorldviewCategoryResponse,
   WorldviewCreateCategoryRequest,
@@ -26,6 +15,17 @@ import type {
   WorldviewListCategoriesResponse,
   WorldviewListItemsResponse,
 } from '@/lib/api/generated/api10.schemas';
+import {
+  getWorldviewCategories,
+  postWorldviewCategories,
+  putWorldviewCategoriesId,
+  deleteWorldviewCategoriesId,
+  getWorldviewItems,
+  postWorldviewItems,
+  getWorldviewItemsId,
+  putWorldviewItemsId,
+  deleteWorldviewItemsId,
+} from '@/lib/api/generated/worldview/worldview';
 
 // =================================================================
 // Re-exporting Core Worldview Types for Application-wide Use

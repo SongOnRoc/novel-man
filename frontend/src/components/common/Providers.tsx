@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import { SessionProvider } from "@/components/common/layout/SessionProvider";
+
 import QueryProvider from "@/components/common/layout/QueryProvider";
+import { SessionProvider } from "@/components/common/layout/SessionProvider";
 
 interface ProvidersProps {
   children: React.ReactNode;

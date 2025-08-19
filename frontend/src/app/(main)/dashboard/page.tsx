@@ -1,10 +1,12 @@
+import React from "react";
 import { BookText, BookOpen, FileText, PenTool } from "lucide-react";
-import { StatsCard } from "../page-components/StatsCard";
-import { RecentWorks } from "../page-components/RecentWorks";
-import { QuickActions } from "../page-components/QuickActions";
+
+import { QuickActions } from "./components/QuickActions";
+import { RecentWorks } from "./components/RecentWorks";
+import { StatsCard } from "./components/StatsCard";
 
 // 仪表盘页面（由原根页面迁移而来）
-export default function DashboardPage() {
+export default function DashboardPage(): React.ReactElement {
   return (
     <div className="container mx-auto max-w-7xl px-4 md:px-6 lg:px-8 space-y-8">
       {/* 顶部标题区：一级标题 + 辅助说明 */}

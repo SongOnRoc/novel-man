@@ -1,6 +1,8 @@
 "use client";
 
+import { Settings2 } from "lucide-react";
 import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -12,16 +14,15 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { Settings2 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import {
   EditorSettings as EditorSettingsType,
   EditorTheme,
   defaultEditorSettings,
 } from "@/types/editor";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
 
 interface EditorSettingsProps {
   settings: EditorSettingsType;

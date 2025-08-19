@@ -1,14 +1,14 @@
 "use client";
 
-import Link from "next/link";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/auth/useAuth";
-import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import React from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +28,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/auth/useAuth";
 
 const formSchema = z.object({
   identifier: z.string().min(1, {
@@ -38,7 +39,7 @@ const formSchema = z.object({
   }),
 });
 
-export default function LoginPage() {
+export default function LoginPage(): React.ReactElement {
   const router = useRouter();
   const { login } = useAuth();
 
@@ -52,7 +53,7 @@ export default function LoginPage() {
 
   const { isSubmitting } = form.formState;
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>): Promise<void> {
     try {
       const result = await login(values);
 

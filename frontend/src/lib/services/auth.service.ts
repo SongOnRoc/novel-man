@@ -13,18 +13,19 @@
  * @author Alex Chen
  */
 
+import type {
+  AuthLoginRequest,
+  AuthRegisterRequest,
+  AuthUserProfileResponse,
+  AuthLoginResponse,
+  AuthRegisterResponse,
+} from "@/lib/api/generated/api10.schemas";
 import {
   postAuthLogin,
   postAuthRegister,
   getAuthMe,
   postAuthLogout,
 } from "@/lib/api/generated/auth/auth";
-import type {
-  AuthLoginRequest,
-  AuthRegisterRequest,
-  AuthUserProfileResponse,
-  AuthLoginResponse,
-} from "@/lib/api/generated/api10.schemas";
 
 // =================================================================
 // Re-exporting Core Auth Types for Application-wide Use
@@ -34,6 +35,7 @@ export type LoginCredentials = AuthLoginRequest;
 export type RegisterCredentials = AuthRegisterRequest;
 export type AuthUser = AuthUserProfileResponse;
 export type LoginResponse = AuthLoginResponse;
+export type RegisterResponse = AuthRegisterResponse;
 
 /**
  * 登录服务（仅供 NextAuth authorize 使用，不面向 UI 直接调用）
@@ -53,7 +55,7 @@ export const loginService = (data: LoginCredentials) => {
  * @returns A promise that resolves with the registration response.
  */
 export const registerService = (data: RegisterCredentials) => {
-  return postAuthRegister(data);
+  return postAuthRegister(data) as Promise<RegisterResponse>;
 };
 
 /**

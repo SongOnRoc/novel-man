@@ -1,9 +1,11 @@
 'use client';
 
-import { DraftForm } from '@/features/drafts/components/draft-form';
 import { useSearchParams } from 'next/navigation';
+import React from 'react';
 
-const NewDraftPage = () => {
+import { DraftForm } from '@/features/drafts/components/draft-form';
+
+const NewDraftPage = (): React.ReactElement => {
   const searchParams = useSearchParams();
   const workId = searchParams.get('workId');
 

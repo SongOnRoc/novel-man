@@ -1,6 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getSettings, updateSettings } from "@/lib/api/settings";
-import { UserSettings } from "@/types/core";
+
+import {
+  getSettingsService,
+  updateSettingsService,
+  UserSettings,
+} from "@/lib/services/settings.service";
 
 export function useSettings() {
   const queryClient = useQueryClient();
@@ -11,11 +15,11 @@ export function useSettings() {
     error,
   } = useQuery<UserSettings>({
     queryKey: ["settings"],
-    queryFn: getSettings,
+    queryFn: getSettingsService,
   });
 
-  const updateMutation = useMutation({
-    mutationFn: updateSettings,
+  const updateMutation = useMutation<void, Error, UserSettings>({
+    mutationFn: updateSettingsService,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["settings"] });
     },

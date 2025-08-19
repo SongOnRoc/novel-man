@@ -1,7 +1,13 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { PlusCircle, Edit, Trash2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import React, { useState, useEffect, useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,6 +16,32 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   useWorldviewCategories,
   useCreateWorldviewCategory,
@@ -24,37 +56,6 @@ import {
   WorldviewCategoryList,
   WorldviewItemList,
 } from "@/lib/services/worldview.service";
-import { PlusCircle, Edit, Trash2 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 
 // --- Form Schema and Types ---
 
@@ -75,7 +76,7 @@ function CategoryDialog({
   onSave: (values: CategoryFormValues) => void;
   children: React.ReactNode;
   isPending: boolean;
-}) {
+}): React.ReactElement {
   const [isOpen, setIsOpen] = useState(false);
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categoryFormSchema),
@@ -143,7 +144,7 @@ function ItemCard({
 }: {
   item: WorldviewItem;
   onDelete: (id: number) => void;
-}) {
+}): React.ReactElement {
   const router = useRouter();
   return (
     <Card
@@ -188,7 +189,11 @@ function ItemCard({
 
 // --- Item List Component ---
 
-function ItemsList({ categoryId }: { categoryId: number | null }) {
+function ItemsList({
+  categoryId,
+}: {
+  categoryId: number | null;
+}): React.ReactElement | null {
   const router = useRouter();
   const searchParams = useSearchParams();
   const page = useMemo(() => {
@@ -305,7 +310,7 @@ function ItemsList({ categoryId }: { categoryId: number | null }) {
 
 // --- Main Page Component ---
 
-export default function WorldbuildingPage() {
+export default function WorldbuildingPage(): React.ReactElement {
   const router = useRouter();
   const {
     data: categoriesResponse,

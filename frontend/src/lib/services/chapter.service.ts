@@ -4,13 +4,6 @@
  * following the layered data flow architecture.
  */
 
-import {
-  getChapters,
-  postChapters,
-  getChaptersId,
-  putChaptersId,
-  deleteChaptersId,
-} from '@/lib/api/generated/chapters/chapters';
 import type {
   ChaptersChapterResponse,
   ChaptersCreateChapterRequest,
@@ -18,6 +11,16 @@ import type {
   GetChaptersParams,
   ChaptersListChaptersResponse,
 } from '@/lib/api/generated/api10.schemas';
+import {
+  getChapters,
+  postChapters,
+  getChaptersId,
+  putChaptersId,
+  deleteChaptersId,
+} from '@/lib/api/generated/chapters/chapters';
+
+// transform snake_case to camelCase
+import { SnakeToCamelCase } from "@/types/type-utils";
 
 // =================================================================
 // Re-exporting Core Chapter Types for Application-wide Use
@@ -28,6 +31,22 @@ export type CreateChapterPayload = ChaptersCreateChapterRequest;
 export type UpdateChapterPayload = ChaptersUpdateChapterRequest;
 export type ChapterListParams = GetChaptersParams;
 export type ChapterListResponse = ChaptersListChaptersResponse;
+// A client-facing Chapter type with camelCase properties for better DX in the frontend.
+export type ChapterForClient = SnakeToCamelCase<Chapter>;
+
+/**
+ * A client-facing version of the ChapterListResponse, where the `data` array
+ * consists of `ChapterForClient` objects.
+ */
+export type ChapterListResponseForClient = Omit<ChapterListResponse, "data"> & {
+  data?: ChapterForClient[];
+};
+
+// Client-facing payload types
+export type CreateChapterPayloadForClient =
+  SnakeToCamelCase<CreateChapterPayload>;
+export type UpdateChapterPayloadForClient =
+  SnakeToCamelCase<UpdateChapterPayload>;
 
 /**
  * Fetches a paginated list of chapters for a specific work.

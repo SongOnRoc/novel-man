@@ -1,7 +1,16 @@
 "use client";
 
-import { useDeleteChapter } from "@/hooks/chapter/useChapterService";
+import { PlusCircle, MoreHorizontal } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -10,20 +19,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PlusCircle, MoreHorizontal } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Chapter, ChapterListResponse } from "@/lib/services/chapter.service";
+import { useDeleteChapter } from "@/hooks/chapter/useChapterService";
+import { ChapterForClient } from "@/lib/services/chapter.service";
+import { formatDate } from "@/lib/utils";
 
 interface ChapterListProps {
   workId: number;
-  chapters: Chapter[];
+  chapters: ChapterForClient[];
 }
 
 export const ChapterList = ({ workId, chapters }: ChapterListProps) => {
@@ -33,7 +35,6 @@ export const ChapterList = ({ workId, chapters }: ChapterListProps) => {
   const handleDelete = (id: number) => {
     deleteChapterMutation.mutate(id);
   };
-
 
   return (
     <div>
@@ -56,13 +57,13 @@ export const ChapterList = ({ workId, chapters }: ChapterListProps) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {chapters.map((chapter: Chapter) => (
+          {chapters.map((chapter) => (
             <TableRow key={chapter.id}>
               <TableCell>{chapter.title}</TableCell>
               <TableCell>{chapter.status}</TableCell>
-              <TableCell>{chapter.word_count}</TableCell>
+              <TableCell>{chapter.wordCount}</TableCell>
               <TableCell>
-                {new Date(chapter.updated_at!).toLocaleString()}
+                {formatDate(chapter.updatedAt || chapter.createdAt)}
               </TableCell>
               <TableCell>
                 <DropdownMenu>

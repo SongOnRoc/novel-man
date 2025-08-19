@@ -1,8 +1,11 @@
-import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { AIAssistant } from "./AIAssistant";
+import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
+
 import * as useAIAssistant from "@/hooks/ai/useAIAssistant";
+
+import { AIAssistant } from "./AIAssistant";
+
 
 // Mock the hooks
 vi.mock("@/hooks/ai/useAIAssistant");

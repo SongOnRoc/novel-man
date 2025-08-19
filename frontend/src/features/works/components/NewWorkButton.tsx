@@ -1,6 +1,7 @@
-import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
 
 // 新建作品按钮组件
 export function NewWorkButton() {

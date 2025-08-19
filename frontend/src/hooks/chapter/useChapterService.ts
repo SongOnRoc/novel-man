@@ -6,6 +6,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
 import {
   getChaptersService,
   getChapterByIdService,
@@ -14,10 +15,28 @@ import {
   deleteChapterService,
 } from "@/lib/services/chapter.service";
 import type {
+  Chapter,
   ChapterListParams,
   CreateChapterPayload,
   UpdateChapterPayload,
+  ChapterListResponseForClient,
+  ChapterForClient,
 } from "@/lib/services/chapter.service";
+import { toSnakeCase } from "@/lib/utils";
+import { SnakeToCamelCase } from "@/types/type-utils";
+
+// Client-facing payload types with camelCase properties
+export type CreateChapterPayloadForClient = SnakeToCamelCase<CreateChapterPayload>;
+export type UpdateChapterPayloadForClient = SnakeToCamelCase<UpdateChapterPayload>;
+
+/**
+ * Custom parameter type for the useChapterList hook.
+ * This allows the UI layer to use camelCase (workId) while the underlying
+ * service and API layers expect snake_case (work_id).
+ */
+export type UseChapterListParams = Omit<ChapterListParams, "work_id"> & {
+  workId: number;
+};
 
 /**
  * Centralized query keys for chapters.
@@ -35,11 +54,23 @@ const chapterKeys = {
  * Hook to fetch a paginated list of chapters for a specific work.
  * @param params - The query parameters for fetching chapters.
  */
-export const useChapterList = (params: ChapterListParams) => {
-  return useQuery({
-    queryKey: chapterKeys.list(params),
-    queryFn: () => getChaptersService(params),
-    enabled: !!params.work_id,
+export const useChapterList = (params: UseChapterListParams) => {
+  const { workId, ...rest } = params;
+
+  // Transform to the snake_case format expected by the API service
+  const serviceParams: ChapterListParams = {
+    work_id: workId,
+    ...rest,
+  };
+
+  return useQuery<ChapterListResponseForClient>({
+    // We use the client-facing params for the queryKey to ensure consistency
+    // in how the key is generated and used throughout the app.
+    queryKey: chapterKeys.list(serviceParams),
+    queryFn: () =>
+      getChaptersService(serviceParams) as unknown as ChapterListResponseForClient,
+    // The query is enabled only if workId is provided.
+    enabled: !!workId,
   });
 };
 
@@ -52,6 +83,7 @@ export const useChapterById = (id: number) => {
     queryKey: chapterKeys.detail(id),
     queryFn: () => getChapterByIdService(id),
     enabled: !!id,
+    select: (data) => data as ChapterForClient,
   });
 };
 
@@ -62,8 +94,9 @@ export const useChapterById = (id: number) => {
 export const useCreateChapter = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (chapterData: CreateChapterPayload) =>
-      createChapterService(chapterData),
+    mutationFn: (chapterData: CreateChapterPayloadForClient) => {
+      return createChapterService(chapterData as unknown as CreateChapterPayload);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: chapterKeys.lists() });
     },
@@ -77,8 +110,18 @@ export const useCreateChapter = () => {
 export const useUpdateChapter = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: UpdateChapterPayload }) =>
-      updateChapterService(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: UpdateChapterPayloadForClient;
+    }) => {
+      return updateChapterService(
+        id,
+        data as unknown as UpdateChapterPayload
+      );
+    },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: chapterKeys.lists() });
       queryClient.invalidateQueries({

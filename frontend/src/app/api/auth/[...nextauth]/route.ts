@@ -1,12 +1,13 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
 import axios from "axios";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+
+import { axiosInstance } from "@/lib/axios";
 import {
   loginService,
   LoginResponse,
   AuthUser,
 } from "@/lib/services/auth.service";
-import { axiosInstance } from "@/lib/axios";
 
 export const authOptions: NextAuthOptions = {
   providers: [

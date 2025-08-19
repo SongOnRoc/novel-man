@@ -1,27 +1,41 @@
 "use client";
 
-import { useRef } from "react";
-import { useChapter } from "@/hooks/chapter/useChapters";
-import { notFound, useParams } from "next/navigation";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { toPng } from "html-to-image";
-import { ExportDialog, ExportOptions } from "@/components/common/ExportDialog";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { notFound, useParams } from "next/navigation";
+import React, { useRef } from "react";
 
-export default function ChapterPreviewPage() {
+import { ExportDialog, ExportOptions } from "@/components/common/ExportDialog";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  useChapterById,
+  useChapterList,
+} from "@/hooks/chapter/useChapterService";
+import { Chapter, ChapterListResponse } from "@/lib/services/chapter.service";
+
+
+export default function ChapterPreviewPage(): React.ReactElement {
   const params = useParams();
   const chapterId = Array.isArray(params.id) ? params.id[0] : params.id;
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const { data: chapter, isLoading } = useChapter(Number(chapterId));
+  const { data: chapter, isLoading } = useChapterById(Number(chapterId));
+
+  const { data: chaptersData } = useChapterList({
+    work_id: chapter?.work_id ?? 0,
+    page: 1,
+    limit: 9999,
+  });
+
+  const chapters: Chapter[] = (chaptersData as ChapterListResponse)?.data ?? [];
 
   if (!chapterId) {
     return notFound();
   }
 
-  const handleExport = (options: ExportOptions) => {
+  const handleExport = (options: ExportOptions): void => {
     if (!chapter) return;
 
     let contentToExport = "";
@@ -29,23 +43,27 @@ export default function ChapterPreviewPage() {
 
     switch (options.range) {
       case "current":
-        contentToExport = chapter.content;
-        title = chapter.title;
+        contentToExport = chapter.content ?? "";
+        title = chapter.title ?? "";
         break;
-      // The following cases need to be re-implemented as getChaptersByVolume and chapters are not available in useChapter
-      // case "volume":
-      //   const volumeChapters = getChaptersByVolume(chapter.volumeId);
-      //   title = `分卷-${volumeChapters[0]?.volumeId}`; // Simplified title
-      //   contentToExport = volumeChapters
-      //     .map((c) => `## ${c.title}\n\n${c.content}`)
-      //     .join("\n\n---\n\n");
-      //   break;
-      // case "all":
-      //   title = `全书`;
-      //   contentToExport = chapters
-      //     .map((c) => `## ${c.title}\n\n${c.content}`)
-      //     .join("\n\n---\n\n");
-      //   break;
+      case "volume":
+        const volumeChapters =
+          chapters?.filter((c: Chapter) => c.volume_id === chapter.volume_id) ??
+          [];
+        title = `分卷-${
+          volumeChapters[0]?.volume_id ?? chapter.volume_id ?? ""
+        }`;
+        contentToExport = volumeChapters
+          .map((c: Chapter) => `## ${c.title}\n\n${c.content}`)
+          .join("\n\n---\n\n");
+        break;
+      case "all":
+        title = `全书`;
+        contentToExport =
+          chapters
+            ?.map((c: Chapter) => `## ${c.title}\n\n${c.content}`)
+            .join("\n\n---\n\n") ?? "";
+        break;
       default:
         return;
     }
@@ -92,7 +110,7 @@ export default function ChapterPreviewPage() {
       <div className="mb-6 flex justify-between items-center">
         <div className="flex gap-2">
           <Button variant="outline" size="sm" asChild>
-            <Link href={`/chapters?workId=${chapter.workId}`}>
+            <Link href={`/chapters?workId=${chapter.work_id}`}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               返回章节列表
             </Link>

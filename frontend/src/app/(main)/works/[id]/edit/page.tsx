@@ -1,7 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,14 +26,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
-import { useWorkById, useUpdateWork } from "@/hooks/work/useWorkService";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+import { useWorkById, useUpdateWork } from "@/hooks/work/useWorkService";
 import { Work, UpdateWorkPayload } from "@/lib/services/work.service";
 
 // 定义表单验证模式
@@ -58,7 +59,7 @@ const categoryOptions = [
 ];
 const statusOptions = ["连载中", "完结"];
 
-export default function EditWorkPage() {
+export default function EditWorkPage(): React.ReactElement {
   const router = useRouter();
   const params = useParams();
   const workId = Number(params.id);
@@ -81,16 +82,16 @@ export default function EditWorkPage() {
   useEffect(() => {
     if (work) {
       form.reset({
-        title: work.title || '',
-        description: work.description || '',
-        category: work.category || '',
-        status: work.status || '',
+        title: work.title || "",
+        description: work.description || "",
+        category: work.category || "",
+        status: work.status || "",
       });
     }
   }, [work, form]);
 
   // 表单提交处理
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof formSchema>): void {
     const updateData: UpdateWorkPayload = {
       ...values,
       description: values.description || "",
@@ -104,7 +105,7 @@ export default function EditWorkPage() {
         onError: (error) => {
           console.error("更新作品失败:", error);
         },
-      },
+      }
     );
   }
 

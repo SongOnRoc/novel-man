@@ -1,8 +1,8 @@
 "use client";
 
+import { Breadcrumbs } from "./Breadcrumbs";
 import { ThemeToggle } from "./ThemeToggle";
 import { UserNav } from "./UserNav"; // Assuming UserNav will be created
-import { Breadcrumbs } from "./Breadcrumbs";
 
 export function Header() {
   return (

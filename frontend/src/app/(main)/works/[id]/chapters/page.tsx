@@ -1,9 +1,11 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { ChapterList } from "./components/chapter-list";
+
 import { useWorkById } from "@/hooks/work/useWorkService";
 import { Work } from "@/lib/services/work.service";
+
+import { ChapterList } from "./components/chapter-list";
 
 const ChaptersPage = () => {
   const params = useParams();

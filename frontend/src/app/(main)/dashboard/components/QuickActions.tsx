@@ -1,3 +1,6 @@
+import React from "react";
+import { PlusCircle, BookOpen, FileText, PenTool } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -6,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { PlusCircle, BookOpen, FileText, PenTool } from "lucide-react";
 
 // 快速操作的类型
 interface QuickAction {
@@ -45,7 +47,7 @@ const quickActions: QuickAction[] = [
 ];
 
 // 快速操作组件
-export function QuickActions() {
+export function QuickActions(): React.ReactElement {
   return (
     <Card>
       <CardHeader>

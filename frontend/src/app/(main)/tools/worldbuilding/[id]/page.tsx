@@ -1,6 +1,10 @@
 "use client";
 
+import { ArrowLeft, Edit, Trash2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import React from "react";
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,16 +13,16 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { ArrowLeft, Edit, Trash2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   useWorldviewItem,
   useDeleteWorldviewItem,
 } from "@/hooks/worldbuilding/useWorldviewService";
 import { WorldviewItem } from "@/lib/services/worldview.service";
-import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
 
-export default function WorldItemDetailPage() {
+
+
+export default function WorldItemDetailPage(): React.ReactElement {
   const params = useParams();
   const router = useRouter();
   const itemId = params.id
@@ -34,7 +38,7 @@ export default function WorldItemDetailPage() {
 
   const item = itemResponse as WorldviewItem;
 
-  const handleDelete = async () => {
+  const handleDelete = async (): Promise<void> => {
     if (!item) return;
 
     toast(`确定要删除条目 "${item.name}" 吗？`, {

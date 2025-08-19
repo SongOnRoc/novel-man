@@ -1,39 +1,77 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, type UseMutationOptions } from "@tanstack/react-query";
 import {
   polishTextService,
   getCompletionService,
   generateOutlineService,
   createCharacterService,
-} from '@/lib/services/ai.service';
+} from "@/lib/services/ai.service";
 import type {
   PolishRequest,
+  PolishResponse,
   CompletionRequest,
+  CompletionResponse,
   GenerateOutlineRequest,
+  GenerateOutlineResponse,
   CreateCharacterRequest,
-} from '@/lib/services/ai.service';
+  CreateCharacterResponse,
+} from "@/lib/services/ai.service";
 
-export const usePolishTextMutation = () => {
+/**
+ * Hook for polishing text using AI.
+ * @param options - Optional mutation options from TanStack Query.
+ */
+export const usePolishTextMutation = (
+  options?: UseMutationOptions<PolishResponse, unknown, PolishRequest>
+) => {
   return useMutation({
-    mutationFn: (params: PolishRequest) => polishTextService(params),
+    mutationFn: polishTextService,
+    ...options,
   });
 };
 
-export const useGetCompletionMutation = () => {
+/**
+ * Hook for getting text completion from AI.
+ * @param options - Optional mutation options from TanStack Query.
+ */
+export const useGetCompletionMutation = (
+  options?: UseMutationOptions<CompletionResponse, unknown, CompletionRequest>
+) => {
   return useMutation({
-    mutationFn: (params: CompletionRequest) => getCompletionService(params),
+    mutationFn: getCompletionService,
+    ...options,
   });
 };
 
-export const useGenerateOutlineMutation = () => {
+/**
+ * Hook for generating an outline from AI.
+ * @param options - Optional mutation options from TanStack Query.
+ */
+export const useGenerateOutlineMutation = (
+  options?: UseMutationOptions<
+    GenerateOutlineResponse,
+    unknown,
+    GenerateOutlineRequest
+  >
+) => {
   return useMutation({
-    mutationFn: (params: GenerateOutlineRequest) =>
-      generateOutlineService(params),
+    mutationFn: generateOutlineService,
+    ...options,
   });
 };
 
-export const useCreateCharacterMutation = () => {
+/**
+ * Hook for creating a character using AI.
+ * @param options - Optional mutation options from TanStack Query.
+ */
+export const useCreateCharacterMutation = (
+  options?: UseMutationOptions<
+    CreateCharacterResponse,
+    unknown,
+    CreateCharacterRequest
+  >
+) => {
   return useMutation({
-    mutationFn: (params: CreateCharacterRequest) =>
-      createCharacterService(params),
+    mutationFn: createCharacterService,
+    ...options,
   });
 };

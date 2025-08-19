@@ -6,14 +6,15 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"novel-man/backend/internal/contracts"
 	"novel-man/backend/internal/contracts/chapters"
 	"novel-man/backend/internal/contracts/works"
 	"novel-man/backend/internal/models"
 	"novel-man/backend/utils/context"
 	"novel-man/backend/utils/response"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type ChapterController struct {
@@ -33,6 +34,7 @@ type CreateChapterRequest struct {
 	Content      string `json:"content"`
 	DisplayOrder int    `json:"display_order"`
 	Status       string `json:"status"`
+	WordCount    int    `json:"word_count"`
 }
 
 type UpdateChapterRequest struct {
@@ -41,6 +43,7 @@ type UpdateChapterRequest struct {
 	Content      string `json:"content"`
 	DisplayOrder int    `json:"display_order"`
 	Status       string `json:"status"`
+	WordCount    int    `json:"word_count"`
 }
 
 type ChapterResponse struct {
@@ -58,7 +61,7 @@ type ChapterResponse struct {
 }
 
 type ListChaptersResponse struct {
-	Data       []ChapterResponse       `json:"data"`
+	Data       []ChapterResponse   `json:"data"`
 	Pagination response.Pagination `json:"pagination"`
 }
 
@@ -104,7 +107,7 @@ func (c *ChapterController) CreateChapter(ctx *gin.Context) {
 		Content:      req.Content,
 		DisplayOrder: req.DisplayOrder,
 		Status:       req.Status,
-		// WordCount will be calculated by service or database trigger
+		WordCount:    req.WordCount,
 	}
 
 	if err := c.service.Create(*context.New(ctx), chapter); err != nil {
@@ -190,6 +193,7 @@ func (c *ChapterController) UpdateChapter(ctx *gin.Context) {
 	chapter.Content = req.Content
 	chapter.DisplayOrder = req.DisplayOrder
 	chapter.Status = req.Status
+	chapter.WordCount = req.WordCount
 
 	if err := c.service.Update(*context.New(ctx), uint(id), chapter); err != nil {
 		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to update chapter", err)

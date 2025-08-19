@@ -1,4 +1,4 @@
-import { AIGenerateParams, AIPromptType } from "@/types/ai";
+import { AIGenerateParams, AIPromptType } from "@/lib/services/ai.service";
 
 // 示例AI回复，实际应用中应通过API调用获取
 export const mockAIResponses: Record<AIPromptType, string> = {

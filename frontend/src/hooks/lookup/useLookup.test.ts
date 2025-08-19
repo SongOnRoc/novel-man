@@ -1,8 +1,11 @@
-import React from "react";
 import { renderHook, act } from "@testing-library/react";
+import React from "react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import { useLookup } from "./useLookup";
+
 import { useCharacters } from "@/hooks/character/useCharacters";
+
+import { useLookup } from "./useLookup";
+
 import { useWorldbuilding } from "@/hooks/worldbuilding/useWorldbuilding";
 import { Character } from "@/types/character";
 import { WorldItem } from "@/types/worldbuilding";

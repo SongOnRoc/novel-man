@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_SC } from "next/font/google";
+
 import { ThemeProvider } from "@/components/common/layout/ThemeProvider";
 import { Providers } from "@/components/common/Providers";
 import { Toaster } from "@/components/ui/sonner";

@@ -1,7 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft, Save } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,15 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -28,17 +25,21 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { ArrowLeft, Save } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import {
   useWorldviewItem,
   useUpdateWorldviewItem,
   useWorldviewCategories,
 } from "@/hooks/worldbuilding/useWorldviewService";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   WorldviewCategory,
   WorldviewItem,
@@ -52,7 +53,7 @@ const worldItemFormSchema = z.object({
 
 type WorldItemFormValues = z.infer<typeof worldItemFormSchema>;
 
-export default function EditWorldItemPage() {
+export default function EditWorldItemPage(): React.ReactElement | null {
   const router = useRouter();
   const params = useParams();
   const itemId = params.id
@@ -89,7 +90,7 @@ export default function EditWorldItemPage() {
     }
   }, [item, form]);
 
-  const onSubmit = (values: WorldItemFormValues) => {
+  const onSubmit = (values: WorldItemFormValues): void => {
     if (!itemId) {
       toast.error("无效的条目ID。");
       return;

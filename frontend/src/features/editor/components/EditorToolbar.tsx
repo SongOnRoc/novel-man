@@ -19,22 +19,26 @@ import {
   Save,
   Target,
 } from "lucide-react";
+import { useState, useEffect } from "react";
+
+import { SettingsLookup } from "@/components/common/SettingsLookup";
+import { ValueSettingPopover } from "@/components/common/ValueSettingPopover";
 import { Button } from "@/components/ui/button";
-import { Toggle } from "@/components/ui/toggle";
+import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { BookmarkManager } from "./BookmarkManager";
-import { EditorSettings } from "./EditorSettings";
-import { FocusMode } from "./FocusMode";
+import { Toggle } from "@/components/ui/toggle";
+import { characterLookupSource } from "@/features/characters/character-lookup";
+import { worldviewLookupSource } from "@/features/worldview/worldview-lookup";
 import { useBookmarks } from "@/hooks/editor/useBookmarks";
 import {
   EditorSettings as EditorSettingsType,
   defaultEditorSettings,
 } from "@/types/editor";
-import { useState, useEffect } from "react";
+
+import { BookmarkManager } from "./BookmarkManager";
+import { EditorSettings } from "./EditorSettings";
 import { FindReplace } from "./FindReplace";
-import { SettingsLookup } from "@/components/common/lookup/SettingsLookup";
-import { Progress } from "@/components/ui/progress";
-import { ValueSettingPopover } from "@/components/common/ValueSettingPopover";
+import { FocusMode } from "./FocusMode";
 
 interface EditorToolbarProps {
   editor: Editor | null;
@@ -288,7 +292,12 @@ export function EditorToolbar({
         <FindReplace editor={editor} />
 
         {/* 设定速查按钮 */}
-        {workId && <SettingsLookup workId={workId} />}
+        {workId && (
+          <SettingsLookup
+            workId={workId}
+            sources={[characterLookupSource, worldviewLookupSource]}
+          />
+        )}
 
         {/* 专注模式按钮 */}
         <FocusMode editorContainerId={editorContainerId} />

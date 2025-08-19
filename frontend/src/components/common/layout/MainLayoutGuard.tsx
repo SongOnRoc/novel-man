@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useUserQuery } from "@/hooks/auth/useUserQuery";
+import { useEffect } from "react";
+
 import { MainLayout } from "@/components/common/layout/MainLayout";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUserQuery } from "@/hooks/auth/useUserQuery";
 
 /**
  * This component acts as a route guard for all main application routes.

@@ -1,16 +1,19 @@
 "use client";
 
 import React from "react";
+
 import {
   ResizablePanelGroup,
   ResizablePanel,
   ResizableHandle,
 } from "@/components/ui/resizable";
-import { Sidebar } from "./sider";
-import { Header } from "./Header";
-import { NavLinks } from "./sider/nav-links";
-import { cn } from "@/lib/utils";
 import { useSidebarStore } from "@/hooks/ui/useSidebarStore";
+import { cn } from "@/lib/utils";
+
+import { Header } from "./Header";
+import { Sidebar } from "./sider";
+import { NavLinks } from "./sider/nav-links";
+
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -92,7 +95,7 @@ export function MainLayout({
             <NavLinks isCollapsed={isCollapsed} />
           </Sidebar.Content>
           <Sidebar.Footer>
-            {/* Placeholder for UserProfile or other items */}
+            <div>{/* Placeholder for UserProfile or other items */}</div>
           </Sidebar.Footer>
         </Sidebar>
       </ResizablePanel>

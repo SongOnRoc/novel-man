@@ -1,9 +1,11 @@
 "use client"; // 标记为客户端组件，因为需要访问浏览器API
 
-import * as React from "react";
-import { useTheme } from "next-themes"; // 导入主题钩子
-import { Button } from "@/components/ui/button"; // 导入按钮组件
 import { Moon, Sun } from "lucide-react"; // 导入图标
+import { useTheme } from "next-themes"; // 导入主题钩子
+import * as React from "react";
+
+import { Button } from "@/components/ui/button"; // 导入按钮组件
+
 
 // 主题切换按钮组件
 export function ThemeSwitcher() {

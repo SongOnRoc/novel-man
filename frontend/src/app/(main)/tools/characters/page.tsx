@@ -1,7 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { PlusCircle, Edit, Trash2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import React, { useMemo } from "react";
+import { toast } from "sonner";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,18 +16,6 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import {
-  useCharacterList,
-  useDeleteCharacter,
-} from "@/hooks/character/useCharacters";
-import { PlusCircle, Edit, Trash2 } from "lucide-react";
-import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Character,
-  CharacterList,
-} from "@/lib/services/characters.service";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
   Pagination,
   PaginationContent,
   PaginationItem,
@@ -31,6 +23,12 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  useCharacterList,
+  useDeleteCharacter,
+} from "@/hooks/character/useCharacters";
+import { Character, CharacterList } from "@/lib/services/characters.service";
 
 function CharacterCard({
   character,
@@ -38,7 +36,7 @@ function CharacterCard({
 }: {
   character: Character;
   onDelete: (id: number) => void;
-}) {
+}): React.ReactElement {
   const router = useRouter();
   return (
     <Card
@@ -90,7 +88,7 @@ function CharacterCard({
   );
 }
 
-export default function CharactersPage() {
+export default function CharactersPage(): React.ReactElement {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -116,7 +114,7 @@ export default function CharactersPage() {
     return Math.ceil(pagination.total / pagination.limit);
   }, [pagination]);
 
-  const handleDelete = (characterId: number) => {
+  const handleDelete = (characterId: number): void => {
     toast("确定要删除这个角色吗？", {
       action: {
         label: "删除",

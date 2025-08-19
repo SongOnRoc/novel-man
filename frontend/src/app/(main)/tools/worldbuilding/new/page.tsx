@@ -1,6 +1,13 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft, Save } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import React from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,15 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -27,15 +25,19 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { ArrowLeft, Save } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
   useCreateWorldviewItem,
   useWorldviewCategories,
 } from "@/hooks/worldbuilding/useWorldviewService";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { toast } from "sonner";
 import {
   WorldviewCategory,
   WorldviewCategoryList,
@@ -49,7 +51,7 @@ const worldItemFormSchema = z.object({
 
 type WorldItemFormValues = z.infer<typeof worldItemFormSchema>;
 
-export default function NewWorldItemPage() {
+export default function NewWorldItemPage(): React.ReactElement {
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoryIdFromUrl = searchParams.get("categoryId");
@@ -68,7 +70,7 @@ export default function NewWorldItemPage() {
     },
   });
 
-  const onSubmit = (values: WorldItemFormValues) => {
+  const onSubmit = (values: WorldItemFormValues): void => {
     const payload = {
       ...values,
       category_id: parseInt(values.category_id, 10),

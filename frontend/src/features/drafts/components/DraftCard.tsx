@@ -1,26 +1,28 @@
-'use client';
+"use client";
 
+import { MoreHorizontal, Send } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { formatDate } from "@/lib/utils";
+
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Send } from 'lucide-react';
+} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Draft } from '@/lib/services/draft.service';
-import { Work } from '@/lib/services/work.service';
-import { useRouter } from 'next/navigation';
+} from "@/components/ui/dropdown-menu";
+import { DraftForClient } from "@/lib/services/draft.service";
+import { Work } from "@/lib/services/work.service";
 
 interface DraftCardProps {
-  draft: Draft;
+  draft: DraftForClient;
   works: Work[];
   onDelete: () => void;
   onPublish: () => void;
@@ -33,7 +35,7 @@ export function DraftCard({
   onPublish,
 }: DraftCardProps) {
   const router = useRouter();
-  const work = works.find((w) => w.id === draft.work_id);
+  const work = works.find((w) => w.id === draft.workId);
 
   return (
     <Card>
@@ -49,7 +51,7 @@ export function DraftCard({
         <div>
           <p className="text-sm font-medium">{work?.title}</p>
           <p className="text-xs text-muted-foreground">
-            Updated at {new Date(draft.updated_at!).toLocaleString()}
+            Updated at {formatDate(draft.updatedAt || draft.createdAt)}
           </p>
         </div>
         <DropdownMenu>

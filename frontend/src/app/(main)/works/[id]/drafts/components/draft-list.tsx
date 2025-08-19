@@ -1,11 +1,17 @@
-'use client';
+"use client";
 
+import { PlusCircle, MoreHorizontal, Send } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import React from "react";
+
+import { Button } from "@/components/ui/button";
 import {
-  useDraftList,
-  useDeleteDraft,
-  usePublishDraft,
-} from '@/hooks/draft/useDraftService';
-import { Button } from '@/components/ui/button';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -13,23 +19,19 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { PlusCircle, MoreHorizontal, Send } from 'lucide-react';
+} from "@/components/ui/table";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Draft, DraftListResponse } from '@/lib/services/draft.service';
+  useDraftList,
+  useDeleteDraft,
+  usePublishDraft,
+} from "@/hooks/draft/useDraftService";
+import { Draft, DraftListResponse } from "@/lib/services/draft.service";
 
 interface DraftListProps {
   workId: number;
 }
 
-export const DraftList = ({ workId }: DraftListProps) => {
+export const DraftList = ({ workId }: DraftListProps): React.ReactElement => {
   const router = useRouter();
   const { data: draftsResponse, isLoading } = useDraftList({
     work_id: workId,
@@ -39,12 +41,12 @@ export const DraftList = ({ workId }: DraftListProps) => {
 
   const drafts = (draftsResponse?.data as DraftListResponse)?.data || [];
 
-  const handleDelete = (id: number) => {
-    deleteDraftMutation.mutate({ id });
+  const handleDelete = (id: number): void => {
+    deleteDraftMutation.mutate(id);
   };
 
-  const handlePublish = (id: number) => {
-    publishDraftMutation.mutate({ id });
+  const handlePublish = (id: number): void => {
+    publishDraftMutation.mutate(id);
   };
 
   if (isLoading) {

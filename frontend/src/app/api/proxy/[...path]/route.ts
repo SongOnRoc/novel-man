@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
 import axios, { AxiosError } from "axios";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 const API_BASE_URL =

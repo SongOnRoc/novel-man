@@ -1,24 +1,28 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { ArrowLeft, PlusCircle, Globe } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import React, { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, PlusCircle, Globe } from 'lucide-react';
-import { useWorkById, useWorkWorldview } from '@/hooks/work/useWorkService';
-import { useWorldviewItems } from '@/hooks/worldbuilding/useWorldviewService';
-import { WorldviewItem, WorldviewItemList } from '@/lib/services/worldview.service';
-import { Work } from '@/lib/services/work.service';
-import { Relationship } from '@/lib/services/relationship.service';
+} from "@/components/ui/dialog";
+import { useWorkById, useWorkWorldview } from "@/hooks/work/useWorkService";
+import { useWorldviewItems } from "@/hooks/worldbuilding/useWorldviewService";
+import { Relationship } from "@/lib/services/relationship.service";
+import { Work } from "@/lib/services/work.service";
+import {
+  WorldviewItem,
+  WorldviewItemList,
+} from "@/lib/services/worldview.service";
 
-export default function OutlinePage() {
+export default function OutlinePage(): React.ReactElement {
   const router = useRouter();
   const params = useParams();
   const workId = Number(params.id);
@@ -33,16 +37,15 @@ export default function OutlinePage() {
     isLoading: isWorldviewLoading,
   } = useWorkWorldview(workId);
   const { data: allItemsResponse } = useWorldviewItems({ category_id: 0 }); // TODO: This should be a real category ID
-  const allItems =
-    (allItemsResponse?.data as WorldviewItemList)?.data || [];
+  const allItems = (allItemsResponse?.data as WorldviewItemList)?.data || [];
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleAssociate = async (itemId: number) => {
+  const handleAssociate = async (itemId: number): Promise<void> => {
     await associate(itemId);
   };
 
-  const handleDissociate = async (relationshipId: number) => {
+  const handleDissociate = async (relationshipId: number): Promise<void> => {
     await dissociate(relationshipId);
   };
 
@@ -108,10 +111,7 @@ export default function OutlinePage() {
           ) : (
             <ul className="space-y-2">
               {associatedItems.map((item: Relationship) => (
-                <li
-                  key={item.id}
-                  className="flex items-center justify-between"
-                >
+                <li key={item.id} className="flex items-center justify-between">
                   <span>
                     {
                       allItems.find(

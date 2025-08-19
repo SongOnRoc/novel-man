@@ -1,13 +1,14 @@
 "use client";
 
-import Link from "next/link";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import React from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -52,7 +53,7 @@ const formSchema = z
     path: ["confirmPassword"],
   });
 
-export default function RegisterPage() {
+export default function RegisterPage(): React.ReactElement {
   const router = useRouter();
   const registerMutation = useRegisterMutation({
     onSuccess: () => {
@@ -63,7 +64,7 @@ export default function RegisterPage() {
         router.push("/login");
       }, 1500);
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       toast.error("注册失败", {
         description: error?.message || "该用户名或邮箱已被使用。",
       });
@@ -80,9 +81,9 @@ export default function RegisterPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof formSchema>): void {
     // We don't need to send `confirmPassword` to the backend.
-    const { confirmPassword: _, ...registerData } = values;
+    const { confirmPassword, ...registerData } = values;
     registerMutation.mutate(registerData);
   }
 

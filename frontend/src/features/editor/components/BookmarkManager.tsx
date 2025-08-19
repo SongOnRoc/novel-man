@@ -1,8 +1,10 @@
 "use client";
 
+import { Editor } from "@tiptap/react";
+import { Bookmark, Edit, Trash2, BookmarkPlus } from "lucide-react";
 import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Drawer,
   DrawerClose,
@@ -13,10 +15,10 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { Bookmark, Edit, Trash2, BookmarkPlus } from "lucide-react";
-import { Bookmark as BookmarkType } from "@/types/editor";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Editor } from "@tiptap/react";
+import { Bookmark as BookmarkType } from "@/types/editor";
+
 
 interface BookmarkManagerProps {
   editor: Editor | null;
