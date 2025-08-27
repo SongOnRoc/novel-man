@@ -26,11 +26,6 @@ export const sidebarNavConfig: NavGroup[] = [
     value: "creation",
     links: [
       {
-        title: "总览",
-        href: "/",
-        icon: Home,
-      },
-      {
         title: "作品管理",
         href: "/works",
         icon: Book,
@@ -64,6 +59,16 @@ export const sidebarNavConfig: NavGroup[] = [
     ],
   },
 ];
+
+/**
+ * 独立的主页导航项
+ * 单独导出以便在布局中灵活使用
+ */
+export const dashboardLink: NavLink = {
+  title: "总览",
+  href: "/",
+  icon: Home,
+};
 
 /**
  * 独立的设置导航项

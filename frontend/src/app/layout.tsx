@@ -34,11 +34,11 @@ export default function RootLayout({
   return (
     <html
       lang="zh-CN"
-      className={`${inter.variable} ${notoSansSC.variable} hide-scrollbar font-sans`}
+      className={`${inter.variable} ${notoSansSC.variable} hide-scrollbar font-sans h-full`}
       suppressHydrationWarning
     >
       <body
-        className={`${inter.variable} ${notoSansSC.variable} hide-scrollbar font-sans antialiased`}
+        className={`${inter.variable} ${notoSansSC.variable} hide-scrollbar font-sans antialiased h-full overflow-hidden`}
       >
         <ThemeProvider
           attribute="class"

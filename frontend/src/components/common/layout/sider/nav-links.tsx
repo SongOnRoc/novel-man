@@ -19,6 +19,7 @@ import {
 import {
   sidebarNavConfig,
   settingsLink,
+  dashboardLink,
   NavGroup,
   NavLink,
 } from "@/lib/config/nav";
@@ -28,8 +29,16 @@ const MotionLink = motion.create(Link);
 
 const navLinkTextVariants = {
   initial: { opacity: 0, x: -10 },
-  animate: { opacity: 1, x: 0, transition: { duration: 0.2, ease: "easeOut" as const } },
-  exit: { opacity: 0, x: -10, transition: { duration: 0.1, ease: "easeIn" as const } },
+  animate: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.2, ease: "easeOut" as const },
+  },
+  exit: {
+    opacity: 0,
+    x: -10,
+    transition: { duration: 0.1, ease: "easeIn" as const },
+  },
 };
 
 const accordionContentVariants = {
@@ -83,7 +92,7 @@ const renderNavLink = (
       key={link.href}
       href={link.href}
       className={cn(
-        "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+        "flex items-center justify-between rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
         isActive && "bg-muted text-primary"
       )}
       whileHover={{
@@ -91,7 +100,6 @@ const renderNavLink = (
         transition: { type: "spring", stiffness: 400, damping: 10 },
       }}
     >
-      <link.icon className="h-4 w-4" />
       <AnimatePresence>
         {!isCollapsed && (
           <motion.span
@@ -106,6 +114,7 @@ const renderNavLink = (
           </motion.span>
         )}
       </AnimatePresence>
+      <link.icon className="h-4 w-4" />
     </MotionLink>
   );
 };
@@ -119,6 +128,7 @@ export function NavLinks({ isCollapsed }: NavLinksProps) {
       <TooltipProvider>
         <nav className="flex flex-col items-center gap-2 px-2 py-4">
           <div className="flex flex-col items-center gap-1">
+            {renderNavLink(dashboardLink, pathname, true)}
             {allLinks.map((link) => renderNavLink(link, pathname, true))}
           </div>
           <div className="mt-auto flex flex-col items-center gap-2">
@@ -131,7 +141,8 @@ export function NavLinks({ isCollapsed }: NavLinksProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <nav className="flex-1 space-y-1 p-2">
+      <nav className="space-y-1 p-2">
+        {renderNavLink(dashboardLink, pathname, false)}
         <Accordion
           type="multiple"
           defaultValue={sidebarNavConfig.map((g) => g.value)}
