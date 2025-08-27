@@ -9,7 +9,6 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useState, useEffect, useCallback } from "react";
 
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AIFloatingButton } from "@/features/ai/components/AIFloatingButton";
@@ -26,9 +25,7 @@ import { EditorToolbar } from "./EditorToolbar";
 // Tiptap编辑器属性
 interface TiptapEditorProps {
   initialContent?: EditorContentType; // 初始内容
-  onSave?: (
-    content: EditorContentType & { wordCount: number }
-  ) => void; // 保存回调
+  onSave?: (content: EditorContentType & { wordCount: number }) => void; // 保存回调
   placeholder?: string; // 占位文本
   autoFocus?: boolean; // 是否自动聚焦
   contentId?: string; // 内容ID，用于书签等
@@ -160,6 +157,7 @@ export function TiptapEditor({
     ],
     content: initialContent.content,
     autofocus: autoFocus,
+    immediatelyRender: false,
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
       const newWordCount = countWords(html);
@@ -259,11 +257,11 @@ export function TiptapEditor({
   useEffect(() => {
     document.documentElement.style.setProperty(
       "--editor-font-size",
-      `${settings.fontSize}px`,
+      `${settings.fontSize}px`
     );
     document.documentElement.style.setProperty(
       "--editor-line-height",
-      `${settings.lineSpacing}`,
+      `${settings.lineSpacing}`
     );
   }, [settings]);
 
