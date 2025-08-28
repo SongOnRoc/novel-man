@@ -3,10 +3,15 @@
 import { Breadcrumbs } from "./Breadcrumbs";
 import { ThemeToggle } from "./ThemeToggle";
 import { UserNav } from "./UserNav"; // Assuming UserNav will be created
+import { cn } from "@/lib/utils";
 
-export function Header() {
+interface HeaderProps {
+  className?: string;
+}
+
+export function Header({ className }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className={cn(className)}>
       <div className="container flex h-14 max-w-screen-2xl items-center">
         <Breadcrumbs />
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">

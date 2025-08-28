@@ -92,25 +92,25 @@ export function WorkCard({
 
       {/* 卡片底部：操作按钮 */}
       <CardFooter className="grid grid-cols-3 gap-2">
-        <Button variant="outline" size="sm" className="gap-1" asChild>
+        <Button variant="glass" size="sm" className="gap-1" asChild>
           <Link href={`/works/${work.id}/outline`}>
             <FileText className="h-4 w-4" />
             大纲管理
           </Link>
         </Button>
-        <Button variant="outline" size="sm" className="gap-1" asChild>
+        <Button variant="glass" size="sm" className="gap-1" asChild>
           <Link href={`/chapters?workId=${work.id}`}>
             <BookOpen className="h-4 w-4" />
             查看章节
           </Link>
         </Button>
-        <Button variant="outline" size="sm" className="gap-1" asChild>
+        <Button variant="glass" size="sm" className="gap-1" asChild>
           <Link href={`/drafts?workId=${work.id}`}>
             <FileText className="h-4 w-4" />
             查看草稿
           </Link>
         </Button>
-        <Button size="sm" className="gap-1" asChild disabled={true}>
+        <Button variant="glass" size="sm" className="gap-1" asChild disabled={true}>
           <Link href="#">
             <Edit className="h-4 w-4" />
             继续写作

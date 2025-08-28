@@ -59,12 +59,12 @@ export function QuickActions(): React.ReactElement {
           {quickActions.map((action) => (
             <Button
               key={action.title}
-              variant="outline"
+              variant="glass"
               className="h-auto justify-start gap-3 p-4 text-left"
               asChild
             >
               <a href={action.href} className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg border p-2 text-primary">
                   {action.icon}
                 </div>
                 <div className="flex-1">

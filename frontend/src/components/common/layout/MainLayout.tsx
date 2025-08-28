@@ -101,10 +101,12 @@ export function MainLayout({
           </Sidebar>
         </ResizablePanel>
         <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={defaultLayout[1]}>
+        <ResizablePanel defaultSize={defaultLayout[1]} className="relative">
           <div className="flex flex-col h-full overflow-hidden">
-            <Header />
-            <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+            <div className="absolute top-0 left-0 right-0 z-10 p-4 md:p-6 lg:p-8">
+              <Header className="glass rounded-2xl" />
+            </div>
+            <main className="flex-1 overflow-y-auto pt-24 p-4 md:p-6 lg:p-8">
               {children}
             </main>
           </div>
