@@ -5,7 +5,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { axiosInstance } from "@/lib/axios";
 import {
   loginService,
-  LoginResponse,
+  LoginResponseForClient,
   AuthUser,
 } from "@/lib/services/auth.service";
 
@@ -23,7 +23,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const loginResponse = await loginService({
+          const loginResponse: LoginResponseForClient = await loginService({
             identifier: credentials.identifier,
             password: credentials.password,
           });
@@ -32,8 +32,8 @@ export const authOptions: NextAuthOptions = {
             throw new Error("Login response is undefined");
           }
 
-          // The actual backend response structure is { access_token: "...", token_type: "Bearer" }
-          const accessToken = (loginResponse as any).access_token;
+          // The axios interceptor transforms the response to camelCase, so we expect `accessToken`.
+          const accessToken = loginResponse.accessToken;
           if (!accessToken) {
             throw new Error(
               "Failed to obtain access token from login response."
@@ -74,7 +74,7 @@ export const authOptions: NextAuthOptions = {
             if (userProfileData) {
               // To satisfy NextAuth's internal User type, we must convert the ID to a string here.
               // The actual user ID is in userProfileData.id
-              const userData: any = userProfileData; // Assert to any for dynamic API data
+              const userData = userProfileData as AuthUser;
               return {
                 ...userData,
                 id: String(userData.id), // Correctly access id from extracted data
@@ -114,14 +114,15 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user }) {
       if (user) {
+        // The `user` object is the return value from `authorize`. It's a mix of our
+        // AuthUser and the accessToken, with the `id` converted to a string.
+        // Using `any` here is a pragmatic choice to avoid complex type gymnastics
+        // for this internal-only object.
         const customUser = user as any;
         token.accessToken = customUser.accessToken;
         // The user object from authorize is already structured correctly
         token.user = {
-          id:
-            typeof customUser.id === "number"
-              ? customUser.id
-              : Number(customUser.id),
+          id: Number(customUser.id), // a string from authorize, convert back to number
           username: customUser.username,
           email: customUser.email,
         };

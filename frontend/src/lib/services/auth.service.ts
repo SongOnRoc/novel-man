@@ -26,6 +26,7 @@ import {
   getAuthMe,
   postAuthLogout,
 } from "@/lib/api/generated/auth/auth";
+import { SnakeToCamelCase } from "@/types/type-utils";
 
 // =================================================================
 // Re-exporting Core Auth Types for Application-wide Use
@@ -37,6 +38,9 @@ export type AuthUser = AuthUserProfileResponse;
 export type LoginResponse = AuthLoginResponse;
 export type RegisterResponse = AuthRegisterResponse;
 
+// A client-facing LoginResponse type with camelCase properties.
+export type LoginResponseForClient = SnakeToCamelCase<LoginResponse>;
+
 /**
  * 登录服务（仅供 NextAuth authorize 使用，不面向 UI 直接调用）
  * - 在 NextAuth CredentialsProvider.authorize 中调用该函数以向后端发起登录
@@ -46,7 +50,9 @@ export type RegisterResponse = AuthRegisterResponse;
  * @returns 后端登录响应（通常包含 access_token 与 token_type）
  */
 export const loginService = (data: LoginCredentials) => {
-  return postAuthLogin(data) as Promise<LoginResponse>;
+  // The underlying `postAuthLogin` returns a camelCased response due to the axios interceptor.
+  // The caller (`authorize` function) is responsible for using the correct camelCased type.
+  return postAuthLogin(data) as Promise<LoginResponseForClient>;
 };
 
 /**
