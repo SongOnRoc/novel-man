@@ -35,9 +35,11 @@ main
 cdk
 
 novel-editor
-.roo
 *.exe
 *.db
 *.db-shm
 *.db-wal
 memory-bank
+/*.md
+
+!Readme.md
