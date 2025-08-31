@@ -1,14 +1,9 @@
-import { BookOpen, Edit, MoreVertical, FileText } from "lucide-react";
+import { BookOpen, MoreVertical, FileText } from "lucide-react";
 import Link from "next/link";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,99 +19,87 @@ interface WorkCardProps {
   isDeleting?: boolean;
 }
 
-// 作品卡片组件
+// 作品卡片组件 - 列表项样式
 export function WorkCard({
   work,
   onDelete,
   isDeleting = false,
 }: WorkCardProps) {
   return (
-    <Card className="overflow-hidden">
-      {/* 卡片头部：标题和操作菜单 */}
-      <CardHeader className="flex flex-row items-start justify-between">
-        <div>
-          <CardTitle className="line-clamp-1">{work.title}</CardTitle>
-          <div className="text-sm text-muted-foreground">
-            {/* TODO: Implement chapterCount and wordCount */}
-            {/* {(work.chapterCount ?? 0).toLocaleString()} 章节 ·{" "} */}
-            {/* {(work.wordCount ?? 0).toLocaleString()} 字 */}
+    <Card className="flex flex-col md:flex-row items-start gap-4 p-4 transition-all hover:bg-muted/50">
+      {/* 封面 */}
+      <div className="w-full md:w-24 aspect-[4/3] md:aspect-[2/3] bg-secondary rounded-md flex-shrink-0">
+        {/* 在这里可以放置封面图片 */}
+        {/* <img src={work.coverUrl} alt={work.title} className="object-cover w-full h-full rounded-md" /> */}
+      </div>
+
+      {/* 作品信息与操作 */}
+      <div className="flex flex-col justify-between flex-1 w-full">
+        <div className="md:mb-0 mb-4">
+          <div className="flex items-center gap-2 mb-1">
+            <Link href={`/works/${work.id}/outline`}>
+              <h3 className="text-lg font-semibold hover:underline">{work.title}</h3>
+            </Link>
+            <Badge variant="outline">征文作品</Badge>
+          </div>
+          <p className="text-sm text-muted-foreground mb-2">
+            最近更新：第27章 再入古村？
+          </p>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <span>27 章</span>
+            <span>6.6 万字</span>
+            <span>连载中 · 已签约</span>
           </div>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreVertical className="h-4 w-4" />
-              <span className="sr-only">打开菜单</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link href={`/works/${work.id}/edit`}>编辑信息</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => alert(`导出作品： ${work.title}`)}>
-              导出作品
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-destructive"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete();
-              }}
-              disabled={isDeleting}
-            >
-              {isDeleting ? "删除中..." : "删除作品"}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </CardHeader>
 
-      {/* 卡片内容：作品描述 */}
-      <CardContent>
-        <div className="space-y-2">
-          <p className="line-clamp-2 text-sm text-muted-foreground">
-            {work.description || "暂无描述"}
-          </p>
-          {/* TODO: Implement lastUpdatedChapter */}
-          {/* {work.lastUpdatedChapter && (
-            <div className="text-xs text-muted-foreground">
-              最近更新：
-              <span className="font-medium text-primary">
-                {work.lastUpdatedChapter.title}
-              </span>
-              <span className="mx-1">·</span>
-              <span>{work.lastUpdatedChapter.updatedAt}</span>
-            </div>
-          )} */}
+        <div className="flex items-center gap-2 mt-4">
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/chapters?workId=${work.id}`}>
+              <BookOpen className="mr-2 h-4 w-4" />
+              章节管理
+            </Link>
+          </Button>
+          <Button variant="default" size="sm" asChild>
+            <Link href={`/works/${work.id}/drafts`}>
+              <FileText className="mr-2 h-4 w-4" />
+              作品推荐
+            </Link>
+          </Button>
+          <Button variant="default" size="sm" asChild>
+            <Link href={`/chapters/new?workId=${work.id}`}>
+              创建章节
+            </Link>
+          </Button>
+          <div className="ml-auto">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreVertical className="h-4 w-4" />
+                  <span className="sr-only">打开菜单</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link href={`/works/${work.id}/edit`}>编辑信息</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => alert(`导出作品： ${work.title}`)}>
+                  导出作品
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete();
+                  }}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "删除中..." : "删除作品"}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-      </CardContent>
-
-      {/* 卡片底部：操作按钮 */}
-      <CardFooter className="grid grid-cols-3 gap-2">
-        <Button variant="glass" size="sm" className="gap-1" asChild>
-          <Link href={`/works/${work.id}/outline`}>
-            <FileText className="h-4 w-4" />
-            大纲管理
-          </Link>
-        </Button>
-        <Button variant="glass" size="sm" className="gap-1" asChild>
-          <Link href={`/chapters?workId=${work.id}`}>
-            <BookOpen className="h-4 w-4" />
-            查看章节
-          </Link>
-        </Button>
-        <Button variant="glass" size="sm" className="gap-1" asChild>
-          <Link href={`/drafts?workId=${work.id}`}>
-            <FileText className="h-4 w-4" />
-            查看草稿
-          </Link>
-        </Button>
-        <Button variant="glass" size="sm" className="gap-1" asChild disabled={true}>
-          <Link href="#">
-            <Edit className="h-4 w-4" />
-            继续写作
-          </Link>
-        </Button>
-      </CardFooter>
+      </div>
     </Card>
   );
 }
