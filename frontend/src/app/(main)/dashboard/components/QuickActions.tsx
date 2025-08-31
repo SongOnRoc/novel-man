@@ -49,7 +49,7 @@ const quickActions: QuickAction[] = [
 // 快速操作组件
 export function QuickActions(): React.ReactElement {
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <CardTitle>快速操作</CardTitle>
         <CardDescription>常用功能快速访问</CardDescription>
@@ -60,7 +60,7 @@ export function QuickActions(): React.ReactElement {
             <Button
               key={action.title}
               variant="glass"
-              className="h-auto justify-start gap-3 p-4 text-left"
+              className="h-auto justify-start gap-3 p-4 text-left whitespace-normal"
               asChild
             >
               <a href={action.href} className="flex items-center gap-3">

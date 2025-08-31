@@ -12,9 +12,9 @@ interface HeaderProps {
 export function Header({ className }: HeaderProps) {
   return (
     <header className={cn(className)}>
-      <div className="container flex h-14 max-w-screen-2xl items-center">
+      <div className="flex h-10 w-full items-center">
         <Breadcrumbs />
-        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+        <div className="flex items-center justify-end space-x-2 flex-1">
           <nav className="flex items-center space-x-2">
             <ThemeToggle />
             <UserNav />

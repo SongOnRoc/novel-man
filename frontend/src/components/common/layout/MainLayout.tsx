@@ -25,7 +25,7 @@ export function MainLayout({
   children,
   defaultLayout = [15, 85], // Sidebar: 15%, Main: 85%
   defaultCollapsed = false,
-  navCollapsedSize = 4, // Corresponds to Tailwind CSS width w-16 (4rem)
+  navCollapsedSize = 5, // Adjusted for better collapsed width
 }: MainLayoutProps) {
   const { isCollapsed, setIsCollapsed } = useSidebarStore();
 
@@ -45,7 +45,7 @@ export function MainLayout({
         className="h-full items-stretch"
       >
         <ResizablePanel
-          defaultSize={defaultLayout[0]}
+          defaultSize={isCollapsed ? navCollapsedSize : defaultLayout[0]}
           collapsedSize={navCollapsedSize}
           collapsible={true}
           minSize={15}
@@ -59,37 +59,77 @@ export function MainLayout({
           className={cn(
             "transition-all duration-300 ease-in-out",
             isCollapsed &&
-              "min-w-[50px] transition-all duration-300 ease-in-out"
+              "w-16 min-w-[4rem] max-w-[4rem] transition-all duration-300 ease-in-out"
           )}
         >
           <Sidebar>
             <Sidebar.Header>
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-5 w-5"
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="h-5 w-5"
+                    >
+                      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+                    </svg>
+                  </div>
+                  <div
+                    className={cn(
+                      "flex flex-col items-start",
+                      isCollapsed && "hidden"
+                    )}
                   >
-                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-                  </svg>
+                    <span className="text-base font-semibold">NovelMan</span>
+                    <span className="text-xs text-muted-foreground">
+                      v 0.0.1
+                    </span>
+                  </div>
                 </div>
-                <div
-                  className={cn(
-                    "flex flex-col items-start",
-                    isCollapsed && "hidden"
-                  )}
+                <button
+                  onClick={() => setIsCollapsed(!isCollapsed)}
+                  className="p-1 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
-                  <span className="text-base font-semibold">NovelMan</span>
-                  <span className="text-xs text-muted-foreground">v 0.0.1</span>
-                </div>
+                  {isCollapsed ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="h-4 w-4"
+                    >
+                      <path d="m9 18 6-6-6-6" />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="h-4 w-4"
+                    >
+                      <path d="m15 18-6-6 6-6" />
+                    </svg>
+                  )}
+                </button>
               </div>
             </Sidebar.Header>
             <Sidebar.Content>
@@ -103,10 +143,10 @@ export function MainLayout({
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={defaultLayout[1]} className="relative">
           <div className="flex flex-col h-full overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 z-10 p-4 md:p-6 lg:p-8">
+            <div className="relative py-1 px-4 md:px-6 lg:px-8">
               <Header className="glass rounded-2xl" />
             </div>
-            <main className="flex-1 overflow-y-auto pt-24 p-4 md:p-6 lg:p-8">
+            <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
               {children}
             </main>
           </div>

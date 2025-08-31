@@ -8,7 +8,7 @@ import { StatsCard } from "./components/StatsCard";
 // 仪表盘页面（由原根页面迁移而来）
 export default function DashboardPage(): React.ReactElement {
   return (
-    <div className="space-y-8">
+    <div className="container mx-auto max-w-7xl px-4 md:px-6 lg:px-8 space-y-8">
       {/* 顶部标题区：一级标题 + 辅助说明 */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">欢迎回来，作家</h1>
