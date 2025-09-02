@@ -266,9 +266,12 @@ export function TiptapEditor({
   }, [settings]);
 
   return (
-    <div id={containerId} className="flex flex-col border rounded-md shadow-sm">
+    <div
+      id={containerId}
+      className="flex flex-col rounded-2xl border border-white/10 bg-card/60 shadow-lg shadow-black/10 backdrop-blur-xl"
+    >
       {/* 标题输入 */}
-      <div className="p-4 border-b">
+      <div className="p-4">
         <Label htmlFor="title" className="sr-only">
           标题
         </Label>
@@ -378,6 +381,17 @@ export function TiptapEditor({
           max-width: 65ch;
           margin: 0 auto;
           width: 100%;
+        }
+
+        #${containerId}:fullscreen .editor-toolbar {
+          opacity: 0.1;
+          transform: translateY(-100%);
+          transition: all 0.3s ease-in-out;
+        }
+
+        #${containerId}:fullscreen:hover .editor-toolbar {
+          opacity: 1;
+          transform: translateY(0);
         }
 
         /* 在专注模式下隐藏某些元素 */

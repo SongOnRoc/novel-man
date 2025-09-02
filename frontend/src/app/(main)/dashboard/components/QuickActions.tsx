@@ -13,69 +13,58 @@ import {
 // 快速操作的类型
 interface QuickAction {
   title: string;
-  description: string;
-  icon: React.ReactNode;
+  icon: React.ComponentType<{ className?: string }>;
   href: string;
+  variant: "default" | "outline";
 }
 
-// 快速操作列表
 const quickActions: QuickAction[] = [
   {
     title: "创建新作品",
-    description: "开始一个全新的创作之旅",
-    icon: <PlusCircle className="h-5 w-5" />,
+    icon: PlusCircle,
     href: "/works/new",
+    variant: "default",
   },
   {
     title: "继续写作",
-    description: "回到上次的创作内容",
-    icon: <PenTool className="h-5 w-5" />,
+    icon: PenTool,
     href: "/chapters/latest",
+    variant: "outline",
   },
   {
     title: "管理草稿",
-    description: "查看和整理您的草稿",
-    icon: <FileText className="h-5 w-5" />,
+    icon: FileText,
     href: "/drafts",
+    variant: "outline",
   },
   {
     title: "浏览作品",
-    description: "查看您的所有作品",
-    icon: <BookOpen className="h-5 w-5" />,
+    icon: BookOpen,
     href: "/works",
+    variant: "outline",
   },
 ];
 
-// 快速操作组件
 export function QuickActions(): React.ReactElement {
   return (
-    <Card className="h-full">
+    <Card>
       <CardHeader>
         <CardTitle>快速操作</CardTitle>
         <CardDescription>常用功能快速访问</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {quickActions.map((action) => (
-            <Button
-              key={action.title}
-              variant="glass"
-              className="h-auto justify-start gap-3 p-4 text-left whitespace-normal"
-              asChild
-            >
-              <a href={action.href} className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg border p-2 text-primary">
-                  {action.icon}
-                </div>
-                <div className="flex-1">
-                  <div className="font-semibold">{action.title}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {action.description}
-                  </div>
-                </div>
-              </a>
-            </Button>
-          ))}
+        <div className="flex flex-wrap items-center gap-4">
+          {quickActions.map((action) => {
+            const Icon = action.icon;
+            return (
+              <Button key={action.title} variant={action.variant} asChild>
+                <a href={action.href}>
+                  <Icon className="mr-2 h-4 w-4" />
+                  {action.title}
+                </a>
+              </Button>
+            );
+          })}
         </div>
       </CardContent>
     </Card>

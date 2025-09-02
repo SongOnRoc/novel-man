@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 
 import {
   Pagination,
@@ -12,15 +12,15 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DeleteWorkDialog } from "@/features/works/components/DeleteWorkDialog";
 import { NewWorkButton } from "@/features/works/components/NewWorkButton";
 import { WorkCard } from "@/features/works/components/WorkCard";
 import { useWorkList, useDeleteWork } from "@/hooks/work/useWorkService";
 import { Work, WorksList } from "@/lib/services/work.service";
 
-// 作品列表页面组件
 export default function WorksPage(): React.ReactElement {
-  const router = useRouter();
   const searchParams = useSearchParams();
+  const [deleteWorkId, setDeleteWorkId] = useState<number | null>(null);
 
   const page = useMemo(() => {
     const pageParam = searchParams.get("page");
@@ -33,93 +33,100 @@ export default function WorksPage(): React.ReactElement {
   const works = (worksResponse as WorksList)?.data || [];
   const pagination = (worksResponse as WorksList)?.pagination;
 
-  const handleDeleteWork = (workId: number): void => {
-    if (window.confirm("确定要删除这个作品吗？此操作不可撤销。")) {
-      deleteWork(workId);
+  const handleConfirmDelete = (): void => {
+    if (deleteWorkId) {
+      deleteWork(deleteWorkId, {
+        onSuccess: () => {
+          setDeleteWorkId(null);
+        },
+      });
     }
   };
 
   const totalPages = useMemo(() => {
-    if (!pagination || !pagination.total || !pagination.limit) {
-      return 1;
-    }
+    if (!pagination || !pagination.total || !pagination.limit) return 1;
     return Math.ceil(pagination.total / pagination.limit);
   }, [pagination]);
 
   return (
-    <div className="space-y-6">
-      {/* 页面标题和新建按钮 */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">我的作品</h1>
-          <p className="text-muted-foreground">
-            管理您的所有创作作品，继续您的创作之旅。
-          </p>
+    <>
+      <div className="space-y-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">我的作品</h1>
+            <p className="text-muted-foreground">
+              管理您的所有创作作品，继续您的创作之旅。
+            </p>
+          </div>
+          <NewWorkButton />
         </div>
-        <NewWorkButton />
-      </div>
 
-      {/* 作品列表 */}
-      {isLoading ? (
-        <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-lg" />
-          ))}
-        </div>
-      ) : (
-        <>
-          {works.length > 0 ? (
-            <div className="space-y-4">
-              {works.map((work: Work) => (
-                <WorkCard
-                  key={work.id}
-                  work={work}
-                  onDelete={() => handleDeleteWork(work.id!)}
-                  isDeleting={isDeleting}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-              <h2 className="text-2xl font-semibold">暂无作品</h2>
-              <p className="mb-4 mt-2 text-muted-foreground">
-                您还没有创建任何作品，点击下方按钮开始您的创作之旅。
-              </p>
-              <NewWorkButton />
-            </div>
-          )}
-        </>
-      )}
-
-      {/* 分页 */}
-      {totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            {page > 1 && (
-              <PaginationItem>
-                <PaginationPrevious href={`/works?page=${page - 1}`} />
-              </PaginationItem>
+        {isLoading ? (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-96 w-full rounded-2xl" />
+            ))}
+          </div>
+        ) : (
+          <>
+            {works.length > 0 ? (
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
+                {works.map((work: Work) => (
+                  <WorkCard
+                    key={work.id}
+                    work={work}
+                    onDelete={() => setDeleteWorkId(work.id!)}
+                    isDeleting={isDeleting && deleteWorkId === work.id}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center">
+                <h2 className="text-2xl font-semibold">暂无作品</h2>
+                <p className="mb-6 mt-2 text-muted-foreground">
+                  您还没有创建任何作品，点击下方按钮开始您的创作之旅。
+                </p>
+                <NewWorkButton />
+              </div>
             )}
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-              (pageNumber) => (
-                <PaginationItem key={pageNumber}>
-                  <PaginationLink
-                    href={`/works?page=${pageNumber}`}
-                    isActive={page === pageNumber}
-                  >
-                    {pageNumber}
-                  </PaginationLink>
+          </>
+        )}
+
+        {totalPages > 1 && (
+          <Pagination>
+            <PaginationContent>
+              {page > 1 && (
+                <PaginationItem>
+                  <PaginationPrevious href={`/works?page=${page - 1}`} />
                 </PaginationItem>
-              )
-            )}
-            {page < totalPages && (
-              <PaginationItem>
-                <PaginationNext href={`/works?page=${page + 1}`} />
-              </PaginationItem>
-            )}
-          </PaginationContent>
-        </Pagination>
-      )}
-    </div>
+              )}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (pageNumber) => (
+                  <PaginationItem key={pageNumber}>
+                    <PaginationLink
+                      href={`/works?page=${pageNumber}`}
+                      isActive={page === pageNumber}
+                    >
+                      {pageNumber}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              )}
+              {page < totalPages && (
+                <PaginationItem>
+                  <PaginationNext href={`/works?page=${page + 1}`} />
+                </PaginationItem>
+              )}
+            </PaginationContent>
+          </Pagination>
+        )}
+      </div>
+      <DeleteWorkDialog
+        open={deleteWorkId !== null}
+        onOpenChange={(open) => !open && setDeleteWorkId(null)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+      />
+    </>
   );
 }

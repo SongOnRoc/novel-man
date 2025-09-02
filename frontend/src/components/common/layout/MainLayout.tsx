@@ -143,10 +143,13 @@ export function MainLayout({
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={defaultLayout[1]} className="relative">
           <div className="flex flex-col h-full overflow-hidden">
-            <div className="relative py-1 px-4 md:px-6 lg:px-8">
-              <Header className="glass rounded-2xl" />
+            <div className="relative px-4 md:px-6 lg:px-8">
+              <Header />
             </div>
-            <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+            <main
+              id="main-content"
+              className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pt-0"
+            >
               {children}
             </main>
           </div>

@@ -118,22 +118,6 @@ const EditDraftPage = (): React.ReactElement => {
         })()
       )}
 
-      <div className="flex justify-between">
-        <Button variant="outline" asChild>
-          <Link href={`/works/${draft?.workId}/drafts`}>
-            Back to Draft List
-          </Link>
-        </Button>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            disabled={isSaving || !draft}
-            onClick={handleSaveClick}
-          >
-            {isSaving ? "Saving..." : "Save Draft"}
-          </Button>
-        </div>
-      </div>
 
       <div className="text-xs text-muted-foreground">
         <p>

@@ -1,20 +1,11 @@
 "use client";
 
-import { PlusCircle, Edit, Trash2 } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo } from "react";
 import { toast } from "sonner";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-  CardDescription,
-} from "@/components/ui/card";
 import {
   Pagination,
   PaginationContent,
@@ -24,69 +15,12 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CharacterCard } from "@/features/characters/components/CharacterCard";
 import {
   useCharacterList,
   useDeleteCharacter,
 } from "@/hooks/character/useCharacters";
 import { Character, CharacterList } from "@/lib/services/characters.service";
-
-function CharacterCard({
-  character,
-  onDelete,
-}: {
-  character: Character;
-  onDelete: (id: number) => void;
-}): React.ReactElement {
-  const router = useRouter();
-  return (
-    <Card
-      key={character.id}
-      className="cursor-pointer hover:shadow-lg transition-shadow"
-      onClick={() => router.push(`/tools/characters/${character.id}`)}
-    >
-      <CardHeader className="flex flex-row items-center gap-4">
-        <Avatar>
-          <AvatarImage src={character.avatar_url || ""} />
-          <AvatarFallback>
-            {character.name ? character.name.charAt(0) : "角色"}
-          </AvatarFallback>
-        </Avatar>
-        <div>
-          <CardTitle>{character.name}</CardTitle>
-          <CardDescription>{character.occupation}</CardDescription>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <p className="line-clamp-3 text-sm text-muted-foreground">
-          {character.background_story}
-        </p>
-      </CardContent>
-      <CardFooter className="flex justify-end gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={(e) => {
-            e.stopPropagation();
-            router.push(`/tools/characters/${character.id}/edit`);
-          }}
-        >
-          <Edit className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-destructive"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(character.id!);
-          }}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-}
 
 export default function CharactersPage(): React.ReactElement {
   const router = useRouter();
@@ -108,9 +42,7 @@ export default function CharactersPage(): React.ReactElement {
   const pagination = (charactersResponse as CharacterList)?.pagination;
 
   const totalPages = useMemo(() => {
-    if (!pagination || !pagination.total || !pagination.limit) {
-      return 1;
-    }
+    if (!pagination || !pagination.total || !pagination.limit) return 1;
     return Math.ceil(pagination.total / pagination.limit);
   }, [pagination]);
 
@@ -129,6 +61,10 @@ export default function CharactersPage(): React.ReactElement {
         onClick: () => {},
       },
     });
+  };
+
+  const handlePageChange = (newPage: number): void => {
+    router.push(`/tools/characters?page=${newPage}`);
   };
 
   if (error) return <div>加载角色失败...</div>;
@@ -156,7 +92,7 @@ export default function CharactersPage(): React.ReactElement {
               <CharacterCard
                 key={character.id}
                 character={character}
-                onDelete={handleDelete}
+                onDelete={() => handleDelete(character.id!)}
               />
             ))}
           </div>
@@ -166,7 +102,7 @@ export default function CharactersPage(): React.ReactElement {
                 {page > 1 && (
                   <PaginationItem>
                     <PaginationPrevious
-                      href={`/tools/characters?page=${page - 1}`}
+                      onClick={() => handlePageChange(page - 1)}
                     />
                   </PaginationItem>
                 )}
@@ -174,7 +110,7 @@ export default function CharactersPage(): React.ReactElement {
                   (pageNumber) => (
                     <PaginationItem key={pageNumber}>
                       <PaginationLink
-                        href={`/tools/characters?page=${pageNumber}`}
+                        onClick={() => handlePageChange(pageNumber)}
                         isActive={page === pageNumber}
                       >
                         {pageNumber}
@@ -185,7 +121,7 @@ export default function CharactersPage(): React.ReactElement {
                 {page < totalPages && (
                   <PaginationItem>
                     <PaginationNext
-                      href={`/tools/characters?page=${page + 1}`}
+                      onClick={() => handlePageChange(page + 1)}
                     />
                   </PaginationItem>
                 )}

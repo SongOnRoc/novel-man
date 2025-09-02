@@ -8,8 +8,8 @@ import { StatsCard } from "./components/StatsCard";
 // 仪表盘页面（由原根页面迁移而来）
 export default function DashboardPage(): React.ReactElement {
   return (
-    <div className="container mx-auto max-w-7xl px-4 md:px-6 lg:px-8 space-y-8">
-      {/* 顶部标题区：一级标题 + 辅助说明 */}
+    <div className="flex flex-col gap-8">
+      {/* 顶部标题区 */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">欢迎回来，作家</h1>
         <p className="text-muted-foreground">
@@ -17,41 +17,47 @@ export default function DashboardPage(): React.ReactElement {
         </p>
       </div>
 
-      {/* 统计卡片：响应式 2/4 栅格，卡片间距放大以增强呼吸感 */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
-          title="总作品数"
-          value="3"
-          description="包含所有状态的作品"
-          icon={<BookOpen className="h-4 w-4 text-muted-foreground" />}
-        />
-        <StatsCard
-          title="总章节数"
-          value="45"
-          description="已完成的章节总数"
-          icon={<BookText className="h-4 w-4 text-muted-foreground" />}
-        />
-        <StatsCard
-          title="草稿箱"
-          value="7"
-          description="待处理的草稿数量"
-          icon={<FileText className="h-4 w-4 text-muted-foreground" />}
-        />
-        <StatsCard
-          title="总字数"
-          value="125,430"
-          description="所有作品的总字数"
-          icon={<PenTool className="h-4 w-4 text-muted-foreground" />}
-        />
-      </div>
+      {/* 快速操作 */}
+      <QuickActions />
 
-      {/* 主内容区：左 2 列（最近作品），右 1 列（快速操作） */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <div className="md:col-span-2">
-          <RecentWorks />
+      {/* 主内容区：数据概览 + 核心内容 */}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        {/* 左侧：统计卡片 */}
+        <div className="grid gap-6 md:grid-cols-2 lg:col-span-2 lg:grid-cols-2 items-start">
+          <StatsCard
+            title="总作品数"
+            value="3"
+            description="包含所有状态的作品"
+            icon={<BookOpen className="h-8 w-8" />}
+            className="text-primary"
+          />
+          <StatsCard
+            title="总章节数"
+            value="45"
+            description="已完成的章节总数"
+            icon={<BookText className="h-8 w-8" />}
+            className="text-green-500"
+          />
+          <StatsCard
+            title="草稿箱"
+            value="7"
+            description="待处理的草稿数量"
+            icon={<FileText className="h-8 w-8" />}
+            className="text-orange-500"
+            highlight
+          />
+          <StatsCard
+            title="总字数"
+            value="125,430"
+            description="所有作品的总字数"
+            icon={<PenTool className="h-8 w-8" />}
+            className="text-blue-500"
+          />
         </div>
-        <div className="md:col-span-1">
-          <QuickActions />
+
+        {/* 右侧：最近作品 */}
+        <div className="lg:col-span-1">
+          <RecentWorks />
         </div>
       </div>
     </div>

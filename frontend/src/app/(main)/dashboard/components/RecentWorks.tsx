@@ -1,6 +1,7 @@
 import React from "react";
-import { FileText, BookOpen } from "lucide-react";
+import { BookOpen, Edit } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,7 +10,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-// 模拟作品数据的类型
 interface Work {
   id: string;
   title: string;
@@ -17,7 +17,6 @@ interface Work {
   updatedAt: string;
 }
 
-// 模拟作品数据
 const recentWorks: Work[] = [
   {
     id: "1",
@@ -39,9 +38,7 @@ const recentWorks: Work[] = [
   },
 ];
 
-// 最近作品组件
 export function RecentWorks(): React.ReactElement {
-  // 最近作品：放置于布局的左侧主列，列跨度由父级容器控制
   return (
     <Card className="h-full">
       <CardHeader>
@@ -49,13 +46,14 @@ export function RecentWorks(): React.ReactElement {
         <CardDescription>您最近更新的作品列表</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="space-y-2">
           {recentWorks.map((work) => (
-            <div
+            <a
               key={work.id}
-              className="flex items-center justify-between gap-3 border-b pb-4 last:border-0 last:pb-0 hover:bg-accent/40 rounded-md px-2 transition-colors"
+              href={`/works/${work.id}`}
+              className="group flex items-center justify-between rounded-lg p-3 transition-all duration-300 hover:bg-accent/50 hover:shadow-lg hover:-translate-y-0.5"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <BookOpen className="h-10 w-10 rounded-md border p-2 text-primary" />
                 <div>
                   <div className="font-semibold">{work.title}</div>
@@ -66,11 +64,14 @@ export function RecentWorks(): React.ReactElement {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">继续编辑</span>
-              </div>
-            </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            </a>
           ))}
         </div>
       </CardContent>

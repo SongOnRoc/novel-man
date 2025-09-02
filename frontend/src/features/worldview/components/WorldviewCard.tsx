@@ -1,8 +1,8 @@
-import { MoreVertical, User, Edit, Trash2 } from "lucide-react";
+import { MoreVertical, Globe, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,51 +17,46 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Character } from "@/lib/services/characters.service";
+import { WorldviewItem } from "@/lib/services/worldview.service";
 
-interface CharacterCardProps {
-  character: Character;
+interface WorldviewCardProps {
+  item: WorldviewItem;
+  categoryName?: string;
   onDelete: () => void;
 }
 
-export function CharacterCard({ character, onDelete }: CharacterCardProps) {
+export function WorldviewCard({
+  item,
+  categoryName,
+  onDelete,
+}: WorldviewCardProps) {
   return (
     <Card className="flex h-full flex-col transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16">
-              <AvatarImage src={""} alt={character.name} />
-              <AvatarFallback>
-                <User className="h-8 w-8" />
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <Link href={`/tools/characters/${character.id}`}>
-                <CardTitle className="hover:underline">
-                  {character.name}
-                </CardTitle>
-              </Link>
-              <CardDescription>{character.occupation || "未知职业"}</CardDescription>
-            </div>
+          <div>
+            <Link href={`/tools/worldbuilding/${item.id}`}>
+              <CardTitle className="hover:underline">{item.name}</CardTitle>
+            </Link>
+            <CardDescription>{categoryName || "未分类"}</CardDescription>
           </div>
-          <CharacterCardMenu characterId={character.id!} onDelete={onDelete} />
+          <WorldviewCardMenu itemId={item.id!} onDelete={onDelete} />
         </div>
       </CardHeader>
       <CardContent className="flex-1">
         <p className="line-clamp-3 text-sm text-muted-foreground">
-          {character.background_story || "暂无背景描述"}
+          {item.description || "暂无描述"}
         </p>
       </CardContent>
     </Card>
   );
 }
 
-function CharacterCardMenu({
-  characterId,
+function WorldviewCardMenu({
+  itemId,
   onDelete,
 }: {
-  characterId: number;
+  itemId: number;
   onDelete: () => void;
 }) {
   return (
@@ -74,7 +69,7 @@ function CharacterCardMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
-          <Link href={`/tools/characters/${characterId}/edit`}>
+          <Link href={`/tools/worldbuilding/${itemId}/edit`}>
             <Edit className="mr-2 h-4 w-4" />
             编辑
           </Link>

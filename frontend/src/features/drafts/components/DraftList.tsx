@@ -1,10 +1,7 @@
-"use client";
-
 import { MoreHorizontal } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import React from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -13,52 +10,43 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChapterForClient } from "@/lib/services/chapter.service";
+import { DraftForClient } from "@/lib/services/draft.service";
 import { formatDate } from "@/lib/utils";
 
-interface ChapterListProps {
-  chapters: ChapterForClient[];
-  onDelete: (chapter: ChapterForClient) => void;
+interface DraftListProps {
+  drafts: DraftForClient[];
+  onDelete: (draft: DraftForClient) => void;
+  onPublish: (draft: DraftForClient) => void;
 }
 
-export const ChapterList = ({ chapters, onDelete }: ChapterListProps) => {
-  const router = useRouter();
-
+export function DraftList({ drafts, onDelete, onPublish }: DraftListProps) {
   return (
     <Card>
       <div className="space-y-2 p-4">
         {/* Header */}
         <div className="grid grid-cols-12 gap-4 px-4 py-2 text-sm font-medium text-muted-foreground">
-          <div className="col-span-5">标题</div>
-          <div className="col-span-2">状态</div>
+          <div className="col-span-6">标题</div>
           <div className="col-span-2">字数</div>
-          <div className="col-span-2">最后更新</div>
+          <div className="col-span-3">最后更新</div>
           <div className="col-span-1 text-right">操作</div>
         </div>
         {/* Body */}
-        {chapters.map((chapter) => (
+        {drafts.map((draft) => (
           <div
-            key={chapter.id}
+            key={draft.id}
             className="grid grid-cols-12 items-center gap-4 border-b px-4 py-3 transition-colors last:border-b-0 hover:bg-accent/50"
           >
-            <div className="col-span-5 font-medium">
+            <div className="col-span-6 font-medium">
               <Link
-                href={`/chapters/${chapter.id}/edit`}
+                href={`/drafts/${draft.id}/edit`}
                 className="hover:underline"
               >
-                {chapter.title}
+                {draft.title}
               </Link>
             </div>
-            <div className="col-span-2">
-              <Badge
-                variant={chapter.status === "published" ? "success" : "secondary"}
-              >
-                {chapter.status}
-              </Badge>
-            </div>
-            <div className="col-span-2">{chapter.wordCount}</div>
-            <div className="col-span-2">
-              {formatDate(chapter.updatedAt || chapter.createdAt)}
+            <div className="col-span-2">{draft.wordCount}</div>
+            <div className="col-span-3">
+              {formatDate(draft.updatedAt || draft.createdAt)}
             </div>
             <div className="col-span-1 flex justify-end">
               <DropdownMenu>
@@ -69,14 +57,13 @@ export const ChapterList = ({ chapters, onDelete }: ChapterListProps) => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() =>
-                      router.push(`/chapters/${chapter.id}/edit`)
-                    }
-                  >
-                    编辑
+                  <DropdownMenuItem asChild>
+                    <Link href={`/drafts/${draft.id}/edit`}>编辑</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onDelete(chapter)}>
+                  <DropdownMenuItem onClick={() => onPublish(draft)}>
+                    发布
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onDelete(draft)}>
                     删除
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -87,4 +74,4 @@ export const ChapterList = ({ chapters, onDelete }: ChapterListProps) => {
       </div>
     </Card>
   );
-};
+}

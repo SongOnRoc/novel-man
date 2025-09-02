@@ -3,7 +3,7 @@
  * @description This file contains TanStack Query hooks for worldview-related operations.
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import {
   getCategoriesService,
@@ -15,7 +15,7 @@ import {
   getItemByIdService,
   updateItemService,
   deleteItemService,
-} from '@/lib/services/worldview.service';
+} from "@/lib/services/worldview.service";
 import type {
   CreateWorldviewCategoryPayload,
   UpdateWorldviewCategoryPayload,
@@ -23,16 +23,17 @@ import type {
   CreateWorldviewItemPayload,
   UpdateWorldviewItemPayload,
   WorldItemsParams,
-} from '@/lib/services/worldview.service';
+} from "@/lib/services/worldview.service";
 
 const worldviewKeys = {
-  all: ['worldview'] as const,
-  categories: () => [...worldviewKeys.all, 'categories'] as const,
+  all: ["worldview"] as const,
+  categories: () => [...worldviewKeys.all, "categories"] as const,
   category: (params: WorldCategoriesParams) =>
     [...worldviewKeys.categories(), params] as const,
-  items: () => [...worldviewKeys.all, 'items'] as const,
-  item: (params: WorldItemsParams) => [...worldviewKeys.items(), params] as const,
-  itemDetail: (id: number) => [...worldviewKeys.items(), 'detail', id] as const,
+  items: () => [...worldviewKeys.all, "items"] as const,
+  item: (params: WorldItemsParams) =>
+    [...worldviewKeys.items(), params] as const,
+  itemDetail: (id: number) => [...worldviewKeys.items(), "detail", id] as const,
 };
 
 /**

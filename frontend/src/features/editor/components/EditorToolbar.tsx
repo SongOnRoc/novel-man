@@ -18,6 +18,8 @@ import {
   Redo,
   Save,
   Target,
+  Expand,
+  Shrink,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -38,7 +40,6 @@ import {
 import { BookmarkManager } from "./BookmarkManager";
 import { EditorSettings } from "./EditorSettings";
 import { FindReplace } from "./FindReplace";
-import { FocusMode } from "./FocusMode";
 
 interface EditorToolbarProps {
   editor: Editor | null;
@@ -74,6 +75,31 @@ export function EditorToolbar({
       return defaultEditorSettings;
     }
   });
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  const toggleFullScreen = () => {
+    const elem = document.getElementById(editorContainerId);
+    if (!elem) return;
+
+    if (!document.fullscreenElement) {
+      elem.requestFullscreen().catch((err) => {
+        alert(
+          `Error attempting to enable full-screen mode: ${err.message} (${err.name})`
+        );
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  useEffect(() => {
+    const handleFullScreenChange = () => {
+      setIsFullScreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullScreenChange);
+    return () =>
+      document.removeEventListener("fullscreenchange", handleFullScreenChange);
+  }, []);
 
   // 使用书签Hook
   const {
@@ -122,144 +148,142 @@ export function EditorToolbar({
   }
 
   return (
-    <div className="border-b p-1 sticky top-0 bg-background z-10">
-      <div className="flex flex-wrap items-center gap-1">
+    <div className="p-2">
+      <div className="flex flex-wrap items-center gap-1 rounded-lg bg-background p-2 shadow-md">
         {/* 格式控制 */}
         <div className="flex items-center">
-          <Toggle
-            pressed={editor.isActive("bold")}
-            onPressedChange={() => editor.chain().focus().toggleBold().run()}
+          <Button
+            variant={editor.isActive("bold") ? "secondary" : "ghost"}
+            size="icon"
+            onClick={() => editor.chain().focus().toggleBold().run()}
             aria-label="加粗"
-            size="sm"
           >
             <Bold className="h-4 w-4" />
-          </Toggle>
-          <Toggle
-            pressed={editor.isActive("italic")}
-            onPressedChange={() => editor.chain().focus().toggleItalic().run()}
+          </Button>
+          <Button
+            variant={editor.isActive("italic") ? "secondary" : "ghost"}
+            size="icon"
+            onClick={() => editor.chain().focus().toggleItalic().run()}
             aria-label="斜体"
-            size="sm"
           >
             <Italic className="h-4 w-4" />
-          </Toggle>
-          <Toggle
-            pressed={editor.isActive("underline")}
-            onPressedChange={() =>
-              editor.chain().focus().toggleUnderline().run()
-            }
+          </Button>
+          <Button
+            variant={editor.isActive("underline") ? "secondary" : "ghost"}
+            size="icon"
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
             aria-label="下划线"
-            size="sm"
           >
             <Underline className="h-4 w-4" />
-          </Toggle>
+          </Button>
         </div>
 
         <Separator orientation="vertical" className="mx-1 h-6" />
 
         {/* 对齐方式 */}
         <div className="flex items-center">
-          <Toggle
-            pressed={editor.isActive({ textAlign: "left" })}
-            onPressedChange={() =>
-              editor.chain().focus().setTextAlign("left").run()
-            }
+          <Button
+            variant={editor.isActive({ textAlign: "left" }) ? "secondary" : "ghost"}
+            size="icon"
+            onClick={() => editor.chain().focus().setTextAlign("left").run()}
             aria-label="左对齐"
-            size="sm"
           >
             <AlignLeft className="h-4 w-4" />
-          </Toggle>
-          <Toggle
-            pressed={editor.isActive({ textAlign: "center" })}
-            onPressedChange={() =>
-              editor.chain().focus().setTextAlign("center").run()
+          </Button>
+          <Button
+            variant={
+              editor.isActive({ textAlign: "center" }) ? "secondary" : "ghost"
             }
+            size="icon"
+            onClick={() => editor.chain().focus().setTextAlign("center").run()}
             aria-label="居中对齐"
-            size="sm"
           >
             <AlignCenter className="h-4 w-4" />
-          </Toggle>
-          <Toggle
-            pressed={editor.isActive({ textAlign: "right" })}
-            onPressedChange={() =>
-              editor.chain().focus().setTextAlign("right").run()
+          </Button>
+          <Button
+            variant={
+              editor.isActive({ textAlign: "right" }) ? "secondary" : "ghost"
             }
+            size="icon"
+            onClick={() => editor.chain().focus().setTextAlign("right").run()}
             aria-label="右对齐"
-            size="sm"
           >
             <AlignRight className="h-4 w-4" />
-          </Toggle>
-          <Toggle
-            pressed={editor.isActive({ textAlign: "justify" })}
-            onPressedChange={() =>
-              editor.chain().focus().setTextAlign("justify").run()
+          </Button>
+          <Button
+            variant={
+              editor.isActive({ textAlign: "justify" }) ? "secondary" : "ghost"
             }
+            size="icon"
+            onClick={() => editor.chain().focus().setTextAlign("justify").run()}
             aria-label="两端对齐"
-            size="sm"
           >
             <AlignJustify className="h-4 w-4" />
-          </Toggle>
+          </Button>
         </div>
 
         <Separator orientation="vertical" className="mx-1 h-6" />
 
         {/* 标题 */}
         <div className="flex items-center">
-          <Toggle
-            pressed={editor.isActive("heading", { level: 1 })}
-            onPressedChange={() =>
+          <Button
+            variant={
+              editor.isActive("heading", { level: 1 }) ? "secondary" : "ghost"
+            }
+            size="icon"
+            onClick={() =>
               editor.chain().focus().toggleHeading({ level: 1 }).run()
             }
             aria-label="一级标题"
-            size="sm"
           >
             <Heading1 className="h-4 w-4" />
-          </Toggle>
-          <Toggle
-            pressed={editor.isActive("heading", { level: 2 })}
-            onPressedChange={() =>
+          </Button>
+          <Button
+            variant={
+              editor.isActive("heading", { level: 2 }) ? "secondary" : "ghost"
+            }
+            size="icon"
+            onClick={() =>
               editor.chain().focus().toggleHeading({ level: 2 }).run()
             }
             aria-label="二级标题"
-            size="sm"
           >
             <Heading2 className="h-4 w-4" />
-          </Toggle>
-          <Toggle
-            pressed={editor.isActive("heading", { level: 3 })}
-            onPressedChange={() =>
+          </Button>
+          <Button
+            variant={
+              editor.isActive("heading", { level: 3 }) ? "secondary" : "ghost"
+            }
+            size="icon"
+            onClick={() =>
               editor.chain().focus().toggleHeading({ level: 3 }).run()
             }
             aria-label="三级标题"
-            size="sm"
           >
             <Heading3 className="h-4 w-4" />
-          </Toggle>
+          </Button>
         </div>
 
         <Separator orientation="vertical" className="mx-1 h-6" />
 
         {/* 列表 */}
         <div className="flex items-center">
-          <Toggle
-            pressed={editor.isActive("bulletList")}
-            onPressedChange={() =>
-              editor.chain().focus().toggleBulletList().run()
-            }
+          <Button
+            variant={editor.isActive("bulletList") ? "secondary" : "ghost"}
+            size="icon"
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
             aria-label="无序列表"
-            size="sm"
           >
             <List className="h-4 w-4" />
-          </Toggle>
-          <Toggle
-            pressed={editor.isActive("orderedList")}
-            onPressedChange={() =>
-              editor.chain().focus().toggleOrderedList().run()
-            }
+          </Button>
+          <Button
+            variant={editor.isActive("orderedList") ? "secondary" : "ghost"}
+            size="icon"
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
             aria-label="有序列表"
-            size="sm"
           >
             <ListOrdered className="h-4 w-4" />
-          </Toggle>
+          </Button>
         </div>
 
         <Separator orientation="vertical" className="mx-1 h-6" />
@@ -299,9 +323,6 @@ export function EditorToolbar({
           />
         )}
 
-        {/* 专注模式按钮 */}
-        <FocusMode editorContainerId={editorContainerId} />
-
         {/* 书签管理按钮 */}
         <BookmarkManager
           editor={editor}
@@ -315,10 +336,24 @@ export function EditorToolbar({
         {/* 编辑器设置 */}
         <EditorSettings settings={settings} onSettingsChange={setSettings} />
 
+        {/* 专注模式按钮 */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleFullScreen}
+          aria-label={isFullScreen ? "退出专注模式" : "进入专注模式"}
+        >
+          {isFullScreen ? (
+            <Shrink className="h-4 w-4" />
+          ) : (
+            <Expand className="h-4 w-4" />
+          )}
+        </Button>
+
         {/* 保存按钮 */}
         {onSave && (
           <Button
-            variant="outline"
+            variant="default"
             size="sm"
             onClick={onSave}
             disabled={isSaving}

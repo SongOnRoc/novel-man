@@ -4,32 +4,45 @@ import { cn } from "@/lib/utils";
 
 // 定义统计卡片的属性类型
 interface StatsCardProps {
-  title: string; // 卡片标题
-  value: string; // 统计值
-  description?: string; // 可选描述
-  icon: React.ReactNode; // 图标
-  className?: string; // 可选CSS类名
+  title: string;
+  value: string;
+  description?: string;
+  icon: React.ReactNode;
+  className?: string;
+  highlight?: boolean;
 }
 
-// 统计卡片组件
 export function StatsCard({
   title,
   value,
   description,
   icon,
   className,
+  highlight = false,
 }: StatsCardProps): React.ReactElement {
   return (
-    <Card className={cn("overflow-hidden", className)}>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+    <Card
+      className={cn(
+        "relative overflow-hidden transition-all duration-300",
+        highlight && "scale-105 shadow-2xl",
+        className
+      )}
+    >
+      <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        {icon}
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        {description && (
-          <p className="text-xs text-muted-foreground">{description}</p>
-        )}
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-3xl font-bold">{value}</div>
+            {description && (
+              <p className="text-xs text-muted-foreground">{description}</p>
+            )}
+          </div>
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/5 p-3">
+            <div className="text-primary">{icon}</div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

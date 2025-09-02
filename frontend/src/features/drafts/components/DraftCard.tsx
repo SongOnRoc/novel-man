@@ -23,19 +23,18 @@ import { Work } from "@/lib/services/work.service";
 
 interface DraftCardProps {
   draft: DraftForClient;
-  works: Work[];
+  workTitle?: string;
   onDelete: () => void;
   onPublish: () => void;
 }
 
 export function DraftCard({
   draft,
-  works,
+  workTitle,
   onDelete,
   onPublish,
 }: DraftCardProps) {
   const router = useRouter();
-  const work = works.find((w) => w.id === draft.workId);
 
   return (
     <Card>
@@ -49,7 +48,7 @@ export function DraftCard({
       </CardContent>
       <CardFooter className="flex justify-between">
         <div>
-          <p className="text-sm font-medium">{work?.title}</p>
+          <p className="text-sm font-medium">{workTitle || "Untitled Work"}</p>
           <p className="text-xs text-muted-foreground">
             Updated at {formatDate(draft.updatedAt || draft.createdAt)}
           </p>
