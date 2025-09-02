@@ -43,3 +43,8 @@ memory-bank
 /*.md
 
 !Readme.md
+
+# 剔除其他文件
+!.vscode
+!.github
+/.*
