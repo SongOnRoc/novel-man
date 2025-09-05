@@ -1,6 +1,7 @@
+"use client";
+
 import React from "react";
 import { BookOpen, Edit } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,36 +10,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { WorkForClient } from "@/lib/services/work.service";
+import { formatDate } from "@/lib/utils";
 
-interface Work {
-  id: string;
-  title: string;
-  chapters: number;
-  updatedAt: string;
+interface RecentWorksProps {
+  recentWorks: WorkForClient[];
 }
 
-const recentWorks: Work[] = [
-  {
-    id: "1",
-    title: "修仙从种田开始",
-    chapters: 23,
-    updatedAt: "2023-09-20",
-  },
-  {
-    id: "2",
-    title: "都市之全能高手",
-    chapters: 15,
-    updatedAt: "2023-09-18",
-  },
-  {
-    id: "3",
-    title: "星际穿越之旅",
-    chapters: 7,
-    updatedAt: "2023-09-15",
-  },
-];
-
-export function RecentWorks(): React.ReactElement {
+export function RecentWorks({ recentWorks }: RecentWorksProps): React.ReactElement {
   return (
     <Card className="h-full">
       <CardHeader>
@@ -58,9 +37,7 @@ export function RecentWorks(): React.ReactElement {
                 <div>
                   <div className="font-semibold">{work.title}</div>
                   <div className="text-sm text-muted-foreground">
-                    <span>{work.chapters} 章节</span>
-                    <span className="mx-2">•</span>
-                    <span>更新于 {work.updatedAt}</span>
+                    <span>更新于 {formatDate(work.updatedAt)}</span>
                   </div>
                 </div>
               </div>

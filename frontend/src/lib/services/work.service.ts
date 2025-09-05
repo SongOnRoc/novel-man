@@ -10,7 +10,9 @@ import type {
   WorksUpdateWorkRequest,
   GetWorksParams,
   WorksListWorksResponse,
+  ResponsePagination,
 } from "@/lib/api/generated/api10.schemas";
+import { SnakeToCamelCase } from "@/types/type-utils";
 import {
   getWorks,
   postWorks,
@@ -28,6 +30,11 @@ export type CreateWorkPayload = WorksCreateWorkRequest;
 export type UpdateWorkPayload = WorksUpdateWorkRequest;
 export type WorksParams = GetWorksParams;
 export type WorksList = WorksListWorksResponse;
+export type WorkForClient = SnakeToCamelCase<Work>;
+export type WorksListForClient = {
+  data?: WorkForClient[];
+  pagination?: ResponsePagination;
+};
 
 /**
  * Fetches a paginated list of works.

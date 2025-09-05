@@ -89,17 +89,19 @@ type WorldviewItem struct {
 
 // Work 是单个写作项目（如小说）的聚合根。
 type Work struct {
-	ID            int64          `gorm:"primarykey" json:"id"`
-	CreatedAt     time.Time      `json:"created_at"`
-	UpdatedAt     time.Time      `json:"updated_at"`
-	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
-	UserID        uint           `gorm:"not null" json:"user_id"`
-	Title         string         `gorm:"type:varchar(255);not null" json:"title"`
-	Description   string         `gorm:"type:text" json:"description"`
-	CoverImageURL string         `gorm:"type:varchar(255)" json:"cover_image_url"`
-	Category      string         `gorm:"type:varchar(100)" json:"category"`
-	Status        string         `gorm:"type:varchar(50)" json:"status"`
-	Outline       string         `gorm:"type:text" json:"outline"`
+	ID                int64          `gorm:"primarykey" json:"id"`
+	CreatedAt         time.Time      `json:"created_at"`
+	UpdatedAt         time.Time      `json:"updated_at"`
+	DeletedAt         gorm.DeletedAt `gorm:"index" json:"-"`
+	UserID            uint           `gorm:"not null" json:"user_id"`
+	Title             string         `gorm:"type:varchar(255);not null" json:"title"`
+	Description       string         `gorm:"type:text" json:"description"`
+	CoverImageURL     string         `gorm:"type:varchar(255)" json:"cover_image_url"`
+	Category          string         `gorm:"type:varchar(100)" json:"category"`
+	Status            string         `gorm:"type:varchar(50)" json:"status"`
+	Outline           string         `gorm:"type:text" json:"outline"`
+	TotalWordCount    int            `gorm:"default:0" json:"total_word_count"`
+	TotalChapterCount int            `gorm:"default:0" json:"total_chapter_count"`
 
 	// 优化：使用 GORM 的 many2many 标签自动处理作品与世界观条目的关联
 	WorldviewItems []WorldviewItem `gorm:"many2many:work_worldview_items;" json:"worldview_items,omitempty"`

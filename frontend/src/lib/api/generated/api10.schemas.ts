@@ -358,6 +358,8 @@ export interface WorksWorkResponse {
   outline?: string;
   status?: string;
   title?: string;
+  total_chapter_count?: number;
+  total_word_count?: number;
   updated_at?: string;
   user_id?: number;
 }

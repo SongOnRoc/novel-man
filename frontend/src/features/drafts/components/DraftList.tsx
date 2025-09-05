@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DraftForClient } from "@/lib/services/draft.service";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatWordCount } from "@/lib/utils";
 
 interface DraftListProps {
   drafts: DraftForClient[];
@@ -44,7 +44,7 @@ export function DraftList({ drafts, onDelete, onPublish }: DraftListProps) {
                 {draft.title}
               </Link>
             </div>
-            <div className="col-span-2">{draft.wordCount}</div>
+            <div className="col-span-2">{formatWordCount(draft.wordCount || 0)}</div>
             <div className="col-span-3">
               {formatDate(draft.updatedAt || draft.createdAt)}
             </div>

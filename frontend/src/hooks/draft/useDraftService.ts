@@ -68,9 +68,7 @@ export const useDraftList = (params: UseDraftListParams) => {
     // in how the key is generated and used throughout the app.
     queryKey: draftKeys.list(serviceParams),
     queryFn: () =>
-      getDraftsService(serviceParams) as unknown as DraftListResponseForClient,
-    // The query is enabled only if workId is provided.
-    enabled: !!workId,
+      getDraftsService(serviceParams) as unknown as DraftListResponseForClient
   });
 };
 

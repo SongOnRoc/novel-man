@@ -27,6 +27,7 @@ import type {
   CreateWorkPayload,
   UpdateWorkPayload,
   WorksParams,
+  WorksListForClient,
 } from '@/lib/services/work.service';
 
 /**
@@ -55,7 +56,7 @@ const workKeys = {
 export const useWorkList = (params: WorksParams) => {
   return useQuery({
     queryKey: workKeys.list(params),
-    queryFn: () => getWorksService(params),
+    queryFn: () => getWorksService(params) as unknown as WorksListForClient,
   });
 };
 

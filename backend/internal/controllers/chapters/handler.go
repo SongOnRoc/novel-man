@@ -9,6 +9,7 @@ import (
 	"novel-man/backend/internal/contracts"
 	"novel-man/backend/internal/contracts/chapters"
 	"novel-man/backend/internal/contracts/works"
+	"novel-man/backend/internal/logger"
 	"novel-man/backend/internal/models"
 	"novel-man/backend/utils/context"
 	"novel-man/backend/utils/response"
@@ -81,6 +82,51 @@ func toChapterResponse(chapter *models.Chapter) ChapterResponse {
 	}
 }
 
+// updateWorkWordCount 是一个辅助方法，用于在章节变更后增量更新作品的 total_word_count
+func (c *ChapterController) updateWorkWordCount(ctx *gin.Context, workID int64, wordCountDelta int) error {
+	// 1. 获取 Work 对象
+	work, err := c.workService.GetByID(*context.New(ctx), workID)
+	if err != nil {
+		// 如果找不到作品，可能意味着作品已被删除，这里可以视为一种成功状态
+		return nil
+	}
+
+	// 2. 增量更新 Work 的 TotalWordCount
+	work.TotalWordCount += wordCountDelta
+	if work.TotalWordCount < 0 { // 防止字数变为负数
+		work.TotalWordCount = 0
+	}
+
+	// 3. 更新 Work
+	if err := c.workService.Update(*context.New(ctx), work.ID, work); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// updateWorkChapterCount 是一个辅助方法，用于在章节创建或删除后增量更新作品的 total_chapter_count
+func (c *ChapterController) updateWorkChapterCount(ctx *gin.Context, workID int64, delta int) error {
+	// 1. 获取 Work 对象
+	work, err := c.workService.GetByID(*context.New(ctx), workID)
+	if err != nil {
+		return nil
+	}
+
+	// 2. 增量更新 Work 的 TotalChapterCount
+	work.TotalChapterCount += delta
+	if work.TotalChapterCount < 0 {
+		work.TotalChapterCount = 0
+	}
+
+	// 3. 更新 Work
+	if err := c.workService.Update(*context.New(ctx), work.ID, work); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // CreateChapter godoc
 // @Summary Create a new chapter
 // @Description Create a new chapter for a work
@@ -113,6 +159,14 @@ func (c *ChapterController) CreateChapter(ctx *gin.Context) {
 	if err := c.service.Create(*context.New(ctx), chapter); err != nil {
 		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to create chapter", err)
 		return
+	}
+
+	// 更新作品的字数统计
+	if err := c.updateWorkWordCount(ctx, req.WorkID, req.WordCount); err != nil {
+		logger.Error(context.New(ctx), "Failed to update work word count after chapter creation: %v", err)
+	}
+	if err := c.updateWorkChapterCount(ctx, req.WorkID, 1); err != nil {
+		logger.Error(context.New(ctx), "Failed to update work chapter count after chapter creation: %v", err)
 	}
 
 	response.Success(ctx, http.StatusCreated, toChapterResponse(chapter))
@@ -187,6 +241,8 @@ func (c *ChapterController) UpdateChapter(ctx *gin.Context) {
 		return
 	}
 
+	oldWordCount := chapter.WordCount
+
 	// Update fields
 	chapter.VolumeID = req.VolumeID
 	chapter.Title = req.Title
@@ -198,6 +254,12 @@ func (c *ChapterController) UpdateChapter(ctx *gin.Context) {
 	if err := c.service.Update(*context.New(ctx), uint(id), chapter); err != nil {
 		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to update chapter", err)
 		return
+	}
+
+	// 更新作品的字数统计
+	wordCountDelta := req.WordCount - oldWordCount
+	if err := c.updateWorkWordCount(ctx, chapter.WorkID, wordCountDelta); err != nil {
+		logger.Error(context.New(ctx), "Failed to update work word count after chapter update: %v", err)
 	}
 
 	response.Success(ctx, http.StatusOK, toChapterResponse(chapter))
@@ -221,13 +283,37 @@ func (c *ChapterController) DeleteChapter(ctx *gin.Context) {
 		return
 	}
 
+	// 在删除前，先获取 chapter 对象以得到 workID 和 wordCount
+	chapter, err := c.service.GetByID(*context.New(ctx), uint(id))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Chapter not found", err)
+		} else {
+			response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to get chapter for deletion", err)
+		}
+		return
+	}
+
+	workID := chapter.WorkID
+	wordCount := chapter.WordCount
+
 	if err := c.service.Delete(*context.New(ctx), uint(id)); err != nil {
+		// 再次检查错误，以防万一
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Chapter not found", err)
 		} else {
 			response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to delete chapter", err)
 		}
 		return
+	}
+
+	// 更新作品的字数统计
+	if err := c.updateWorkWordCount(ctx, workID, -wordCount); err != nil {
+		logger.Error(context.New(ctx), "Failed to update work word count after chapter deletion: %v", err)
+	}
+	// 更新作品的章节数
+	if err := c.updateWorkChapterCount(ctx, workID, -1); err != nil {
+		logger.Error(context.New(ctx), "Failed to update work chapter count after chapter deletion: %v", err)
 	}
 
 	response.Success(ctx, http.StatusOK, gin.H{"message": "Chapter deleted successfully"})

@@ -61,3 +61,20 @@ export function formatDate(dateString?: string | null): string {
     return "Invalid Date";
   }
 }
+
+/**
+ * Formats a number representing a word count into a human-readable string.
+ * If the count is less than 10,000, it returns the number with commas.
+ * If the count is 10,000 or more, it returns the number in units of "万" (ten thousands)
+ * with two decimal places.
+ *
+ * @param count - The word count to format.
+ * @returns The formatted word count string.
+ */
+export function formatWordCount(count: number): string {
+  if (count < 10000) {
+    return count.toLocaleString();
+  } else {
+    return `${(count / 10000).toFixed(2)}万`;
+  }
+}

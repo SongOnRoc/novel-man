@@ -117,11 +117,11 @@ export function EditorToolbar({
     // 应用字体大小和行间距
     document.documentElement.style.setProperty(
       "--editor-font-size",
-      `${settings.fontSize}px`,
+      `${settings.fontSize}px`
     );
     document.documentElement.style.setProperty(
       "--editor-line-height",
-      `${settings.lineSpacing}`,
+      `${settings.lineSpacing}`
     );
 
     // 应用主题
@@ -132,7 +132,7 @@ export function EditorToolbar({
         "theme-default",
         "theme-sepia",
         "theme-dark",
-        "theme-minimal",
+        "theme-minimal"
       );
       // 添加当前主题类
       editorElement.classList.add(`theme-${settings.theme}`);
@@ -183,7 +183,9 @@ export function EditorToolbar({
         {/* 对齐方式 */}
         <div className="flex items-center">
           <Button
-            variant={editor.isActive({ textAlign: "left" }) ? "secondary" : "ghost"}
+            variant={
+              editor.isActive({ textAlign: "left" }) ? "secondary" : "ghost"
+            }
             size="icon"
             onClick={() => editor.chain().focus().setTextAlign("left").run()}
             aria-label="左对齐"

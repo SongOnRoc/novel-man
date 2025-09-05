@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChapterForClient } from "@/lib/services/chapter.service";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatWordCount } from "@/lib/utils";
 
 interface ChapterListProps {
   chapters: ChapterForClient[];
@@ -56,7 +56,7 @@ export const ChapterList = ({ chapters, onDelete }: ChapterListProps) => {
                 {chapter.status}
               </Badge>
             </div>
-            <div className="col-span-2">{chapter.wordCount}</div>
+            <div className="col-span-2">{formatWordCount(chapter.wordCount || 0)}</div>
             <div className="col-span-2">
               {formatDate(chapter.updatedAt || chapter.createdAt)}
             </div>

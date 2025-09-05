@@ -1,6 +1,5 @@
 import React from "react";
 import { PlusCircle, BookOpen, FileText, PenTool } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,43 +8,55 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { WorkForClient } from "@/lib/services/work.service";
+import { DraftForClient } from "@/lib/services/draft.service";
 
-// 快速操作的类型
 interface QuickAction {
   title: string;
   icon: React.ComponentType<{ className?: string }>;
   href: string;
   variant: "default" | "outline";
+  disabled?: boolean;
 }
 
-const quickActions: QuickAction[] = [
-  {
-    title: "创建新作品",
-    icon: PlusCircle,
-    href: "/works/new",
-    variant: "default",
-  },
-  {
-    title: "继续写作",
-    icon: PenTool,
-    href: "/chapters/latest",
-    variant: "outline",
-  },
-  {
-    title: "管理草稿",
-    icon: FileText,
-    href: "/drafts",
-    variant: "outline",
-  },
-  {
-    title: "浏览作品",
-    icon: BookOpen,
-    href: "/works",
-    variant: "outline",
-  },
-];
+interface QuickActionsProps {
+  latestWork?: WorkForClient;
+  latestDraft?: DraftForClient;
+}
 
-export function QuickActions(): React.ReactElement {
+export function QuickActions({
+  latestWork,
+  latestDraft,
+}: QuickActionsProps): React.ReactElement {
+  const quickActions: QuickAction[] = [
+    {
+      title: "继续写作",
+      icon: PenTool,
+      href: latestDraft ? `/drafts/${latestDraft.id}/edit` : "#",
+      variant: "default",
+      disabled: !latestDraft,
+    },
+    {
+      title: "最新章节",
+      icon: FileText,
+      href: latestWork ? `/works/${latestWork.id}/chapters` : "#",
+      variant: "outline",
+      disabled: !latestWork,
+    },
+    {
+      title: "创建新作品",
+      icon: PlusCircle,
+      href: "/works/new",
+      variant: "outline",
+    },
+    {
+      title: "浏览作品",
+      icon: BookOpen,
+      href: "/works",
+      variant: "outline",
+    },
+  ];
+
   return (
     <Card>
       <CardHeader>
@@ -57,7 +68,12 @@ export function QuickActions(): React.ReactElement {
           {quickActions.map((action) => {
             const Icon = action.icon;
             return (
-              <Button key={action.title} variant={action.variant} asChild>
+              <Button
+                key={action.title}
+                variant={action.variant}
+                asChild
+                disabled={action.disabled}
+              >
                 <a href={action.href}>
                   <Icon className="mr-2 h-4 w-4" />
                   {action.title}

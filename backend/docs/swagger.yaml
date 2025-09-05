@@ -624,6 +624,10 @@ components:
           type: string
         title:
           type: string
+        total_chapter_count:
+          type: integer
+        total_word_count:
+          type: integer
         updated_at:
           type: string
         user_id:

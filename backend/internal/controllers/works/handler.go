@@ -7,21 +7,30 @@ import (
 	"time"
 
 	"novel-man/backend/internal/contracts"
+	"novel-man/backend/internal/contracts/chapters"
 	"novel-man/backend/internal/contracts/works"
+	"novel-man/backend/internal/logger"
 	"novel-man/backend/internal/models"
 	"novel-man/backend/utils/context"
 	"novel-man/backend/utils/response"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type WorkController struct {
-	service works.WorkService
+	service                 works.WorkService
+	chapter                 chapters.ChapterService
+	recalculationInProgress sync.Map
 }
 
-func NewWorkController(service works.WorkService) *WorkController {
-	return &WorkController{service: service}
+func NewWorkController(service works.WorkService, chapterService chapters.ChapterService) *WorkController {
+	return &WorkController{
+		service:                 service,
+		chapter:                 chapterService,
+		recalculationInProgress: sync.Map{},
+	}
 }
 
 // DTOs
@@ -44,16 +53,18 @@ type UpdateWorkRequest struct {
 }
 
 type WorkResponse struct {
-	ID            int64     `json:"id"`
-	UserID        uint      `json:"user_id"`
-	Title         string    `json:"title"`
-	Description   string    `json:"description"`
-	Category      string    `json:"category"`
-	Status        string    `json:"status"`
-	CoverImageURL string    `json:"cover_image_url"`
-	Outline       string    `json:"outline"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
+	ID                int64     `json:"id"`
+	UserID            uint      `json:"user_id"`
+	Title             string    `json:"title"`
+	Description       string    `json:"description"`
+	Category          string    `json:"category"`
+	Status            string    `json:"status"`
+	CoverImageURL     string    `json:"cover_image_url"`
+	Outline           string    `json:"outline"`
+	TotalWordCount    int       `json:"total_word_count"`
+	TotalChapterCount int       `json:"total_chapter_count"`
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
 }
 
 type ListWorksResponse struct {
@@ -63,16 +74,49 @@ type ListWorksResponse struct {
 
 func toWorkResponse(work *models.Work) WorkResponse {
 	return WorkResponse{
-		ID:            work.ID,
-		UserID:        work.UserID,
-		Title:         work.Title,
-		Description:   work.Description,
-		Category:      work.Category,
-		Status:        work.Status,
-		CoverImageURL: work.CoverImageURL,
-		Outline:       work.Outline,
-		CreatedAt:     work.CreatedAt,
-		UpdatedAt:     work.UpdatedAt,
+		ID:                work.ID,
+		UserID:            work.UserID,
+		Title:             work.Title,
+		Description:       work.Description,
+		Category:          work.Category,
+		Status:            work.Status,
+		CoverImageURL:     work.CoverImageURL,
+		Outline:           work.Outline,
+		TotalWordCount:    work.TotalWordCount,
+		TotalChapterCount: work.TotalChapterCount,
+		CreatedAt:         work.CreatedAt,
+		UpdatedAt:         work.UpdatedAt,
+	}
+}
+
+// recalculateWorkStats 是一个辅助方法，用于异步地重新计算和更新作品的统计数据
+func (c *WorkController) recalculateWorkStats(ctx context.Context, work *models.Work) {
+	// 1. 获取该作品下的所有章节
+	filters := contracts.Filters{"work_id": work.ID}
+	chapters, _, err := c.chapter.List(ctx, 1, 100000, filters)
+	if err != nil {
+		// 在后台任务中，我们通常只记录错误，而不影响主流程
+		logger.Error(&ctx, "Failed to list chapters for stats recalculation for work %d: %v", work.ID, err)
+		return
+	}
+
+	// 2. 计算总字数和总章节数
+	totalWordCount := 0
+	for _, chapter := range chapters {
+		totalWordCount += chapter.WordCount
+	}
+	totalChapterCount := len(chapters)
+
+	// 3. 如果统计数据没有变化，则无需更新
+	if totalWordCount == work.TotalWordCount && totalChapterCount == work.TotalChapterCount {
+		return
+	}
+
+	// 4. 更新 Work 的统计数据
+	work.TotalWordCount = totalWordCount
+	work.TotalChapterCount = totalChapterCount
+	if err := c.service.Update(ctx, work.ID, work); err != nil {
+		logger.Error(&ctx, "Failed to update work stats after recalculation for work %d: %v", work.ID, err)
 	}
 }
 
@@ -150,6 +194,19 @@ func (c *WorkController) GetWork(ctx *gin.Context) {
 			response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to get work", err)
 		}
 		return
+	}
+
+	// 惰性计算：如果 total_word_count 为 0，则异步重新计算
+	if work.TotalWordCount == 0 || work.TotalChapterCount == 0 {
+		// 使用 sync.Map 防止对同一个 work 的并发计算
+		if _, loaded := c.recalculationInProgress.LoadOrStore(work.ID, true); !loaded {
+			go func() {
+				// 在 goroutine 结束时，从 map 中删除标记
+				defer c.recalculationInProgress.Delete(work.ID)
+				// 使用克隆的 context，以防原始请求结束
+				c.recalculateWorkStats(*context.New(ctx.Copy()), work)
+			}()
+		}
 	}
 
 	response.Success(ctx, http.StatusOK, toWorkResponse(work))
@@ -279,6 +336,20 @@ func (c *WorkController) ListWorks(ctx *gin.Context) {
 
 	workResponses := make([]WorkResponse, len(works))
 	for i, work := range works {
+		// 惰性计算：如果 total_word_count 为 0，则异步重新计算
+		if work.TotalWordCount == 0 || work.TotalChapterCount == 0 {
+			// 使用 sync.Map 防止对同一个 work 的并发计算
+			if _, loaded := c.recalculationInProgress.LoadOrStore(work.ID, true); !loaded {
+				// 捕获 work 变量以在闭包中使用
+				currentWork := work
+				go func() {
+					// 在 goroutine 结束时，从 map 中删除标记
+					defer c.recalculationInProgress.Delete(currentWork.ID)
+					// 使用克隆的 context，以防原始请求结束
+					c.recalculateWorkStats(*context.New(ctx.Copy()), &currentWork)
+				}()
+			}
+		}
 		workResponses[i] = toWorkResponse(&work)
 	}
 
