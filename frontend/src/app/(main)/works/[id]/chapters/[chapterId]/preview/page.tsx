@@ -13,23 +13,23 @@ import {
   useChapterById,
   useChapterList,
 } from "@/hooks/chapter/useChapterService";
-import { Chapter, ChapterListResponse } from "@/lib/services/chapter.service";
-
+import { ChapterForClient, ChapterListResponse } from "@/lib/services/chapter.service";
 
 export default function ChapterPreviewPage(): React.ReactElement {
   const params = useParams();
-  const chapterId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const workId = parseInt(params.id as string, 10);
+  const chapterId = parseInt(params.chapterId as string, 10);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const { data: chapter, isLoading } = useChapterById(Number(chapterId));
+  const { data: chapter, isLoading } = useChapterById(chapterId);
 
   const { data: chaptersData } = useChapterList({
-    work_id: chapter?.work_id ?? 0,
+    workId: workId,
     page: 1,
     limit: 9999,
   });
 
-  const chapters: Chapter[] = (chaptersData as ChapterListResponse)?.data ?? [];
+  const chapters: ChapterForClient[] = (chaptersData as ChapterListResponse)?.data ?? [];
 
   if (!chapterId) {
     return notFound();
@@ -48,20 +48,20 @@ export default function ChapterPreviewPage(): React.ReactElement {
         break;
       case "volume":
         const volumeChapters =
-          chapters?.filter((c: Chapter) => c.volume_id === chapter.volume_id) ??
+          chapters?.filter((c: ChapterForClient) => c.volumeId === chapter.volumeId) ??
           [];
         title = `分卷-${
-          volumeChapters[0]?.volume_id ?? chapter.volume_id ?? ""
+          volumeChapters[0]?.volumeId ?? chapter.volumeId ?? ""
         }`;
         contentToExport = volumeChapters
-          .map((c: Chapter) => `## ${c.title}\n\n${c.content}`)
+          .map((c: ChapterForClient) => `## ${c.title}\n\n${c.content}`)
           .join("\n\n---\n\n");
         break;
       case "all":
         title = `全书`;
         contentToExport =
           chapters
-            ?.map((c: Chapter) => `## ${c.title}\n\n${c.content}`)
+            ?.map((c: ChapterForClient) => `## ${c.title}\n\n${c.content}`)
             .join("\n\n---\n\n") ?? "";
         break;
       default:
@@ -110,13 +110,15 @@ export default function ChapterPreviewPage(): React.ReactElement {
       <div className="mb-6 flex justify-between items-center">
         <div className="flex gap-2">
           <Button variant="outline" size="sm" asChild>
-            <Link href={`/chapters?workId=${chapter.work_id}`}>
+            <Link href={`/works/${workId}/chapters`}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               返回章节列表
             </Link>
           </Button>
           <Button variant="outline" size="sm" asChild>
-            <Link href={`/chapters/${chapter.id}/edit`}>返回编辑</Link>
+            <Link href={`/works/${workId}/chapters/${chapterId}/edit`}>
+              返回编辑
+            </Link>
           </Button>
         </div>
         <ExportDialog onExport={handleExport} />

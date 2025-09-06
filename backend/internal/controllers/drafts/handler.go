@@ -34,6 +34,7 @@ type CreateDraftRequest struct {
 }
 
 type UpdateDraftRequest struct {
+	WorkID      *int64 `json:"work_id,omitempty"`
 	Title       string `json:"title"`
 	Content     string `json:"content"`
 	Description string `json:"description"`
@@ -219,6 +220,12 @@ func (c *DraftController) UpdateDraft(ctx *gin.Context) {
 	draft.WordCount = req.WordCount
 	draft.Description = req.Description
 	draft.Status = req.Status
+	// Allow associating a draft with a work.
+	// If req.WorkID is nil, it will not be updated.
+	// If req.WorkID is a valid int64 pointer, it will be updated.
+	if req.WorkID != nil {
+		draft.WorkID = req.WorkID
+	}
 
 	if err := c.service.Update(*context.New(ctx), uint(id), draft); err != nil {
 		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to update draft", err)

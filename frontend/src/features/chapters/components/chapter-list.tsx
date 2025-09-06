@@ -19,9 +19,14 @@ import { formatDate, formatWordCount } from "@/lib/utils";
 interface ChapterListProps {
   chapters: ChapterForClient[];
   onDelete: (chapter: ChapterForClient) => void;
+  workId: number;
 }
 
-export const ChapterList = ({ chapters, onDelete }: ChapterListProps) => {
+export const ChapterList = ({
+  chapters,
+  onDelete,
+  workId,
+}: ChapterListProps) => {
   const router = useRouter();
 
   return (
@@ -43,7 +48,7 @@ export const ChapterList = ({ chapters, onDelete }: ChapterListProps) => {
           >
             <div className="col-span-5 font-medium">
               <Link
-                href={`/chapters/${chapter.id}/edit`}
+                href={`/works/${workId}/chapters/${chapter.id}/edit`}
                 className="hover:underline"
               >
                 {chapter.title}
@@ -71,7 +76,7 @@ export const ChapterList = ({ chapters, onDelete }: ChapterListProps) => {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem
                     onClick={() =>
-                      router.push(`/chapters/${chapter.id}/edit`)
+                      router.push(`/works/${workId}/chapters/${chapter.id}/edit`)
                     }
                   >
                     编辑

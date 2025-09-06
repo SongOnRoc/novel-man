@@ -22,7 +22,7 @@ import type {
   ChapterListResponseForClient,
   ChapterForClient,
 } from "@/lib/services/chapter.service";
-import { toSnakeCase } from "@/lib/utils";
+import { toCamelCase, toSnakeCase } from "@/lib/utils";
 import { SnakeToCamelCase } from "@/types/type-utils";
 
 // Client-facing payload types with camelCase properties
@@ -63,13 +63,10 @@ export const useChapterList = (params: UseChapterListParams) => {
     ...rest,
   };
 
-  return useQuery<ChapterListResponseForClient>({
-    // We use the client-facing params for the queryKey to ensure consistency
-    // in how the key is generated and used throughout the app.
+  return useQuery({
     queryKey: chapterKeys.list(serviceParams),
-    queryFn: () =>
-      getChaptersService(serviceParams) as unknown as ChapterListResponseForClient,
-    // The query is enabled only if workId is provided.
+    queryFn: () => getChaptersService(serviceParams),
+    select: (data) => toCamelCase(data) as ChapterListResponseForClient,
     enabled: !!workId,
   });
 };
@@ -83,7 +80,7 @@ export const useChapterById = (id: number) => {
     queryKey: chapterKeys.detail(id),
     queryFn: () => getChapterByIdService(id),
     enabled: !!id,
-    select: (data) => data as ChapterForClient,
+    select: (data) => toCamelCase(data) as ChapterForClient,
   });
 };
 
@@ -139,7 +136,34 @@ export const useDeleteChapter = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => deleteChapterService(id),
-    onSuccess: () => {
+    onMutate: async (deletedChapterId) => {
+      await queryClient.cancelQueries({ queryKey: chapterKeys.lists() });
+      const previousChapterLists = queryClient.getQueryData(chapterKeys.lists());
+
+      queryClient.setQueryData(
+        chapterKeys.lists(),
+        (old: ChapterListResponseForClient | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            data: old.data?.filter(
+              (chapter) => chapter.id !== deletedChapterId
+            ),
+          };
+        }
+      );
+
+      return { previousChapterLists };
+    },
+    onError: (_err, _deletedChapterId, context) => {
+      if (context?.previousChapterLists) {
+        queryClient.setQueryData(
+          chapterKeys.lists(),
+          context.previousChapterLists
+        );
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: chapterKeys.lists() });
     },
   });

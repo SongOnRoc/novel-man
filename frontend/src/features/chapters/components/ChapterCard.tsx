@@ -49,7 +49,7 @@ export function ChapterCard({
     <Card className="flex h-full flex-col transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
-          <Link href={`/chapters/${chapter.id}/edit`}>
+          <Link href={`/works/${workId}/chapters/${chapter.id}/edit`}>
             <CardTitle className="hover:underline">{chapter.title}</CardTitle>
           </Link>
           <ChapterCardMenu
@@ -78,7 +78,7 @@ export function ChapterCard({
       </CardContent>
       <CardFooter>
         <Button className="w-full" asChild>
-          <Link href={`/chapters/${chapter.id}/edit`}>
+          <Link href={`/works/${workId}/chapters/${chapter.id}/edit`}>
             <Edit className="mr-2 h-4 w-4" />
             编辑章节
           </Link>
@@ -109,7 +109,7 @@ function ChapterCardMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
-          <Link href={`/chapters/${chapterId}/preview`}>预览</Link>
+          <Link href={`/works/${workId}/chapters/${chapterId}/preview`}>预览</Link>
         </DropdownMenuItem>
         <DropdownMenuItem
           className="text-destructive"

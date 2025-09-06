@@ -23,7 +23,7 @@ import type {
   DraftListResponseForClient,
   DraftForClient,
 } from "@/lib/services/draft.service";
-import { toSnakeCase } from "@/lib/utils";
+import { toCamelCase, toSnakeCase } from "@/lib/utils";
 import { SnakeToCamelCase } from "@/types/type-utils";
 
 // Client-facing payload types with camelCase properties
@@ -64,11 +64,9 @@ export const useDraftList = (params: UseDraftListParams) => {
   };
 
   return useQuery({
-    // We use the client-facing params for the queryKey to ensure consistency
-    // in how the key is generated and used throughout the app.
     queryKey: draftKeys.list(serviceParams),
-    queryFn: () =>
-      getDraftsService(serviceParams) as unknown as DraftListResponseForClient
+    queryFn: () => getDraftsService(serviceParams),
+    select: (data) => toCamelCase(data) as DraftListResponseForClient,
   });
 };
 
@@ -81,7 +79,7 @@ export const useDraftById = (id: number) => {
     queryKey: draftKeys.detail(id),
     queryFn: () => getDraftByIdService(id),
     enabled: !!id,
-    select: (data) => data as DraftForClient,
+    select: (data) => toCamelCase(data) as DraftForClient,
   });
 };
 

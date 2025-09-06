@@ -179,6 +179,7 @@ export interface DraftsUpdateDraftRequest {
   status?: string;
   title?: string;
   word_count?: number;
+  work_id?: number;
 }
 
 export interface ModelsAIContext {

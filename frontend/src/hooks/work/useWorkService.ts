@@ -5,48 +5,46 @@
  * data fetching, caching, and mutations.
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { toCamelCase } from "@/lib/utils";
 import {
   useRelationshipList,
   useCreateRelationship,
   useDeleteRelationship,
-} from '@/hooks/relationship/useRelationshipService';
+} from "@/hooks/relationship/useRelationshipService";
 import {
   Relationship,
   RelationshipListResponse,
-} from '@/lib/services/relationship.service';
+} from "@/lib/services/relationship.service";
 import {
   getWorksService,
   getWorkByIdService,
   createWorkService,
   updateWorkService,
   deleteWorkService,
-} from '@/lib/services/work.service';
+} from "@/lib/services/work.service";
 import type {
   CreateWorkPayload,
   UpdateWorkPayload,
   WorksParams,
   WorksListForClient,
-} from '@/lib/services/work.service';
+  WorkForClient,
+} from "@/lib/services/work.service";
 
 /**
  * Centralized query keys for works.
  */
 const workKeys = {
-  all: ['works'] as const,
-  lists: () => [...workKeys.all, 'list'] as const,
+  all: ["works"] as const,
+  lists: () => [...workKeys.all, "list"] as const,
   list: (params: WorksParams) => [...workKeys.lists(), params] as const,
-  details: () => [...workKeys.all, 'detail'] as const,
+  details: () => [...workKeys.all, "detail"] as const,
   detail: (id: number) => [...workKeys.details(), id] as const,
-  characters: (workId: number) => [
-    ...workKeys.detail(workId),
-    'characters',
-  ] as const,
-  worldviewItems: (workId: number) => [
-    ...workKeys.detail(workId),
-    'worldview-items',
-  ] as const,
+  characters: (workId: number) =>
+    [...workKeys.detail(workId), "characters"] as const,
+  worldviewItems: (workId: number) =>
+    [...workKeys.detail(workId), "worldview-items"] as const,
 };
 
 /**
@@ -68,6 +66,7 @@ export const useWorkById = (id: number) => {
   return useQuery({
     queryKey: workKeys.detail(id),
     queryFn: () => getWorkByIdService(id),
+    select: (data: unknown) => toCamelCase(data) as WorkForClient,
     enabled: !!id,
   });
 };
@@ -126,7 +125,7 @@ export const useWorkCharacters = (workId: number) => {
   const { data, isLoading, error } = useRelationshipList(
     {
       sourceEntityId: workId,
-      sourceEntityType: 'work',
+      sourceEntityType: "work",
     },
     { enabled: !!workId }
   );
@@ -138,10 +137,10 @@ export const useWorkCharacters = (workId: number) => {
     return createRelationship.mutateAsync({
       data: {
         source_entity_id: workId,
-        source_entity_type: 'work',
+        source_entity_type: "work",
         target_entity_id: characterId,
-        target_entity_type: 'character',
-        relationship_type: 'associates',
+        target_entity_type: "character",
+        relationship_type: "associates",
       },
     });
   };
@@ -167,7 +166,7 @@ export const useWorkWorldview = (workId: number) => {
   const { data, isLoading, error } = useRelationshipList(
     {
       sourceEntityId: workId,
-      sourceEntityType: 'work',
+      sourceEntityType: "work",
     },
     { enabled: !!workId }
   );
@@ -179,10 +178,10 @@ export const useWorkWorldview = (workId: number) => {
     return createRelationship.mutateAsync({
       data: {
         source_entity_id: workId,
-        source_entity_type: 'work',
+        source_entity_type: "work",
         target_entity_id: itemId,
-        target_entity_type: 'worldview_item',
-        relationship_type: 'associates',
+        target_entity_type: "worldview_item",
+        relationship_type: "associates",
       },
     });
   };

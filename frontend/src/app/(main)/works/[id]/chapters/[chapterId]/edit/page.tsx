@@ -23,11 +23,11 @@ const EditChapterPage = (): React.ReactElement => {
   const router = useRouter();
   const [targetCount, setTargetCount] = useState(2000);
 
-  const chapterId = parseInt(params.id as string, 10);
-  const { data: chapterResponse, isLoading, error } = useChapterById(chapterId);
-  const { mutate: updateChapter, isPending: isSaving } = useUpdateChapter();
+  const workId = parseInt(params.id as string, 10);
+  const chapterId = parseInt(params.chapterId as string, 10);
 
-  const chapter = chapterResponse as ChapterForClient;
+  const { data: chapter, isLoading, error } = useChapterById(chapterId);
+  const { mutate: updateChapter, isPending: isSaving } = useUpdateChapter();
 
   useEffect(() => {
     if (error) {
@@ -53,10 +53,10 @@ const EditChapterPage = (): React.ReactElement => {
       { id: chapterId, data: payload },
       {
         onSuccess: () => {
-          toast.success("Chapter saved successfully");
+          toast.success("章节保存成功");
         },
         onError: (error) => {
-          toast.error(`Failed to save chapter: ${error.message}`);
+          toast.error(`章节保存失败: ${error.message}`);
         },
       }
     );
@@ -64,12 +64,6 @@ const EditChapterPage = (): React.ReactElement => {
 
   const handleSaveClick = (): void => {
     if (!chapter) return;
-
-    // This manual save button is a bit redundant with auto-save,
-    // and we don't have a clean way to get the latest word count here.
-    // The editor's internal onSave (triggered by toolbar button or auto-save)
-    // is the primary mechanism.
-    // A better solution would be to expose a `save` method via a ref from TiptapEditor.
     toast.info("Please use the save button in the editor toolbar.");
   };
 
@@ -97,9 +91,9 @@ const EditChapterPage = (): React.ReactElement => {
             <span className="sr-only">返回</span>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Edit Chapter</h1>
+            <h1 className="text-3xl font-bold tracking-tight">编辑章节</h1>
             <p className="text-muted-foreground">
-              Edit chapter content, drafts are saved automatically.
+              编辑章节内容，稿件将自动保存。
             </p>
           </div>
         </div>
@@ -112,7 +106,7 @@ const EditChapterPage = (): React.ReactElement => {
             content: chapter.content!,
           }}
           onSave={handleSave}
-          placeholder="Start writing your chapter..."
+          placeholder="开始你的章节创作..."
           autoFocus
           contentId={chapter.id!.toString()}
           workId={chapter.workId!.toString()}
@@ -124,10 +118,9 @@ const EditChapterPage = (): React.ReactElement => {
       ) : (
         !isLoading && (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-            <h2 className="text-2xl font-semibold">Chapter not found</h2>
+            <h2 className="text-2xl font-semibold">未找到章节</h2>
             <p className="mb-4 mt-2 text-muted-foreground">
-              Could not load chapter data, or the specified chapter does not
-              exist.
+              无法加载章节数据，或指定的章节不存在。
             </p>
           </div>
         )
@@ -135,8 +128,8 @@ const EditChapterPage = (): React.ReactElement => {
 
       <div className="flex justify-between">
         <Button variant="outline" asChild>
-          <Link href={`/works/${chapter?.workId}/chapters`}>
-            Back to Chapter List
+          <Link href={`/works/${workId}/chapters`}>
+            返回章节列表
           </Link>
         </Button>
         <div className="space-x-2">
@@ -145,10 +138,10 @@ const EditChapterPage = (): React.ReactElement => {
             disabled={isSaving || !chapter}
             onClick={handleSaveClick}
           >
-            {isSaving ? "Saving..." : "Save as Draft"}
+            {isSaving ? "保存中..." : "存为草稿"}
           </Button>
           <Button disabled={isSaving || !chapter} onClick={handleSaveClick}>
-            {isSaving ? "Publishing..." : "Publish Chapter"}
+            {isSaving ? "发布中..." : "发布章节"}
           </Button>
         </div>
       </div>

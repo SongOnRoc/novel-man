@@ -311,6 +311,8 @@ components:
           type: string
         word_count:
           type: integer
+        work_id:
+          type: integer
       type: object
     models.AIContext:
       properties:

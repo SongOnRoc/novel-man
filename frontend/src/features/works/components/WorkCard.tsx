@@ -116,7 +116,7 @@ function WorkCardMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
-          <Link href={`/chapters?workId=${work.id}`}>
+          <Link href={`/works/${work.id}/chapters`}>
             <BookOpen className="mr-2 h-4 w-4" />
             章节管理
           </Link>

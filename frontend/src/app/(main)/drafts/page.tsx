@@ -52,7 +52,7 @@ const DraftsContent = ({
   onPublish,
   works,
 }: {
-  workId: number;
+  workId?: number;
   page: number;
   view: ViewMode;
   works: Work[];
@@ -60,8 +60,22 @@ const DraftsContent = ({
   onDelete: (draft: DraftForClient) => void;
   onPublish: (draft: DraftForClient) => void;
 }) => {
-  const { data: draftsResponse, isLoading } = useDraftList({ workId, page });
-  const drafts = draftsResponse?.data || [];
+  // If workId is 0 ("Other Drafts"), fetch all drafts from the backend.
+  // The filtering for "Other Drafts" will be done on the client side.
+  const apiWorkId = workId === 0 ? undefined : workId;
+  const { data: draftsResponse, isLoading } = useDraftList({
+    workId: apiWorkId,
+    page,
+  });
+  const allDrafts = draftsResponse?.data || [];
+
+  // Client-side filtering for "Other Drafts"
+  const drafts = useMemo(() => {
+    if (workId === 0) {
+      return allDrafts.filter((draft) => !draft.workId);
+    }
+    return allDrafts;
+  }, [allDrafts, workId]);
   const pagination = draftsResponse?.pagination;
 
   const totalPages = useMemo(() => {
@@ -93,10 +107,12 @@ const DraftsContent = ({
       <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center">
         <h2 className="text-2xl font-semibold">暂无草稿</h2>
         <p className="mb-6 mt-2 text-muted-foreground">
-          这部作品还没有任何草稿，立即开始创作吧！
+          {workId
+            ? "这部作品还没有任何草稿，立即开始创作吧！"
+            : "您还没有任何草稿，开始新的创作吧！"}
         </p>
         <Button asChild>
-          <Link href={`/drafts/new?workId=${workId}`}>
+          <Link href={workId ? `/drafts/new?workId=${workId}` : "/drafts/new"}>
             <FilePlus className="mr-2 h-4 w-4" />
             创建新草稿
           </Link>
@@ -186,12 +202,20 @@ export default function DraftsPage(): React.ReactElement {
   );
 
   const handleSelectWork = (workId: string): void => {
-    router.push(`/drafts?workId=${workId}&page=1`);
+    if (workId === "all") {
+      router.push(`/drafts?page=1`);
+    } else {
+      router.push(`/drafts?workId=${workId}&page=1`);
+    }
   };
 
   const handlePageChange = (newPage: number): void => {
-    if (!selectedWorkId) return;
-    router.push(`/drafts?workId=${selectedWorkId}&page=${newPage}`);
+    const query = new URLSearchParams();
+    if (selectedWorkId) {
+      query.set("workId", selectedWorkId.toString());
+    }
+    query.set("page", newPage.toString());
+    router.push(`/drafts?${query.toString()}`);
   };
 
   const handleConfirmDelete = () => {
@@ -223,16 +247,6 @@ export default function DraftsPage(): React.ReactElement {
     if (isLoadingWorks) {
       return <Skeleton className="h-[400px] w-full" />;
     }
-    if (!selectedWorkId) {
-      return (
-        <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center">
-          <h2 className="text-2xl font-semibold">请先选择一部作品</h2>
-          <p className="mb-6 mt-2 text-muted-foreground">
-            选择一部作品以管理其草稿内容
-          </p>
-        </div>
-      );
-    }
     return (
       <DraftsContent
         workId={selectedWorkId}
@@ -259,12 +273,14 @@ export default function DraftsPage(): React.ReactElement {
           <div className="flex items-center gap-2">
             <Select
               onValueChange={handleSelectWork}
-              defaultValue={selectedWorkId?.toString()}
+              value={workId ?? "all"}
             >
               <SelectTrigger className="w-auto min-w-[180px]">
                 <SelectValue placeholder="选择作品" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="all">全部作品</SelectItem>
+                <SelectItem value="0">其他草稿</SelectItem>
                 {works?.map((work) => (
                   <SelectItem key={work.id} value={work.id!.toString()}>
                     {work.title}
@@ -284,8 +300,14 @@ export default function DraftsPage(): React.ReactElement {
                 <LayoutGrid className="h-4 w-4" />
               </ToggleGroupItem>
             </ToggleGroup>
-            <Button asChild disabled={!selectedWorkId}>
-              <Link href={`/drafts/new?workId=${selectedWorkId}`}>
+            <Button asChild>
+              <Link
+                href={
+                  selectedWorkId
+                    ? `/drafts/new?workId=${selectedWorkId}`
+                    : "/drafts/new"
+                }
+              >
                 <FilePlus className="mr-2 h-4 w-4" />
                 新草稿
               </Link>
@@ -307,3 +329,4 @@ export default function DraftsPage(): React.ReactElement {
     </>
   );
 }
+
