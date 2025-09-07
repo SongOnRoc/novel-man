@@ -1,9 +1,11 @@
 "use client";
 
-import { ArrowLeft, PlusCircle, Globe } from "lucide-react";
+import { PlusCircle, Globe } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
+import { PageHeader } from "@/components/common/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -26,9 +28,15 @@ export default function OutlinePage(): React.ReactElement {
   const router = useRouter();
   const params = useParams();
   const workId = Number(params.id);
+  const { setBreadcrumb } = useBreadcrumb();
 
-  const { data: workResponse, isLoading: isWorkLoading } = useWorkById(workId);
-  const work = workResponse?.data as Work;
+  const { data: work, isLoading: isWorkLoading } = useWorkById(workId);
+
+  useEffect(() => {
+    if (work) {
+      setBreadcrumb(`works-${workId}`, work.title || "作品大纲");
+    }
+  }, [work, workId, setBreadcrumb]);
 
   const {
     items: associatedItems,
@@ -54,17 +62,10 @@ export default function OutlinePage(): React.ReactElement {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">{work.title}</h1>
-            <p className="text-muted-foreground">管理作品关联的世界观</p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title={work.title || "作品大纲"}
+        description="管理作品关联的世界观"
+      />
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">

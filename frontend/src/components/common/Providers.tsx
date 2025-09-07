@@ -4,6 +4,7 @@ import React from "react";
 
 import QueryProvider from "@/components/common/layout/QueryProvider";
 import { SessionProvider } from "@/components/common/layout/SessionProvider";
+import { BreadcrumbProvider } from "@/contexts/BreadcrumbContext";
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -17,7 +18,9 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   return (
     <SessionProvider>
-      <QueryProvider>{children}</QueryProvider>
+      <BreadcrumbProvider>
+        <QueryProvider>{children}</QueryProvider>
+      </BreadcrumbProvider>
     </SessionProvider>
   );
 }

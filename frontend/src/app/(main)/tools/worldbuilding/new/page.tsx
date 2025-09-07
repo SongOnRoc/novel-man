@@ -1,13 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { PageHeader } from "@/components/common/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -90,14 +91,10 @@ export default function NewWorldItemPage(): React.ReactElement {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <Button variant="outline" size="sm" onClick={() => router.back()}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          返回
-        </Button>
-        <h1 className="text-2xl font-bold">新建世界观条目</h1>
-        <div className="w-24"></div>
-      </div>
+      <PageHeader
+        title="新建世界观条目"
+        description="填写新世界观条目的详细信息。"
+      />
 
       <Card>
         <Form {...form}>

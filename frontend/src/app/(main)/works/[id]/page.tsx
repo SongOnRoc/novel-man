@@ -3,7 +3,9 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import React, { useEffect } from "react";
 
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,9 +21,15 @@ import { Work } from "@/lib/services/work.service";
 export default function WorkDetailsPage() {
   const params = useParams();
   const workId = Number(params.id);
+  const { setBreadcrumb } = useBreadcrumb();
 
-  const { data: workResponse, isLoading } = useWorkById(workId);
-  const work = workResponse?.data as Work;
+  const { data: work, isLoading } = useWorkById(workId);
+
+  useEffect(() => {
+    if (work) {
+      setBreadcrumb(`works-${workId}`, work.title || "作品详情");
+    }
+  }, [work, workId, setBreadcrumb]);
 
   if (isLoading) {
     return (

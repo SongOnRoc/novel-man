@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 
 /**
  * Breadcrumbs
@@ -37,10 +38,19 @@ const LABEL_MAP: Record<string, string> = {
 
 /**
  * 将 URL 段转换为更友好的标题
- * - 纯数字段（常见于 id）以 #123 的形式展示
+ * - 优先使用 uniqueKey (如 'works-123') 从 context 查找，解决 ID 冲突问题
+ * - 其次使用 segment key (如 '123') 从 context 查找，兼容简单场景
+ * - 再次查找 LABEL_MAP 中的静态标题
+ * - 纯数字段（常见于 id）以 #123 的形式展示（作为 context 加载前的后备）
  * - 其他段尝试 URI 解码，失败则回退原始值
  */
-function titleOf(segment: string): string {
+function titleOf(
+  segment: string,
+  breadcrumbs: Record<string, string>,
+  uniqueKey: string
+): string {
+  if (breadcrumbs[uniqueKey]) return breadcrumbs[uniqueKey];
+  if (breadcrumbs[segment]) return breadcrumbs[segment]; // Fallback for simpler cases
   if (LABEL_MAP[segment]) return LABEL_MAP[segment];
   if (/^\d+$/.test(segment)) return `#${segment}`;
   try {
@@ -59,6 +69,9 @@ function titleOf(segment: string): string {
  * - 使用“/”作为分隔符，最后一个面包屑为当前页，使用更醒目的前景色与字重
  */
 export function Breadcrumbs({ className = "" }: { className?: string }) {
+  const { state } = useBreadcrumb();
+  const { breadcrumbs } = state;
+
   // 当前路径，例如：/works/123/edit
   const pathname = usePathname() || "/";
 
@@ -68,7 +81,11 @@ export function Breadcrumbs({ className = "" }: { className?: string }) {
   // 为每个段构造“累积路径”，用于分级导航
   const crumbs = segments.map((seg, idx) => {
     const href = "/" + segments.slice(0, idx + 1).join("/");
-    const label = titleOf(seg);
+    // 对纯数字ID段，使用其父路径段作为前缀，创建唯一键 (e.g., 'works-123')
+    // 这可以防止不同模块下ID相同导致的标题冲突
+    const uniqueKey =
+      idx > 0 && /^\d+$/.test(seg) ? `${segments[idx - 1]}-${seg}` : seg;
+    const label = titleOf(seg, breadcrumbs, uniqueKey);
     const isLast = idx === segments.length - 1;
     return { href, label, isLast };
   });

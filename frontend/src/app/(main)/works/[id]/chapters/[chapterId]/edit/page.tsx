@@ -1,11 +1,12 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
+import { PageHeader } from "@/components/common/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TiptapEditor } from "@/features/editor/components/TiptapEditor";
@@ -17,17 +18,31 @@ import {
   ChapterForClient,
   UpdateChapterPayloadForClient,
 } from "@/lib/services/chapter.service";
+import { useWorkById } from "@/hooks/work/useWorkService";
 
 const EditChapterPage = (): React.ReactElement => {
   const params = useParams();
   const router = useRouter();
+  const { setBreadcrumb } = useBreadcrumb();
   const [targetCount, setTargetCount] = useState(2000);
 
   const workId = parseInt(params.id as string, 10);
   const chapterId = parseInt(params.chapterId as string, 10);
 
   const { data: chapter, isLoading, error } = useChapterById(chapterId);
+  const { data: work } = useWorkById(workId);
   const { mutate: updateChapter, isPending: isSaving } = useUpdateChapter();
+
+  useEffect(() => {
+    if (work) {
+      // e.g., 'works-1'
+      setBreadcrumb(`works-${workId}`, work.title || "作品");
+    }
+    if (chapter) {
+      // e.g., 'chapters-1'
+      setBreadcrumb(`chapters-${chapterId}`, chapter.title || "编辑章节");
+    }
+  }, [work, chapter, workId, chapterId, setBreadcrumb]);
 
   useEffect(() => {
     if (error) {
@@ -84,20 +99,10 @@ const EditChapterPage = (): React.ReactElement => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={handleBack}>
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">返回</span>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">编辑章节</h1>
-            <p className="text-muted-foreground">
-              编辑章节内容，稿件将自动保存。
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="编辑章节"
+        description="编辑章节内容，稿件将自动保存。"
+      />
 
       {chapter ? (
         <TiptapEditor
@@ -128,9 +133,7 @@ const EditChapterPage = (): React.ReactElement => {
 
       <div className="flex justify-between">
         <Button variant="outline" asChild>
-          <Link href={`/works/${workId}/chapters`}>
-            返回章节列表
-          </Link>
+          <Link href={`/works/${workId}/chapters`}>返回章节列表</Link>
         </Button>
         <div className="space-x-2">
           <Button

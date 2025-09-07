@@ -2,9 +2,10 @@
 
 import { ArrowLeft, Edit, Trash2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect } from "react";
 import { toast } from "sonner";
 
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -25,6 +26,7 @@ import { WorldviewItem } from "@/lib/services/worldview.service";
 export default function WorldItemDetailPage(): React.ReactElement {
   const params = useParams();
   const router = useRouter();
+  const { setBreadcrumb } = useBreadcrumb();
   const itemId = params.id
     ? parseInt(Array.isArray(params.id) ? params.id[0] : params.id, 10)
     : null;
@@ -37,6 +39,15 @@ export default function WorldItemDetailPage(): React.ReactElement {
   const { mutate: deleteItem, isPending: isDeleting } = useDeleteWorldviewItem();
 
   const item = itemResponse as WorldviewItem;
+
+  useEffect(() => {
+    if (item) {
+      setBreadcrumb(
+        `worldbuilding-${itemId}`,
+        item.name || "世界观条目"
+      );
+    }
+  }, [item, itemId, setBreadcrumb]);
 
   const handleDelete = async (): Promise<void> => {
     if (!item) return;

@@ -2,12 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { PageHeader } from "@/components/common/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -93,21 +92,10 @@ export default function NewWorkPage(): React.ReactElement {
 
   return (
     <div className="space-y-6">
-      {/* 页面标题和返回按钮 */}
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/works">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">返回</span>
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">创建新作品</h1>
-          <p className="text-muted-foreground">
-            填写基本信息，开始您的新创作之旅。
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="创建新作品"
+        description="填写基本信息，开始您的新创作之旅。"
+      />
 
       {/* 表单卡片 */}
       <Card>

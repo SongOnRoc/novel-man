@@ -1,12 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
+import { PageHeader } from "@/components/common/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -76,6 +78,7 @@ interface Relationship {
 export default function EditCharacterPage(): React.ReactElement {
   const router = useRouter();
   const params = useParams();
+  const { setBreadcrumb } = useBreadcrumb();
   const characterId = Number(
     Array.isArray(params.id) ? params.id[0] : params.id
   );
@@ -101,7 +104,7 @@ export default function EditCharacterPage(): React.ReactElement {
     useDeleteRelationship();
 
   const works = (worksData?.data as { data?: Work[] })?.data || [];
-  const character = characterResponse?.data as Character;
+  const character = characterResponse as Character;
   const relationship = (relationshipData?.data as { data?: Relationship[] })
     ?.data?.[0];
 
@@ -110,21 +113,27 @@ export default function EditCharacterPage(): React.ReactElement {
   });
 
   useEffect(() => {
-    if (character && relationship) {
-      form.reset({
-        name: character.name || "",
-        workId: relationship.source_entity_id?.toString() || "",
-        gender: character.gender || "",
-        age: character.age || 0,
-        occupation: character.occupation || "",
-        personality: character.personality || "",
-        abilities: character.abilities || "",
-        background: character.background_story || "",
-        appearance: character.appearance || "",
-        notes: character.notes || "",
-      });
+    if (character) {
+      setBreadcrumb(
+        `characters-${characterId}`,
+        character.name || "编辑角色"
+      );
+      if (relationship) {
+        form.reset({
+          name: character.name || "",
+          workId: relationship.source_entity_id?.toString() || "",
+          gender: character.gender || "",
+          age: character.age || 0,
+          occupation: character.occupation || "",
+          personality: character.personality || "",
+          abilities: character.abilities || "",
+          background: character.background_story || "",
+          appearance: character.appearance || "",
+          notes: character.notes || "",
+        });
+      }
     }
-  }, [character, relationship, form]);
+  }, [character, relationship, form, characterId, setBreadcrumb]);
 
   const onSubmit = (values: CharacterFormValues): void => {
     const { workId, ...characterData } = values;
@@ -181,14 +190,10 @@ export default function EditCharacterPage(): React.ReactElement {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <Button variant="outline" size="sm" onClick={() => router.back()}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          返回
-        </Button>
-        <h1 className="text-2xl font-bold">编辑角色</h1>
-        <div className="w-24"></div>
-      </div>
+      <PageHeader
+        title="编辑角色"
+        description="修改角色的基本信息，带 * 的字段为必填项"
+      />
 
       <Card>
         <Form {...form}>

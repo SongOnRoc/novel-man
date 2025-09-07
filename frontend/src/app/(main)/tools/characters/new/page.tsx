@@ -2,11 +2,12 @@
 
 import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { PageHeader } from "@/components/common/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -128,14 +129,10 @@ export default function NewCharacterPage(): React.ReactElement {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <Button variant="outline" size="sm" onClick={() => router.back()}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          返回
-        </Button>
-        <h1 className="text-2xl font-bold">创建新角色</h1>
-        <div className="w-24"></div>
-      </div>
+      <PageHeader
+        title="创建新角色"
+        description="填写角色的基本信息，带 * 的字段为必填项"
+      />
 
       <Card>
         <Form {...form}>

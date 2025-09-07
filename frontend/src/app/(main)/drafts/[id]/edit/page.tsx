@@ -1,8 +1,6 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -17,6 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { PageHeader } from "@/components/common/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -37,11 +36,13 @@ import {
   DraftForClient,
   UpdateDraftPayloadForClient,
 } from "@/lib/services/draft.service";
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 
 const EditDraftPage = (): React.ReactElement => {
   const params = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { setBreadcrumb } = useBreadcrumb();
 
   const [isPublishing, setIsPublishing] = useState(false);
   const [selectedWorkId, setSelectedWorkId] = useState<string | undefined>(
@@ -58,10 +59,14 @@ const EditDraftPage = (): React.ReactElement => {
   const works = worksResponse?.data || [];
 
   useEffect(() => {
-    if (draft?.workId) {
-      setSelectedWorkId(draft.workId.toString());
+    if (draft) {
+      if (draft.workId) {
+        setSelectedWorkId(draft.workId.toString());
+      }
+      // Use unique key like 'drafts-123' to avoid conflicts
+      setBreadcrumb(`drafts-${draftId}`, draft.title || "Untitled Draft");
     }
-  }, [draft]);
+  }, [draft, draftId, setBreadcrumb]);
 
   useEffect(() => {
     if (error) {
@@ -146,20 +151,10 @@ const EditDraftPage = (): React.ReactElement => {
   return (
     <>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-              <ArrowLeft className="h-4 w-4" />
-              <span className="sr-only">返回</span>
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">编辑草稿</h1>
-              <p className="text-muted-foreground">
-                编辑草稿内容，内容将自动保存。
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          title="编辑草稿"
+          description="编辑草稿内容，内容将自动保存。"
+        />
 
         {draft ? (
           <TiptapEditor

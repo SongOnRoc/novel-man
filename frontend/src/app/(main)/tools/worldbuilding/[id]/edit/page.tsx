@@ -1,13 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
+import { PageHeader } from "@/components/common/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -56,6 +58,7 @@ type WorldItemFormValues = z.infer<typeof worldItemFormSchema>;
 export default function EditWorldItemPage(): React.ReactElement | null {
   const router = useRouter();
   const params = useParams();
+  const { setBreadcrumb } = useBreadcrumb();
   const itemId = params.id
     ? parseInt(Array.isArray(params.id) ? params.id[0] : params.id, 10)
     : null;
@@ -82,13 +85,17 @@ export default function EditWorldItemPage(): React.ReactElement | null {
 
   useEffect(() => {
     if (item) {
+      setBreadcrumb(
+        `worldbuilding-${itemId}`,
+        item.name || "编辑世界观条目"
+      );
       form.reset({
         name: item.name || "",
         description: item.description || "",
         category_id: item.category_id?.toString() || "",
       });
     }
-  }, [item, form]);
+  }, [item, form, itemId, setBreadcrumb]);
 
   const onSubmit = (values: WorldItemFormValues): void => {
     if (!itemId) {
@@ -126,14 +133,10 @@ export default function EditWorldItemPage(): React.ReactElement | null {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <Button variant="outline" size="sm" onClick={() => router.back()}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          返回
-        </Button>
-        <h1 className="text-2xl font-bold">编辑世界观条目</h1>
-        <div className="w-24"></div>
-      </div>
+      <PageHeader
+        title="编辑世界观条目"
+        description="修改世界观条目的详细信息。"
+      />
 
       <Card>
         <Form {...form}>

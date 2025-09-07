@@ -1,39 +1,43 @@
-# 活动上下文日志 - MobileBottomNav 组件开发
+# [前端标准化] - 页面头部组件（扩展应用）
 
-本文件记录“任务ID: 0252c08e-0b89-4f7c-a207-9ee51a832178”的详细开发过程。
+**任务 ID**: `643f250d-5844-412c-b685-986e3663131c`
 
-## 2025-09-07 08:49:00 - 修正响应式布局错误
-- 在 `MainLayout.tsx` 中为移动端和桌面端创建完全独立的布局结构。
-
-## 2025-09-07 09:19:00 - 根据最终反馈进行终极重构
-
-- **反馈**: 经过多次迭代，用户提供了最终的设计方向。之前的实现（平铺所有链接）是错误的。
-- **最终正确的设计**:
-    1.  **一级导航**: 展开的底部栏只显示一级入口，包括独立的“总览”、“设置”，以及导航分组“创作”、“工具”。
-    2.  **二级导航**: 点击“创作”或“工具”这样的分组项，会使用 `Sheet` 组件从底部滑出面板，展示该组内的具体链接。这符合最初的第五条指令。
-    3.  **内容完整性**: 必须包含 `dashboardLink`、`sidebarNavConfig` 的所有分组以及 `settingsLink`。
-    4.  **样式**: 遵循用户最新图片中的“图标+文字”的简洁样式。
-- **行动**:
-    - 将 `MobileBottomNav.tsx` 的逻辑改回：遍历 `sidebarNavConfig` 分组，为每个分组创建一个 `Sheet` 触发器。
-    - 将 `dashboardLink` 和 `settingsLink` 作为独立的 `Link` 组件渲染在一级导航栏中。
-    - 确保所有图标和文字的样式与最终设计图一致。
-    - 这是此任务的最终代码实现。
-
+**目标**: 将标准化的 `PageHeader` 组件应用到项目中所有需要页面头部的页面，以实现 UI 和体验的完全统一。
 
 ---
-## 2025-09-07 09:37:00 - 任务 `0252c08e-0b89-4f7c-a207-9ee51a832178-retry` 执行日志
 
-**1. 上下文同步与分析**:
-- 确认 `memory_bank` 存在并读取了 `activeContext.md`，完全理解了最终设计方案。
-- 分析了现有的 `MobileBottomNav.tsx`，其实现是将所有链接平铺，与最终设计不符。
-- 确认了 `nav.ts` 作为导航数据源，`MainLayout.tsx` 已正确集成该组件。
+### 1. 初始实现与试点
 
-**2. 代码重构实现**:
-- **组件**: `frontend/src/features/common/layout/MobileBottomNav.tsx`
-- **逻辑变更**:
-    - 引入了 `shadcn/ui` 的 `Sheet` 组件作为 `Drawer` 的替代，以实现从底部滑出二级菜单的功能。
-    - 组件 `MobileBottomNav` 现在作为一级导航容器，直接渲染“总览”和“设置”两个独立链接。
-    - 创建了新的子组件 `NavGroupSheet`，它负责处理导航分组。每个分组项（如“创作”、“工具”）被渲染为一个 `SheetTrigger`。
-    - 点击分组项时，`NavGroupSheet` 会从底部拉起一个 `SheetContent` 面板，面板内部渲染该分组下的所有二级链接。
-    - 样式与 `activeContext.md` 中描述的“图标+文字”简洁风格保持一致。
-- **结果**: 新的代码结构清晰地分离了一级入口和二级分组，完全符合 `activeContext.md` 中记录的最终设计方案。
+-   **创建 `PageHeader.tsx`**: 设计并实现了一个通用的页面头部组件，包含 `title`, `description`, `showBackButton`, 和 `actions` 等 props。
+-   **试点应用**: 在 `drafts/[id]/edit/page.tsx` 页面成功应用了 `PageHeader` 组件，验证了其可行性。
+
+---
+
+### 2. 扩展应用范围
+
+根据新的指令，将 `PageHeader` 组件推广到以下所有相关页面：
+
+#### a. Works 模块
+
+-   `works/[id]/edit/page.tsx`: 替换了原有的静态头部。
+-   `works/[id]/outline/page.tsx`: 替换了包含动态标题的头部。
+-   `works/[id]/chapters/page.tsx`: 使用 `actions` prop 成功集成了视图切换和“新章节”按钮。
+-   `works/[id]/chapters/[chapterId]/edit/page.tsx`: 替换了编辑页面的头部。
+-   `works/[id]/chapters/[chapterId]/preview/page.tsx`: 根据用户反馈，添加了返回按钮，并将其他操作按钮移至 `actions` prop，统一了交互体验。
+-   `works/new/page.tsx`: 替换了新建页面的头部。
+
+#### b. Characters 模块
+
+-   `tools/characters/[id]/edit/page.tsx`: 替换了原有的居中对齐头部，使其与全局样式保持左对齐一致。
+-   `tools/characters/new/page.tsx`: 同样，将头部样式统一为左对齐。
+
+#### c. Worldbuilding 模块
+
+-   `tools/worldbuilding/[id]/edit/page.tsx`: 替换了编辑页面的头部，统一了样式。
+-   `tools/worldbuilding/new/page.tsx`: 替换了新建页面的头部，完成了所有模块的标准化。
+
+---
+
+### 3. 总结
+
+通过本次大规模重构，`PageHeader` 组件已成为项目标准的页面头部解决方案。所有相关页面的头部UI和交互逻辑都已统一，显著提高了代码的可维护性和一致性，并为未来新页面的开发提供了标准化的构建块。

@@ -3,10 +3,12 @@
 import { LayoutGrid, List, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { toast } from "sonner";
 
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { DeleteItemDialog } from "@/components/common/DeleteItemDialog";
+import { PageHeader } from "@/components/common/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
   Pagination,
@@ -142,12 +144,19 @@ export default function ChaptersPage(): React.ReactElement {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
+  const { setBreadcrumb } = useBreadcrumb();
   const [view, setView] = useState<ViewMode>("list");
   const [chapterToDelete, setChapterToDelete] =
     useState<ChapterForClient | null>(null);
 
   const workId = typeof params.id === "string" ? parseInt(params.id, 10) : NaN;
   const { data: work, isLoading: isLoadingWork } = useWorkById(workId);
+
+  useEffect(() => {
+    if (work) {
+      setBreadcrumb(`works-${workId}`, work.title || "章节列表");
+    }
+  }, [work, workId, setBreadcrumb]);
 
   const { mutate: deleteChapter, isPending: isDeleting } = useDeleteChapter();
 
@@ -196,34 +205,35 @@ export default function ChaptersPage(): React.ReactElement {
   return (
     <>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">{work?.title}</h1>
-            <p className="text-muted-foreground">
-              管理您的作品章节，创建新章节，或编辑现有章节。
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <ToggleGroup
-              type="single"
-              value={view}
-              onValueChange={(value) => value && setView(value as ViewMode)}
-            >
-              <ToggleGroupItem value="list" aria-label="列表视图">
-                <List className="h-4 w-4" />
-              </ToggleGroupItem>
-              <ToggleGroupItem value="grid" aria-label="网格视图">
-                <LayoutGrid className="h-4 w-4" />
-              </ToggleGroupItem>
-            </ToggleGroup>
-            <Button asChild>
-              <Link href={`/drafts/new?workId=${workId}`}>
-                <Plus className="mr-2 h-4 w-4" />
-                新章节
-              </Link>
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title={work?.title || "章节列表"}
+          description="管理您的作品章节，创建新章节，或编辑现有章节。"
+          showBackButton={true}
+          actions={
+            <div className="flex items-center gap-2">
+              <ToggleGroup
+                type="single"
+                value={view}
+                onValueChange={(value) =>
+                  value && setView(value as ViewMode)
+                }
+              >
+                <ToggleGroupItem value="list" aria-label="列表视图">
+                  <List className="h-4 w-4" />
+                </ToggleGroupItem>
+                <ToggleGroupItem value="grid" aria-label="网格视图">
+                  <LayoutGrid className="h-4 w-4" />
+                </ToggleGroupItem>
+              </ToggleGroup>
+              <Button asChild>
+                <Link href={`/drafts/new?workId=${workId}`}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  新章节
+                </Link>
+              </Button>
+            </div>
+          }
+        />
         <ChapterContent
           workId={workId}
           page={page}

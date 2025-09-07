@@ -3,8 +3,9 @@
 import { ArrowLeft, Edit, Trash2, BookOpen } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect } from "react";
 
+import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,6 +28,7 @@ import { Work } from "@/lib/services/work.service";
  export default function CharacterDetailPage(): React.ReactElement {
   const params = useParams();
   const router = useRouter();
+  const { setBreadcrumb } = useBreadcrumb();
   const characterId = Number(
     Array.isArray(params.id) ? params.id[0] : params.id,
   );
@@ -42,9 +44,18 @@ import { Work } from "@/lib/services/work.service";
     },
     { enabled: !!characterId },
   );
-  const character = characterResponse?.data as Character;
+  const character = characterResponse as Character;
   const works = (worksData?.data as Work[]) || [];
   const relationship = (relationshipData?.data as any[])?.[0];
+
+  useEffect(() => {
+    if (character) {
+      setBreadcrumb(
+        `characters-${characterId}`,
+        character.name || "角色详情"
+      );
+    }
+  }, [character, characterId, setBreadcrumb]);
 
   const workTitle =
     relationship &&
