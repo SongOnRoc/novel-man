@@ -11,12 +11,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { PageHeader } from "@/components/common/layout/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteWorkDialog } from "@/features/works/components/DeleteWorkDialog";
 import { NewWorkButton } from "@/features/works/components/NewWorkButton";
 import { WorkCard } from "@/features/works/components/WorkCard";
 import { useWorkList, useDeleteWork } from "@/hooks/work/useWorkService";
-import { Work, WorksList } from "@/lib/services/work.service";
+import { WorkForClient, WorksList } from "@/lib/services/work.service";
 
 export default function WorksPage(): React.ReactElement {
   const searchParams = useSearchParams();
@@ -27,7 +28,7 @@ export default function WorksPage(): React.ReactElement {
     return pageParam ? parseInt(pageParam, 10) : 1;
   }, [searchParams]);
 
-  const { data: worksResponse, isLoading } = useWorkList({ page });
+  const { data: worksResponse, isLoading } = useWorkList({ page, limit: 9 });
   const { mutate: deleteWork, isPending: isDeleting } = useDeleteWork();
 
   const works = (worksResponse as WorksList)?.data || [];
@@ -51,19 +52,16 @@ export default function WorksPage(): React.ReactElement {
   return (
     <>
       <div className="space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">我的作品</h1>
-            <p className="text-muted-foreground">
-              管理您的所有创作作品，继续您的创作之旅。
-            </p>
-          </div>
-          <NewWorkButton />
-        </div>
+        <PageHeader
+          title="我的作品"
+          description="管理您的所有创作作品，继续您的创作之旅。"
+          actions={<NewWorkButton />}
+          showBackButton={false}
+        />
 
         {isLoading ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
+            {Array.from({ length: 9 }).map((_, i) => (
               <Skeleton key={i} className="h-96 w-full rounded-2xl" />
             ))}
           </div>
@@ -71,7 +69,7 @@ export default function WorksPage(): React.ReactElement {
           <>
             {works.length > 0 ? (
               <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-                {works.map((work: Work) => (
+                {works.map((work: WorkForClient) => (
                   <WorkCard
                     key={work.id}
                     work={work}

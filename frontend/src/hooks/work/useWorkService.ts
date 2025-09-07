@@ -54,7 +54,8 @@ const workKeys = {
 export const useWorkList = (params: WorksParams) => {
   return useQuery({
     queryKey: workKeys.list(params),
-    queryFn: () => getWorksService(params) as unknown as WorksListForClient,
+    queryFn: () => getWorksService(params),
+    select: (data: unknown) => toCamelCase(data) as WorksListForClient,
   });
 };
 

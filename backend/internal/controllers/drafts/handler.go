@@ -6,13 +6,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"novel-man/backend/internal/contracts"
 	"novel-man/backend/internal/contracts/drafts"
 	"novel-man/backend/internal/models"
 	"novel-man/backend/utils/context"
 	"novel-man/backend/utils/response"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type DraftController struct {
@@ -56,7 +57,7 @@ type DraftResponse struct {
 }
 
 type ListDraftsResponse struct {
-	Data       []DraftResponse       `json:"data"`
+	Data       []DraftResponse     `json:"data"`
 	Pagination response.Pagination `json:"pagination"`
 }
 
