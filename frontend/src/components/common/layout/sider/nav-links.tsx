@@ -24,6 +24,7 @@ import {
   NavLink,
 } from "@/lib/config/nav";
 import { cn } from "@/lib/utils";
+import { useSidebarContext } from "@/hooks/ui/useSidebarContext";
 
 const MotionLink = motion.create(Link);
 
@@ -62,7 +63,8 @@ interface NavLinksProps {
 const renderNavLink = (
   link: NavLink,
   pathname: string,
-  isCollapsed: boolean
+  isCollapsed: boolean,
+  closeSheet?: () => void
 ) => {
   const isActive = pathname === link.href;
 
@@ -72,6 +74,7 @@ const renderNavLink = (
         <TooltipTrigger asChild>
           <MotionLink
             href={link.href}
+            onClick={closeSheet}
             className={cn(
               "flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8",
               isActive && "bg-accent text-accent-foreground"
@@ -91,6 +94,7 @@ const renderNavLink = (
     <MotionLink
       key={link.href}
       href={link.href}
+      onClick={closeSheet}
       className={cn(
         "flex items-center justify-between rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary hover:shadow-sm",
         isActive && "bg-muted text-primary"
@@ -121,6 +125,7 @@ const renderNavLink = (
 
 export function NavLinks({ isCollapsed }: NavLinksProps) {
   const pathname = usePathname();
+  const { closeSheet } = useSidebarContext();
 
   if (isCollapsed) {
     const allLinks = sidebarNavConfig.flatMap((group) => group.links);
@@ -128,11 +133,11 @@ export function NavLinks({ isCollapsed }: NavLinksProps) {
       <TooltipProvider>
         <nav className="flex flex-col items-center gap-2 px-2 py-4">
           <div className="flex flex-col items-center gap-1">
-            {renderNavLink(dashboardLink, pathname, true)}
-            {allLinks.map((link) => renderNavLink(link, pathname, true))}
+            {renderNavLink(dashboardLink, pathname, true, closeSheet)}
+            {allLinks.map((link) => renderNavLink(link, pathname, true, closeSheet))}
           </div>
           <div className="mt-auto flex flex-col items-center gap-2">
-            {renderNavLink(settingsLink, pathname, true)}
+            {renderNavLink(settingsLink, pathname, true, closeSheet)}
           </div>
         </nav>
       </TooltipProvider>
@@ -142,7 +147,7 @@ export function NavLinks({ isCollapsed }: NavLinksProps) {
   return (
     <div className="flex h-full flex-col">
       <nav className="space-y-1 p-2">
-        {renderNavLink(dashboardLink, pathname, false)}
+        {renderNavLink(dashboardLink, pathname, false, closeSheet)}
         <Accordion
           type="multiple"
           defaultValue={sidebarNavConfig.map((g) => g.value)}
@@ -169,7 +174,7 @@ export function NavLinks({ isCollapsed }: NavLinksProps) {
                   >
                     <div className="grid gap-1 pb-1 pl-4 pt-1">
                       {group.links.map((link) =>
-                        renderNavLink(link, pathname, false)
+                        renderNavLink(link, pathname, false, closeSheet)
                       )}
                     </div>
                   </motion.div>
@@ -180,7 +185,7 @@ export function NavLinks({ isCollapsed }: NavLinksProps) {
         </Accordion>
       </nav>
       <div className="mt-auto p-2">
-        {renderNavLink(settingsLink, pathname, false)}
+        {renderNavLink(settingsLink, pathname, false, closeSheet)}
       </div>
     </div>
   );

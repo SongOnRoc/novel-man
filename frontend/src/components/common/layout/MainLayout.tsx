@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Header } from "./Header";
 import { Sidebar } from "./sider";
 import { NavLinks } from "./sider/nav-links";
+import { ResponsiveSidebar } from "./sider/ResponsiveSidebar";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -39,111 +40,96 @@ export function MainLayout({
   }, [defaultCollapsed, isCollapsed, setIsCollapsed]);
 
   return (
-    <div className="w-screen h-screen overflow-hidden">
-      <ResizablePanelGroup
-        direction="horizontal"
-        className="h-full items-stretch"
-      >
-        <ResizablePanel
-          defaultSize={isCollapsed ? navCollapsedSize : defaultLayout[0]}
-          collapsedSize={navCollapsedSize}
-          collapsible={true}
-          minSize={15}
-          maxSize={25}
-          onCollapse={() => {
-            setIsCollapsed(true);
-          }}
-          onExpand={() => {
-            setIsCollapsed(false);
-          }}
-          className={cn(
-            "transition-all duration-300 ease-in-out",
-            isCollapsed &&
-              "w-16 min-w-[4rem] max-w-[4rem] transition-all duration-300 ease-in-out"
-          )}
-        >
-          <Sidebar>
-            <Sidebar.Header>
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="h-5 w-5"
-                    >
-                      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-                    </svg>
-                  </div>
-                  <div
-                    className={cn(
-                      "flex flex-col items-start",
-                      isCollapsed && "hidden"
-                    )}
+    <ResizablePanelGroup
+      direction="horizontal"
+      className="h-screen w-screen items-stretch"
+    >
+      <ResponsiveSidebar>
+        <Sidebar>
+          <Sidebar.Header>
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-5 w-5"
                   >
-                    <span className="text-base font-semibold">NovelMan</span>
-                    <span className="text-xs text-muted-foreground">
-                      v 0.0.1
-                    </span>
-                  </div>
+                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+                  </svg>
                 </div>
-                <button
-                  onClick={() => setIsCollapsed(!isCollapsed)}
-                  className="p-1 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
-                >
-                  {isCollapsed ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="h-4 w-4"
-                    >
-                      <path d="m9 18 6-6-6-6" />
-                    </svg>
-                  ) : (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="h-4 w-4"
-                    >
-                      <path d="m15 18-6-6 6-6" />
-                    </svg>
+                <div
+                  className={cn(
+                    "flex flex-col items-start",
+                    isCollapsed && "hidden"
                   )}
-                </button>
+                >
+                  <span className="text-base font-semibold">NovelMan</span>
+                  <span className="text-xs text-muted-foreground">
+                    v 0.0.1
+                  </span>
+                </div>
               </div>
-            </Sidebar.Header>
-            <Sidebar.Content>
-              <NavLinks isCollapsed={isCollapsed} />
-            </Sidebar.Content>
-            <Sidebar.Footer>
-              <div>{/* Placeholder for UserProfile or other items */}</div>
-            </Sidebar.Footer>
-          </Sidebar>
-        </ResizablePanel>
-        <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={defaultLayout[1]} className="relative">
-          <div className="flex flex-col h-full overflow-hidden">
-            <div className="relative px-4 md:px-6 lg:px-8">
+              <button
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className={cn(
+                    "p-1 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors",
+                    "hidden md:inline-flex" // Only show on desktop
+                )}
+              >
+                {isCollapsed ? (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-4 w-4"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-4 w-4"
+                  >
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </Sidebar.Header>
+          <Sidebar.Content>
+            <NavLinks isCollapsed={isCollapsed} />
+          </Sidebar.Content>
+          <Sidebar.Footer>
+            <div>{/* Placeholder for UserProfile or other items */}</div>
+          </Sidebar.Footer>
+        </Sidebar>
+      </ResponsiveSidebar>
+      <ResizableHandle withHandle className="hidden" />
+      <ResizablePanel defaultSize={defaultLayout[1]} className="relative">
+        <div className="flex flex-col h-full overflow-hidden">
+          <div className="relative px-4 md:px-6 lg:px-8">
               <Header />
             </div>
             <main
@@ -154,7 +140,6 @@ export function MainLayout({
             </main>
           </div>
         </ResizablePanel>
-      </ResizablePanelGroup>
-    </div>
+    </ResizablePanelGroup>
   );
 }

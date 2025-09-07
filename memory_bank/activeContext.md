@@ -1,30 +1,39 @@
-# **WorkCard 组件重构日志**
+# 活动上下文日志 - MobileBottomNav 组件开发
 
-**任务目标**: 将 `WorkCard` 组件重构为带有书脊的书本样式，并优化交互。
+本文件记录“任务ID: 0252c08e-0b89-4f7c-a207-9ee51a832178”的详细开发过程。
 
-**时间**: 2025-09-01T17:39:05Z
+## 2025-09-07 08:49:00 - 修正响应式布局错误
+- 在 `MainLayout.tsx` 中为移动端和桌面端创建完全独立的布局结构。
 
-## **阶段一：分析与规划**
+## 2025-09-07 09:19:00 - 根据最终反馈进行终极重构
 
-1.  **文件审查**:
-    *   `WorkCard.tsx`: 当前为响应式列表项布局（`md:flex-row`），包含封面、信息和常驻的操作按钮。
-    *   `works/page.tsx`: 使用 `space-y-4` 将卡片渲染为单列垂直列表。
-    *   `globals.css`: 确认了 CSS 变量 `--color-border` 和 `--color-muted` 可用于书脊样式。
+- **反馈**: 经过多次迭代，用户提供了最终的设计方向。之前的实现（平铺所有链接）是错误的。
+- **最终正确的设计**:
+    1.  **一级导航**: 展开的底部栏只显示一级入口，包括独立的“总览”、“设置”，以及导航分组“创作”、“工具”。
+    2.  **二级导航**: 点击“创作”或“工具”这样的分组项，会使用 `Sheet` 组件从底部滑出面板，展示该组内的具体链接。这符合最初的第五条指令。
+    3.  **内容完整性**: 必须包含 `dashboardLink`、`sidebarNavConfig` 的所有分组以及 `settingsLink`。
+    4.  **样式**: 遵循用户最新图片中的“图标+文字”的简洁样式。
+- **行动**:
+    - 将 `MobileBottomNav.tsx` 的逻辑改回：遍历 `sidebarNavConfig` 分组，为每个分组创建一个 `Sheet` 触发器。
+    - 将 `dashboardLink` 和 `settingsLink` 作为独立的 `Link` 组件渲染在一级导航栏中。
+    - 确保所有图标和文字的样式与最终设计图一致。
+    - 这是此任务的最终代码实现。
 
-2.  **重构策略**:
-    *   **`WorkCard.tsx`**:
-        *   **结构**: 采用 `relative` 定位的 `Card` 作为根容器。内部使用 `absolute` 定位创建书脊 (`w-2 bg-border`)。
-        *   **尺寸**: 设定 `aspect-[2/3]` 以模拟书本比例。
-        *   **封面**: 重新布局，将标题 (`work.title`) 和简介 (`work.description`) 作为核心内容。标题将加大加粗以突出。
-        *   **交互**:
-            *   底部操作按钮组将包裹在一个 `div` 中，默认使用 `opacity-0` 和 `translate-y-4` 隐藏。
-            *   在根 `Card` 上添加 `group` 类。
-            *   利用 `group-hover:opacity-100` 和 `group-hover:translate-y-0`，在鼠标悬停时平滑地浮现按钮组，并添加 `backdrop-blur-sm` 以增强视觉效果。
-            *   右上角的“更多”菜单将使用 `absolute` 定位，保持常驻。
-    *   **`works/page.tsx`**:
-        *   **必要变更**: 为了让书本样式正确展示，必须将父容器从单列布局修改为响应式网格布局。
-        *   **实现**: 将 `space-y-4` 替换为 `grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6`。`gap-6` 提供比 `gap-4` 更舒适的间距。
 
-## **阶段二：编码实现**
+---
+## 2025-09-07 09:37:00 - 任务 `0252c08e-0b89-4f7c-a207-9ee51a832178-retry` 执行日志
 
-即将开始对 `WorkCard.tsx` 和 `works/page.tsx` 进行修改。
+**1. 上下文同步与分析**:
+- 确认 `memory_bank` 存在并读取了 `activeContext.md`，完全理解了最终设计方案。
+- 分析了现有的 `MobileBottomNav.tsx`，其实现是将所有链接平铺，与最终设计不符。
+- 确认了 `nav.ts` 作为导航数据源，`MainLayout.tsx` 已正确集成该组件。
+
+**2. 代码重构实现**:
+- **组件**: `frontend/src/features/common/layout/MobileBottomNav.tsx`
+- **逻辑变更**:
+    - 引入了 `shadcn/ui` 的 `Sheet` 组件作为 `Drawer` 的替代，以实现从底部滑出二级菜单的功能。
+    - 组件 `MobileBottomNav` 现在作为一级导航容器，直接渲染“总览”和“设置”两个独立链接。
+    - 创建了新的子组件 `NavGroupSheet`，它负责处理导航分组。每个分组项（如“创作”、“工具”）被渲染为一个 `SheetTrigger`。
+    - 点击分组项时，`NavGroupSheet` 会从底部拉起一个 `SheetContent` 面板，面板内部渲染该分组下的所有二级链接。
+    - 样式与 `activeContext.md` 中描述的“图标+文字”简洁风格保持一致。
+- **结果**: 新的代码结构清晰地分离了一级入口和二级分组，完全符合 `activeContext.md` 中记录的最终设计方案。

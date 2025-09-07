@@ -10,6 +10,7 @@ import { SidebarHeader } from "./header";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
+  isSheet?: boolean;
 }
 
 type SidebarComponent = React.FC<SidebarProps> & {
@@ -18,12 +19,12 @@ type SidebarComponent = React.FC<SidebarProps> & {
   Footer: typeof SidebarFooter;
 };
 
-const Sidebar: SidebarComponent = ({ children, className, ...props }) => {
+const Sidebar: SidebarComponent = ({ children, className, isSheet = false, ...props }) => {
   return (
     <div
       className={cn(
         "glass flex h-full flex-col text-foreground",
-        "transition-all duration-300 ease-in-out",
+        !isSheet && "transition-all duration-300 ease-in-out",
         className
       )}
       {...props}
