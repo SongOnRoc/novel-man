@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import React, { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
 
 import { DeleteItemDialog } from "@/components/common/DeleteItemDialog";
 import { Button } from "@/components/ui/button";
@@ -146,7 +145,6 @@ export default function ChaptersPage(): React.ReactElement {
   const [view, setView] = useState<ViewMode>("list");
   const [chapterToDelete, setChapterToDelete] =
     useState<ChapterForClient | null>(null);
-  const queryClient = useQueryClient();
 
   const workId = typeof params.id === "string" ? parseInt(params.id, 10) : NaN;
   const { data: work, isLoading: isLoadingWork } = useWorkById(workId);
@@ -169,9 +167,6 @@ export default function ChaptersPage(): React.ReactElement {
         onSuccess: () => {
           toast.success("章节已删除");
           setChapterToDelete(null);
-          queryClient.invalidateQueries({
-            queryKey: ["chapters", "list"],
-          });
         },
         onError: (error: Error) => {
           toast.error(`删除失败: ${error.message}`);

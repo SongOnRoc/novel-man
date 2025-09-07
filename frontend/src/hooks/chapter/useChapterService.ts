@@ -26,8 +26,10 @@ import { toCamelCase, toSnakeCase } from "@/lib/utils";
 import { SnakeToCamelCase } from "@/types/type-utils";
 
 // Client-facing payload types with camelCase properties
-export type CreateChapterPayloadForClient = SnakeToCamelCase<CreateChapterPayload>;
-export type UpdateChapterPayloadForClient = SnakeToCamelCase<UpdateChapterPayload>;
+export type CreateChapterPayloadForClient =
+  SnakeToCamelCase<CreateChapterPayload>;
+export type UpdateChapterPayloadForClient =
+  SnakeToCamelCase<UpdateChapterPayload>;
 
 /**
  * Custom parameter type for the useChapterList hook.
@@ -92,7 +94,9 @@ export const useCreateChapter = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (chapterData: CreateChapterPayloadForClient) => {
-      return createChapterService(chapterData as unknown as CreateChapterPayload);
+      return createChapterService(
+        chapterData as unknown as CreateChapterPayload
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: chapterKeys.lists() });
@@ -114,10 +118,7 @@ export const useUpdateChapter = () => {
       id: number;
       data: UpdateChapterPayloadForClient;
     }) => {
-      return updateChapterService(
-        id,
-        data as unknown as UpdateChapterPayload
-      );
+      return updateChapterService(id, data as unknown as UpdateChapterPayload);
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: chapterKeys.lists() });
@@ -136,34 +137,7 @@ export const useDeleteChapter = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => deleteChapterService(id),
-    onMutate: async (deletedChapterId) => {
-      await queryClient.cancelQueries({ queryKey: chapterKeys.lists() });
-      const previousChapterLists = queryClient.getQueryData(chapterKeys.lists());
-
-      queryClient.setQueryData(
-        chapterKeys.lists(),
-        (old: ChapterListResponseForClient | undefined) => {
-          if (!old) return old;
-          return {
-            ...old,
-            data: old.data?.filter(
-              (chapter) => chapter.id !== deletedChapterId
-            ),
-          };
-        }
-      );
-
-      return { previousChapterLists };
-    },
-    onError: (_err, _deletedChapterId, context) => {
-      if (context?.previousChapterLists) {
-        queryClient.setQueryData(
-          chapterKeys.lists(),
-          context.previousChapterLists
-        );
-      }
-    },
-    onSettled: () => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: chapterKeys.lists() });
     },
   });
