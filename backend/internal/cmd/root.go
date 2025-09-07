@@ -69,6 +69,8 @@ var rootCmd = &cobra.Command{
 			&models.WorldviewItem{},
 			&models.WorkCharacter{},
 			&models.EntityRelationship{},
+			&models.Prompt{},
+			&models.UserAICustomSetting{},
 			// &settings.UserSetting{}, // TODO: Refactor UserSetting to also use the central models package if needed.
 		)
 	},

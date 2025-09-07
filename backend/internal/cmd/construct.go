@@ -2,11 +2,11 @@ package cmd
 
 import (
 	// 激活各业务模块 - 通过空白导入实现模块的自动注册
-	_ "novel-man/backend/internal/apps/ai"
 	_ "novel-man/backend/internal/apps/auth"
 	_ "novel-man/backend/internal/apps/chapters"
 	_ "novel-man/backend/internal/apps/characters"
 	_ "novel-man/backend/internal/apps/drafts"
+	_ "novel-man/backend/internal/apps/prompts"
 	_ "novel-man/backend/internal/apps/relationships"
 	_ "novel-man/backend/internal/apps/settings"
 	_ "novel-man/backend/internal/apps/works"

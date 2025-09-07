@@ -208,6 +208,33 @@ func checkWorldviewCategoryExistence(c *gin.Context, s *AllServices, id uint64, 
 	return http.StatusOK, nil
 }
 
+// checkPromptExistence verifies if a prompt with the given ID exists.
+func checkPromptExistence(c *gin.Context, s *AllServices, id uint64, _ uint) (int, error) {
+	_, err := s.PromptService.GetByID(*context.New(c), uint(id))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return http.StatusNotFound, nil
+		}
+		return http.StatusInternalServerError, err
+	}
+	return http.StatusOK, nil
+}
+
+// checkPromptOwnership verifies if the current user owns the prompt.
+func checkPromptOwnership(c *gin.Context, s *AllServices, id uint64, userID uint) (int, error) {
+	prompt, err := s.PromptService.GetByID(*context.New(c), uint(id))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return http.StatusNotFound, nil
+		}
+		return http.StatusInternalServerError, err
+	}
+	if prompt.UserID != userID {
+		return http.StatusForbidden, nil
+	}
+	return http.StatusOK, nil
+}
+
 // checkWorldviewCategoryOwnership verifies if the current user owns the worldview category.
 func checkWorldviewCategoryOwnership(c *gin.Context, s *AllServices, id uint64, userID uint) (int, error) {
 	category, err := s.WorldviewCategoryService.GetByID(*context.New(c), uint(id))

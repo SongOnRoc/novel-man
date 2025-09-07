@@ -44,8 +44,14 @@ func (r *GenericGormRepository[T, ID]) List(ctx context.Context, page, limit int
 	db := r.db.WithContext(ctx).Model(new(T))
 
 	// 应用所有过滤器
-	for key, value := range filters {
-		db = db.Where(key+" = ?", value)
+	if query, ok := filters[contracts.FilterKeyQuery].(string); ok {
+		if params, ok := filters[contracts.FilterKeyParams].([]interface{}); ok {
+			db = db.Where(query, params...)
+		}
+	} else {
+		for key, value := range filters {
+			db = db.Where(key+" = ?", value)
+		}
 	}
 
 	// 计算总数

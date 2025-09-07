@@ -10,6 +10,7 @@ import (
 	"novel-man/backend/internal/contracts/characters"
 	"novel-man/backend/internal/contracts/drafts"
 	"novel-man/backend/internal/contracts/middlewares"
+	"novel-man/backend/internal/contracts/prompts"
 	"novel-man/backend/internal/contracts/relationships"
 	"novel-man/backend/internal/contracts/works"
 	"novel-man/backend/internal/contracts/worldview"
@@ -27,6 +28,7 @@ const (
 	WorldviewItemResource     = "worldview_item"
 	WorldviewCategoryResource = "worldview_category"
 	RelationshipResource      = "relationship"
+	PromptResource            = "prompt"
 )
 
 // AllServices holds all service dependencies required by resource checks.
@@ -38,6 +40,7 @@ type AllServices struct {
 	WorldviewItemService     worldview.WorldviewItemService
 	WorldviewCategoryService worldview.WorldviewCategoryService
 	RelationshipService      relationships.RelationshipService
+	PromptService            prompts.PromptService
 }
 
 // CheckFunc defines the signature for all resource check operations.
@@ -140,6 +143,7 @@ func init() {
 		worldviewItemService worldview.WorldviewItemService,
 		worldviewCategoryService worldview.WorldviewCategoryService,
 		relationshipService relationships.RelationshipService,
+		promptService prompts.PromptService,
 	) *AllServices {
 		return &AllServices{
 			WorkService:              workService,
@@ -149,6 +153,7 @@ func init() {
 			WorldviewItemService:     worldviewItemService,
 			WorldviewCategoryService: worldviewCategoryService,
 			RelationshipService:      relationshipService,
+			PromptService:            promptService,
 		}
 	})
 	container.Container.Provide(NewResourceMiddlewareInitializers, dig.Group("middleware_initializers,flatten"))
@@ -170,6 +175,8 @@ func NewResourceMiddlewareInitializers(services *AllServices) []middlewares.Midd
 		OwnershipMiddlewareName(WorldviewCategoryResource): checkWorldviewCategoryOwnership,
 		ExistenceMiddlewareName(RelationshipResource):      checkRelationshipExistence,
 		OwnershipMiddlewareName(RelationshipResource):      checkRelationshipOwnership,
+		ExistenceMiddlewareName(PromptResource):            checkPromptExistence,
+		OwnershipMiddlewareName(PromptResource):            checkPromptOwnership,
 	}
 
 	var initializers []middlewares.MiddlewareInitializer

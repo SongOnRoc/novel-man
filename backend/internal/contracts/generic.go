@@ -4,6 +4,12 @@ import (
 	"novel-man/backend/utils/context"
 )
 
+// Filter keys
+const (
+	FilterKeyQuery = "query"
+	FilterKeyParams = "params"
+)
+
 // Filters 定义了用于列表查询的通用过滤器类型
 type Filters map[string]interface{}
 
