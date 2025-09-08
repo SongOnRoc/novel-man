@@ -26,18 +26,30 @@ export function MainLayout({
   children,
   defaultLayout = [15, 85], // Sidebar: 15%, Main: 85%
   defaultCollapsed = false,
-  navCollapsedSize = 5, // Adjusted for better collapsed width
 }: MainLayoutProps) {
   const { isCollapsed, setIsCollapsed } = useSidebarStore();
-
-  // 如果 store 中的 collapsed 状态是默认值 (false)，则使用 defaultCollapsed 来更新 store
-  // 这确保了 defaultCollapsed 只在 store 初始化时起作用
+  
+  // 根据侧边栏状态动态调整布局
+  const [layout, setLayout] = React.useState(defaultLayout);
+  
   React.useEffect(() => {
-    // This effect is no longer needed as the store handles persistence.
-    // if (!isCollapsed && defaultCollapsed) {
-    //   setIsCollapsed(defaultCollapsed);
-    // }
-  }, [defaultCollapsed, isCollapsed, setIsCollapsed]);
+    // 当侧边栏状态改变时，更新布局
+    if (isCollapsed) {
+      setLayout([5, 95]); // 折叠时：侧边栏 5%，主内容 95%
+    } else {
+      setLayout([15, 85]); // 展开时：侧边栏 15%，主内容 85%
+    }
+  }, [isCollapsed]);
+
+  // 确保侧边栏在初始化时正确应用折叠状态
+  React.useEffect(() => {
+    // This effect ensures the sidebar state is properly synchronized with the UI
+    // when the page refreshes or when the component first mounts
+    // 确保从 localStorage 恢复的状态正确应用到 UI
+    if (isCollapsed !== undefined) {
+      setIsCollapsed(isCollapsed);
+    }
+  }, [isCollapsed, setIsCollapsed]);
 
   return (
     <ResizablePanelGroup
@@ -48,8 +60,8 @@ export function MainLayout({
         <Sidebar>
           <Sidebar.Header>
             <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 text-primary border border-primary/20 shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -57,31 +69,31 @@ export function MainLayout({
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
-                    strokeWidth="2"
+                    strokeWidth="2.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-5 w-5"
+                    className="h-5 w-5 transition-transform duration-300 group-hover:scale-110"
                   >
                     <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
                   </svg>
                 </div>
                 <div
                   className={cn(
-                    "flex flex-col items-start",
-                    isCollapsed && "hidden"
+                    "flex flex-col items-start transition-all duration-300",
+                    isCollapsed && "opacity-0 scale-95 pointer-events-none absolute"
                   )}
                 >
-                  <span className="text-base font-semibold">NovelMan</span>
-                  <span className="text-xs text-muted-foreground">
-                    v 0.0.1
+                  <span className="text-base font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                    NovelMan
                   </span>
+                  <span className="text-xs text-muted-foreground/80 font-medium">v 0.0.1</span>
                 </div>
               </div>
               <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 className={cn(
-                    "p-1 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors",
-                    "hidden md:inline-flex" // Only show on desktop
+                  "p-2 rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-200 hover:scale-105 active:scale-95",
+                  "hidden md:inline-flex shadow-sm hover:shadow-md" // Only show on desktop
                 )}
               >
                 {isCollapsed ? (
@@ -92,10 +104,10 @@ export function MainLayout({
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
-                    strokeWidth="2"
+                    strokeWidth="2.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4"
+                    className="h-4 w-4 transition-all duration-300 hover:scale-110"
                   >
                     <path d="m9 18 6-6-6-6" />
                   </svg>
@@ -107,10 +119,10 @@ export function MainLayout({
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
-                    strokeWidth="2"
+                    strokeWidth="2.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4"
+                    className="h-4 w-4 transition-all duration-300 hover:scale-110"
                   >
                     <path d="m15 18-6-6 6-6" />
                   </svg>
@@ -127,19 +139,19 @@ export function MainLayout({
         </Sidebar>
       </ResponsiveSidebar>
       <ResizableHandle withHandle className="hidden" />
-      <ResizablePanel defaultSize={defaultLayout[1]} className="relative">
-        <div className="flex flex-col h-full overflow-hidden">
-          <div className="relative px-4 md:px-6 lg:px-8">
-              <Header />
-            </div>
-            <main
-              id="main-content"
-              className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pt-0"
-            >
-              {children}
-            </main>
+      <ResizablePanel defaultSize={layout[1]} className="relative">
+        <div className="flex flex-col h-full overflow-hidden main-content-border">
+          <div className="relative px-4 md:px-6 lg:px-8 py-4">
+            <Header />
           </div>
-        </ResizablePanel>
+          <main
+            id="main-content"
+            className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pt-0"
+          >
+            {children}
+          </main>
+        </div>
+      </ResizablePanel>
     </ResizablePanelGroup>
   );
 }

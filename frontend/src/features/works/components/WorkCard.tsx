@@ -78,40 +78,50 @@ export function WorkCard({
   };
 
   return (
-    <Card className="flex h-full flex-col overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+    <Card className="flex h-full flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-2 group">
       {/* 封面占位符 */}
       <div className="relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5">
         <img
           src={
             work.coverImageUrl
               ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${work.coverImageUrl}`
-              : `https://fakeimg.pl/400x225/60a5fa/ffffff?text=${encodeURIComponent(
+              : `https://fakeimg.pl/400x225/14b8a6/ffffff?text=${encodeURIComponent(
                   work.title!
                 )}&font=noto`
           }
           alt={work.title!}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       </div>
 
-      <CardHeader>
+      <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-4">
           <Link href={`/works/${work.id}`}>
-            <h3 className="text-2xl font-bold hover:underline">{work.title}</h3>
+            <h3 className="text-xl font-bold hover:text-primary transition-colors duration-200">{work.title}</h3>
           </Link>
         </div>
-        <p className="pt-1 text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           最近更新：{formatDate(work.updatedAt)}
         </p>
       </CardHeader>
 
       <CardContent className="flex-1 space-y-4">
         {/* 统计数据 */}
-        <div className="flex items-center gap-6 text-base">
+        <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-muted-foreground" />
-            <span className="font-semibold">
-              {work.totalChapterCount || 0} 章 /{" "}
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+              <BookOpen className="h-4 w-4 text-primary" />
+            </div>
+            <span className="font-medium">
+              {work.totalChapterCount || 0} 章
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
+              <FileText className="h-4 w-4 text-accent" />
+            </div>
+            <span className="font-medium">
               {formatWordCount(work.totalWordCount || 0)} 字
             </span>
           </div>
@@ -123,19 +133,20 @@ export function WorkCard({
               statusColorMap[work.status as keyof typeof statusColorMap] ||
               "default"
             }
+            className="rounded-full px-3 py-1 text-xs"
           >
             {statusMap[work.status!] || "未知"}
           </Badge>
         </div>
       </CardContent>
 
-      <CardFooter>
+      <CardFooter className="pt-0">
         <Button
-          className="w-full"
+          className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
           size="lg"
           onClick={handleContinueWriting}
         >
-          <Edit className="mr-2 h-5 w-5" />
+          <Edit className="mr-2 h-4 w-4" />
           继续写作
         </Button>
       </CardFooter>

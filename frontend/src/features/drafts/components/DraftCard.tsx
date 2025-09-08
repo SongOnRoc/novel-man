@@ -37,9 +37,9 @@ export function DraftCard({
   const router = useRouter();
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{draft.title}</CardTitle>
+    <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg text-gradient-primary">{draft.title}</CardTitle>
       </CardHeader>
       <CardContent>
         <p className="line-clamp-3 text-sm text-muted-foreground">
@@ -48,15 +48,15 @@ export function DraftCard({
       </CardContent>
       <CardFooter className="flex justify-between">
         <div>
-          <p className="text-sm font-medium">{workTitle || "Untitled Work"}</p>
+          <p className="text-sm font-medium text-primary">{workTitle || "Untitled Work"}</p>
           <p className="text-xs text-muted-foreground">
-            Updated at {formatDate(draft.updatedAt || draft.createdAt)}
+            更新于 {formatDate(draft.updatedAt || draft.createdAt)}
           </p>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
+            <Button variant="ghost" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <span className="sr-only">打开菜单</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -64,13 +64,13 @@ export function DraftCard({
             <DropdownMenuItem
               onClick={() => router.push(`/drafts/${draft.id}/edit`)}
             >
-              Edit
+              编辑
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onPublish}>
               <Send className="mr-2 h-4 w-4" />
-              Publish
+              发布
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={onDelete}>Delete</DropdownMenuItem>
+            <DropdownMenuItem onClick={onDelete} className="text-destructive">删除</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </CardFooter>

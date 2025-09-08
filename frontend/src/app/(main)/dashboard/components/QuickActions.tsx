@@ -58,14 +58,14 @@ export function QuickActions({
   ];
 
   return (
-    <Card>
+    <Card className="glass-card">
       <CardHeader>
-        <CardTitle>快速操作</CardTitle>
+        <CardTitle className="text-gradient-primary">快速操作</CardTitle>
         <CardDescription>常用功能快速访问</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-wrap items-center gap-4">
-          {quickActions.map((action) => {
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          {quickActions.map((action, index) => {
             const Icon = action.icon;
             return (
               <Button
@@ -73,10 +73,12 @@ export function QuickActions({
                 variant={action.variant}
                 asChild
                 disabled={action.disabled}
+                className="h-auto flex-col py-4 px-3 gap-2 animate-fadeInUp"
+                style={{animationDelay: `${index * 0.1}s`}}
               >
-                <a href={action.href}>
-                  <Icon className="mr-2 h-4 w-4" />
-                  {action.title}
+                <a href={action.href} className="flex flex-col items-center justify-center">
+                  <Icon className="h-6 w-6 mb-1" />
+                  <span className="text-xs">{action.title}</span>
                 </a>
               </Button>
             );
