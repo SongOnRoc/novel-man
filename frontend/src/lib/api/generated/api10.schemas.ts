@@ -183,58 +183,62 @@ export interface DraftsUpdateDraftRequest {
 }
 
 export interface ModelsAIContext {
-  chapter_id?: number;
-  character_ids?: number[];
   style_preference?: string;
   work_id?: number;
-  worldview_setting_ids?: number[];
 }
 
-export interface ModelsCompletionRequest {
-  context?: ModelsAIContext;
-  text: string;
-}
-
-export interface ModelsCompletionResponse {
-  completion?: string;
-}
-
-export interface ModelsCreateCharacterRequest {
-  context?: ModelsAIContext;
-  description: string;
-}
-
-export interface ModelsCreateCharacterResponse {
-  background_story?: string;
+export interface ModelsAssistantTypeResponse {
+  label?: string;
   name?: string;
-  personality_desc?: string;
 }
 
-export interface ModelsGenerateIdeaRequest {
+export interface ModelsGenerateRequest {
+  /** Corresponds to a model name or a system prompt category */
+  assistant_type?: string;
   context?: ModelsAIContext;
+  prompt_id?: number;
   text: string;
 }
 
-export interface ModelsGenerateIdeaResponse {
-  idea?: string;
+export interface ModelsGenerateResponse {
+  generated_text?: string;
 }
 
-export interface ModelsGenerateOutlineRequest {
-  context?: ModelsAIContext;
-  text: string;
+export interface PromptsCreatePromptRequest {
+  [key: string]: unknown;
 }
 
-export interface ModelsGenerateOutlineResponse {
-  outline?: string;
+export interface PromptsDetail {
+  icon?: string;
+  text?: string;
 }
 
-export interface ModelsPolishRequest {
-  context?: ModelsAIContext;
-  text: string;
+export interface PromptsPromptListResponse {
+  items?: PromptsPromptResponse[];
+  pagination?: ResponsePagination;
 }
 
-export interface ModelsPolishResponse {
-  polished_text?: string;
+export interface PromptsPromptResponse {
+  author?: string;
+  author_avatar?: string;
+  author_specialty?: string;
+  categories?: string[];
+  content?: string;
+  description?: string;
+  footer_tags?: string[];
+  id?: number;
+  is_system?: boolean;
+  primary_tag?: string;
+  status?: string;
+  summary?: PromptsDetail[];
+  title?: string;
+  updated_at?: string;
+  usage_count?: number;
+  user_id?: number;
+}
+
+export interface PromptsUpdatePromptRequest {
+  [key: string]: unknown;
 }
 
 export interface RelationshipsListRelationshipsResponse {
@@ -415,46 +419,6 @@ export interface WorldviewUpdateItemRequest {
   description?: string;
   name?: string;
 }
-
-export type PostAiCompletion200 = Data & {
-  code?: number;
-  data?: unknown;
-  message?: string;
-  sourceId?: string;
-  traceId?: string;
-};
-
-export type PostAiCreateCharacter200 = Data & {
-  code?: number;
-  data?: unknown;
-  message?: string;
-  sourceId?: string;
-  traceId?: string;
-};
-
-export type PostAiGenerateIdea200 = Data & {
-  code?: number;
-  data?: unknown;
-  message?: string;
-  sourceId?: string;
-  traceId?: string;
-};
-
-export type PostAiGenerateOutline200 = Data & {
-  code?: number;
-  data?: unknown;
-  message?: string;
-  sourceId?: string;
-  traceId?: string;
-};
-
-export type PostAiPolish200 = Data & {
-  code?: number;
-  data?: unknown;
-  message?: string;
-  sourceId?: string;
-  traceId?: string;
-};
 
 export type PostAuthLogin200 = Data & {
   code?: number;
@@ -652,6 +616,77 @@ export type PutDraftsId200 = Data & {
 };
 
 export type PostDraftsIdPublish200 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type GetGenerateBody = { [key: string]: unknown };
+
+export type GetGenerate200 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type PostGenerate200 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type GetPromptsParams = {
+  /**
+   * Page number
+   */
+  page?: number;
+  /**
+   * Items per page
+   */
+  limit?: number;
+  /**
+   * Filter by category
+   */
+  category?: string;
+};
+
+export type GetPromptsBody = { [key: string]: unknown };
+
+export type GetPrompts200 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type PostPrompts201 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type DeletePromptsIdBody = { [key: string]: unknown };
+
+export type GetPromptsIdBody = { [key: string]: unknown };
+
+export type GetPromptsId200 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type PutPromptsId200 = Data & {
   code?: number;
   data?: unknown;
   message?: string;

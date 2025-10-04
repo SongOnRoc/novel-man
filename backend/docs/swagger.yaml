@@ -316,96 +316,101 @@ components:
       type: object
     models.AIContext:
       properties:
-        chapter_id:
-          type: integer
-        character_ids:
-          items:
-            type: integer
-          type: array
-          uniqueItems: false
         style_preference:
           type: string
         work_id:
           type: integer
-        worldview_setting_ids:
-          items:
-            type: integer
-          type: array
-          uniqueItems: false
       type: object
-    models.CompletionRequest:
+    models.AssistantTypeResponse:
       properties:
-        context:
-          $ref: '#/components/schemas/models.AIContext'
-        text:
-          type: string
-      required:
-      - text
-      type: object
-    models.CompletionResponse:
-      properties:
-        completion:
-          type: string
-      type: object
-    models.CreateCharacterRequest:
-      properties:
-        context:
-          $ref: '#/components/schemas/models.AIContext'
-        description:
-          type: string
-      required:
-      - description
-      type: object
-    models.CreateCharacterResponse:
-      properties:
-        background_story:
+        label:
           type: string
         name:
           type: string
-        personality_desc:
-          type: string
       type: object
-    models.GenerateIdeaRequest:
+    models.GenerateRequest:
       properties:
+        assistant_type:
+          description: Corresponds to a model name or a system prompt category
+          type: string
         context:
           $ref: '#/components/schemas/models.AIContext'
+        prompt_id:
+          type: integer
         text:
           type: string
       required:
       - text
       type: object
-    models.GenerateIdeaResponse:
+    models.GenerateResponse:
       properties:
-        idea:
+        generated_text:
           type: string
       type: object
-    models.GenerateOutlineRequest:
+    prompts.CreatePromptRequest:
+      type: object
+    prompts.Detail:
       properties:
-        context:
-          $ref: '#/components/schemas/models.AIContext'
+        icon:
+          type: string
         text:
           type: string
-      required:
-      - text
       type: object
-    models.GenerateOutlineResponse:
+    prompts.PromptListResponse:
       properties:
-        outline:
-          type: string
+        items:
+          items:
+            $ref: '#/components/schemas/prompts.PromptResponse'
+          type: array
+          uniqueItems: false
+        pagination:
+          $ref: '#/components/schemas/response.Pagination'
       type: object
-    models.PolishRequest:
+    prompts.PromptResponse:
       properties:
-        context:
-          $ref: '#/components/schemas/models.AIContext'
-        text:
+        author:
           type: string
-      required:
-      - text
+        author_avatar:
+          type: string
+        author_specialty:
+          type: string
+        categories:
+          items:
+            type: string
+          type: array
+          uniqueItems: false
+        content:
+          type: string
+        description:
+          type: string
+        footer_tags:
+          items:
+            type: string
+          type: array
+          uniqueItems: false
+        id:
+          type: integer
+        is_system:
+          type: boolean
+        primary_tag:
+          type: string
+        status:
+          type: string
+        summary:
+          items:
+            $ref: '#/components/schemas/prompts.Detail'
+          type: array
+          uniqueItems: false
+        title:
+          type: string
+        updated_at:
+          type: string
+        usage_count:
+          type: integer
+        user_id:
+          type: integer
       type: object
-    models.PolishResponse:
-      properties:
-        polished_text:
-          type: string
+    prompts.UpdatePromptRequest:
       type: object
     relationships.ListRelationshipsResponse:
       properties:
@@ -740,236 +745,6 @@ info:
   version: "1.0"
 openapi: 3.1.0
 paths:
-  /ai/completion:
-    post:
-      description: Completes text based on the provided prompt and context.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/models.CompletionRequest'
-        description: Completion request
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                allOf:
-                - $ref: '#/components/schemas/data'
-                properties:
-                  code:
-                    type: integer
-                  data: {}
-                  message:
-                    type: string
-                  sourceId:
-                    type: string
-                  traceId:
-                    type: string
-                type: object
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/response.StandardResponse'
-          description: Invalid request body
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/response.StandardResponse'
-          description: Failed to get completion
-      security:
-      - BearerAuth: []
-      summary: Text Completion
-      tags:
-      - AI
-  /ai/create-character:
-    post:
-      description: Creates a character based on the provided description and context.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/models.CreateCharacterRequest'
-        description: Create character request
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                allOf:
-                - $ref: '#/components/schemas/data'
-                properties:
-                  code:
-                    type: integer
-                  data: {}
-                  message:
-                    type: string
-                  sourceId:
-                    type: string
-                  traceId:
-                    type: string
-                type: object
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/response.StandardResponse'
-          description: Invalid request body
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/response.StandardResponse'
-          description: Failed to create character
-      security:
-      - BearerAuth: []
-      summary: Create Character
-      tags:
-      - AI
-  /ai/generate-idea:
-    post:
-      description: Generates an idea based on the provided text and context.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/models.GenerateIdeaRequest'
-        description: Generate idea request
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                allOf:
-                - $ref: '#/components/schemas/data'
-                properties:
-                  code:
-                    type: integer
-                  data: {}
-                  message:
-                    type: string
-                  sourceId:
-                    type: string
-                  traceId:
-                    type: string
-                type: object
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/response.StandardResponse'
-          description: Invalid request body
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/response.StandardResponse'
-          description: Failed to generate idea
-      security:
-      - BearerAuth: []
-      summary: Generate Idea
-      tags:
-      - AI
-  /ai/generate-outline:
-    post:
-      description: Generates an outline based on the provided text and context.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/models.GenerateOutlineRequest'
-        description: Generate outline request
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                allOf:
-                - $ref: '#/components/schemas/data'
-                properties:
-                  code:
-                    type: integer
-                  data: {}
-                  message:
-                    type: string
-                  sourceId:
-                    type: string
-                  traceId:
-                    type: string
-                type: object
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/response.StandardResponse'
-          description: Invalid request body
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/response.StandardResponse'
-          description: Failed to generate outline
-      security:
-      - BearerAuth: []
-      summary: Generate Outline
-      tags:
-      - AI
-  /ai/polish:
-    post:
-      description: Polishes the provided text based on context.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/models.PolishRequest'
-        description: Polish request
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                allOf:
-                - $ref: '#/components/schemas/data'
-                properties:
-                  code:
-                    type: integer
-                  data: {}
-                  message:
-                    type: string
-                  sourceId:
-                    type: string
-                  traceId:
-                    type: string
-                type: object
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/response.StandardResponse'
-          description: Invalid request body
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/response.StandardResponse'
-          description: Failed to polish text
-      security:
-      - BearerAuth: []
-      summary: Text Polishing
-      tags:
-      - AI
   /auth/login:
     post:
       description: Log in a user with identifier (username or email) and password
@@ -2031,6 +1806,390 @@ paths:
       summary: Publish a draft to a chapter
       tags:
       - drafts
+  /generate:
+    get:
+      description: Retrieves a list of all available assistant types.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Internal Server Error
+      summary: Get Assistant Types
+      tags:
+      - Generate
+    post:
+      description: Generates text based on a given prompt, assistant type, or text.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/models.GenerateRequest'
+        description: Generation Request
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Bad Request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Internal Server Error
+      summary: Generate Text
+      tags:
+      - Generate
+  /prompts:
+    get:
+      description: Get a paginated list of prompts for the current user, with optional
+        filters.
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        schema:
+          default: 1
+          type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        schema:
+          default: 10
+          type: integer
+      - description: Filter by category
+        in: query
+        name: category
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: List user's prompts
+      tags:
+      - prompts
+    post:
+      description: Create a new prompt for the current user.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/prompts.CreatePromptRequest'
+        description: Prompt creation info
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Invalid request body
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Failed to create prompt
+      security:
+      - BearerAuth: []
+      summary: Create a new prompt
+      tags:
+      - prompts
+  /prompts/{id}:
+    delete:
+      description: Delete a prompt for the current user.
+      parameters:
+      - description: Prompt ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "204":
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Invalid ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Prompt not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Failed to delete prompt
+      security:
+      - BearerAuth: []
+      summary: Delete a prompt
+      tags:
+      - prompts
+    get:
+      description: Get a single prompt by its ID, including its content.
+      parameters:
+      - description: Prompt ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Invalid prompt ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Prompt not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Failed to retrieve prompt
+      security:
+      - BearerAuth: []
+      summary: Get a single prompt
+      tags:
+      - prompts
+    put:
+      description: Update an existing prompt for the current user.
+      parameters:
+      - description: Prompt ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/prompts.UpdatePromptRequest'
+        description: Prompt update info
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Invalid request body or ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Prompt not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Failed to update prompt
+      security:
+      - BearerAuth: []
+      summary: Update an existing prompt
+      tags:
+      - prompts
   /relationships:
     get:
       description: List relationships, optionally filtered by work_id. Verifies ownership

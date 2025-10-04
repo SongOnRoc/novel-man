@@ -18,7 +18,10 @@ type promptsModule struct{}
 func init() {
 	apps.Register(&promptsModule{})
 	container.Container.Provide(gorm.NewPromptGormRepository)
+	container.Container.Provide(gorm.NewGormUserRepository) // Ensure UserRepository is provided
 	container.Container.Provide(prompts_service.NewPromptService)
+	// NewPromptController now depends on UserRepository, which is already provided by the auth module.
+	// The container will automatically resolve this dependency.
 	container.Container.Provide(prompts.NewPromptController)
 }
 
@@ -55,6 +58,7 @@ func (m *promptsModule) RegisterRoutes(router *gin.RouterGroup) {
 			resourceGroup.Use(ownershipMiddleware.Handler())
 
 			{
+				resourceGroup.GET("", controller.GetPrompt)
 				resourceGroup.PUT("", controller.UpdatePrompt)
 				resourceGroup.DELETE("", controller.DeletePrompt)
 			}

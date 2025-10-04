@@ -45,6 +45,8 @@ type User struct {
 	Email        string `gorm:"type:varchar(255);unique;not null" json:"email"`
 	PasswordHash string `gorm:"type:varchar(255);not null" json:"-"`
 	Avatar       string `gorm:"type:varchar(255)" json:"avatar"`
+	Description  string `gorm:"type:text" json:"description"`
+	Skill        string `gorm:"type:text" json:"skill"`
 }
 
 // Character 是一个全局的角色模板，定义了角色的基础、跨作品的属性。
@@ -237,4 +239,3 @@ type CharacterWorldview struct {
 	WorldviewItemID uint `gorm:"primaryKey"`
 	CreatedAt       time.Time
 }
-

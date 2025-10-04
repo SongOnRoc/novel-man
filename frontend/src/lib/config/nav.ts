@@ -1,4 +1,4 @@
-import { Book, Feather, Home, Settings, Bot, Users, Globe } from "lucide-react";
+import { Book, Feather, Home, Settings, Bot, Users, Globe, FileText } from "lucide-react";
 
 export interface NavLink {
   title: string;
@@ -55,6 +55,11 @@ export const sidebarNavConfig: NavGroup[] = [
         title: "AI 助手",
         href: "/tools/ai-assistant",
         icon: Bot,
+      },
+      {
+        title: "提示词管理",
+        href: "/tools/prompts",
+        icon: FileText,
       },
     ],
   },
