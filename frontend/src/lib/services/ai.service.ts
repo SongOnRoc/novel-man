@@ -1,42 +1,31 @@
 /**
  * @file AI Service
- * @description This service handles all AI-related API calls.
+ * @description This service handles all AI-related API calls using the new generate endpoint.
  */
 
-import {
-  postAiCompletion,
-  postAiCreateCharacter,
-  postAiGenerateIdea,
-  postAiGenerateOutline,
-  postAiPolish,
-} from '@/lib/api/generated/ai/ai';
+import { postGenerate } from '@/lib/api/generated/generate/generate';
 import type {
-  ModelsCompletionRequest,
-  ModelsCreateCharacterRequest,
-  ModelsGenerateIdeaRequest,
-  ModelsGenerateOutlineRequest,
-  ModelsPolishRequest,
+  ModelsGenerateRequest,
+  ModelsGenerateResponse,
   ModelsAIContext,
-  ModelsPolishResponse,
-  ModelsCompletionResponse,
-  ModelsGenerateOutlineResponse,
-  ModelsCreateCharacterResponse,
 } from '@/lib/api/generated/api10.schemas';
 
 // =================================================================
 // Re-exporting Core AI Types for Application-wide Use
 // =================================================================
-export type CompletionRequest = ModelsCompletionRequest;
-export type CreateCharacterRequest = ModelsCreateCharacterRequest;
-export type GenerateIdeaRequest = ModelsGenerateIdeaRequest;
-export type GenerateOutlineRequest = ModelsGenerateOutlineRequest;
-export type PolishRequest = ModelsPolishRequest;
+export type GenerateRequest = ModelsGenerateRequest;
+export type GenerateResponse = ModelsGenerateResponse;
 export type AIContext = ModelsAIContext;
 
-export type PolishResponse = ModelsPolishResponse;
-export type CompletionResponse = ModelsCompletionResponse;
-export type GenerateOutlineResponse = ModelsGenerateOutlineResponse;
-export type CreateCharacterResponse = ModelsCreateCharacterResponse;
+// Legacy type aliases for backward compatibility
+export type CompletionRequest = GenerateRequest;
+export type CompletionResponse = GenerateResponse;
+export type PolishRequest = GenerateRequest;
+export type PolishResponse = GenerateResponse;
+export type CreateCharacterRequest = GenerateRequest;
+export type CreateCharacterResponse = GenerateResponse;
+export type GenerateOutlineRequest = GenerateRequest;
+export type GenerateOutlineResponse = GenerateResponse;
 
 export type AIPromptType =
   | "expand"
@@ -55,6 +44,16 @@ export interface AIGenerateParams {
 }
 
 /**
+ * Generic generate service that calls the unified /generate endpoint
+ */
+const generateService = async (
+  data: GenerateRequest
+): Promise<GenerateResponse> => {
+  const response = await postGenerate(data);
+  return response.data as GenerateResponse;
+};
+
+/**
  * Completes text based on the provided prompt and context.
  * @param data - The completion request data.
  * @returns A promise that resolves with the unwrapped completion data.
@@ -62,8 +61,7 @@ export interface AIGenerateParams {
 export const getCompletionService = async (
   data: CompletionRequest
 ): Promise<CompletionResponse> => {
-  const response = await postAiCompletion(data);
-  return response.data as CompletionResponse;
+  return generateService(data);
 };
 
 /**
@@ -74,8 +72,7 @@ export const getCompletionService = async (
 export const createCharacterService = async (
   data: CreateCharacterRequest
 ): Promise<CreateCharacterResponse> => {
-  const response = await postAiCreateCharacter(data);
-  return response.data as CreateCharacterResponse;
+  return generateService(data);
 };
 
 /**
@@ -83,9 +80,10 @@ export const createCharacterService = async (
  * @param data - The generate idea request data.
  * @returns A promise that resolves with the unwrapped idea data.
  */
-export const generateIdeaService = async (data: GenerateIdeaRequest) => {
-  const response = await postAiGenerateIdea(data);
-  return response.data as GenerateIdeaRequest;
+export const generateIdeaService = async (
+  data: GenerateRequest
+): Promise<GenerateResponse> => {
+  return generateService(data);
 };
 
 /**
@@ -96,8 +94,7 @@ export const generateIdeaService = async (data: GenerateIdeaRequest) => {
 export const generateOutlineService = async (
   data: GenerateOutlineRequest
 ): Promise<GenerateOutlineResponse> => {
-  const response = await postAiGenerateOutline(data);
-  return response.data as GenerateOutlineResponse;
+  return generateService(data);
 };
 
 /**
@@ -108,6 +105,5 @@ export const generateOutlineService = async (
 export const polishTextService = async (
   data: PolishRequest
 ): Promise<PolishResponse> => {
-  const response = await postAiPolish(data);
-  return response.data as PolishResponse;
+  return generateService(data);
 };
