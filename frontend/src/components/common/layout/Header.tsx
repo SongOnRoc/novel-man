@@ -16,17 +16,17 @@ export function Header({ className }: HeaderProps) {
   return (
     <header
       className={cn(
-        "sticky top-2.5 z-50 rounded-2xl border transition-all duration-300",
-        "bg-background/60 backdrop-blur-xl",
+        "sticky top-4 z-50 rounded-2xl border transition-all duration-300 animate-fadeInDown",
+        "glass-card",
         scrolled
-          ? "border-border/50 shadow-lg shadow-black/10"
-          : "border-transparent",
+          ? "shadow-lg shadow-primary/5 border-primary/20"
+          : "shadow-md border-transparent",
         className
       )}
     >
-      <div className="flex h-10 w-full items-center px-6">
+      <div className="flex h-14 w-full items-center px-6">
         <Breadcrumbs />
-        <div className="flex flex-1 items-center justify-end space-x-2">
+        <div className="flex flex-1 items-center justify-end space-x-3">
           <nav className="flex items-center space-x-2">
             <ThemeToggle />
             <UserNav />

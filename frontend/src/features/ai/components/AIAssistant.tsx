@@ -32,9 +32,12 @@ interface AIAssistantProps {
 }
 
 export const LoadingIndicator = (): React.ReactElement => (
-  <div className="flex flex-col items-center justify-center h-full min-h-[250px] text-muted-foreground">
-    <Loader className="h-8 w-8 animate-spin mb-4" />
-    <p className="text-lg">AI 正在思考中...</p>
+  <div className="flex flex-col items-center justify-center h-full min-h-[250px] text-muted-foreground animate-fadeIn">
+    <div className="relative">
+      <Loader className="h-12 w-12 animate-spin text-primary mb-4" />
+      <div className="absolute inset-0 h-12 w-12 animate-ping rounded-full bg-primary/20"></div>
+    </div>
+    <p className="text-lg font-medium text-gradient-primary">AI 正在思考中...</p>
     <p className="text-sm">这可能需要一点时间，请稍候</p>
   </div>
 );
@@ -124,10 +127,10 @@ export function AIAssistant({
   // Compact view for floating button (Drawer)
   if (compact) {
     return (
-      <div className={cn("w-full", className)}>
+      <div className={cn("w-full animate-fadeIn", className)}>
         {showResponseArea ? (
           <>
-            <h2 className="text-lg font-semibold mb-4">AI 响应</h2>
+            <h2 className="text-lg font-semibold mb-4 text-gradient-primary">AI 响应</h2>
             <AIResponse
               response={response}
               isLoading={isLoading}
@@ -140,8 +143,8 @@ export function AIAssistant({
           </>
         ) : (
           <>
-            <h2 className="text-lg font-semibold mb-4 justify-center">
-              ai工具箱
+            <h2 className="text-lg font-semibold mb-4 justify-center text-gradient-accent">
+              AI工具箱
             </h2>
             <AIPromptForm
               onSubmit={(promptType, prompt) =>
@@ -164,32 +167,36 @@ export function AIAssistant({
   // Standalone page view
   return (
     <div className={cn("grid lg:grid-cols-2 gap-8", className)}>
-      <div>
-        <h2 className="text-xl font-semibold mb-4">ai工具箱</h2>
-        <AIPromptForm
-          onSubmit={(promptType, prompt) =>
-            handleSubmit(promptType, prompt, selectedText)
-          }
-          isLoading={isLoading}
-          selectedText={selectedText}
-          compact={compact}
-          style={style}
-          onStyleChange={setStyle}
-          isPersonalized={isPersonalized}
-          onPersonalizedChange={setIsPersonalized}
-        />
+      <div className="animate-fadeInUp">
+        <h2 className="text-xl font-semibold mb-4 text-gradient-accent">AI工具箱</h2>
+        <div className="glass-card p-6">
+          <AIPromptForm
+            onSubmit={(promptType, prompt) =>
+              handleSubmit(promptType, prompt, selectedText)
+            }
+            isLoading={isLoading}
+            selectedText={selectedText}
+            compact={compact}
+            style={style}
+            onStyleChange={setStyle}
+            isPersonalized={isPersonalized}
+            onPersonalizedChange={setIsPersonalized}
+          />
+        </div>
       </div>
-      <div>
-        <h2 className="text-xl font-semibold mb-4">AI 响应</h2>
-        <AIResponse
-          response={response}
-          isLoading={isLoading}
-          onRegenerate={() => handleSubmit("polish", "", selectedText)}
-          onApplyToEditor={onApplyToEditor}
-          onDiscard={clearResponse}
-          hasSelection={!!selectedText}
-          compact={compact}
-        />
+      <div className="animate-fadeInUp" style={{animationDelay: "0.1s"}}>
+        <h2 className="text-xl font-semibold mb-4 text-gradient-primary">AI 响应</h2>
+        <div className="glass-card p-6 min-h-[300px]">
+          <AIResponse
+            response={response}
+            isLoading={isLoading}
+            onRegenerate={() => handleSubmit("polish", "", selectedText)}
+            onApplyToEditor={onApplyToEditor}
+            onDiscard={clearResponse}
+            hasSelection={!!selectedText}
+            compact={compact}
+          />
+        </div>
       </div>
     </div>
   );

@@ -12,7 +12,7 @@ const SidebarHeader = React.forwardRef<HTMLDivElement, SidebarHeaderProps>(
       <header
         ref={ref}
         className={cn(
-          'flex h-16 shrink-0 items-center justify-between border-b px-3',
+          'flex h-16 shrink-0 items-center justify-between border-b border-border/40 bg-gradient-to-r from-transparent via-background/50 to-transparent backdrop-blur-sm px-4 transition-all duration-300',
           className
         )}
         {...props}

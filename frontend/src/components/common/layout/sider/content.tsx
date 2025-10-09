@@ -11,7 +11,10 @@ const SidebarContent = React.forwardRef<HTMLDivElement, SidebarContentProps>(
     return (
       <main
         ref={ref}
-        className={cn('flex-1 overflow-y-auto hide-scrollbar', className)}
+        className={cn(
+          'flex-1 overflow-y-auto hide-scrollbar scrollbar-thin scrollbar-track-transparent scrollbar-thumb-border/20 hover:scrollbar-thumb-border/40 transition-all duration-300',
+          className
+        )}
         {...props}
       >
         {children}

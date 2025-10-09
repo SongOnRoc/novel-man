@@ -46,6 +46,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          {/* 背景装饰元素 */}
+          <div className="bg-decoration bg-decoration-1"></div>
+          <div className="bg-decoration bg-decoration-2"></div>
+          <div className="bg-decoration bg-decoration-3"></div>
+          
           <Providers>{children}</Providers>
           <Toaster />
         </ThemeProvider>

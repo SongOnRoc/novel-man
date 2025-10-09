@@ -1,30 +1,46 @@
 package prompts
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"time"
 
 	"novel-man/backend/internal/contracts"
+	"novel-man/backend/internal/contracts/auth"
 	"novel-man/backend/internal/contracts/prompts"
+	"novel-man/backend/internal/logger"
 	"novel-man/backend/internal/models"
 	"novel-man/backend/utils/context"
 	"novel-man/backend/utils/response"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/datatypes"
 )
 
-// DTOs for Prompts
+type Detail struct {
+	Icon string `json:"icon,omitempty"`
+	Text string `json:"text,omitempty"`
+}
 
+// DTOs for Prompts
 type PromptResponse struct {
-	ID        uint      `json:"id"`
-	Title     string    `json:"title"`
-	Type      string    `json:"type"`
-	Tags      *string   `json:"tags,omitempty"`
-	UpdatedAt time.Time `json:"updated_at"`
-	UserID    uint      `json:"user_id"`
-	Status    string    `json:"status"`
-	IsSystem  bool      `json:"is_system"`
+	ID              uint      `json:"id"`
+	Title           string    `json:"title"`
+	Content         string    `json:"content,omitempty"`
+	Description     string    `json:"description,omitempty"`
+	Summary         []Detail  `json:"summary,omitempty"`
+	Author          string    `json:"author,omitempty"`
+	AuthorSpecialty string    `json:"author_specialty,omitempty"`
+	AuthorAvatar    string    `json:"author_avatar,omitempty"`
+	UsageCount      uint      `json:"usage_count"`
+	PrimaryTag      string    `json:"primary_tag,omitempty"`
+	Categories      []string  `json:"categories,omitempty"`
+	FooterTags      []string  `json:"footer_tags,omitempty"`
+	UpdatedAt       time.Time `json:"updated_at"`
+	UserID          uint      `json:"user_id"`
+	Status          string    `json:"status"`
+	IsSystem        bool      `json:"is_system"`
 }
 
 type PromptListResponse struct {
@@ -33,27 +49,68 @@ type PromptListResponse struct {
 }
 
 type CreatePromptRequest struct {
-	Title   string  `json:"title" binding:"required"`
-	Content string  `json:"content" binding:"required"`
-	Type    string  `json:"type"`
-	Tags    *string `json:"tags,omitempty"`
+	Title       string          `json:"title" binding:"required"`
+	Content     string          `json:"content" binding:"required"`
+	Description string          `json:"description,omitempty"`
+	Summary     json.RawMessage `json:"summary,omitempty"`
+	PrimaryTag  string          `json:"primary_tag,omitempty"`
+	Categories  []string        `json:"categories,omitempty"`
+	FooterTags  []string        `json:"footer_tags,omitempty"`
 }
 
 type UpdatePromptRequest struct {
-	Title   *string `json:"title,omitempty"`
-	Content *string `json:"content,omitempty"`
-	Tags    *string `json:"tags,omitempty"`
-	Status  *string `json:"status,omitempty"`
+	Title           *string         `json:"title,omitempty"`
+	Content         *string         `json:"content,omitempty"`
+	Description     *string         `json:"description,omitempty"`
+	Summary         json.RawMessage `json:"summary,omitempty"`
+	Author          *string         `json:"author,omitempty"`
+	AuthorSpecialty *string         `json:"author_specialty,omitempty"`
+	AuthorAvatar    *string         `json:"author_avatar,omitempty"`
+	PrimaryTag      *string         `json:"primary_tag,omitempty"`
+	Categories      []string        `json:"categories,omitempty"`
+	FooterTags      []string        `json:"footer_tags,omitempty"`
+	Status          *string         `json:"status,omitempty"`
 }
 
 // PromptController handles HTTP requests for prompts.
 type PromptController struct {
-	service prompts.PromptService
+	service  prompts.PromptService
+	userRepo auth.UserRepository
 }
 
 // NewPromptController creates a new instance of PromptController.
-func NewPromptController(service prompts.PromptService) *PromptController {
-	return &PromptController{service: service}
+func NewPromptController(service prompts.PromptService, userRepo auth.UserRepository) *PromptController {
+	return &PromptController{service: service, userRepo: userRepo}
+}
+
+// toPromptResponse converts a Prompt model to a PromptResponse DTO.
+func toPromptResponse(p *models.Prompt) PromptResponse {
+	var summary []Detail
+	var categories, footerTags []string
+
+	// Ignore unmarshal errors, if data is invalid, frontend will get empty or nil slices.
+	_ = json.Unmarshal(p.Summary, &summary)
+	_ = json.Unmarshal(p.Categories, &categories)
+	_ = json.Unmarshal(p.FooterTags, &footerTags)
+
+	return PromptResponse{
+		ID:              p.ID,
+		Title:           p.Title,
+		Content:         p.Content,
+		Description:     p.Description,
+		Summary:         summary,
+		Author:          p.Author,
+		AuthorSpecialty: p.AuthorSpecialty,
+		AuthorAvatar:    p.AuthorAvatar,
+		UsageCount:      p.UsageCount,
+		PrimaryTag:      p.PrimaryTag,
+		Categories:      categories,
+		FooterTags:      footerTags,
+		UpdatedAt:       p.UpdatedAt,
+		UserID:          p.UserID,
+		Status:          p.Status,
+		IsSystem:        p.IsSystem,
+	}
 }
 
 // ListPrompts godoc
@@ -65,8 +122,7 @@ func NewPromptController(service prompts.PromptService) *PromptController {
 // @Produce  json
 // @Param page query int false "Page number" default(1)
 // @Param limit query int false "Items per page" default(10)
-// @Param type query string false "Filter by type (e.g., 'user', 'system')"
-// @Param tag query string false "Filter by tag"
+// @Param category query string false "Filter by category"
 // @Success 200 {object} response.StandardResponse{data=PromptListResponse}
 // @Failure 401 {object} response.StandardResponse "Unauthorized"
 // @Failure 500 {object} response.StandardResponse "Internal Server Error"
@@ -82,17 +138,12 @@ func (c *PromptController) ListPrompts(ctx *gin.Context) {
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
 
 	filters := make(contracts.Filters)
-	// Build a query that fetches prompts belonging to the user OR system prompts.
 	baseQuery := "user_id = ? OR is_system = ?"
 	queryParams := []interface{}{userID.(uint), true}
 
-	if pType := ctx.Query("type"); pType != "" {
-		baseQuery += " AND type = ?"
-		queryParams = append(queryParams, pType)
-	}
-	if tag := ctx.Query("tag"); tag != "" {
-		baseQuery += " AND tags LIKE ?"
-		queryParams = append(queryParams, "%"+tag+"%")
+	if category := ctx.Query("category"); category != "" {
+		baseQuery += " AND (categories LIKE ? OR primary_tag = ?)"
+		queryParams = append(queryParams, "%"+category+"%", category)
 	}
 	filters[contracts.FilterKeyQuery] = baseQuery
 	filters[contracts.FilterKeyParams] = queryParams
@@ -105,16 +156,7 @@ func (c *PromptController) ListPrompts(ctx *gin.Context) {
 
 	var respItems []PromptResponse
 	for _, p := range prompts {
-		respItems = append(respItems, PromptResponse{
-			ID:        p.ID,
-			Title:     p.Title,
-			Type:      p.Type,
-			Tags:      p.Tags,
-			UpdatedAt: p.UpdatedAt,
-			UserID:    p.UserID,
-			Status:    p.Status,
-			IsSystem:  p.IsSystem,
-		})
+		respItems = append(respItems, toPromptResponse(&p))
 	}
 
 	resp := PromptListResponse{
@@ -154,17 +196,39 @@ func (c *PromptController) CreatePrompt(ctx *gin.Context) {
 		return
 	}
 
-	pType := "user"
-	if req.Type != "" {
-		pType = req.Type
+	user, err := c.userRepo.FindUserByID(*context.New(ctx), userID.(uint))
+	if err != nil {
+		logger.Warn(context.New(ctx),
+			"Failed to fetch user info for prompt creation, userID: {}. Prompt will be created without author info. Error: {}",
+			userID, err)
+	}
+
+	categoriesJSON, err := json.Marshal(req.Categories)
+	if err != nil {
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid categories format", err)
+		return
+	}
+	footerTagsJSON, err := json.Marshal(req.FooterTags)
+	if err != nil {
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid footer_tags format", err)
+		return
 	}
 
 	prompt := &models.Prompt{
-		UserID:  userID.(uint),
-		Title:   req.Title,
-		Content: req.Content,
-		Type:    pType,
-		Tags:    req.Tags,
+		UserID:      userID.(uint),
+		Title:       req.Title,
+		Content:     req.Content,
+		Description: req.Description,
+		Summary:     datatypes.JSON(req.Summary),
+		PrimaryTag:  req.PrimaryTag,
+		Categories:  categoriesJSON,
+		FooterTags:  footerTagsJSON,
+	}
+
+	if user != nil {
+		prompt.Author = user.Username
+		prompt.AuthorAvatar = user.Avatar
+		prompt.AuthorSpecialty = user.Description
 	}
 
 	if err := c.service.Create(*context.New(ctx), prompt); err != nil {
@@ -172,18 +236,49 @@ func (c *PromptController) CreatePrompt(ctx *gin.Context) {
 		return
 	}
 
-	resp := PromptResponse{
-		ID:        prompt.ID,
-		Title:     prompt.Title,
-		Type:      prompt.Type,
-		Tags:      prompt.Tags,
-		UpdatedAt: prompt.UpdatedAt,
-		UserID:    prompt.UserID,
-		Status:    prompt.Status,
-		IsSystem:  prompt.IsSystem,
+	response.Success(ctx, http.StatusCreated, toPromptResponse(prompt))
+}
+
+// GetPrompt godoc
+// @Summary Get a single prompt
+// @Description Get a single prompt by its ID, including its content.
+// @Tags prompts
+// @Security BearerAuth
+// @Accept  json
+// @Produce  json
+// @Param id path int true "Prompt ID"
+// @Success 200 {object} response.StandardResponse{data=PromptResponse}
+// @Failure 400 {object} response.StandardResponse "Invalid prompt ID"
+// @Failure 401 {object} response.StandardResponse "Unauthorized"
+// @Failure 403 {object} response.StandardResponse "Forbidden"
+// @Failure 404 {object} response.StandardResponse "Prompt not found"
+// @Failure 500 {object} response.StandardResponse "Failed to retrieve prompt"
+// @Router /prompts/{id} [get]
+func (c *PromptController) GetPrompt(ctx *gin.Context) {
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		response.Error(ctx, http.StatusUnauthorized, http.StatusUnauthorized, "User not authenticated", nil)
+		return
 	}
 
-	response.Success(ctx, http.StatusCreated, resp)
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid prompt ID", err)
+		return
+	}
+
+	prompt, err := c.service.GetByID(*context.New(ctx), uint(id))
+	if err != nil {
+		response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Prompt not found", err)
+		return
+	}
+
+	if !prompt.IsSystem && prompt.UserID != userID.(uint) {
+		response.Error(ctx, http.StatusForbidden, http.StatusForbidden, "You do not have permission to view this prompt", nil)
+		return
+	}
+
+	response.Success(ctx, http.StatusOK, toPromptResponse(prompt))
 }
 
 // UpdatePrompt godoc
@@ -238,8 +333,39 @@ func (c *PromptController) UpdatePrompt(ctx *gin.Context) {
 	if req.Content != nil {
 		prompt.Content = *req.Content
 	}
-	if req.Tags != nil {
-		prompt.Tags = req.Tags
+	if req.Description != nil {
+		prompt.Description = *req.Description
+	}
+	if req.Summary != nil {
+		prompt.Summary = datatypes.JSON(req.Summary)
+	}
+	if req.Author != nil {
+		prompt.Author = *req.Author
+	}
+	if req.AuthorSpecialty != nil {
+		prompt.AuthorSpecialty = *req.AuthorSpecialty
+	}
+	if req.AuthorAvatar != nil {
+		prompt.AuthorAvatar = *req.AuthorAvatar
+	}
+	if req.PrimaryTag != nil {
+		prompt.PrimaryTag = *req.PrimaryTag
+	}
+	if req.Categories != nil {
+		categoriesJSON, err := json.Marshal(req.Categories)
+		if err != nil {
+			response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid categories format", err)
+			return
+		}
+		prompt.Categories = categoriesJSON
+	}
+	if req.FooterTags != nil {
+		footerTagsJSON, err := json.Marshal(req.FooterTags)
+		if err != nil {
+			response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid footer_tags format", err)
+			return
+		}
+		prompt.FooterTags = footerTagsJSON
 	}
 	if req.Status != nil {
 		prompt.Status = *req.Status
@@ -250,18 +376,7 @@ func (c *PromptController) UpdatePrompt(ctx *gin.Context) {
 		return
 	}
 
-	resp := PromptResponse{
-		ID:        prompt.ID,
-		Title:     prompt.Title,
-		Type:      prompt.Type,
-		Tags:      prompt.Tags,
-		UpdatedAt: prompt.UpdatedAt,
-		UserID:    prompt.UserID,
-		Status:    prompt.Status,
-		IsSystem:  prompt.IsSystem,
-	}
-
-	response.Success(ctx, http.StatusOK, resp)
+	response.Success(ctx, http.StatusOK, toPromptResponse(prompt))
 }
 
 // DeletePrompt godoc

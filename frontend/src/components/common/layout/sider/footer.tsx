@@ -12,7 +12,7 @@ const SidebarFooter = React.forwardRef<HTMLDivElement, SidebarFooterProps>(
       <footer
         ref={ref}
         className={cn(
-          'flex shrink-0 items-center justify-center border-t py-2',
+          'flex shrink-0 items-center justify-center border-t border-border/40 bg-gradient-to-r from-transparent via-background/50 to-transparent backdrop-blur-sm py-3 transition-all duration-300',
           className
         )}
         {...props}
