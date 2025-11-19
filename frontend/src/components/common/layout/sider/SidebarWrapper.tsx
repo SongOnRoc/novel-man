@@ -9,58 +9,32 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { ResizablePanel } from "@/components/ui/resizable";
 import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
 import { useSidebarStore } from "@/hooks/ui/useSidebarStore";
 import { SidebarContext } from "@/hooks/ui/useSidebarContext";
 
-interface ResponsiveSidebarProps {
+interface SidebarWrapperProps {
   children: React.ReactNode;
   className?: string;
 }
 
-export function ResponsiveSidebar({
-  children,
-  className,
-}: ResponsiveSidebarProps) {
+export function SidebarWrapper({ children, className }: SidebarWrapperProps) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const { isCollapsed, setIsCollapsed } = useSidebarStore();
+  const { isCollapsed } = useSidebarStore();
   const [isSheetOpen, setIsSheetOpen] = React.useState(false);
-  const [panelSize, setPanelSize] = React.useState(isCollapsed ? 5 : 15);
-
-  // 同步 Zustand 状态与 ResizablePanel 状态
-  React.useEffect(() => {
-    setPanelSize(isCollapsed ? 5 : 15);
-  }, [isCollapsed]);
 
   if (isDesktop) {
     return (
-      <ResizablePanel
-        defaultSize={panelSize}
-        collapsedSize={5}
-        collapsible={true}
-        minSize={5}
-        maxSize={25}
-        onCollapse={() => setIsCollapsed(true)}
-        onExpand={() => setIsCollapsed(false)}
-        onResize={(size) => {
-          // 根据大小更新折叠状态
-          if (size <= 6 && !isCollapsed) {
-            setIsCollapsed(true);
-          } else if (size > 6 && isCollapsed) {
-            setIsCollapsed(false);
-          }
-        }}
+      <div
         className={cn(
           "transition-all duration-300 ease-in-out",
-          isCollapsed && "min-w-[5%] max-w-[5%]",
-          !isCollapsed && "min-w-[15%] max-w-[25%]",
+          isCollapsed ? "w-[5%]" : "w-[15%]",
           className
         )}
       >
         {children}
-      </ResizablePanel>
+      </div>
     );
   }
 

@@ -25,3 +25,14 @@
     - `backend/internal/models/generate.go` 中定义了所有相关的请求和响应模型。
     - `GET` 和 `POST` `/api/v1/generate` 的控制器和占位符服务已实现。
     - 新的 `generate` 模块已在 `backend/internal/apps/generate/module.go` 中完成依赖注入和路由注册。
+
+### 3. 前端重构：AI服务层迁移到新接口
+- **任务描述**: 修复前端 `ai.service.ts` 导入错误，将其从旧的 `/api/ai` 接口迁移到新的 `/api/generate` 接口。
+- **完成时间**: 2025-10-26T08:24:00Z
+- **完成者**: `nexuscore`
+- **状态**: ✅ 成功
+- **交付成果**:
+    - 重构 `frontend/src/lib/services/ai.service.ts`，移除对不存在的 `@/lib/api/generated/ai/ai` 的依赖。
+    - 使用新的 `postGenerate` 函数替代旧的 AI 接口调用（`postAiCompletion`、`postAiCreateCharacter` 等）。
+    - 保持向后兼容：所有导出的类型别名和函数签名保持不变，确保 `useAIAssistant.ts` 等依赖文件无需修改。
+    - 统一所有 AI 功能通过 `generateService` 内部函数调用新的 `/api/generate` 端点。

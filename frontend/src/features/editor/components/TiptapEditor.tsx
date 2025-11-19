@@ -12,6 +12,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AIFloatingButton } from "@/features/ai/components/AIFloatingButton";
+import { AISidebar } from "@/features/ai/components/AISidebar";
+import { useMediaQuery } from "@/hooks/ui/useMediaQuery";
 import { BookmarkExtension } from "@/lib/editor/BookmarkExtension";
 import { FindExtension } from "@/lib/editor/FindExtension";
 import {
@@ -265,60 +267,103 @@ export function TiptapEditor({
     );
   }, [settings]);
 
+  const [isAIOpen, setIsAIOpen] = useState(false);
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+
   return (
-    <div
-      id={containerId}
-      className="flex flex-col rounded-2xl border border-white/10 bg-card/60 shadow-lg shadow-black/10 backdrop-blur-xl"
-    >
-      {/* 标题输入 */}
-      <div className="p-4">
-        <Label htmlFor="title" className="sr-only">
-          标题
-        </Label>
-        <Input
-          id="title"
-          value={title}
-          onChange={(e) => {
-            const newTitle = e.target.value;
-            setTitle(newTitle);
-            if (onContentUpdate && editor) {
-              onContentUpdate({
-                title: newTitle,
-                content: editor.getHTML(),
-                wordCount,
-              });
-            }
-          }}
-          placeholder="输入标题..."
-          className="border-none text-xl font-semibold focus-visible:ring-0 px-0"
+    <>
+      <div className="flex h-full">
+        {/* 编辑器区域 */}
+        <div
+          id={containerId}
+          className={`flex flex-col border border-white/10 bg-card/60 backdrop-blur-xl flex-1 transition-all duration-300 ${
+            isAIOpen ? "rounded-l-2xl border-r-0 shadow-xl shadow-black/20 relative z-10" : "rounded-2xl shadow-lg shadow-black/10"
+          }`}
+        >
+          {/* 标题输入 */}
+          <div className="p-4">
+            <Label htmlFor="title" className="sr-only">
+              标题
+            </Label>
+            <Input
+              id="title"
+              value={title}
+              onChange={(e) => {
+                const newTitle = e.target.value;
+                setTitle(newTitle);
+                if (onContentUpdate && editor) {
+                  onContentUpdate({
+                    title: newTitle,
+                    content: editor.getHTML(),
+                    wordCount,
+                  });
+                }
+              }}
+              placeholder="输入标题..."
+              className="border-none text-xl font-semibold focus-visible:ring-0 px-0"
+            />
+          </div>
+
+          {/* 工具栏 */}
+          <EditorToolbar
+            editor={editor}
+            onSave={handleSave}
+            isSaving={isSavingProp}
+            wordCount={wordCount}
+            contentId={contentId}
+            workId={workId}
+            editorContainerId={containerId}
+            targetCount={targetCount}
+            onTargetCountChange={onTargetCountChange}
+          />
+
+          {/* 内容编辑区 */}
+          <div
+            className={`prose prose-sm dark:prose-invert max-w-none p-4 min-h-[300px] theme-${settings.theme}`}
+          >
+            <EditorContent
+              editor={editor}
+              className="min-h-[300px] outline-none"
+            />
+          </div>
+        </div>
+
+        {/* 桌面端AI侧边栏 */}
+        {isDesktop && isAIOpen && (
+          <AISidebar
+            selectedText={getSelectedText()}
+            onApplyToEditor={applyTextToEditor}
+            onClose={() => setIsAIOpen(false)}
+          />
+        )}
+      </div>
+
+      {/* AI悬浮按钮 - 桌面端控制侧边栏，移动端打开抽屉 */}
+      {isDesktop ? (
+        <button
+          onClick={() => setIsAIOpen(!isAIOpen)}
+          className="fixed bottom-8 right-8 h-12 w-12 rounded-full shadow-lg z-50 bg-primary text-primary-foreground hover:scale-110 transition-transform flex items-center justify-center"
+        >
+          <svg
+            className="h-6 w-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+            />
+          </svg>
+        </button>
+      ) : (
+        <AIFloatingButton
+          selectedText={getSelectedText()}
+          onApplyToEditor={applyTextToEditor}
         />
-      </div>
-
-      {/* 工具栏 */}
-      <EditorToolbar
-        editor={editor}
-        onSave={handleSave}
-        isSaving={isSavingProp}
-        wordCount={wordCount}
-        contentId={contentId}
-        workId={workId}
-        editorContainerId={containerId}
-        targetCount={targetCount}
-        onTargetCountChange={onTargetCountChange}
-      />
-
-      {/* 内容编辑区 */}
-      <div
-        className={`prose prose-sm dark:prose-invert max-w-none p-4 min-h-[300px] theme-${settings.theme}`}
-      >
-        <EditorContent editor={editor} className="min-h-[300px] outline-none" />
-      </div>
-
-      {/* AI悬浮按钮 */}
-      <AIFloatingButton
-        selectedText={getSelectedText()}
-        onApplyToEditor={applyTextToEditor}
-      />
+      )}
 
       {/* 编辑器样式 */}
       <style jsx global>{`
@@ -409,6 +454,6 @@ export function TiptapEditor({
           margin-bottom: 1rem;
         }
       `}</style>
-    </div>
+    </>
   );
 }
