@@ -17,6 +17,7 @@ import {
   getChaptersId,
   putChaptersId,
   deleteChaptersId,
+  postChaptersImport,
 } from '@/lib/api/generated/chapters/chapters';
 
 // transform snake_case to camelCase
@@ -92,4 +93,17 @@ export const updateChapterService = (id: number, data: UpdateChapterPayload) => 
  */
 export const deleteChapterService = (id: number) => {
   return deleteChaptersId(id);
+};
+
+/**
+ * Imports chapters from a file.
+ * @param workId - The ID of the work to import chapters to.
+ * @param file - The file to import.
+ * @returns A promise that resolves with the import result.
+ */
+export const importChaptersService = (workId: number, file: File) => {
+  // The generated client wraps the body in a "data" key in FormData.
+  // We updated the backend to accept "data" key.
+  // postChaptersImport takes body as first arg, and params as second arg.
+  return postChaptersImport(file, { work_id: workId });
 };

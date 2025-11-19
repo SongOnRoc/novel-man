@@ -15,5 +15,19 @@
   "typescript.preferences.autoImportFileExcludePatterns": [
     "next/router.d.ts",
     "next/dist/client/router.d.ts"
+  ],
+  "dbcode.connections": [
+    {
+      "connectionId": "6X5CLxAzaZuCU_z_APyVy",
+      "name": "test",
+      "driver": "sqlite",
+      "connectionType": "socket",
+      "socket": "novel-man/backend/novel_man.db",
+      "readOnly": false,
+      "driverOptions": {
+        "extensions": []
+      },
+      "idleTimeout": 0
+    }
   ]
 }

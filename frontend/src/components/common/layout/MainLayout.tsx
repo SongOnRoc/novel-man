@@ -2,44 +2,25 @@
 
 import React from "react";
 
-import {
-  ResizablePanelGroup,
-  ResizablePanel,
-  ResizableHandle,
-} from "@/components/ui/resizable";
 import { useSidebarStore } from "@/hooks/ui/useSidebarStore";
 import { cn } from "@/lib/utils";
 
 import { Header } from "./Header";
 import { Sidebar } from "./sider";
 import { NavLinks } from "./sider/nav-links";
-import { ResponsiveSidebar } from "./sider/ResponsiveSidebar";
+import { SidebarWrapper } from "./sider/SidebarWrapper";
 
 interface MainLayoutProps {
   children: React.ReactNode;
-  defaultLayout?: number[];
   defaultCollapsed?: boolean;
   navCollapsedSize?: number;
 }
 
 export function MainLayout({
   children,
-  defaultLayout = [15, 85], // Sidebar: 15%, Main: 85%
   defaultCollapsed = false,
 }: MainLayoutProps) {
   const { isCollapsed, setIsCollapsed } = useSidebarStore();
-  
-  // 根据侧边栏状态动态调整布局
-  const [layout, setLayout] = React.useState(defaultLayout);
-  
-  React.useEffect(() => {
-    // 当侧边栏状态改变时，更新布局
-    if (isCollapsed) {
-      setLayout([5, 95]); // 折叠时：侧边栏 5%，主内容 95%
-    } else {
-      setLayout([15, 85]); // 展开时：侧边栏 15%，主内容 85%
-    }
-  }, [isCollapsed]);
 
   // 确保侧边栏在初始化时正确应用折叠状态
   React.useEffect(() => {
@@ -52,11 +33,8 @@ export function MainLayout({
   }, [isCollapsed, setIsCollapsed]);
 
   return (
-    <ResizablePanelGroup
-      direction="horizontal"
-      className="h-screen w-screen items-stretch"
-    >
-      <ResponsiveSidebar>
+    <div className="flex h-screen w-screen">
+      <SidebarWrapper>
         <Sidebar>
           <Sidebar.Header>
             <div className="flex items-center justify-between w-full">
@@ -80,13 +58,16 @@ export function MainLayout({
                 <div
                   className={cn(
                     "flex flex-col items-start transition-all duration-300",
-                    isCollapsed && "opacity-0 scale-95 pointer-events-none absolute"
+                    isCollapsed &&
+                      "opacity-0 scale-95 pointer-events-none absolute"
                   )}
                 >
                   <span className="text-base font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                     NovelMan
                   </span>
-                  <span className="text-xs text-muted-foreground/80 font-medium">v 0.0.1</span>
+                  <span className="text-xs text-muted-foreground/80 font-medium">
+                    v 0.0.1
+                  </span>
                 </div>
               </div>
               <button
@@ -137,21 +118,18 @@ export function MainLayout({
             <div>{/* Placeholder for UserProfile or other items */}</div>
           </Sidebar.Footer>
         </Sidebar>
-      </ResponsiveSidebar>
-      <ResizableHandle withHandle className="hidden" />
-      <ResizablePanel defaultSize={layout[1]} className="relative">
-        <div className="flex flex-col h-full overflow-hidden main-content-border">
-          <div className="relative px-4 md:px-6 lg:px-8 py-4">
-            <Header />
-          </div>
-          <main
-            id="main-content"
-            className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pt-0"
-          >
-            {children}
-          </main>
+      </SidebarWrapper>
+      <div className="flex-1 flex flex-col h-full overflow-hidden main-content-border">
+        <div className="relative px-4 md:px-6 lg:px-8 py-4">
+          <Header />
         </div>
-      </ResizablePanel>
-    </ResizablePanelGroup>
+        <main
+          id="main-content"
+          className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pt-0"
+        >
+          {children}
+        </main>
+      </div>
+    </div>
   );
 }

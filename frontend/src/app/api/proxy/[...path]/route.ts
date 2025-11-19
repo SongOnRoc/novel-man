@@ -8,8 +8,14 @@ const API_BASE_URL =
   process.env.BACKEND_API_URL || "http://localhost:8080/api/v1";
 
 // Rate limit (in-memory fallback)
-const RATE_LIMIT_MAX = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || "100", 10);
-const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS || "60000", 10);
+const RATE_LIMIT_MAX = parseInt(
+  process.env.RATE_LIMIT_MAX_REQUESTS || "100",
+  10
+);
+const RATE_LIMIT_WINDOW_MS = parseInt(
+  process.env.RATE_LIMIT_WINDOW_MS || "60000",
+  10
+);
 
 type RateEntry = { count: number; reset: number };
 const rateMap = new Map<string, RateEntry>();
@@ -21,7 +27,10 @@ function getClientIp(req: NextRequest): string {
   return realIp || "unknown";
 }
 
-function rateLimitHeaders(remaining: number, reset: number): Record<string, string> {
+function rateLimitHeaders(
+  remaining: number,
+  reset: number
+): Record<string, string> {
   const retryAfterSec = Math.max(0, Math.ceil((reset - Date.now()) / 1000));
   return {
     "X-RateLimit-Limit": String(RATE_LIMIT_MAX),
@@ -30,20 +39,84 @@ function rateLimitHeaders(remaining: number, reset: number): Record<string, stri
   };
 }
 
-async function checkRateLimit(identifier: string): Promise<{ allowed: true; remaining: number; reset: number } | { allowed: false; remaining: number; reset: number }> {
+async function checkRateLimit(
+  identifier: string
+): Promise<
+  | { allowed: true; remaining: number; reset: number }
+  | { allowed: false; remaining: number; reset: number }
+> {
   const now = Date.now();
   const entry = rateMap.get(identifier);
   if (!entry || now > entry.reset) {
     const newEntry = { count: 1, reset: now + RATE_LIMIT_WINDOW_MS };
     rateMap.set(identifier, newEntry);
-    return { allowed: true, remaining: RATE_LIMIT_MAX - 1, reset: newEntry.reset };
+    return {
+      allowed: true,
+      remaining: RATE_LIMIT_MAX - 1,
+      reset: newEntry.reset,
+    };
   }
   entry.count += 1;
   if (entry.count > RATE_LIMIT_MAX) {
     return { allowed: false, remaining: 0, reset: entry.reset };
   }
   rateMap.set(identifier, entry);
-  return { allowed: true, remaining: RATE_LIMIT_MAX - entry.count, reset: entry.reset };
+  return {
+    allowed: true,
+    remaining: RATE_LIMIT_MAX - entry.count,
+    reset: entry.reset,
+  };
+}
+
+// File upload security validation
+async function validateFileUpload(
+  formData: FormData
+): Promise<{ valid: true } | { valid: false; res: NextResponse }> {
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  const ALLOWED_TYPES = [
+    "application/json",
+    "text/plain",
+    "text/markdown",
+    "application/zip",
+    "application/x-zip-compressed",
+  ];
+
+  for (const [key, value] of formData.entries()) {
+    if (value instanceof File) {
+      // Check file size
+      if (value.size > MAX_FILE_SIZE) {
+        console.error(`File too large: ${value.name} (${value.size} bytes)`);
+        return {
+          valid: false,
+          res: NextResponse.json(
+            {
+              message: `File too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB`,
+            },
+            { status: 413 }
+          ),
+        };
+      }
+
+      // Check file type
+      const fileExtension = value.name.split(".").pop()?.toLowerCase();
+      const isValidType =
+        ALLOWED_TYPES.includes(value.type) ||
+        (fileExtension && ["json", "txt", "md", "zip"].includes(fileExtension));
+
+      if (!isValidType) {
+        console.error(`Unsupported file type: ${value.type} (${value.name})`);
+        return {
+          valid: false,
+          res: NextResponse.json(
+            { message: `Unsupported file type: ${value.type}` },
+            { status: 415 }
+          ),
+        };
+      }
+    }
+  }
+
+  return { valid: true };
 }
 
 // Public path whitelist (prefix match)
@@ -106,6 +179,7 @@ async function handler(req: NextRequest) {
     headers["Authorization"] = authorization;
   }
   // Forward content-type header if it exists
+  // This is important for multipart/form-data to include boundary
   const contentType = req.headers.get("Content-Type");
   if (contentType) {
     headers["Content-Type"] = contentType;
@@ -118,7 +192,11 @@ async function handler(req: NextRequest) {
   }
 
   // Authorization enforcement via helper function
-  const authCheck = await ensureAuthorized(req, path, authorization || undefined);
+  const authCheck = await ensureAuthorized(
+    req,
+    path,
+    authorization || undefined
+  );
   if (!authCheck.ok) {
     // add rate limit headers on auth failures as well
     const res = authCheck.res;
@@ -139,13 +217,52 @@ async function handler(req: NextRequest) {
       return undefined;
     }
 
+    const contentType = req.headers.get("content-type") || "";
+
+    // Handle FormData (multipart/form-data) - needed for file uploads
+    if (contentType.includes("multipart/form-data")) {
+      try {
+        const formData = await req.formData();
+
+        // Validate file uploads for security
+        const validation = await validateFileUpload(formData);
+        if (!validation.valid) {
+          throw new Error(`File validation failed: ${validation.res}`);
+        }
+
+        return formData;
+      } catch (error) {
+        console.error(
+          "Failed to parse or validate request body as FormData",
+          error
+        );
+        // If it's a validation error, return the response directly
+        if (
+          error instanceof Error &&
+          error.message.includes("File validation failed")
+        ) {
+          const validationError = error as any;
+          return validationError.res;
+        }
+        return undefined;
+      }
+    }
+
+    // Handle JSON
+    if (contentType.includes("application/json")) {
+      try {
+        return await req.json();
+      } catch (error) {
+        console.error("Failed to parse request body as JSON", error);
+        return undefined;
+      }
+    }
+
+    // For other content types, try JSON as fallback
     try {
       return await req.json();
     } catch (error) {
-      // If parsing fails, it might be form-data or other types,
-      // for this proxy we assume it's an error for now.
-      console.error("Failed to parse request body as JSON", error);
-      // Return a specific error or undefined to let axios handle it.
+      console.error("Failed to parse request body", error);
       return undefined;
     }
   };
@@ -153,18 +270,33 @@ async function handler(req: NextRequest) {
   try {
     const body = await getBody();
 
-    const response = await axios({
+    // For FormData requests, we need special handling
+    let axiosConfig: any = {
       method: req.method,
       url: url,
-      data: body,
       headers: headers,
       responseType: "json",
-    });
+    };
+    
+    // Handle FormData properly
+    if (body instanceof FormData) {
+      // For FormData, we need to let axios handle the Content-Type
+      delete axiosConfig.headers["Content-Type"];
+      axiosConfig.data = body;
+      axiosConfig.maxBodyLength = Infinity; // Allow large file uploads
+    } else {
+      axiosConfig.data = body;
+    }
+
+    const response = await axios(axiosConfig);
 
     if (response.status === 204) {
       return new NextResponse(null, { status: 204, headers: baseHeaders });
     }
-    return NextResponse.json(response.data, { status: response.status, headers: baseHeaders });
+    return NextResponse.json(response.data, {
+      status: response.status,
+      headers: baseHeaders,
+    });
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;

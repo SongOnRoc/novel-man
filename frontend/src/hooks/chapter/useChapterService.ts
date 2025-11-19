@@ -13,6 +13,7 @@ import {
   createChapterService,
   updateChapterService,
   deleteChapterService,
+  importChaptersService,
 } from "@/lib/services/chapter.service";
 import type {
   Chapter,
@@ -137,6 +138,21 @@ export const useDeleteChapter = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => deleteChapterService(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: chapterKeys.lists() });
+    },
+  });
+};
+
+/**
+ * Hook to import chapters from a file.
+ * Invalidates the chapter list query on success.
+ */
+export const useImportChapters = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workId, file }: { workId: number; file: File }) =>
+      importChaptersService(workId, file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: chapterKeys.lists() });
     },

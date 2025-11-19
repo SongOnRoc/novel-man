@@ -28,6 +28,7 @@ import type {
   GetWorksParams,
   PostWorks201,
   PostWorksIdPublish200,
+  PostWorksImport200,
   PutWorksId200,
   ResponseStandardResponse,
   WorksCreateWorkRequest,
@@ -281,6 +282,116 @@ export const usePostWorks = <
   TContext
 > => {
   const mutationOptions = getPostWorksMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Import works from uploaded file (supports .json formats)
+ * @summary Import works from file
+ */
+export const postWorksImport = (
+  postWorksImportBody: unknown,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  const formData = new FormData();
+  formData.append("data", postWorksImportBody);
+
+  return customInstance<PostWorksImport200>(
+    {
+      url: `/works/import`,
+      method: "POST",
+      headers: { "Content-Type": "multipart/form-data" },
+      data: formData,
+      signal,
+    },
+    options,
+  );
+};
+
+export const getPostWorksImportMutationOptions = <
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postWorksImport>>,
+    TError,
+    { data: unknown },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postWorksImport>>,
+  TError,
+  { data: unknown },
+  TContext
+> => {
+  const mutationKey = ["postWorksImport"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postWorksImport>>,
+    { data: unknown }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return postWorksImport(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PostWorksImportMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postWorksImport>>
+>;
+export type PostWorksImportMutationBody = unknown;
+export type PostWorksImportMutationError =
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse;
+
+/**
+ * @summary Import works from file
+ */
+export const usePostWorksImport = <
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postWorksImport>>,
+      TError,
+      { data: unknown },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postWorksImport>>,
+  TError,
+  { data: unknown },
+  TContext
+> => {
+  const mutationOptions = getPostWorksImportMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };

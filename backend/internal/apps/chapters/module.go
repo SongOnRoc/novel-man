@@ -46,6 +46,7 @@ func (m *chaptersModule) RegisterRoutes(router *gin.RouterGroup) {
 
 		{
 			authedGroup.POST("", controller.CreateChapter)
+			authedGroup.POST("/import", controller.Import)
 			authedGroup.GET("", controller.ListChapters)
 
 			// 创建需要资源存在性和所有权验证的路由组

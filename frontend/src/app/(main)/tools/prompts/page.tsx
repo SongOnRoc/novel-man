@@ -9,16 +9,12 @@ import {
   RotateCcw,
   CheckCircle,
   ChevronDown,
+  MoreVertical,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -26,6 +22,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Pagination,
   PaginationContent,
@@ -35,111 +37,12 @@ import {
   PaginationNext,
 } from "@/components/ui/pagination";
 import { cn } from "@/lib/utils";
+import { useMediaQuery } from "@/hooks/ui/useMediaQuery";
 import PromptCard from "@/features/prompts/components/PromptCard";
+import ImportPromptsDialog from "@/features/prompts/components/ImportPromptsDialog";
+// import mockPromptsData from "@/lib/mock/prompts-mock-data.json";
 
-// import usePromptService from "@/hooks/prompt/usePromptService";
-
-const mockPrompts: PromptForClient[] = [
-  {
-    id: 1,
-    title: "【橙子】根据已有剧情扩写润色,去ai味(长短篇交流群...",
-    author: "橙子",
-    authorSpecialty: "(长篇、短篇、剧本教学)",
-    authorAvatar: "https://i.pravatar.cc/40?u=a042581f4e29026704d",
-    usageCount: 715904,
-    updatedAt: "2025-08-25",
-    description:
-      "使用方法: 橙子的脑洞生成→大纲生成→橙子的细纲生成→根据已有剧情扩写润色 (或者选择ai写作;) →最后生成完整章节→选择一键章节评分取名, 从编辑读者角度, 给出修改建议 注意: 如果细纲全部选中, 扩写...",
-    primaryTag: "扩写要求",
-    summary: [
-      { icon: "Book", text: "爆款网文创作圣典" },
-      { icon: "Feather", text: "五感模型" },
-    ],
-    categories: ["长篇", "短篇"],
-    footerTags: ["番茄", "起点", "降AI率"],
-  },
-  {
-    id: 2,
-    title: "【西瓜出品】黄金文风1.3, 开启新人造神时代! 番茄起...",
-    author: "西瓜",
-    authorSpecialty: "(短篇+长篇行动营)",
-    authorAvatar: "https://i.pravatar.cc/40?u=a042581f4e29026704e",
-    usageCount: 553491,
-    updatedAt: "2025-08-25",
-    description:
-      "视觉: 建立「色彩档案」 例如:《诡秘之主》雾霾灰 x 煤气灯黄→蒸汽朋克美学 听觉: 设计「声音符号」 例如: 古风文: 三更鼓声 声 修仙文: 灵鹤破云唳",
-    primaryTag: "写作风格",
-    summary: [
-      { icon: "Book", text: "爆款网文创作圣典" },
-      { icon: "Feather", text: "五感模型" },
-    ],
-    categories: ["长篇", "短篇", "番茄"],
-    footerTags: ["起点", "番茄"],
-  },
-  {
-    id: 3,
-    title: "【西瓜出品】黄金写作1.3, 开启新人造神时代! 番茄起点爆...",
-    author: "西瓜",
-    authorSpecialty: "(短篇+长篇行动营)",
-    authorAvatar: "https://i.pravatar.cc/40?u=a042581f4e29026704f",
-    usageCount: 427858,
-    updatedAt: "2025-08-25",
-    description:
-      "视觉: 建立「色彩档案」 例如:《诡秘之主》雾霾灰 x 煤气灯黄→蒸汽朋克美学 听觉: 设计「声音符号」 例如: 古风文: 二更鼓",
-    primaryTag: "写作要求",
-    summary: [
-      { icon: "Book", text: "爆款网文创作圣典" },
-      { icon: "Feather", text: "五感模型" },
-    ],
-    categories: ["短篇", "知乎"],
-    footerTags: ["起点", "番茄"],
-  },
-  {
-    id: 4,
-    title: "【西瓜出品】黄金主编, 你的星月大神! 百万本爆款经验...",
-    author: "西瓜",
-    authorSpecialty: "(短篇+长篇行动营)",
-    authorAvatar: "https://i.pravatar.cc/40?u=a042581f4e29026704a",
-    usageCount: 408100,
-    updatedAt: "2025-08-30",
-    description:
-      "【AI网文主编——你的数字时代爆款炼金术】>>>核心亮点<<< ☀️三维动态检测引擎[引擎引爆20年顶配主编思维模型+万部万订作品数据库+百万级扫描文本, 精准定位91%劝退隐患。不同...",
-    primaryTag: "审稿要求",
-    summary: [],
-    categories: ["短篇"],
-    footerTags: ["短剧"],
-  },
-  {
-    id: 5,
-    title: "【🌙一键成文】情节连贯, 适合续写 (十三月)",
-    author: "十三月",
-    authorSpecialty: "",
-    authorAvatar: "https://i.pravatar.cc/40?u=a042581f4e29026704b",
-    usageCount: 384868,
-    updatedAt: "2025-09-26",
-    description:
-      "祛AI味, 完美过朱雀, 必须搭配一整套才是完整的提示词 点击以下链接添加写作风格【🌙】祛AI味, 番茄剧情框架, 减少描述 (十三月) 【🌙】都市高武/脑洞, 番茄文风, 完美过朱雀 (十三月) 【玄幻脑洞】番茄风小白描爽文...",
-    primaryTag: "写作要求",
-    summary: [],
-    categories: ["长篇", "番茄"],
-    footerTags: ["番茄", "起点"],
-  },
-  {
-    id: 6,
-    title: "【橙子】续写一键成文, 番茄爆款文风, 强情绪期待 (交...",
-    author: "橙子",
-    authorSpecialty: "(长篇、短篇、剧本教学)",
-    authorAvatar: "https://i.pravatar.cc/40?u=a042581f4e29026704c",
-    usageCount: 375000,
-    updatedAt: "2025-08-24",
-    description:
-      "这是一个为番茄小说设计的续写提示词, 旨在生成具有强烈情绪价值和高度期待感的内容, 帮助作者写出能吸引并留住读者的爆款文章。",
-    primaryTag: "续写要求",
-    summary: [],
-    categories: ["长篇", "番茄"],
-    footerTags: ["番茄"],
-  },
-];
+import { usePromptList } from "@/hooks/prompt/usePromptService";
 
 const topNavItems = [
   "全部",
@@ -165,11 +68,26 @@ const secondaryCategories = ["知乎", "小程序风", "番茄"];
 const contentTabs = ["我的", "最热", "最新", "精选", "搜索", "已收藏"];
 
 export default function PromptsPage() {
+  const isDesktop = useMediaQuery("(min-width: 768px)");
   const [selectedMain, setSelectedMain] = useState(["长篇", "短篇"]);
   const [selectedSecondary, setSelectedSecondary] = useState<string[]>([]);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = 10; // Mock total pages
+  const limit = 12;
+
+  // Construct query params
+  // Currently only supporting simple category filtering or passing all selected categories
+  // For now, let's just pass page and limit.
+  // TODO: Implement proper category filtering mapping if needed by backend
+  const { data: promptsData, isLoading } = usePromptList({
+    page: currentPage,
+    limit: limit,
+    // category: ... // Add category filtering logic here if backend supports multiple categories or specific mapping
+  });
+
+  const prompts = promptsData?.items || [];
+  const total = promptsData?.pagination?.total || 0;
+  const totalPages = Math.ceil(total / limit) || 1;
 
   const toggleSelection = (category: string, type: "main" | "secondary") => {
     if (type === "main") {
@@ -260,7 +178,7 @@ export default function PromptsPage() {
                   "w-5 h-5 text-gray-500 transition-transform duration-300",
                   {
                     "rotate-180": isFiltersOpen,
-                  },
+                  }
                 )}
               />
             </div>
@@ -272,7 +190,7 @@ export default function PromptsPage() {
               {
                 "max-h-0": !isFiltersOpen,
                 "max-h-96 mt-4 pt-4 border-t": isFiltersOpen,
-              },
+              }
             )}
           >
             <div className="flex flex-col gap-4">
@@ -362,21 +280,57 @@ export default function PromptsPage() {
               </Select>
             </div>
 
-            <Button className="ml-4">
-              <Plus className="mr-2 h-4 w-4" />
-              创建提示词
-            </Button>
+            <div className="flex items-center gap-x-2">
+              {isDesktop ? (
+                <>
+                  <ImportPromptsDialog />
+                  <Button className="ml-4">
+                    <Plus className="mr-2 h-4 w-4" />
+                    创建提示词
+                  </Button>
+                </>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <ImportPromptsDialog />
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Button>
+                        <Plus className="mr-2 h-4 w-4" />
+                        创建提示词
+                      </Button>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
           </div>
           {contentTabs.map((tab) => (
             <TabsContent key={tab} value={tab} className="mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {mockPrompts
-                  .slice()
-                  .sort(() => 0.5 - Math.random())
-                  .map((prompt) => (
+              {isLoading ? (
+                <div className="flex justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {prompts.map((prompt) => (
                     <PromptCard key={`${tab}-${prompt.id}`} prompt={prompt} />
                   ))}
-              </div>
+                  {prompts.length === 0 && (
+                    <div className="col-span-full text-center py-12 text-gray-500">
+                      暂无提示词
+                    </div>
+                  )}
+                </div>
+              )}
             </TabsContent>
           ))}
         </Tabs>
@@ -395,20 +349,28 @@ export default function PromptsPage() {
                   }
                 />
               </PaginationItem>
-              {[...Array(totalPages)].map((_, i) => (
-                <PaginationItem key={i}>
-                  <PaginationLink
-                    href="#"
-                    isActive={currentPage === i + 1}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setCurrentPage(i + 1);
-                    }}
-                  >
-                    {i + 1}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
+              {/* Simple pagination logic for now, can be improved */}
+              {[...Array(totalPages)].map((_, i) => {
+                 // Show limited pages logic can be added here
+                 if (totalPages > 10 && Math.abs(currentPage - (i + 1)) > 2 && i !== 0 && i !== totalPages - 1) {
+                    if (i === 1 || i === totalPages - 2) return <PaginationItem key={i}>...</PaginationItem>;
+                    return null;
+                 }
+                 return (
+                  <PaginationItem key={i}>
+                    <PaginationLink
+                      href="#"
+                      isActive={currentPage === i + 1}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setCurrentPage(i + 1);
+                      }}
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
               <PaginationItem>
                 <PaginationNext
                   href="#"

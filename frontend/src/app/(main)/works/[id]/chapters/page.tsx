@@ -25,7 +25,9 @@ import { ChapterList } from "@/features/chapters/components/chapter-list";
 import {
   useChapterList,
   useDeleteChapter,
+  useImportChapters,
 } from "@/hooks/chapter/useChapterService";
+import { ImportDialog } from "@/components/common/ImportDialog";
 import { ChapterForClient } from "@/lib/services/chapter.service";
 import { useWorkById } from "@/hooks/work/useWorkService";
 
@@ -37,6 +39,7 @@ interface ChapterContentProps {
   view: ViewMode;
   onPageChange: (newPage: number) => void;
   onDelete: (chapter: ChapterForClient) => void;
+  onImportClick: () => void;
 }
 
 const ChapterContent = ({
@@ -45,6 +48,7 @@ const ChapterContent = ({
   view,
   onPageChange,
   onDelete,
+  onImportClick,
 }: ChapterContentProps) => {
   const { data: chaptersResponse, isLoading: isLoadingChapters } =
     useChapterList({ workId, page });
@@ -82,12 +86,17 @@ const ChapterContent = ({
         <p className="mb-6 mt-2 text-muted-foreground">
           这部作品还没有任何章节，立即开始创作吧！
         </p>
-        <Button asChild>
-          <Link href={`/drafts/new?workId=${workId}`}>
-            <Plus className="mr-2 h-4 w-4" />
-            创建第一章
-          </Link>
-        </Button>
+        <div className="flex gap-4">
+          <Button variant="outline" onClick={onImportClick}>
+            导入章节
+          </Button>
+          <Button asChild>
+            <Link href={`/drafts/new?workId=${workId}`}>
+              <Plus className="mr-2 h-4 w-4" />
+              创建第一章
+            </Link>
+          </Button>
+        </div>
       </div>
     );
   }
@@ -148,6 +157,7 @@ export default function ChaptersPage(): React.ReactElement {
   const [view, setView] = useState<ViewMode>("list");
   const [chapterToDelete, setChapterToDelete] =
     useState<ChapterForClient | null>(null);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
   const workId = typeof params.id === "string" ? parseInt(params.id, 10) : NaN;
   const { data: work, isLoading: isLoadingWork } = useWorkById(workId);
@@ -159,6 +169,7 @@ export default function ChaptersPage(): React.ReactElement {
   }, [work, workId, setBreadcrumb]);
 
   const { mutate: deleteChapter, isPending: isDeleting } = useDeleteChapter();
+  const { mutateAsync: importChaptersAsync, isPending: isImporting } = useImportChapters();
 
   const page = useMemo(() => {
     const pageParam = searchParams.get("page");
@@ -182,6 +193,17 @@ export default function ChaptersPage(): React.ReactElement {
         },
       });
     }
+  };
+
+  const handleImport = async (file: File) => {
+    if (isNaN(workId)) throw new Error("Invalid Work ID");
+    return importChaptersAsync({ workId, file });
+  };
+
+  const handleImportSuccess = (result: any) => {
+    // ImportDialog handles the toast for success/failure counts
+    // We just need to close the dialog
+    setIsImportDialogOpen(false);
   };
 
   if (isLoadingWork || isNaN(workId)) {
@@ -225,6 +247,9 @@ export default function ChaptersPage(): React.ReactElement {
                   <LayoutGrid className="h-4 w-4" />
                 </ToggleGroupItem>
               </ToggleGroup>
+              <Button variant="outline" onClick={() => setIsImportDialogOpen(true)}>
+                导入章节
+              </Button>
               <Button asChild>
                 <Link href={`/drafts/new?workId=${workId}`}>
                   <Plus className="mr-2 h-4 w-4" />
@@ -240,8 +265,21 @@ export default function ChaptersPage(): React.ReactElement {
           view={view}
           onPageChange={handlePageChange}
           onDelete={setChapterToDelete}
+          onImportClick={() => setIsImportDialogOpen(true)}
         />
       </div>
+      
+      <ImportDialog
+        open={isImportDialogOpen}
+        onOpenChange={setIsImportDialogOpen}
+        onImport={handleImport}
+        onSuccess={handleImportSuccess}
+        title="导入章节"
+        description="支持导入 .txt, .md, .json, .zip 格式的文件。如果是压缩包，将自动解压并导入其中的章节。"
+        allowedTypes={[".txt", ".md", ".json", ".zip"]}
+        isUploading={isImporting}
+      />
+
       {chapterToDelete && (
         <DeleteItemDialog
           open={!!chapterToDelete}

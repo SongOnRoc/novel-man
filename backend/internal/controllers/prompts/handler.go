@@ -52,7 +52,7 @@ type CreatePromptRequest struct {
 	Title       string          `json:"title" binding:"required"`
 	Content     string          `json:"content" binding:"required"`
 	Description string          `json:"description,omitempty"`
-	Summary     json.RawMessage `json:"summary,omitempty"`
+	Summary     json.RawMessage `json:"summary,omitempty" swaggertype:"object"`
 	PrimaryTag  string          `json:"primary_tag,omitempty"`
 	Categories  []string        `json:"categories,omitempty"`
 	FooterTags  []string        `json:"footer_tags,omitempty"`
@@ -62,7 +62,7 @@ type UpdatePromptRequest struct {
 	Title           *string         `json:"title,omitempty"`
 	Content         *string         `json:"content,omitempty"`
 	Description     *string         `json:"description,omitempty"`
-	Summary         json.RawMessage `json:"summary,omitempty"`
+	Summary         json.RawMessage `json:"summary,omitempty" swaggertype:"object"`
 	Author          *string         `json:"author,omitempty"`
 	AuthorSpecialty *string         `json:"author_specialty,omitempty"`
 	AuthorAvatar    *string         `json:"author_avatar,omitempty"`
@@ -70,6 +70,14 @@ type UpdatePromptRequest struct {
 	Categories      []string        `json:"categories,omitempty"`
 	FooterTags      []string        `json:"footer_tags,omitempty"`
 	Status          *string         `json:"status,omitempty"`
+}
+
+// ImportResult 导入结果
+type ImportResult struct {
+	Success int      `json:"success"`
+	Failed  int      `json:"failed"`
+	Total   int      `json:"total"`
+	Errors  []string `json:"errors,omitempty"`
 }
 
 // PromptController handles HTTP requests for prompts.
@@ -80,7 +88,10 @@ type PromptController struct {
 
 // NewPromptController creates a new instance of PromptController.
 func NewPromptController(service prompts.PromptService, userRepo auth.UserRepository) *PromptController {
-	return &PromptController{service: service, userRepo: userRepo}
+	return &PromptController{
+		service:  service,
+		userRepo: userRepo,
+	}
 }
 
 // toPromptResponse converts a Prompt model to a PromptResponse DTO.
@@ -424,4 +435,56 @@ func (c *PromptController) DeletePrompt(ctx *gin.Context) {
 	}
 
 	response.Success(ctx, http.StatusNoContent, nil)
+}
+
+// Import godoc
+// @Summary Import prompts from file
+// @Description Import prompts from uploaded file (supports .txt, .md, .json, .zip formats)
+// @Tags prompts
+// @Security BearerAuth
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "File to import"
+// @Success 200 {object} response.StandardResponse{data=ImportResult}
+// @Failure 400 {object} response.StandardResponse "Invalid file format or size"
+// @Failure 401 {object} response.StandardResponse "Unauthorized"
+// @Failure 413 {object} response.StandardResponse "File too large"
+// @Failure 415 {object} response.StandardResponse "Unsupported file type"
+// @Failure 500 {object} response.StandardResponse "Failed to import prompts"
+// @Router /prompts/import [post]
+func (c *PromptController) Import(ctx *gin.Context) {
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		response.Error(ctx, http.StatusUnauthorized, http.StatusUnauthorized, "User not authenticated", nil)
+		return
+	}
+
+	ct := context.New(ctx)
+	// 获取上传的文件
+	// Generated frontend client uses "data" key, so we check that first, fallback to "file"
+	file, err := ctx.FormFile("data")
+	if err != nil {
+		file, err = ctx.FormFile("file")
+	}
+	if err != nil {
+		logger.Warn(ct, "Import: Failed to get file from form: %v", err)
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "No file uploaded", err)
+		return
+	}
+
+	logger.Info(ct, "Import: File received - Name: %s, Size: %d, ContentType: %s",
+		file.Filename, file.Size, file.Header.Get("Content-Type"))
+
+	// 调用导入服务
+	result, err := c.service.Import(*ct, file, userID.(uint))
+	if err != nil {
+		logger.Error(ct, "Import: Failed to import prompts: %v", err)
+		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to import prompts", err)
+		return
+	}
+
+	logger.Info(ct, "Import: Import successful - Success: %d, Failed: %d, Total: %d",
+		result.Success, result.Failed, result.Total)
+
+	response.Success(ctx, http.StatusOK, result)
 }

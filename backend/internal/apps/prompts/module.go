@@ -41,6 +41,7 @@ func (m *promptsModule) RegisterRoutes(router *gin.RouterGroup) {
 		{
 			authedGroup.GET("", controller.ListPrompts)
 			authedGroup.POST("", controller.CreatePrompt)
+			authedGroup.POST("/import", controller.Import)
 
 			// 创建需要资源存在性和所有权验证的路由组
 			resourceGroup := authedGroup.Group("/:id")

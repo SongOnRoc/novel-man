@@ -6,6 +6,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema" // Import the schema package for NamingStrategy
 	"novel-man/backend/internal/config"
 )
@@ -36,6 +37,7 @@ func NewDatabase(cfg *config.DatabaseConfig) (*gorm.DB, error) {
 
 	db, err := gorm.Open(dialector, &gorm.Config{
 		NamingStrategy: namingStrategy,
+		Logger:         logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("无法连接到数据库: %w", err)

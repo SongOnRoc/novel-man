@@ -16,12 +16,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteWorkDialog } from "@/features/works/components/DeleteWorkDialog";
 import { NewWorkButton } from "@/features/works/components/NewWorkButton";
 import { WorkCard } from "@/features/works/components/WorkCard";
-import { useWorkList, useDeleteWork } from "@/hooks/work/useWorkService";
+import { useWorkList, useDeleteWork, useImportWorks } from "@/hooks/work/useWorkService";
 import { WorkForClient, WorksList } from "@/lib/services/work.service";
+import { ImportDialog } from "@/components/common/ImportDialog";
 
 export default function WorksPage(): React.ReactElement {
   const searchParams = useSearchParams();
   const [deleteWorkId, setDeleteWorkId] = useState<number | null>(null);
+  const importMutation = useImportWorks();
 
   const page = useMemo(() => {
     const pageParam = searchParams.get("page");
@@ -55,7 +57,17 @@ export default function WorksPage(): React.ReactElement {
         <PageHeader
           title="我的作品"
           description="管理您的所有创作作品，继续您的创作之旅。"
-          actions={<NewWorkButton />}
+          actions={
+            <div className="flex gap-2">
+              <ImportDialog
+                title="导入作品"
+                description="支持 .json 格式的作品数据导入。"
+                allowedTypes={[".json"]}
+                onImport={(file) => importMutation.mutateAsync(file)}
+              />
+              <NewWorkButton />
+            </div>
+          }
           showBackButton={false}
         />
 
@@ -84,7 +96,15 @@ export default function WorksPage(): React.ReactElement {
                 <p className="mb-6 mt-2 text-muted-foreground">
                   您还没有创建任何作品，点击下方按钮开始您的创作之旅。
                 </p>
-                <NewWorkButton />
+                <div className="flex gap-4">
+                  <ImportDialog
+                    title="导入作品"
+                    description="支持 .json 格式的作品数据导入。"
+                    allowedTypes={[".json"]}
+                    onImport={(file) => importMutation.mutateAsync(file)}
+                  />
+                  <NewWorkButton />
+                </div>
               </div>
             )}
           </>

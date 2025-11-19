@@ -15,4 +15,5 @@ type WorkPublish interface {
 type WorkService interface {
 	contracts.GenericCRUD[models.Work, int64]
 	WorkPublish
+	contracts.Importer
 }

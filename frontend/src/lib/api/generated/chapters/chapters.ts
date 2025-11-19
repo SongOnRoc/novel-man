@@ -29,6 +29,8 @@ import type {
   GetChaptersId200,
   GetChaptersParams,
   PostChapters201,
+  PostChaptersImport200,
+  PostChaptersImportParams,
   PutChaptersId200,
   ResponseStandardResponse,
 } from "../api10.schemas";
@@ -301,6 +303,121 @@ export const usePostChapters = <
   TContext
 > => {
   const mutationOptions = getPostChaptersMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Import chapters from uploaded file (supports .txt, .md, .json, .zip formats)
+ * @summary Import chapters from file
+ */
+export const postChaptersImport = (
+  postChaptersImportBody: unknown,
+  params: PostChaptersImportParams,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  const formData = new FormData();
+  formData.append("data", postChaptersImportBody);
+
+  return customInstance<PostChaptersImport200>(
+    {
+      url: `/chapters/import`,
+      method: "POST",
+      headers: { "Content-Type": "multipart/form-data" },
+      data: formData,
+      params,
+      signal,
+    },
+    options,
+  );
+};
+
+export const getPostChaptersImportMutationOptions = <
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postChaptersImport>>,
+    TError,
+    { data: unknown; params: PostChaptersImportParams },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postChaptersImport>>,
+  TError,
+  { data: unknown; params: PostChaptersImportParams },
+  TContext
+> => {
+  const mutationKey = ["postChaptersImport"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postChaptersImport>>,
+    { data: unknown; params: PostChaptersImportParams }
+  > = (props) => {
+    const { data, params } = props ?? {};
+
+    return postChaptersImport(data, params, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PostChaptersImportMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postChaptersImport>>
+>;
+export type PostChaptersImportMutationBody = unknown;
+export type PostChaptersImportMutationError =
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse;
+
+/**
+ * @summary Import chapters from file
+ */
+export const usePostChaptersImport = <
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postChaptersImport>>,
+      TError,
+      { data: unknown; params: PostChaptersImportParams },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postChaptersImport>>,
+  TError,
+  { data: unknown; params: PostChaptersImportParams },
+  TContext
+> => {
+  const mutationOptions = getPostChaptersImportMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };

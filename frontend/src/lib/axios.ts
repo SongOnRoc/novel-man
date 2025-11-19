@@ -2,7 +2,6 @@ import axios from "axios";
 import { getSession, signOut } from "next-auth/react";
 import { toCamelCase, toSnakeCase } from "@/lib/utils";
 
-
 // const baseURL = "/api/proxy";
 // Determine the base URL based on the environment (server-side or client-side).
 const isServer = typeof window === "undefined";
@@ -19,10 +18,19 @@ const baseURL = isServer
  * It takes the axios config and returns a promise.
  * @param config The axios request config
  */
-export const customInstance = <T>(
-  config: any,
-  headers?: any
-): Promise<T> => {
+export const customInstance = <T>(config: any, headers?: any): Promise<T> => {
+  // Debug: Log request details for FormData
+  if (config.data instanceof FormData) {
+    console.log("customInstance: FormData request details:");
+    console.log("  URL:", config.url);
+    console.log("  Method:", config.method);
+    console.log("  Headers:", config.headers);
+    console.log("  FormData entries:");
+    for (let [key, value] of config.data.entries()) {
+      console.log(`    ${key}:`, value, typeof value);
+    }
+  }
+
   const controller = new AbortController();
   const promise = axiosInstance({
     ...config,
@@ -79,10 +87,11 @@ axiosInstance.interceptors.request.use(
     }
 
     // Transform request params and data to snake_case
+    // But skip transformation for FormData (multipart/form-data)
     if (config.params) {
       config.params = toSnakeCase(config.params);
     }
-    if (config.data) {
+    if (config.data && !(config.data instanceof FormData)) {
       config.data = toSnakeCase(config.data);
     }
 

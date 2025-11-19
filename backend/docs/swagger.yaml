@@ -216,6 +216,20 @@ components:
         personality:
           type: string
       type: object
+    contracts.ImportResult:
+      properties:
+        errors:
+          items:
+            type: string
+          type: array
+          uniqueItems: false
+        failed:
+          type: integer
+        success:
+          type: integer
+        total:
+          type: integer
+      type: object
     data:
       properties:
         data:
@@ -348,6 +362,30 @@ components:
           type: string
       type: object
     prompts.CreatePromptRequest:
+      properties:
+        categories:
+          items:
+            type: string
+          type: array
+          uniqueItems: false
+        content:
+          type: string
+        description:
+          type: string
+        footer_tags:
+          items:
+            type: string
+          type: array
+          uniqueItems: false
+        primary_tag:
+          type: string
+        summary:
+          type: object
+        title:
+          type: string
+      required:
+      - content
+      - title
       type: object
     prompts.Detail:
       properties:
@@ -355,6 +393,20 @@ components:
           type: string
         text:
           type: string
+      type: object
+    prompts.ImportResult:
+      properties:
+        errors:
+          items:
+            type: string
+          type: array
+          uniqueItems: false
+        failed:
+          type: integer
+        success:
+          type: integer
+        total:
+          type: integer
       type: object
     prompts.PromptListResponse:
       properties:
@@ -411,6 +463,35 @@ components:
           type: integer
       type: object
     prompts.UpdatePromptRequest:
+      properties:
+        author:
+          type: string
+        author_avatar:
+          type: string
+        author_specialty:
+          type: string
+        categories:
+          items:
+            type: string
+          type: array
+          uniqueItems: false
+        content:
+          type: string
+        description:
+          type: string
+        footer_tags:
+          items:
+            type: string
+          type: array
+          uniqueItems: false
+        primary_tag:
+          type: string
+        status:
+          type: string
+        summary:
+          type: object
+        title:
+          type: string
       type: object
     relationships.ListRelationshipsResponse:
       properties:
@@ -1211,6 +1292,84 @@ paths:
       security:
       - BearerAuth: []
       summary: Update a chapter
+      tags:
+      - chapters
+  /chapters/import:
+    post:
+      description: Import chapters from uploaded file (supports .txt, .md, .json,
+        .zip formats)
+      parameters:
+      - description: Work ID
+        in: query
+        name: work_id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: file
+        description: File to import
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Invalid file format or size
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Permission denied
+        "413":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: File too large
+        "415":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unsupported file type
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Failed to import chapters
+      security:
+      - BearerAuth: []
+      summary: Import chapters from file
       tags:
       - chapters
   /characters:
@@ -2188,6 +2347,71 @@ paths:
       security:
       - BearerAuth: []
       summary: Update an existing prompt
+      tags:
+      - prompts
+  /prompts/import:
+    post:
+      description: Import prompts from uploaded file (supports .txt, .md, .json, .zip
+        formats)
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: file
+        description: File to import
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Invalid file format or size
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "413":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: File too large
+        "415":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unsupported file type
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Failed to import prompts
+      security:
+      - BearerAuth: []
+      summary: Import prompts from file
       tags:
       - prompts
   /relationships:
@@ -3364,6 +3588,70 @@ paths:
       security:
       - BearerAuth: []
       summary: Publish a work
+      tags:
+      - works
+  /works/import:
+    post:
+      description: Import works from uploaded file (supports .json formats)
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: file
+        description: File to import
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Invalid file format or size
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "413":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: File too large
+        "415":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unsupported file type
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Failed to import works
+      security:
+      - BearerAuth: []
+      summary: Import works from file
       tags:
       - works
   /worldview/categories:

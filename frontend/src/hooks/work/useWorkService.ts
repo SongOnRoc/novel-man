@@ -23,6 +23,7 @@ import {
   createWorkService,
   updateWorkService,
   deleteWorkService,
+  importWorksService,
 } from "@/lib/services/work.service";
 import type {
   CreateWorkPayload,
@@ -112,6 +113,20 @@ export const useDeleteWork = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => deleteWorkService(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workKeys.lists() });
+    },
+  });
+};
+
+/**
+ * Hook to import works.
+ * Invalidates the work list query on success.
+ */
+export const useImportWorks = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => importWorksService(file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: workKeys.lists() });
     },

@@ -24,6 +24,7 @@ func NewDraftService(repo drafts.DraftRepository, chapterRepo chapters.ChapterRe
 	}
 }
 
+
 func (s *DraftService) Publish(ctx context.Context, draftID uint) (*models.Chapter, error) {
 	// 1. 获取草稿
 	draft, err := s.repo.GetByID(ctx, draftID)

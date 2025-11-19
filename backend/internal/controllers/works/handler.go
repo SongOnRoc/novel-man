@@ -392,3 +392,55 @@ func (c *WorkController) PublishWork(ctx *gin.Context) {
 
 	response.Success(ctx, http.StatusOK, gin.H{"message": "Work published successfully"})
 }
+
+// Import godoc
+// @Summary Import works from file
+// @Description Import works from uploaded file (supports .json formats)
+// @Tags works
+// @Security BearerAuth
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "File to import"
+// @Success 200 {object} response.StandardResponse{data=contracts.ImportResult}
+// @Failure 400 {object} response.StandardResponse "Invalid file format or size"
+// @Failure 401 {object} response.StandardResponse "Unauthorized"
+// @Failure 413 {object} response.StandardResponse "File too large"
+// @Failure 415 {object} response.StandardResponse "Unsupported file type"
+// @Failure 500 {object} response.StandardResponse "Failed to import works"
+// @Router /works/import [post]
+func (c *WorkController) Import(ctx *gin.Context) {
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		response.Error(ctx, http.StatusUnauthorized, http.StatusUnauthorized, "User not authenticated", nil)
+		return
+	}
+
+	ct := context.New(ctx)
+	// 获取上传的文件
+	// Generated frontend client uses "data" key, so we check that first, fallback to "file"
+	file, err := ctx.FormFile("data")
+	if err != nil {
+		file, err = ctx.FormFile("file")
+	}
+	if err != nil {
+		logger.Warn(ct, "Import: Failed to get file from form: %v", err)
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "No file uploaded", err)
+		return
+	}
+
+	logger.Info(ct, "Import: File received - Name: %s, Size: %d, ContentType: %s",
+		file.Filename, file.Size, file.Header.Get("Content-Type"))
+
+	// 调用导入服务
+	result, err := c.service.Import(*ct, file, userID.(uint))
+	if err != nil {
+		logger.Error(ct, "Import: Failed to import works: %v", err)
+		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to import works", err)
+		return
+	}
+
+	logger.Info(ct, "Import: Import successful - Success: %d, Failed: %d, Total: %d",
+		result.Success, result.Failed, result.Total)
+
+	response.Success(ctx, http.StatusOK, result)
+}

@@ -41,6 +41,7 @@ func (m *worksModule) RegisterRoutes(router *gin.RouterGroup) {
 
 		{
 			authedGroup.POST("", controller.CreateWork)
+			authedGroup.POST("/import", controller.Import)
 			authedGroup.GET("", controller.ListWorks)
 
 			// 创建需要资源存在性和所有权验证的路由组

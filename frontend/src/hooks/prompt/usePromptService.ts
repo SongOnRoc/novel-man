@@ -14,6 +14,7 @@ import {
   createPromptService,
   updatePromptService,
   deletePromptService,
+  importPromptsService,
 } from "@/lib/services/prompt.service";
 import type {
   CreatePromptPayload,
@@ -21,6 +22,7 @@ import type {
   PromptsParams,
   PromptsListForClient,
   PromptForClient,
+  ImportResultForClient,
 } from "@/lib/services/prompt.service";
 
 /**
@@ -99,6 +101,20 @@ export const useDeletePrompt = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => deletePromptService(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: promptKeys.lists() });
+    },
+  });
+};
+
+/**
+ * Hook to import prompts from a file.
+ * Invalidates the prompt list query on success.
+ */
+export const useImportPrompts = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => importPromptsService(file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: promptKeys.lists() });
     },

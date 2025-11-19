@@ -1,4 +1,5 @@
 import type { PromptForClient } from "@/lib/services/prompt.service";
+import { formatDate } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -49,7 +50,7 @@ function PromptCard({ prompt }: { prompt: PromptForClient }) {
             <Flame className="w-4 h-4 mr-1 text-red-500" />
             <span className="text-red-500 font-semibold">{Intl.NumberFormat().format(prompt.usageCount || 0)}</span>
             <span className="mx-2">·</span>
-            <span>{prompt.updatedAt}</span>
+            <span>{formatDate(prompt.updatedAt)}</span>
         </div>
         <p className="text-sm text-gray-600 line-clamp-3 mb-3">
           {prompt.description}

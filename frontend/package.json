@@ -9,7 +9,7 @@
         "start": "next start",
         "lint": "next lint",
         "test": "vitest",
-        "api:generate": "orval --config ./orval.config.js"
+        "api-gen": "orval --config ./orval.config.js"
     },
     "dependencies": {
         "@hookform/resolvers": "^5.1.1",

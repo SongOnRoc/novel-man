@@ -19,6 +19,7 @@ import {
   getWorksId,
   putWorksId,
   deleteWorksId,
+  postWorksImport,
 } from "@/lib/api/generated/works/works";
 
 // =================================================================
@@ -80,4 +81,15 @@ export const updateWorkService = (id: number, data: UpdateWorkPayload) => {
  */
 export const deleteWorkService = (id: number) => {
   return deleteWorksId(id);
+};
+
+/**
+ * Imports works from a file.
+ * @param file - The file to import.
+ * @returns A promise that resolves with the import result.
+ */
+export const importWorksService = (file: File) => {
+  // The generated client wraps the body in a "data" key in FormData.
+  // We updated the backend to accept "data" key.
+  return postWorksImport(file);
 };

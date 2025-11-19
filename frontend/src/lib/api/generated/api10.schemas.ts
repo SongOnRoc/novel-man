@@ -124,6 +124,13 @@ export interface CharactersUpdateCharacterRequest {
   personality?: string;
 }
 
+export interface ContractsImportResult {
+  errors?: string[];
+  failed?: number;
+  success?: number;
+  total?: number;
+}
+
 export type DataData = {
   message?: string;
 };
@@ -204,13 +211,28 @@ export interface ModelsGenerateResponse {
   generated_text?: string;
 }
 
+export type PromptsCreatePromptRequestSummary = { [key: string]: unknown };
+
 export interface PromptsCreatePromptRequest {
-  [key: string]: unknown;
+  categories?: string[];
+  content: string;
+  description?: string;
+  footer_tags?: string[];
+  primary_tag?: string;
+  summary?: PromptsCreatePromptRequestSummary;
+  title: string;
 }
 
 export interface PromptsDetail {
   icon?: string;
   text?: string;
+}
+
+export interface PromptsImportResult {
+  errors?: string[];
+  failed?: number;
+  success?: number;
+  total?: number;
 }
 
 export interface PromptsPromptListResponse {
@@ -237,8 +259,20 @@ export interface PromptsPromptResponse {
   user_id?: number;
 }
 
+export type PromptsUpdatePromptRequestSummary = { [key: string]: unknown };
+
 export interface PromptsUpdatePromptRequest {
-  [key: string]: unknown;
+  author?: string;
+  author_avatar?: string;
+  author_specialty?: string;
+  categories?: string[];
+  content?: string;
+  description?: string;
+  footer_tags?: string[];
+  primary_tag?: string;
+  status?: string;
+  summary?: PromptsUpdatePromptRequestSummary;
+  title?: string;
 }
 
 export interface RelationshipsListRelationshipsResponse {
@@ -485,6 +519,21 @@ export type PostChapters201 = Data & {
   traceId?: string;
 };
 
+export type PostChaptersImportParams = {
+  /**
+   * Work ID
+   */
+  work_id: number;
+};
+
+export type PostChaptersImport200 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
 export type DeleteChaptersId200 = Data & {
   code?: number;
   data?: unknown;
@@ -667,6 +716,14 @@ export type GetPrompts200 = Data & {
 };
 
 export type PostPrompts201 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type PostPromptsImport200 = Data & {
   code?: number;
   data?: unknown;
   message?: string;
@@ -881,6 +938,14 @@ export type GetWorks200 = Data & {
 };
 
 export type PostWorks201 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type PostWorksImport200 = Data & {
   code?: number;
   data?: unknown;
   message?: string;

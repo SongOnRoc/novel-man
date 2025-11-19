@@ -12,6 +12,7 @@ import type {
   GetPromptsParams,
   PromptsPromptListResponse,
   ResponsePagination,
+  PromptsImportResult,
 } from "@/lib/api/generated/api10.schemas";
 import { SnakeToCamelCase } from "@/types/type-utils";
 import {
@@ -20,6 +21,7 @@ import {
   getPromptsId,
   putPromptsId,
   deletePromptsId,
+  postPromptsImport,
 } from "@/lib/api/generated/prompts/prompts";
 
 // =================================================================
@@ -36,6 +38,8 @@ export type PromptsListForClient = {
   items?: PromptForClient[];
   pagination?: ResponsePagination;
 };
+export type ImportResult = PromptsImportResult;
+export type ImportResultForClient = SnakeToCamelCase<ImportResult>;
 
 /**
  * Fetches a paginated list of prompts.
@@ -85,4 +89,15 @@ export const deletePromptService = (id: number) => {
   // The generated deletePromptsId function expects a body as the second argument.
   // Passing an empty object as a placeholder.
   return deletePromptsId(id, {});
+};
+
+/**
+ * Imports prompts from a file.
+ * @param file - The file to import (.txt, .md, .json, .zip).
+ * @returns A promise that resolves with the import result.
+ */
+export const importPromptsService = (file: File) => {
+  // The generated client wraps the body in a "data" key in FormData.
+  // We updated the backend to accept "data" key.
+  return postPromptsImport(file);
 };

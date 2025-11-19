@@ -29,6 +29,7 @@ import type {
   GetPromptsIdBody,
   GetPromptsParams,
   PostPrompts201,
+  PostPromptsImport200,
   PromptsCreatePromptRequest,
   PromptsUpdatePromptRequest,
   PutPromptsId200,
@@ -302,6 +303,116 @@ export const usePostPrompts = <
   TContext
 > => {
   const mutationOptions = getPostPromptsMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Import prompts from uploaded file (supports .txt, .md, .json, .zip formats)
+ * @summary Import prompts from file
+ */
+export const postPromptsImport = (
+  postPromptsImportBody: unknown,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  const formData = new FormData();
+  formData.append("data", postPromptsImportBody);
+
+  return customInstance<PostPromptsImport200>(
+    {
+      url: `/prompts/import`,
+      method: "POST",
+      headers: { "Content-Type": "multipart/form-data" },
+      data: formData,
+      signal,
+    },
+    options,
+  );
+};
+
+export const getPostPromptsImportMutationOptions = <
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postPromptsImport>>,
+    TError,
+    { data: unknown },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postPromptsImport>>,
+  TError,
+  { data: unknown },
+  TContext
+> => {
+  const mutationKey = ["postPromptsImport"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postPromptsImport>>,
+    { data: unknown }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return postPromptsImport(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PostPromptsImportMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postPromptsImport>>
+>;
+export type PostPromptsImportMutationBody = unknown;
+export type PostPromptsImportMutationError =
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse;
+
+/**
+ * @summary Import prompts from file
+ */
+export const usePostPromptsImport = <
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postPromptsImport>>,
+      TError,
+      { data: unknown },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postPromptsImport>>,
+  TError,
+  { data: unknown },
+  TContext
+> => {
+  const mutationOptions = getPostPromptsImportMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
