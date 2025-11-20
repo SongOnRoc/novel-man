@@ -46,7 +46,7 @@ export const characterLookupSource: LookupSource<Character> = {
   name: "角色",
   icon: <Users className="h-4 w-4" />,
   useData: useCharacterData,
-  renderItem: ({ item, onSelect }) => (
-    <CharacterCard character={item} onSelect={onSelect} />
+  renderItem: ({ item, workId, onSelect }) => (
+    <CharacterCard character={item} workId={Number(workId)} onSelect={onSelect} />
   ),
 };

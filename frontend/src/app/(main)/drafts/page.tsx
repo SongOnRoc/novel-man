@@ -1,9 +1,9 @@
 "use client";
 
-import { FilePlus, LayoutGrid, List } from "lucide-react";
+import { FilePlus, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 
 import { DeleteItemDialog } from "@/components/common/DeleteItemDialog";
@@ -16,21 +16,11 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@/components/ui/toggle-group";
+import { GlobalLoading } from "@/components/common/GlobalLoading";
 import { DraftCard } from "@/features/drafts/components/DraftCard";
 import { DraftList } from "@/features/drafts/components/DraftList";
+import { DraftToolbar } from "@/features/drafts/components/DraftToolbar";
+import { useDebounce } from "@/hooks/useDebounce";
 import {
   useDraftList,
   useDeleteDraft,
@@ -40,81 +30,91 @@ import { useWorkList } from "@/hooks/work/useWorkService";
 import { DraftForClient } from "@/lib/services/draft.service";
 import { Work, WorksList } from "@/lib/services/work.service";
 
-type DraftType = "all" | "chapter" | "note";
 type ViewMode = "list" | "grid";
 
 const DraftsContent = ({
   workId,
   page,
   view,
+  searchQuery,
+  works,
   onPageChange,
   onDelete,
   onPublish,
-  works,
 }: {
   workId?: number;
   page: number;
   view: ViewMode;
+  searchQuery: string;
   works: Work[];
   onPageChange: (newPage: number) => void;
   onDelete: (draft: DraftForClient) => void;
   onPublish: (draft: DraftForClient) => void;
 }) => {
-  // If workId is 0 ("Other Drafts"), fetch all drafts from the backend.
-  // The filtering for "Other Drafts" will be done on the client side.
-  const apiWorkId = workId === 0 ? undefined : workId;
+  // Determine if we are filtering by "Other Drafts" (workId=0)
+  // workId=0 means drafts without a work association
+  // Backend now supports work_id=0 to filter drafts with work_id IS NULL
+  const apiWorkId = workId;
+
   const { data: draftsResponse, isLoading } = useDraftList({
     workId: apiWorkId,
-    page,
+    page: page,
+    limit: 10,
+    q: searchQuery || undefined,
   });
-  const allDrafts = draftsResponse?.data || [];
 
-  // Client-side filtering for "Other Drafts"
-  const drafts = useMemo(() => {
-    if (workId === 0) {
-      return allDrafts.filter((draft) => !draft.workId);
-    }
-    return allDrafts;
-  }, [allDrafts, workId]);
-  const pagination = draftsResponse?.pagination;
-
+  const displayDrafts = draftsResponse?.data || [];
   const totalPages = useMemo(() => {
-    if (!pagination || !pagination.total || !pagination.limit) return 1;
-    return Math.ceil(pagination.total / pagination.limit);
-  }, [pagination]);
+    const total = draftsResponse?.pagination?.total || 0;
+    return Math.ceil(total / 10) || 1;
+  }, [draftsResponse]);
 
   if (isLoading) {
-    return (
-      <div
-        className={
-          view === "grid"
-            ? "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
-            : ""
-        }
-      >
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton
-            key={i}
-            className={view === "grid" ? "h-48 w-full" : "h-16 w-full"}
-          />
-        ))}
-      </div>
-    );
+    return <GlobalLoading fullScreen={false} />;
   }
+  if (displayDrafts.length === 0) {
+    if (searchQuery) {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in">
+          <div className="mb-4 rounded-full bg-muted/30 p-4">
+            <Sparkles className="h-8 w-8 text-muted-foreground/50" />
+          </div>
+          <h3 className="text-lg font-medium text-foreground">
+            未找到匹配结果
+          </h3>
+          <p className="mt-2 text-muted-foreground max-w-sm">
+            未找到与 "{searchQuery}" 相关的草稿。
+          </p>
+          <div className="mt-4">
+            <Button variant="outline" onClick={() => onPageChange(1)}>
+              清除搜索
+            </Button>
+          </div>
+        </div>
+      );
+    }
 
-  if (drafts.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center">
-        <h2 className="text-2xl font-semibold">暂无草稿</h2>
-        <p className="mb-6 mt-2 text-muted-foreground">
+      <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-primary/10 bg-primary/5 p-20 text-center animate-in fade-in zoom-in-95 duration-500">
+        <div className="mb-8 rounded-full bg-background p-6 shadow-xl shadow-primary/5 ring-1 ring-primary/10">
+          <Sparkles className="h-12 w-12 text-primary" />
+        </div>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+          {workId ? "这部作品暂无草稿" : "灵感空空如也"}
+        </h2>
+        <p className="mb-8 mt-3 max-w-md text-muted-foreground leading-relaxed">
           {workId
-            ? "这部作品还没有任何草稿，立即开始创作吧！"
-            : "您还没有任何草稿，开始新的创作吧！"}
+            ? "每一个伟大的故事都始于一个微小的想法。现在就开始记录，让灵感生根发芽。"
+            : "不要让灵感溜走。无论是只言片语还是宏大构想，这里都是它们最好的归宿。"}
         </p>
-        <Button asChild>
+        <Button
+          asChild
+          size="lg"
+          className="h-12 rounded-full px-8 shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:shadow-primary/30"
+        >
           <Link href={workId ? `/drafts/new?workId=${workId}` : "/drafts/new"}>
-            <FilePlus className="mr-2 h-4 w-4" />
-            创建新草稿
+            <FilePlus className="mr-2 h-5 w-5" />
+            开始创作
           </Link>
         </Button>
       </div>
@@ -122,55 +122,76 @@ const DraftsContent = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {view === "list" ? (
-        <DraftList
-          drafts={drafts}
-          onDelete={onDelete}
-          onPublish={onPublish}
-        />
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <DraftList
+            drafts={displayDrafts}
+            onDelete={onDelete}
+            onPublish={onPublish}
+          />
+        </div>
       ) : (
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-          {drafts.map((draft) => (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {displayDrafts.map((draft) => (
             <DraftCard
               key={draft.id}
               draft={draft}
-              workTitle={
-                works.find((w) => w.id === draft.workId)?.title
-              }
+              workTitle={works.find((w) => w.id === draft.workId)?.title}
               onDelete={() => onDelete(draft)}
               onPublish={() => onPublish(draft)}
             />
           ))}
         </div>
       )}
+
       {totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            {page > 1 && (
-              <PaginationItem>
-                <PaginationPrevious onClick={() => onPageChange(page - 1)} />
-              </PaginationItem>
-            )}
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-              (pageNumber) => (
-                <PaginationItem key={pageNumber}>
-                  <PaginationLink
-                    onClick={() => onPageChange(pageNumber)}
-                    isActive={page === pageNumber}
-                  >
-                    {pageNumber}
-                  </PaginationLink>
+        <div className="flex justify-center pt-8">
+          <Pagination>
+            <PaginationContent>
+              {page > 1 && (
+                <PaginationItem>
+                  <PaginationPrevious onClick={() => onPageChange(page - 1)} />
                 </PaginationItem>
-              )
-            )}
-            {page < totalPages && (
-              <PaginationItem>
-                <PaginationNext onClick={() => onPageChange(page + 1)} />
-              </PaginationItem>
-            )}
-          </PaginationContent>
-        </Pagination>
+              )}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (pageNumber) => {
+                  // Simple logic to show limited page numbers if too many
+                  if (
+                    totalPages > 7 &&
+                    Math.abs(pageNumber - page) > 2 &&
+                    pageNumber !== 1 &&
+                    pageNumber !== totalPages
+                  ) {
+                    if (Math.abs(pageNumber - page) === 3) {
+                      return (
+                        <PaginationItem key={pageNumber}>
+                          <span className="px-2">...</span>
+                        </PaginationItem>
+                      );
+                    }
+                    return null;
+                  }
+                  return (
+                    <PaginationItem key={pageNumber}>
+                      <PaginationLink
+                        onClick={() => onPageChange(pageNumber)}
+                        isActive={page === pageNumber}
+                      >
+                        {pageNumber}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+              )}
+              {page < totalPages && (
+                <PaginationItem>
+                  <PaginationNext onClick={() => onPageChange(page + 1)} />
+                </PaginationItem>
+              )}
+            </PaginationContent>
+          </Pagination>
+        </div>
       )}
     </div>
   );
@@ -179,7 +200,41 @@ const DraftsContent = ({
 export default function DraftsPage(): React.ReactElement {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // View Mode Persistence
   const [view, setView] = useState<ViewMode>("grid");
+  useEffect(() => {
+    const saved = localStorage.getItem("drafts-view-mode") as ViewMode;
+    if (saved) setView(saved);
+  }, []);
+
+  const handleViewChange = (v: ViewMode) => {
+    setView(v);
+    localStorage.setItem("drafts-view-mode", v);
+  };
+
+  // Search Persistence
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+  const debouncedSearch = useDebounce(searchQuery, 300);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (debouncedSearch) {
+      params.set("q", debouncedSearch);
+    } else {
+      params.delete("q");
+    }
+
+    // Only update URL if it's different to avoid loops
+    if (params.toString() !== searchParams.toString()) {
+      // Reset page if search changed
+      if ((searchParams.get("q") || "") !== debouncedSearch) {
+        params.set("page", "1");
+      }
+      router.replace(`/drafts?${params.toString()}`);
+    }
+  }, [debouncedSearch, router, searchParams]);
+
   const [draftToDelete, setDraftToDelete] = useState<DraftForClient | null>(
     null
   );
@@ -201,21 +256,24 @@ export default function DraftsPage(): React.ReactElement {
     [workId]
   );
 
-  const handleSelectWork = (workId: string): void => {
-    if (workId === "all") {
-      router.push(`/drafts?page=1`);
-    } else {
-      router.push(`/drafts?workId=${workId}&page=1`);
-    }
+  const updateParams = (updates: Record<string, string | null>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value) params.set(key, value);
+      else params.delete(key);
+    });
+    router.push(`/drafts?${params.toString()}`);
+  };
+
+  const handleSelectWork = (wid: string): void => {
+    updateParams({
+      workId: wid === "all" ? null : wid,
+      page: "1",
+    });
   };
 
   const handlePageChange = (newPage: number): void => {
-    const query = new URLSearchParams();
-    if (selectedWorkId) {
-      query.set("workId", selectedWorkId.toString());
-    }
-    query.set("page", newPage.toString());
-    router.push(`/drafts?${query.toString()}`);
+    updateParams({ page: newPage.toString() });
   };
 
   const handleConfirmDelete = () => {
@@ -245,13 +303,14 @@ export default function DraftsPage(): React.ReactElement {
 
   const renderContent = (): React.ReactElement => {
     if (isLoadingWorks) {
-      return <Skeleton className="h-[400px] w-full" />;
+      return <GlobalLoading fullScreen={false} />;
     }
     return (
       <DraftsContent
         workId={selectedWorkId}
         page={page}
         view={view}
+        searchQuery={searchQuery}
         onPageChange={handlePageChange}
         onDelete={setDraftToDelete}
         onPublish={handlePublish}
@@ -262,60 +321,36 @@ export default function DraftsPage(): React.ReactElement {
 
   return (
     <>
-      <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">草稿箱</h1>
-            <p className="text-muted-foreground">
-              管理您的草稿，将它们转化为章节，或继续您的创作。
+      <div className="min-h-screen space-y-8 pb-20 animate-in fade-in duration-500">
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
+              灵感草稿箱
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl">
+              捕捉稍纵即逝的想法，将碎片化的灵感编织成动人的故事。
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Select
-              onValueChange={handleSelectWork}
-              value={workId ?? "all"}
-            >
-              <SelectTrigger className="w-auto min-w-[180px]">
-                <SelectValue placeholder="选择作品" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">全部作品</SelectItem>
-                <SelectItem value="0">其他草稿</SelectItem>
-                {works?.map((work) => (
-                  <SelectItem key={work.id} value={work.id!.toString()}>
-                    {work.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <ToggleGroup
-              type="single"
-              value={view}
-              onValueChange={(value) => value && setView(value as ViewMode)}
-            >
-              <ToggleGroupItem value="list" aria-label="列表视图">
-                <List className="h-4 w-4" />
-              </ToggleGroupItem>
-              <ToggleGroupItem value="grid" aria-label="网格视图">
-                <LayoutGrid className="h-4 w-4" />
-              </ToggleGroupItem>
-            </ToggleGroup>
-            <Button asChild>
-              <Link
-                href={
-                  selectedWorkId
-                    ? `/drafts/new?workId=${selectedWorkId}`
-                    : "/drafts/new"
-                }
-              >
-                <FilePlus className="mr-2 h-4 w-4" />
-                新草稿
-              </Link>
-            </Button>
-          </div>
+
+          <DraftToolbar
+            viewMode={view}
+            onViewModeChange={handleViewChange}
+            workId={workId ?? "all"}
+            onWorkIdChange={handleSelectWork}
+            works={works}
+            newDraftHref={
+              selectedWorkId
+                ? `/drafts/new?workId=${selectedWorkId}`
+                : "/drafts/new"
+            }
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+          />
         </div>
-        {renderContent()}
+
+        <div className="min-h-[500px]">{renderContent()}</div>
       </div>
+
       {draftToDelete && (
         <DeleteItemDialog
           open={!!draftToDelete}
@@ -329,4 +364,3 @@ export default function DraftsPage(): React.ReactElement {
     </>
   );
 }
-

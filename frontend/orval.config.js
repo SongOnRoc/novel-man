@@ -8,6 +8,10 @@ module.exports = {
     input: {
       // The target is our backend's swagger.json file
       target: '../backend/docs/swagger.json',
+      // Use custom transformer to fix file upload types
+      override: {
+        transformer: './orval.transformer.js',
+      },
     },
     output: {
       // We generate client functions based on react-query

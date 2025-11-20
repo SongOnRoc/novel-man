@@ -1,8 +1,7 @@
-import { MoreVertical, Globe, Edit, Trash2 } from "lucide-react";
+import { MoreVertical, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,12 +20,14 @@ import { WorldviewItem } from "@/lib/services/worldview.service";
 
 interface WorldviewCardProps {
   item: WorldviewItem;
+  workId: number;
   categoryName?: string;
   onDelete: () => void;
 }
 
 export function WorldviewCard({
   item,
+  workId,
   categoryName,
   onDelete,
 }: WorldviewCardProps) {
@@ -35,12 +36,12 @@ export function WorldviewCard({
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <Link href={`/tools/worldbuilding/${item.id}`}>
+            <Link href={`/works/${workId}/worldview`}>
               <CardTitle className="hover:underline">{item.name}</CardTitle>
             </Link>
             <CardDescription>{categoryName || "未分类"}</CardDescription>
           </div>
-          <WorldviewCardMenu itemId={item.id!} onDelete={onDelete} />
+          <WorldviewCardMenu itemId={item.id!} workId={workId} onDelete={onDelete} />
         </div>
       </CardHeader>
       <CardContent className="flex-1">
@@ -54,9 +55,11 @@ export function WorldviewCard({
 
 function WorldviewCardMenu({
   itemId,
+  workId,
   onDelete,
 }: {
   itemId: number;
+  workId: number;
   onDelete: () => void;
 }) {
   return (
@@ -69,7 +72,7 @@ function WorldviewCardMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
-          <Link href={`/tools/worldbuilding/${itemId}/edit`}>
+          <Link href={`/works/${workId}/worldview`}>
             <Edit className="mr-2 h-4 w-4" />
             编辑
           </Link>

@@ -21,31 +21,61 @@ import { Character } from "@/lib/services/characters.service";
 
 interface CharacterCardProps {
   character: Character;
-  onDelete: () => void;
+  workId: number;
+  onDelete?: () => void;
+  onSelect?: (name: string) => void;
 }
 
-export function CharacterCard({ character, onDelete }: CharacterCardProps) {
+export function CharacterCard({
+  character,
+  workId,
+  onDelete,
+  onSelect,
+}: CharacterCardProps) {
+  const handleSelect = () => {
+    if (onSelect && character.name) {
+      onSelect(character.name);
+    }
+  };
+
   return (
-    <Card className="flex h-full flex-col transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+    <Card
+      className={`flex h-full flex-col transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
+        onSelect ? "cursor-pointer hover:border-primary" : ""
+      }`}
+      onClick={onSelect ? handleSelect : undefined}
+    >
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage src={""} alt={character.name} />
-              <AvatarFallback>
-                <User className="h-8 w-8" />
+              <AvatarImage src={character.avatar_url || ""} alt={character.name} />
+              <AvatarFallback className="bg-primary/10 text-lg font-bold text-primary">
+                {character.name ? character.name.slice(0, 1).toUpperCase() : <User className="h-6 w-6" />}
               </AvatarFallback>
             </Avatar>
             <div>
-              <Link href={`/tools/characters/${character.id}`}>
-                <CardTitle className="hover:underline">
-                  {character.name}
-                </CardTitle>
-              </Link>
-              <CardDescription>{character.occupation || "未知职业"}</CardDescription>
+              {onSelect ? (
+                <CardTitle>{character.name}</CardTitle>
+              ) : (
+                <Link href={`/works/${workId}/characters`}>
+                  <CardTitle className="hover:underline">
+                    {character.name}
+                  </CardTitle>
+                </Link>
+              )}
+              <CardDescription>
+                {character.occupation || "未知职业"}
+              </CardDescription>
             </div>
           </div>
-          <CharacterCardMenu characterId={character.id!} onDelete={onDelete} />
+          {onDelete && (
+            <CharacterCardMenu
+              characterId={character.id!}
+              workId={workId}
+              onDelete={onDelete}
+            />
+          )}
         </div>
       </CardHeader>
       <CardContent className="flex-1">
@@ -59,9 +89,11 @@ export function CharacterCard({ character, onDelete }: CharacterCardProps) {
 
 function CharacterCardMenu({
   characterId,
+  workId,
   onDelete,
 }: {
   characterId: number;
+  workId: number;
   onDelete: () => void;
 }) {
   return (
@@ -74,7 +106,7 @@ function CharacterCardMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
-          <Link href={`/tools/characters/${characterId}/edit`}>
+          <Link href={`/works/${workId}/characters`}>
             <Edit className="mr-2 h-4 w-4" />
             编辑
           </Link>

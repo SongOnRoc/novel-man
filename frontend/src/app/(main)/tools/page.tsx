@@ -7,7 +7,7 @@ export default function ToolsRedirectPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace("/tools/characters");
+    router.replace("/tools/ai-assistant");
   }, [router]);
 
   return null; // or a loading spinner

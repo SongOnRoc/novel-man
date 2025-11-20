@@ -30,6 +30,7 @@ import type {
   GetChaptersParams,
   PostChapters201,
   PostChaptersImport200,
+  PostChaptersImportBody,
   PostChaptersImportParams,
   PutChaptersId200,
   ResponseStandardResponse,
@@ -311,13 +312,13 @@ export const usePostChapters = <
  * @summary Import chapters from file
  */
 export const postChaptersImport = (
-  postChaptersImportBody: unknown,
+  postChaptersImportBody: PostChaptersImportBody,
   params: PostChaptersImportParams,
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
   const formData = new FormData();
-  formData.append("data", postChaptersImportBody);
+  formData.append(`file`, postChaptersImportBody.file);
 
   return customInstance<PostChaptersImport200>(
     {
@@ -345,14 +346,14 @@ export const getPostChaptersImportMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof postChaptersImport>>,
     TError,
-    { data: unknown; params: PostChaptersImportParams },
+    { data: PostChaptersImportBody; params: PostChaptersImportParams },
     TContext
   >;
   request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postChaptersImport>>,
   TError,
-  { data: unknown; params: PostChaptersImportParams },
+  { data: PostChaptersImportBody; params: PostChaptersImportParams },
   TContext
 > => {
   const mutationKey = ["postChaptersImport"];
@@ -366,7 +367,7 @@ export const getPostChaptersImportMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postChaptersImport>>,
-    { data: unknown; params: PostChaptersImportParams }
+    { data: PostChaptersImportBody; params: PostChaptersImportParams }
   > = (props) => {
     const { data, params } = props ?? {};
 
@@ -379,7 +380,7 @@ export const getPostChaptersImportMutationOptions = <
 export type PostChaptersImportMutationResult = NonNullable<
   Awaited<ReturnType<typeof postChaptersImport>>
 >;
-export type PostChaptersImportMutationBody = unknown;
+export type PostChaptersImportMutationBody = PostChaptersImportBody;
 export type PostChaptersImportMutationError =
   | ResponseStandardResponse
   | ResponseStandardResponse
@@ -405,7 +406,7 @@ export const usePostChaptersImport = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof postChaptersImport>>,
       TError,
-      { data: unknown; params: PostChaptersImportParams },
+      { data: PostChaptersImportBody; params: PostChaptersImportParams },
       TContext
     >;
     request?: SecondParameter<typeof customInstance>;
@@ -414,7 +415,7 @@ export const usePostChaptersImport = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof postChaptersImport>>,
   TError,
-  { data: unknown; params: PostChaptersImportParams },
+  { data: PostChaptersImportBody; params: PostChaptersImportParams },
   TContext
 > => {
   const mutationOptions = getPostChaptersImportMutationOptions(options);

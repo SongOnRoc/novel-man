@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import { GlobalLoading } from "@/components/common/GlobalLoading";
 import { TiptapEditor } from "@/features/editor/components/TiptapEditor";
 import {
   useDraftById,
@@ -41,22 +41,35 @@ import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 const EditDraftPage = (): React.ReactElement => {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const { setBreadcrumb } = useBreadcrumb();
+  const toastShownRef = React.useRef(false);
 
   const [isPublishing, setIsPublishing] = useState(false);
   const [selectedWorkId, setSelectedWorkId] = useState<string | undefined>(
     undefined
   );
+  const [isAIOpen, setIsAIOpen] = useState(true);
+  const [selectedText, setSelectedText] = useState("");
 
   const draftId = parseInt(params.id as string, 10);
   const { data: draft, isLoading, error } = useDraftById(draftId);
-  const { mutate: updateDraft, isPending: isSaving } = useUpdateDraft();
+  const { mutate: updateDraft, mutateAsync: updateDraftAsync, isPending: isSaving } = useUpdateDraft();
   const { mutate: publishDraft, isPending: isPublishingPending } =
     usePublishDraft();
 
   const { data: worksResponse } = useWorkList({});
   const works = worksResponse?.data || [];
+
+  useEffect(() => {
+    if (searchParams.get("created") === "true" && !toastShownRef.current) {
+      toast.success("草稿创建成功");
+      toastShownRef.current = true;
+      // Remove the query param to prevent toast on refresh
+      router.replace(`/drafts/${draftId}/edit`, { scroll: false });
+    }
+  }, [searchParams, draftId, router]);
 
   useEffect(() => {
     if (draft) {
@@ -74,27 +87,24 @@ const EditDraftPage = (): React.ReactElement => {
     }
   }, [error]);
 
-  const handleSave = (data: {
+  const handleSave = async (data: {
     title: string;
     content: string;
     wordCount: number;
-  }): void => {
+  }): Promise<void> => {
     const payload: UpdateDraftPayloadForClient = {
       title: data.title,
       content: data.content,
       wordCount: data.wordCount,
     };
-    updateDraft(
-      { id: draftId, data: payload },
-      {
-        onSuccess: () => {
-          toast.success("草稿自动保存成功");
-        },
-        onError: (error: Error) => {
-          toast.error(`自动保存失败: ${error.message}`);
-        },
-      }
-    );
+    
+    try {
+      await updateDraftAsync({ id: draftId, data: payload });
+      // toast.success("草稿自动保存成功");
+    } catch (error: any) {
+      // toast.error(`自动保存失败: ${error.message}`);
+      throw error; // Re-throw to let TiptapEditor know it failed
+    }
   };
 
   const handleConfirmPublish = () => {
@@ -134,69 +144,40 @@ const EditDraftPage = (): React.ReactElement => {
   };
 
   if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-10 w-10" />
-          <div>
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-4 w-64 mt-2" />
-          </div>
-        </div>
-        <Skeleton className="w-full h-[60vh]" />
-      </div>
-    );
+    return <GlobalLoading />;
   }
 
   return (
     <>
-      <div className="space-y-6">
-        <PageHeader
-          title="编辑草稿"
-          description="编辑草稿内容，内容将自动保存。"
-        />
-
-        {draft ? (
-          <TiptapEditor
-            initialContent={{
-              title: draft.title!,
-              content: draft.content!,
-            }}
-            onSave={handleSave}
-            placeholder="开始你的创作..."
-            autoFocus
-            contentId={draft.id!.toString()}
-            workId={draft.workId?.toString()}
-            containerId={`editor-${draft.id}`}
-            targetCount={2000}
-            onTargetCountChange={() => {}}
-            isSaving={isSaving}
-          />
-        ) : (
-          !isLoading && (
-            <div className="text-center text-muted-foreground">
+      <div className="h-full overflow-hidden bg-background flex flex-col">
+        
+        <div className="flex-1 overflow-hidden relative">
+          {draft ? (
+            <TiptapEditor
+              initialContent={{
+                title: draft.title!,
+                content: draft.content!,
+              }}
+              onSave={handleSave}
+              placeholder="开始你的创作..."
+              autoFocus
+              contentId={draft.id!.toString()}
+              workId={draft.workId?.toString()}
+              containerId={`editor-${draft.id}`}
+              targetCount={2000}
+              onTargetCountChange={() => {}}
+              isSaving={isSaving}
+              onBack={() => router.back()}
+              onPublish={() => setIsPublishing(true)}
+            />
+          ) : (
+            <div className="text-center text-muted-foreground p-8">
               草稿未找到或加载失败。
             </div>
-          )
-        )}
-
-        <div className="flex justify-end space-x-2">
-          <Button
-            variant="outline"
-            disabled={isSaving || isPublishingPending}
-            onClick={() =>
-              toast.info("内容已自动保存，或使用编辑器工具栏中的保存按钮。")
-            }
-          >
-            存为草稿
-          </Button>
-          <Button
-            disabled={isSaving || isPublishingPending}
-            onClick={() => setIsPublishing(true)}
-          >
-            {isPublishingPending ? "发布中..." : "发布为新章节"}
-          </Button>
+          )}
         </div>
+
+
       </div>
 
       <AlertDialog open={isPublishing} onOpenChange={setIsPublishing}>

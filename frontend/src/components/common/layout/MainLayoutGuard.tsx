@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 
 import { MainLayout } from "@/components/common/layout/MainLayout";
-import { Skeleton } from "@/components/ui/skeleton";
+import { GlobalLoading } from "@/components/common/GlobalLoading";
 import { useUserQuery } from "@/hooks/auth/useUserQuery";
 
 /**
@@ -28,21 +28,9 @@ export function MainLayoutGuard({ children }: { children: React.ReactNode }) {
     }
   }, [status, isUserLoading, isError, router]);
 
-  // Show skeleton while NextAuth is resolving OR while fetching user after auth.
+  // Show GlobalLoading while NextAuth is resolving OR while fetching user after auth.
   if (status === "loading" || (status === "authenticated" && isUserLoading)) {
-    return (
-      <div className="flex h-screen w-full">
-        <Skeleton className="h-full w-[256px]" />
-        <div className="flex-1 flex flex-col">
-          <Skeleton className="h-14 w-full border-b" />
-          <div className="p-8 space-y-4">
-            <Skeleton className="h-8 w-1/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-          </div>
-        </div>
-      </div>
-    );
+    return <GlobalLoading />;
   }
 
   // Render main layout once authenticated. Avoid blocking on user object presence.

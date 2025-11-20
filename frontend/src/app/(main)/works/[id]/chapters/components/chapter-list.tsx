@@ -33,7 +33,7 @@ interface ChapterListProps {
 export const ChapterList = ({ workId }: ChapterListProps): React.ReactElement => {
   const router = useRouter();
   const { data: chaptersResponse, isLoading } = useChapterList({
-    work_id: workId,
+    workId: workId,
   });
   const deleteChapterMutation = useDeleteChapter();
 
@@ -51,7 +51,8 @@ export const ChapterList = ({ workId }: ChapterListProps): React.ReactElement =>
     <div>
       <div className="flex justify-end mb-4">
         <Button asChild>
-          <Link href={`/chapters/new?workId=${workId}`}>
+          {/* TODO: Verify the correct route for creating a new chapter */}
+          <Link href={`/works/${workId}/chapters/new`}>
             <PlusCircle className="mr-2 h-4 w-4" />
             New Chapter
           </Link>
@@ -87,7 +88,7 @@ export const ChapterList = ({ workId }: ChapterListProps): React.ReactElement =>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
                       onClick={() =>
-                        router.push(`/chapters/${chapter.id}/edit`)
+                        router.push(`/works/${workId}/chapters/${chapter.id}/edit`)
                       }
                     >
                       Edit

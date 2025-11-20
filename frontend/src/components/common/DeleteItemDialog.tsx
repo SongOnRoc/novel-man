@@ -43,16 +43,14 @@ export function DeleteItemDialog({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
           <AlertDialogAction
-            asChild
-            onClick={(e: React.MouseEvent) => {
+            onClick={(e) => {
               e.preventDefault();
               onConfirm();
             }}
             disabled={isDeleting}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            <Button variant="destructive" disabled={isDeleting}>
-              {isDeleting ? "删除中..." : "确认删除"}
-            </Button>
+            {isDeleting ? "删除中..." : "确认删除"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

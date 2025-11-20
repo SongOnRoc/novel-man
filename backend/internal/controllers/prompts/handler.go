@@ -149,15 +149,10 @@ func (c *PromptController) ListPrompts(ctx *gin.Context) {
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
 
 	filters := make(contracts.Filters)
-	baseQuery := "user_id = ? OR is_system = ?"
-	queryParams := []interface{}{userID.(uint), true}
 
-	if category := ctx.Query("category"); category != "" {
-		baseQuery += " AND (categories LIKE ? OR primary_tag = ?)"
-		queryParams = append(queryParams, "%"+category+"%", category)
-	}
-	filters[contracts.FilterKeyQuery] = baseQuery
-	filters[contracts.FilterKeyParams] = queryParams
+	// 构建查询条件
+	query := c.buildListQuery(ctx, userID.(uint))
+	filters["query"] = query
 
 	prompts, total, err := c.service.List(*context.New(ctx), page, limit, filters)
 	if err != nil {
@@ -179,6 +174,24 @@ func (c *PromptController) ListPrompts(ctx *gin.Context) {
 		},
 	}
 	response.Success(ctx, http.StatusOK, resp)
+}
+
+// buildListQuery 构建提示词列表的查询条件
+func (c *PromptController) buildListQuery(ctx *gin.Context, userID uint) *contracts.Condition {
+	// Base filter: (user_id = ? OR is_system = ?)
+	query := contracts.NewCondition("user_id", userID).
+		Or(contracts.NewCondition("is_system", true))
+
+	if category := ctx.Query("category"); category != "" {
+		// Category filter: (categories LIKE ? OR primary_tag = ?)
+		categoryFilter := contracts.NewCondition("categories", category, contracts.OpLike).
+			Or(contracts.NewCondition("primary_tag", category))
+
+		// Combine: (user...) AND (category...)
+		query = query.And(categoryFilter)
+	}
+
+	return query
 }
 
 // CreatePrompt godoc

@@ -30,6 +30,7 @@ import type {
   GetPromptsParams,
   PostPrompts201,
   PostPromptsImport200,
+  PostPromptsImportBody,
   PromptsCreatePromptRequest,
   PromptsUpdatePromptRequest,
   PutPromptsId200,
@@ -311,12 +312,12 @@ export const usePostPrompts = <
  * @summary Import prompts from file
  */
 export const postPromptsImport = (
-  postPromptsImportBody: unknown,
+  postPromptsImportBody: PostPromptsImportBody,
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
   const formData = new FormData();
-  formData.append("data", postPromptsImportBody);
+  formData.append(`file`, postPromptsImportBody.file);
 
   return customInstance<PostPromptsImport200>(
     {
@@ -342,14 +343,14 @@ export const getPostPromptsImportMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof postPromptsImport>>,
     TError,
-    { data: unknown },
+    { data: PostPromptsImportBody },
     TContext
   >;
   request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postPromptsImport>>,
   TError,
-  { data: unknown },
+  { data: PostPromptsImportBody },
   TContext
 > => {
   const mutationKey = ["postPromptsImport"];
@@ -363,7 +364,7 @@ export const getPostPromptsImportMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postPromptsImport>>,
-    { data: unknown }
+    { data: PostPromptsImportBody }
   > = (props) => {
     const { data } = props ?? {};
 
@@ -376,7 +377,7 @@ export const getPostPromptsImportMutationOptions = <
 export type PostPromptsImportMutationResult = NonNullable<
   Awaited<ReturnType<typeof postPromptsImport>>
 >;
-export type PostPromptsImportMutationBody = unknown;
+export type PostPromptsImportMutationBody = PostPromptsImportBody;
 export type PostPromptsImportMutationError =
   | ResponseStandardResponse
   | ResponseStandardResponse
@@ -400,7 +401,7 @@ export const usePostPromptsImport = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof postPromptsImport>>,
       TError,
-      { data: unknown },
+      { data: PostPromptsImportBody },
       TContext
     >;
     request?: SecondParameter<typeof customInstance>;
@@ -409,7 +410,7 @@ export const usePostPromptsImport = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof postPromptsImport>>,
   TError,
-  { data: unknown },
+  { data: PostPromptsImportBody },
   TContext
 > => {
   const mutationOptions = getPostPromptsImportMutationOptions(options);

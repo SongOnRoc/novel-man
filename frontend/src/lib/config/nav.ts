@@ -42,16 +42,6 @@ export const sidebarNavConfig: NavGroup[] = [
     value: "tools",
     links: [
       {
-        title: "角色管理",
-        href: "/tools/characters",
-        icon: Users,
-      },
-      {
-        title: "世界观设定",
-        href: "/tools/worldbuilding",
-        icon: Globe,
-      },
-      {
         title: "AI 助手",
         href: "/tools/ai-assistant",
         icon: Bot,
@@ -66,12 +56,42 @@ export const sidebarNavConfig: NavGroup[] = [
 ];
 
 /**
+ * 作品上下文导航配置工厂
+ * 根据 workId 生成对应的导航链接
+ */
+export const getWorkNavConfig = (workId: string): NavGroup[] => [
+  {
+    title: "创作核心",
+    value: "core",
+    links: [
+      { title: "章节管理", href: `/works/${workId}`, icon: Book },
+      { title: "大纲规划", href: `/works/${workId}/outline`, icon: FileText },
+    ],
+  },
+  {
+    title: "世界观构建",
+    value: "world",
+    links: [
+      { title: "角色管理", href: `/works/${workId}/characters`, icon: Users },
+      { title: "世界设定", href: `/works/${workId}/world`, icon: Globe },
+    ],
+  },
+  {
+    title: "设置",
+    value: "settings",
+    links: [
+      { title: "作品设置", href: `/works/${workId}/settings`, icon: Settings },
+    ],
+  },
+];
+
+/**
  * 独立的主页导航项
  * 单独导出以便在布局中灵活使用
  */
 export const dashboardLink: NavLink = {
   title: "总览",
-  href: "/",
+  href: "/dashboard", // Changed from "/" to "/dashboard" for consistency
   icon: Home,
 };
 

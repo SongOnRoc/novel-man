@@ -105,5 +105,5 @@ export const importChaptersService = (workId: number, file: File) => {
   // The generated client wraps the body in a "data" key in FormData.
   // We updated the backend to accept "data" key.
   // postChaptersImport takes body as first arg, and params as second arg.
-  return postChaptersImport(file, { work_id: workId });
+  return postChaptersImport({ file }, { work_id: workId });
 };

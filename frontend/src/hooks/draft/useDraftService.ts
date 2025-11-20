@@ -91,7 +91,9 @@ export const useCreateDraft = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (draftData: CreateDraftPayloadForClient) => {
-      return createDraftService(draftData as unknown as CreateDraftPayload);
+      // Convert camelCase payload to snake_case for the API
+      const payload = toSnakeCase(draftData) as CreateDraftPayload;
+      return createDraftService(payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: draftKeys.lists() });
@@ -113,10 +115,9 @@ export const useUpdateDraft = () => {
       id: number;
       data: UpdateDraftPayloadForClient;
     }) => {
-      return updateDraftService(
-        id,
-        data as unknown as UpdateDraftPayload
-      );
+      // Convert camelCase payload to snake_case for the API
+      const payload = toSnakeCase(data) as UpdateDraftPayload;
+      return updateDraftService(id, payload);
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: draftKeys.lists() });

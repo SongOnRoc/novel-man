@@ -99,5 +99,5 @@ export const deletePromptService = (id: number) => {
 export const importPromptsService = (file: File) => {
   // The generated client wraps the body in a "data" key in FormData.
   // We updated the backend to accept "data" key.
-  return postPromptsImport(file);
+  return postPromptsImport({ file });
 };

@@ -72,7 +72,7 @@ type CharacterResponse struct {
 }
 
 type ListCharactersResponse struct {
-	Data       []CharacterResponse   `json:"data"`
+	Data       []CharacterResponse `json:"data"`
 	Pagination response.Pagination `json:"pagination"`
 }
 

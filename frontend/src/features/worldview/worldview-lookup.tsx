@@ -35,7 +35,7 @@ export const worldviewLookupSource: LookupSource<WorldviewItem> = {
   name: "世界观",
   icon: <Globe className="h-4 w-4" />,
   useData: useWorldviewData,
-  renderItem: ({ item, onSelect }) => (
+  renderItem: ({ item, workId, onSelect }) => (
     <WorldviewItemCard worldItem={item} onSelect={onSelect} />
   ),
 };

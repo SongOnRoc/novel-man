@@ -91,5 +91,5 @@ export const deleteWorkService = (id: number) => {
 export const importWorksService = (file: File) => {
   // The generated client wraps the body in a "data" key in FormData.
   // We updated the backend to accept "data" key.
-  return postWorksImport(file);
+  return postWorksImport({ file });
 };

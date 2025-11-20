@@ -272,6 +272,8 @@ func (c *DraftController) DeleteDraft(ctx *gin.Context) {
 // @Tags drafts
 // @Produce  json
 // @Param work_id query int false "Filter by Work ID"
+// @Param q query string false "Search query"
+// @Param order query string false "Sort order (e.g., 'updated_at desc')"
 // @Param page query int false "Page number" default(1)
 // @Param limit query int false "Number of items per page" default(10)
 // @Success 200 {object} response.StandardResponse{data=ListDraftsResponse}
@@ -283,7 +285,7 @@ func (c *DraftController) DeleteDraft(ctx *gin.Context) {
 func (c *DraftController) ListDrafts(ctx *gin.Context) {
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
-	workIDStr := ctx.Query("work_id")
+	order := ctx.Query("order")
 
 	userID, exists := ctx.Get("userID")
 	if !exists {
@@ -292,15 +294,17 @@ func (c *DraftController) ListDrafts(ctx *gin.Context) {
 	}
 
 	filters := make(contracts.Filters)
-	filters["user_id"] = userID.(uint)
 
-	if workIDStr != "" {
-		workID, err := strconv.ParseInt(workIDStr, 10, 64)
-		if err != nil {
-			response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid work_id", err)
-			return
-		}
-		filters["work_id"] = workID
+	// 构建查询条件
+	query, err := c.buildListQuery(ctx, userID.(uint))
+	if err != nil {
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+	filters["query"] = query
+
+	if order != "" {
+		filters[contracts.FilterKeyOrder] = order
 	}
 
 	drafts, total, err := c.service.List(*context.New(ctx), page, limit, filters)
@@ -322,6 +326,37 @@ func (c *DraftController) ListDrafts(ctx *gin.Context) {
 			Limit: limit,
 		},
 	})
+}
+
+// buildListQuery 构建草稿列表的查询条件
+func (c *DraftController) buildListQuery(ctx *gin.Context, userID uint) (*contracts.Condition, error) {
+	query := contracts.NewCondition("user_id", userID)
+
+	if workIDStr := ctx.Query("work_id"); workIDStr != "" {
+		workID, err := strconv.ParseInt(workIDStr, 10, 64)
+		if err != nil {
+			return nil, errors.New("invalid work_id")
+		}
+		if workID == 0 {
+			// // Support both NULL and 0 for "no work"
+			// // (work_id IS NULL OR work_id = 0)
+			// cond := contracts.NewCondition("work_id", nil, contracts.OpIsNull).
+			// 	Or(contracts.NewCondition("work_id", 0))
+			cond := contracts.NewCondition("work_id", nil, contracts.OpIsNull)
+			query = query.And(cond)
+		} else {
+			query = query.And(contracts.NewCondition("work_id", workID))
+		}
+	}
+
+	// 处理搜索 q
+	if q := ctx.Query("q"); q != "" {
+		qCond := contracts.NewCondition("title", q, contracts.OpLike).
+			Or(contracts.NewCondition("content", q, contracts.OpLike))
+		query = query.And(qCond)
+	}
+
+	return query, nil
 }
 
 // PublishDraft godoc

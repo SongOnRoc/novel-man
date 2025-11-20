@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
+import { cn } from "@/lib/utils";
 
 /**
  * Breadcrumbs
@@ -87,14 +88,18 @@ export function Breadcrumbs({ className = "" }: { className?: string }) {
       idx > 0 && /^\d+$/.test(seg) ? `${segments[idx - 1]}-${seg}` : seg;
     const label = titleOf(seg, breadcrumbs, uniqueKey);
     const isLast = idx === segments.length - 1;
-    return { href, label, isLast };
+    
+    // All intermediate segments are navigable now as we have setup redirects for ID-only paths
+    const isNavigable = true;
+
+    return { href, label, isLast, isNavigable };
   });
 
   return (
     // 小屏隐藏；从 md 断点开始展示
     <nav
       aria-label="Breadcrumb"
-      className={`hidden md:flex items-center text-sm text-muted-foreground ${className}`}
+      className={cn("hidden md:flex items-center text-sm text-muted-foreground", className)}
     >
       <ol className="flex items-center gap-1">
         {/* 首页锚点 */}
@@ -112,8 +117,10 @@ export function Breadcrumbs({ className = "" }: { className?: string }) {
               /
             </li>
             <li>
-              {c.isLast ? (
-                <span className="text-foreground font-medium">{c.label}</span>
+              {c.isLast || !c.isNavigable ? (
+                <span className={cn("font-medium", c.isLast ? "text-foreground" : "text-muted-foreground")}>
+                  {c.label}
+                </span>
               ) : (
                 <Link
                   href={c.href}

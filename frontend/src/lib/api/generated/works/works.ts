@@ -29,6 +29,7 @@ import type {
   PostWorks201,
   PostWorksIdPublish200,
   PostWorksImport200,
+  PostWorksImportBody,
   PutWorksId200,
   ResponseStandardResponse,
   WorksCreateWorkRequest,
@@ -290,12 +291,12 @@ export const usePostWorks = <
  * @summary Import works from file
  */
 export const postWorksImport = (
-  postWorksImportBody: unknown,
+  postWorksImportBody: PostWorksImportBody,
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
   const formData = new FormData();
-  formData.append("data", postWorksImportBody);
+  formData.append(`file`, postWorksImportBody.file);
 
   return customInstance<PostWorksImport200>(
     {
@@ -321,14 +322,14 @@ export const getPostWorksImportMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof postWorksImport>>,
     TError,
-    { data: unknown },
+    { data: PostWorksImportBody },
     TContext
   >;
   request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postWorksImport>>,
   TError,
-  { data: unknown },
+  { data: PostWorksImportBody },
   TContext
 > => {
   const mutationKey = ["postWorksImport"];
@@ -342,7 +343,7 @@ export const getPostWorksImportMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postWorksImport>>,
-    { data: unknown }
+    { data: PostWorksImportBody }
   > = (props) => {
     const { data } = props ?? {};
 
@@ -355,7 +356,7 @@ export const getPostWorksImportMutationOptions = <
 export type PostWorksImportMutationResult = NonNullable<
   Awaited<ReturnType<typeof postWorksImport>>
 >;
-export type PostWorksImportMutationBody = unknown;
+export type PostWorksImportMutationBody = PostWorksImportBody;
 export type PostWorksImportMutationError =
   | ResponseStandardResponse
   | ResponseStandardResponse
@@ -379,7 +380,7 @@ export const usePostWorksImport = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof postWorksImport>>,
       TError,
-      { data: unknown },
+      { data: PostWorksImportBody },
       TContext
     >;
     request?: SecondParameter<typeof customInstance>;
@@ -388,7 +389,7 @@ export const usePostWorksImport = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof postWorksImport>>,
   TError,
-  { data: unknown },
+  { data: PostWorksImportBody },
   TContext
 > => {
   const mutationOptions = getPostWorksImportMutationOptions(options);

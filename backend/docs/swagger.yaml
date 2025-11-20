@@ -1646,6 +1646,16 @@ paths:
         name: work_id
         schema:
           type: integer
+      - description: Search query
+        in: query
+        name: q
+        schema:
+          type: string
+      - description: Sort order (e.g., 'updated_at desc')
+        in: query
+        name: order
+        schema:
+          type: string
       - description: Page number
         in: query
         name: page

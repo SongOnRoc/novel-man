@@ -163,8 +163,7 @@ export function NavLinks({ isCollapsed }: NavLinksProps) {
     const updatedAllLinks = allLinks.map((link, index) => {
       if (link.href === "/works") return { ...link, icon: BookOpen };
       if (link.href === "/drafts") return { ...link, icon: FileText };
-      if (link.href === "/tools/characters") return { ...link, icon: Users };
-      if (link.href === "/tools/worldbuilding") return { ...link, icon: Globe2 };
+
       if (link.href === "/tools/ai-assistant") return { ...link, icon: Sparkles };
       return link;
     });
@@ -224,8 +223,7 @@ export function NavLinks({ isCollapsed }: NavLinksProps) {
                         let updatedLink = link;
                         if (link.href === "/works") updatedLink = { ...link, icon: BookOpen };
                         if (link.href === "/drafts") updatedLink = { ...link, icon: FileText };
-                        if (link.href === "/tools/characters") updatedLink = { ...link, icon: Users };
-                        if (link.href === "/tools/worldbuilding") updatedLink = { ...link, icon: Globe2 };
+
                         if (link.href === "/tools/ai-assistant") updatedLink = { ...link, icon: Sparkles };
                         return renderNavLink(updatedLink, pathname, false, closeSheet);
                       })}

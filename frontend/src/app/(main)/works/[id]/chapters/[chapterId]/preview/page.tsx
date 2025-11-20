@@ -9,7 +9,7 @@ import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { ExportDialog, ExportOptions } from "@/components/common/ExportDialog";
 import { PageHeader } from "@/components/common/layout/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { GlobalLoading } from "@/components/common/GlobalLoading";
 import {
   useChapterById,
   useChapterList,
@@ -111,12 +111,7 @@ export default function ChapterPreviewPage(): React.ReactElement {
   };
 
   if (isLoading) {
-    return (
-      <div className="space-y-4 p-4">
-        <Skeleton className="h-8 w-1/4" />
-        <Skeleton className="h-96 w-full" />
-      </div>
-    );
+    return <GlobalLoading />;
   }
 
   if (!chapter) {

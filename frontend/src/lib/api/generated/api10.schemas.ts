@@ -526,6 +526,11 @@ export type PostChaptersImportParams = {
   work_id: number;
 };
 
+export type PostChaptersImportBody = {
+  /** File to upload */
+  file: Blob;
+};
+
 export type PostChaptersImport200 = Data & {
   code?: number;
   data?: unknown;
@@ -614,6 +619,14 @@ export type GetDraftsParams = {
    * Filter by Work ID
    */
   work_id?: number;
+  /**
+   * Search query
+   */
+  q?: string;
+  /**
+   * Sort order (e.g., 'updated_at desc')
+   */
+  order?: string;
   /**
    * Page number
    */
@@ -721,6 +734,11 @@ export type PostPrompts201 = Data & {
   message?: string;
   sourceId?: string;
   traceId?: string;
+};
+
+export type PostPromptsImportBody = {
+  /** File to upload */
+  file: Blob;
 };
 
 export type PostPromptsImport200 = Data & {
@@ -943,6 +961,11 @@ export type PostWorks201 = Data & {
   message?: string;
   sourceId?: string;
   traceId?: string;
+};
+
+export type PostWorksImportBody = {
+  /** File to upload */
+  file: Blob;
 };
 
 export type PostWorksImport200 = Data & {
