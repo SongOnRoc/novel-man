@@ -2,6 +2,8 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { Plus, Upload, BookOpen } from "lucide-react";
 
 import {
   Pagination,
@@ -11,8 +13,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { PageHeader } from "@/components/common/layout/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { DeleteWorkDialog } from "@/features/works/components/DeleteWorkDialog";
 import { NewWorkButton } from "@/features/works/components/NewWorkButton";
 import { WorkCard } from "@/features/works/components/WorkCard";
@@ -30,7 +32,7 @@ export default function WorksPage(): React.ReactElement {
     return pageParam ? parseInt(pageParam, 10) : 1;
   }, [searchParams]);
 
-  const { data: worksResponse, isLoading } = useWorkList({ page, limit: 9 });
+  const { data: worksResponse, isLoading } = useWorkList({ page, limit: 12 });
   const { mutate: deleteWork, isPending: isDeleting } = useDeleteWork();
 
   const works = (worksResponse as WorksList)?.data || [];
@@ -52,99 +54,151 @@ export default function WorksPage(): React.ReactElement {
   }, [pagination]);
 
   return (
-    <>
-      <div className="space-y-8">
-        <PageHeader
-          title="我的作品"
-          description="管理您的所有创作作品，继续您的创作之旅。"
-          actions={
-            <div className="flex gap-2">
-              <ImportDialog
-                title="导入作品"
-                description="支持 .json 格式的作品数据导入。"
-                allowedTypes={[".json"]}
-                onImport={(file) => importMutation.mutateAsync(file)}
-              />
-              <NewWorkButton />
-            </div>
-          }
-          showBackButton={false}
-        />
+    <div className="min-h-screen space-y-12 pb-20 animate-in fade-in duration-500">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-10 md:p-16">
+        <div className="relative z-10 max-w-2xl">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-4xl font-bold tracking-tight sm:text-5xl"
+          >
+            我的作品库
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mt-4 text-lg text-muted-foreground"
+          >
+            管理您的所有创作作品，继续您的创作之旅。每一个故事都值得被认真对待。
+          </motion.p>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mt-8 flex flex-wrap gap-4"
+          >
+            <NewWorkButton />
+            <ImportDialog
+              title="导入作品"
+              description="支持 .json 格式的作品数据导入。"
+              allowedTypes={[".json"]}
+              onImport={(file) => importMutation.mutateAsync(file)}
+              trigger={
+                <Button variant="outline" size="lg" className="h-12 px-6">
+                  <Upload className="mr-2 h-5 w-5" />
+                  导入作品
+                </Button>
+              }
+            />
+          </motion.div>
+        </div>
+        
+        {/* Decorative Background Elements */}
+        <div className="absolute -right-20 -top-20 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl" />
+      </div>
 
+      {/* Works Grid */}
+      <div className="px-2">
         {isLoading ? (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 9 }).map((_, i) => (
-              <Skeleton key={i} className="h-96 w-full rounded-2xl" />
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="aspect-[3/4] w-full rounded-2xl" />
             ))}
           </div>
         ) : (
           <>
             {works.length > 0 ? (
-              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-                {works.map((work: WorkForClient) => (
-                  <WorkCard
-                    key={work.id}
-                    work={work}
-                    onDelete={() => setDeleteWorkId(work.id!)}
-                    isDeleting={isDeleting && deleteWorkId === work.id}
+              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {/* Create New Card (First item) */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="group flex aspect-[3/4] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-muted-foreground/25 bg-muted/30 transition-colors hover:border-primary hover:bg-primary/5"
+                >
+                  <NewWorkButton 
+                    trigger={
+                      <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center">
+                        <div className="mb-4 rounded-full bg-background p-4 shadow-sm transition-transform group-hover:scale-110">
+                          <Plus className="h-8 w-8 text-muted-foreground group-hover:text-primary" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-muted-foreground group-hover:text-primary">创建新作品</h3>
+                      </div>
+                    } 
                   />
+                </motion.div>
+
+                {works.map((work: WorkForClient, index) => (
+                  <motion.div
+                    key={work.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.05 }}
+                  >
+                    <WorkCard
+                      work={work}
+                      onDelete={() => setDeleteWorkId(work.id!)}
+                      isDeleting={isDeleting && deleteWorkId === work.id}
+                    />
+                  </motion.div>
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center">
-                <h2 className="text-2xl font-semibold">暂无作品</h2>
-                <p className="mb-6 mt-2 text-muted-foreground">
-                  您还没有创建任何作品，点击下方按钮开始您的创作之旅。
-                </p>
-                <div className="flex gap-4">
-                  <ImportDialog
-                    title="导入作品"
-                    description="支持 .json 格式的作品数据导入。"
-                    allowedTypes={[".json"]}
-                    onImport={(file) => importMutation.mutateAsync(file)}
-                  />
-                  <NewWorkButton />
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="mb-6 rounded-full bg-muted p-8">
+                  <BookOpen className="h-12 w-12 text-muted-foreground/50" />
                 </div>
+                <h2 className="text-2xl font-semibold">暂无作品</h2>
+                <p className="mb-8 mt-2 max-w-md text-muted-foreground">
+                  您还没有创建任何作品。点击上方的“创建新作品”按钮，开始您的第一个故事吧。
+                </p>
               </div>
             )}
           </>
         )}
 
         {totalPages > 1 && (
-          <Pagination>
-            <PaginationContent>
-              {page > 1 && (
-                <PaginationItem>
-                  <PaginationPrevious href={`/works?page=${page - 1}`} />
-                </PaginationItem>
-              )}
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (pageNumber) => (
-                  <PaginationItem key={pageNumber}>
-                    <PaginationLink
-                      href={`/works?page=${pageNumber}`}
-                      isActive={page === pageNumber}
-                    >
-                      {pageNumber}
-                    </PaginationLink>
+          <div className="mt-12 flex justify-center">
+            <Pagination>
+              <PaginationContent>
+                {page > 1 && (
+                  <PaginationItem>
+                    <PaginationPrevious href={`/works?page=${page - 1}`} />
                   </PaginationItem>
-                )
-              )}
-              {page < totalPages && (
-                <PaginationItem>
-                  <PaginationNext href={`/works?page=${page + 1}`} />
-                </PaginationItem>
-              )}
-            </PaginationContent>
-          </Pagination>
+                )}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (pageNumber) => (
+                    <PaginationItem key={pageNumber}>
+                      <PaginationLink
+                        href={`/works?page=${pageNumber}`}
+                        isActive={page === pageNumber}
+                      >
+                        {pageNumber}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )
+                )}
+                {page < totalPages && (
+                  <PaginationItem>
+                    <PaginationNext href={`/works?page=${page + 1}`} />
+                  </PaginationItem>
+                )}
+              </PaginationContent>
+            </Pagination>
+          </div>
         )}
       </div>
+
       <DeleteWorkDialog
         open={deleteWorkId !== null}
         onOpenChange={(open) => !open && setDeleteWorkId(null)}
         onConfirm={handleConfirmDelete}
         isDeleting={isDeleting}
       />
-    </>
+    </div>
   );
 }

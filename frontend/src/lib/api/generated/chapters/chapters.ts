@@ -317,7 +317,7 @@ export const postChaptersImport = (
   signal?: AbortSignal,
 ) => {
   const formData = new FormData();
-  formData.append("data", postChaptersImportBody);
+  formData.append("data", postChaptersImportBody as Blob);
 
   return customInstance<PostChaptersImport200>(
     {

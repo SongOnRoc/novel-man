@@ -1,13 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
-import { PageHeader } from "@/components/common/layout/PageHeader";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TiptapEditor } from "@/features/editor/components/TiptapEditor";
 import {
@@ -15,14 +12,12 @@ import {
   useUpdateChapter,
 } from "@/hooks/chapter/useChapterService";
 import {
-  ChapterForClient,
   UpdateChapterPayloadForClient,
 } from "@/lib/services/chapter.service";
 import { useWorkById } from "@/hooks/work/useWorkService";
 
 const EditChapterPage = (): React.ReactElement => {
   const params = useParams();
-  const router = useRouter();
   const { setBreadcrumb } = useBreadcrumb();
   const [targetCount, setTargetCount] = useState(2000);
 
@@ -35,11 +30,9 @@ const EditChapterPage = (): React.ReactElement => {
 
   useEffect(() => {
     if (work) {
-      // e.g., 'works-1'
       setBreadcrumb(`works-${workId}`, work.title || "作品");
     }
     if (chapter) {
-      // e.g., 'chapters-1'
       setBreadcrumb(`chapters-${chapterId}`, chapter.title || "编辑章节");
     }
   }, [work, chapter, workId, chapterId, setBreadcrumb]);
@@ -49,10 +42,6 @@ const EditChapterPage = (): React.ReactElement => {
       toast.error(`Failed to load chapter data: ${error.message}`);
     }
   }, [error]);
-
-  const handleBack = (): void => {
-    router.back();
-  };
 
   const handleSave = (data: {
     title: string;
@@ -77,84 +66,52 @@ const EditChapterPage = (): React.ReactElement => {
     );
   };
 
-  const handleSaveClick = (): void => {
-    if (!chapter) return;
-    toast.info("Please use the save button in the editor toolbar.");
-  };
-
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-10 w-10" />
-          <div>
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-4 w-64 mt-2" />
-          </div>
+      <div className="h-screen w-full flex items-center justify-center">
+        <div className="space-y-4 w-full max-w-3xl px-6">
+          <Skeleton className="h-12 w-3/4" />
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-6 w-5/6" />
         </div>
-        <Skeleton className="w-full h-[60vh]" />
+      </div>
+    );
+  }
+
+  if (!chapter) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center text-center">
+        <h2 className="text-2xl font-semibold">未找到章节</h2>
+        <p className="mb-4 mt-2 text-muted-foreground">
+          无法加载章节数据，或指定的章节不存在。
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="编辑章节"
-        description="编辑章节内容，稿件将自动保存。"
+    <div className="h-[calc(100vh-64px)] -m-8"> 
+      {/* -m-8 to counteract the default padding of the main layout if present, 
+          but ideally we should control this via layout. 
+          Assuming MainLayout adds padding, we might want to portal or use a different layout.
+          For now, we'll try to fill the available space.
+      */}
+      <TiptapEditor
+        initialContent={{
+          title: chapter.title!,
+          content: chapter.content!,
+        }}
+        onSave={handleSave}
+        placeholder="开始你的章节创作..."
+        autoFocus
+        contentId={chapter.id!.toString()}
+        workId={chapter.workId!.toString()}
+        containerId={`editor-${chapter.id}`}
+        targetCount={targetCount}
+        onTargetCountChange={setTargetCount}
+        isSaving={isSaving}
       />
-
-      {chapter ? (
-        <TiptapEditor
-          initialContent={{
-            title: chapter.title!,
-            content: chapter.content!,
-          }}
-          onSave={handleSave}
-          placeholder="开始你的章节创作..."
-          autoFocus
-          contentId={chapter.id!.toString()}
-          workId={chapter.workId!.toString()}
-          containerId={`editor-${chapter.id}`}
-          targetCount={targetCount}
-          onTargetCountChange={setTargetCount}
-          isSaving={isSaving}
-        />
-      ) : (
-        !isLoading && (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-            <h2 className="text-2xl font-semibold">未找到章节</h2>
-            <p className="mb-4 mt-2 text-muted-foreground">
-              无法加载章节数据，或指定的章节不存在。
-            </p>
-          </div>
-        )
-      )}
-
-      <div className="flex justify-between">
-        <Button variant="outline" asChild>
-          <Link href={`/works/${workId}/chapters`}>返回章节列表</Link>
-        </Button>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            disabled={isSaving || !chapter}
-            onClick={handleSaveClick}
-          >
-            {isSaving ? "保存中..." : "存为草稿"}
-          </Button>
-          <Button disabled={isSaving || !chapter} onClick={handleSaveClick}>
-            {isSaving ? "发布中..." : "发布章节"}
-          </Button>
-        </div>
-      </div>
-
-      <div className="text-xs text-muted-foreground">
-        <p>
-          Tip: Press Ctrl+G to jump to a specific line; use the bookmark manager
-          to add bookmarks at important locations.
-        </p>
-      </div>
     </div>
   );
 };

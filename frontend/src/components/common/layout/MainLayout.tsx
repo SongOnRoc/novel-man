@@ -1,135 +1,130 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X, ChevronRight } from "lucide-react";
 
-import { useSidebarStore } from "@/hooks/ui/useSidebarStore";
 import { cn } from "@/lib/utils";
-
+import { Button } from "@/components/ui/button";
+import { Sidebar } from "./sider/Sidebar";
 import { Header } from "./Header";
-import { Sidebar } from "./sider";
-import { NavLinks } from "./sider/nav-links";
-import { SidebarWrapper } from "./sider/SidebarWrapper";
 
 interface MainLayoutProps {
   children: React.ReactNode;
-  defaultCollapsed?: boolean;
-  navCollapsedSize?: number;
 }
 
-export function MainLayout({
-  children,
-  defaultCollapsed = false,
-}: MainLayoutProps) {
-  const { isCollapsed, setIsCollapsed } = useSidebarStore();
+export function MainLayout({ children }: MainLayoutProps) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const pathname = usePathname();
 
-  // 确保侧边栏在初始化时正确应用折叠状态
-  React.useEffect(() => {
-    // This effect ensures the sidebar state is properly synchronized with the UI
-    // when the page refreshes or when the component first mounts
-    // 确保从 localStorage 恢复的状态正确应用到 UI
-    if (isCollapsed !== undefined) {
-      setIsCollapsed(isCollapsed);
+  // 检测移动端
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // 路由变化时，移动端自动关闭侧边栏
+  useEffect(() => {
+    if (isMobile) {
+      setIsSidebarOpen(false);
     }
-  }, [isCollapsed, setIsCollapsed]);
+  }, [pathname, isMobile]);
+
+  // 边缘触发逻辑 (Edge Trigger)
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      // 仅在屏幕左边缘 20px 内触发
+      if (e.touches[0].clientX < 20 && !isSidebarOpen) {
+        setIsSidebarOpen(true);
+      }
+    };
+
+    window.addEventListener("touchstart", handleTouchStart);
+    return () => window.removeEventListener("touchstart", handleTouchStart);
+  }, [isMobile, isSidebarOpen]);
 
   return (
-    <div className="flex h-screen w-screen">
-      <SidebarWrapper>
-        <Sidebar>
-          <Sidebar.Header>
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 text-primary border border-primary/20 shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-5 w-5 transition-transform duration-300 group-hover:scale-110"
-                  >
-                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-                  </svg>
-                </div>
-                <div
-                  className={cn(
-                    "flex flex-col items-start transition-all duration-300",
-                    isCollapsed &&
-                      "opacity-0 scale-95 pointer-events-none absolute"
-                  )}
-                >
-                  <span className="text-base font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                    NovelMan
-                  </span>
-                  <span className="text-xs text-muted-foreground/80 font-medium">
-                    v 0.0.1
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsCollapsed(!isCollapsed)}
-                className={cn(
-                  "p-2 rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-200 hover:scale-105 active:scale-95",
-                  "hidden md:inline-flex shadow-sm hover:shadow-md" // Only show on desktop
-                )}
-              >
-                {isCollapsed ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-4 w-4 transition-all duration-300 hover:scale-110"
-                  >
-                    <path d="m9 18 6-6-6-6" />
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-4 w-4 transition-all duration-300 hover:scale-110"
-                  >
-                    <path d="m15 18-6-6 6-6" />
-                  </svg>
-                )}
-              </button>
-            </div>
-          </Sidebar.Header>
-          <Sidebar.Content>
-            <NavLinks isCollapsed={isCollapsed} />
-          </Sidebar.Content>
-          <Sidebar.Footer>
-            <div>{/* Placeholder for UserProfile or other items */}</div>
-          </Sidebar.Footer>
-        </Sidebar>
-      </SidebarWrapper>
-      <div className="flex-1 flex flex-col h-full overflow-hidden main-content-border">
-        <div className="relative px-4 md:px-6 lg:px-8 py-4">
-          <Header />
+    <div className="flex h-screen w-full overflow-hidden bg-background">
+      {/* 移动端遮罩 */}
+      <AnimatePresence>
+        {isMobile && isSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* 侧边栏 */}
+      <motion.aside
+        initial={false}
+        animate={{
+          width: isSidebarOpen ? (isMobile ? "80%" : "260px") : "0px",
+          x: isSidebarOpen ? 0 : isMobile ? -300 : 0,
+        }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r bg-sidebar shadow-xl md:relative md:shadow-none",
+          !isSidebarOpen && !isMobile && "border-none"
+        )}
+      >
+        <div className="flex h-full flex-col overflow-hidden">
+          <div className="flex h-14 items-center justify-between border-b px-4">
+            <span className="text-lg font-bold text-primary">Novel Man</span>
+            {isMobile && (
+              <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(false)}>
+                <X className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
+          <div className="flex-1 overflow-y-auto py-4">
+            <Sidebar />
+          </div>
         </div>
-        <main
-          id="main-content"
-          className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pt-0"
-        >
-          {children}
+      </motion.aside>
+
+      {/* 主内容区域 */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <Header 
+          isSidebarOpen={isSidebarOpen} 
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+        />
+        
+        <main className="flex-1 overflow-y-auto bg-secondary/30 p-4 md:p-6">
+          <div className="mx-auto max-w-7xl">
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            >
+              {children}
+            </motion.div>
+          </div>
         </main>
       </div>
+
+      {/* 移动端边缘触发提示条 (可选) */}
+      {isMobile && !isSidebarOpen && (
+        <div className="fixed left-0 top-1/2 h-20 w-1 -translate-y-1/2 rounded-r-full bg-primary/20" />
+      )}
     </div>
   );
 }

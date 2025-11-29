@@ -316,7 +316,7 @@ export const postPromptsImport = (
   signal?: AbortSignal,
 ) => {
   const formData = new FormData();
-  formData.append("data", postPromptsImportBody);
+  formData.append("data", postPromptsImportBody as Blob);
 
   return customInstance<PostPromptsImport200>(
     {

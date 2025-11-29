@@ -1,155 +1,114 @@
-import {
-  BookOpen,
-  MoreVertical,
-  FileText,
-  Edit,
-  Trash2,
-  Download,
-} from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+"use client";
 
-import { Badge } from "@/components/ui/badge";
+import React from "react";
+import { motion } from "framer-motion";
+import { MoreVertical, Trash2, BookOpen, Calendar, Clock } from "lucide-react";
+import Link from "next/link";
+import { format } from "date-fns";
+import { zhCN } from "date-fns/locale";
+
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useDraftList } from "@/hooks/draft/useDraftService";
 import { WorkForClient } from "@/lib/services/work.service";
-import { formatDate, formatWordCount } from "@/lib/utils";
 
 interface WorkCardProps {
   work: WorkForClient;
   onDelete: () => void;
-  isDeleting?: boolean;
+  isDeleting: boolean;
 }
 
-export function WorkCard({
-  work,
-  onDelete,
-  isDeleting = false,
-}: WorkCardProps) {
-  const router = useRouter();
-  const { data: draftsResponse } = useDraftList({ workId: work.id });
-
-  const latestDraft = useMemo(() => {
-    if (!draftsResponse?.data || draftsResponse.data.length === 0) {
-      return null;
-    }
-    // Sort drafts by updatedAt in descending order to find the most recent one.
-    const sortedDrafts = [...draftsResponse.data].sort(
-      (a, b) =>
-        new Date(b.updatedAt!).getTime() - new Date(a.updatedAt!).getTime()
-    );
-    return sortedDrafts[0];
-  }, [draftsResponse]);
-
-  const handleContinueWriting = () => {
-    if (latestDraft) {
-      router.push(`/drafts/${latestDraft.id}/edit`);
-    } else {
-      router.push(`/works/${work.id}/chapters`);
-    }
-  };
-
-  const statusMap: { [key: string]: string } = {
-    serializing: "连载中",
-    completed: "已完结",
-    on_hiatus: "断更中",
-  };
-
-  const statusColorMap: {
-    [key: string]: "default" | "destructive" | "success";
-  } = {
-    serializing: "default",
-    completed: "success",
-    on_hiatus: "destructive",
-  };
-
+export function WorkCard({ work, onDelete, isDeleting }: WorkCardProps) {
   return (
-    <Card className="flex h-full flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-2 group">
-      {/* 封面占位符 */}
-      <div className="relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5">
-        <img
-          src={
-            work.coverImageUrl
-              ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${work.coverImageUrl}`
-              : `https://fakeimg.pl/400x225/14b8a6/ffffff?text=${encodeURIComponent(
-                  work.title!
-                )}&font=noto`
-          }
-          alt={work.title!}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+    <motion.div
+      layoutId={`work-card-${work.id}`}
+      className="group relative flex flex-col overflow-hidden rounded-2xl border bg-card transition-all hover:shadow-lg hover:border-primary/50"
+      whileHover={{ y: -4 }}
+    >
+      <Link href={`/works/${work.id}`} className="flex-1">
+        {/* 封面区域 */}
+        <div className="relative aspect-[3/4] w-full overflow-hidden bg-muted sm:aspect-[2/1]">
+          {work.coverImageUrl ? (
+            <motion.img
+              layoutId={`work-cover-${work.id}`}
+              src={work.coverImageUrl}
+              alt={work.title}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/5 to-primary/20">
+              <BookOpen className="h-12 w-12 text-primary/30" />
+            </div>
+          )}
+          
+          {/* 状态标签 */}
+          <div className="absolute left-3 top-3">
+            <span className="inline-flex items-center rounded-full bg-background/90 px-2.5 py-0.5 text-xs font-medium text-foreground backdrop-blur-sm shadow-sm">
+              {work.status === "ongoing" ? "连载中" : "已完结"}
+            </span>
+          </div>
+        </div>
+
+        {/* 内容区域 */}
+        <div className="flex flex-1 flex-col p-5">
+          <div className="mb-2 flex items-start justify-between">
+            <motion.h3 
+              layoutId={`work-title-${work.id}`}
+              className="line-clamp-1 text-lg font-bold text-foreground group-hover:text-primary"
+            >
+              {work.title}
+            </motion.h3>
+          </div>
+
+          <p className="mb-4 line-clamp-2 flex-1 text-sm text-muted-foreground">
+            {work.description || "暂无简介"}
+          </p>
+
+          <div className="mt-auto flex items-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <Calendar className="h-3.5 w-3.5" />
+              <span>{format(new Date(work.updatedAt || new Date()), "MM-dd", { locale: zhCN })}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Clock className="h-3.5 w-3.5" />
+              <span>{format(new Date(work.createdAt || new Date()), "yyyy", { locale: zhCN })}</span>
+            </div>
+          </div>
+        </div>
+      </Link>
+
+      {/* 操作菜单 (绝对定位，避免触发 Link) */}
+      <div className="absolute right-3 top-3 z-10">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full bg-background/50 text-foreground backdrop-blur-sm hover:bg-background/80"
+            >
+              <MoreVertical className="h-4 w-4" />
+              <span className="sr-only">更多操作</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              disabled={isDeleting}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              删除作品
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-4">
-          <Link href={`/works/${work.id}`}>
-            <h3 className="text-xl font-bold hover:text-primary transition-colors duration-200">{work.title}</h3>
-          </Link>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          最近更新：{formatDate(work.updatedAt)}
-        </p>
-      </CardHeader>
-
-      <CardContent className="flex-1 space-y-4">
-        {/* 统计数据 */}
-        <div className="flex items-center gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-              <BookOpen className="h-4 w-4 text-primary" />
-            </div>
-            <span className="font-medium">
-              {work.totalChapterCount || 0} 章
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
-              <FileText className="h-4 w-4 text-accent" />
-            </div>
-            <span className="font-medium">
-              {formatWordCount(work.totalWordCount || 0)} 字
-            </span>
-          </div>
-        </div>
-        {/* 状态标签 */}
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge
-            variant={
-              statusColorMap[work.status as keyof typeof statusColorMap] ||
-              "default"
-            }
-            className="rounded-full px-3 py-1 text-xs"
-          >
-            {statusMap[work.status!] || "未知"}
-          </Badge>
-        </div>
-      </CardContent>
-
-      <CardFooter className="pt-0">
-        <Button
-          className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
-          size="lg"
-          onClick={handleContinueWriting}
-        >
-          <Edit className="mr-2 h-4 w-4" />
-          继续写作
-        </Button>
-      </CardFooter>
-    </Card>
+    </motion.div>
   );
 }

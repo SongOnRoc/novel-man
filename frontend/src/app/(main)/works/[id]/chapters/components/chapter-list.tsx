@@ -33,7 +33,7 @@ interface ChapterListProps {
 export const ChapterList = ({ workId }: ChapterListProps): React.ReactElement => {
   const router = useRouter();
   const { data: chaptersResponse, isLoading } = useChapterList({
-    work_id: workId,
+    workId: workId,
   });
   const deleteChapterMutation = useDeleteChapter();
 

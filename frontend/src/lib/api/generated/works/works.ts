@@ -295,7 +295,7 @@ export const postWorksImport = (
   signal?: AbortSignal,
 ) => {
   const formData = new FormData();
-  formData.append("data", postWorksImportBody);
+  formData.append("data", postWorksImportBody as Blob);
 
   return customInstance<PostWorksImport200>(
     {

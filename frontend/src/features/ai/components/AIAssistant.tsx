@@ -65,15 +65,13 @@ export function AIAssistant({
     createCharacterMutation.isPending;
 
   const getResponseContent = () => {
-    if (polishMutation.data) return polishMutation.data.polished_text;
+    if (polishMutation.data) return polishMutation.data.generated_text;
     if (getCompletionMutation.data)
-      return getCompletionMutation.data.completion;
+      return getCompletionMutation.data.generated_text;
     if (generateOutlineMutation.data)
-      return generateOutlineMutation.data.outline;
+      return generateOutlineMutation.data.generated_text;
     if (createCharacterMutation.data) {
-      const { name, background_story, personality_desc } =
-        createCharacterMutation.data;
-      return `### ${name}\n\n**背景:**\n${background_story}\n\n**性格:**\n${personality_desc}`;
+      return createCharacterMutation.data.generated_text;
     }
     return undefined;
   };
@@ -87,7 +85,6 @@ export function AIAssistant({
   ) => {
     const context: AIContext = {
       work_id: workId,
-      character_ids: isPersonalized ? characterIds : undefined,
       style_preference: style !== "default" ? style : undefined,
     };
 
@@ -104,7 +101,7 @@ export function AIAssistant({
         generateOutlineMutation.mutate({ text: prompt, context });
         break;
       case "create-character":
-        createCharacterMutation.mutate({ description: prompt, context });
+        createCharacterMutation.mutate({ text: prompt, context });
         break;
       default:
         // 默认行为可以是润色或根据 prompt 自定义

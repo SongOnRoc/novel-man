@@ -4,129 +4,104 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-background: var(--bg-primary);
+  /* 映射 Design System 变量到 Tailwind */
+  --color-background: var(--bg-page);
   --color-foreground: var(--text-primary);
-  --font-sans:
-    var(--font-inter), var(--font-noto-sans-sc), system-ui, sans-serif;
-  --font-mono: var(--font-inter), var(--font-noto-sans-sc), monospace;
-  --color-sidebar-ring: var(--primary-500);
-  --color-sidebar-border: var(--border-light);
-  --color-sidebar-accent-foreground: var(--text-primary);
-  --color-sidebar-accent: var(--bg-tertiary);
-  --color-sidebar-primary-foreground: var(--text-inverse);
-  --color-sidebar-primary: var(--primary-500);
-  --color-sidebar-foreground: var(--text-secondary);
-  --color-sidebar: var(--glass-bg);
-  --color-chart-5: var(--accent-500);
-  --color-chart-4: var(--primary-400);
-  --color-chart-3: var(--accent-400);
-  --color-chart-2: var(--primary-300);
-  --color-chart-1: var(--accent-300);
-  --color-ring: var(--primary-500);
-  --color-input: var(--bg-secondary);
-  --color-border: var(--border-medium);
-  --color-destructive: #ef4444;
-  --color-accent-foreground: var(--text-primary);
-  --color-accent: var(--bg-tertiary);
-  --color-muted-foreground: var(--text-tertiary);
-  --color-muted: var(--bg-tertiary);
-  --color-secondary-foreground: var(--text-secondary);
-  --color-secondary: var(--bg-tertiary);
-  --color-primary-foreground: var(--text-inverse);
+
   --color-primary: var(--primary-500);
-  --color-popover-foreground: var(--text-primary);
-  --color-popover: var(--bg-secondary);
+  --color-primary-foreground: var(--text-inverse);
+
+  --color-secondary: var(--neutral-100);
+  --color-secondary-foreground: var(--text-secondary);
+
+  --color-muted: var(--neutral-100);
+  --color-muted-foreground: var(--text-tertiary);
+
+  --color-accent: var(--accent-500);
+  --color-accent-foreground: var(--text-inverse);
+
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+
+  --color-border: var(--border-default);
+  --color-input: var(--neutral-100);
+  --color-ring: var(--primary-500);
+
+  --color-card: var(--bg-card);
   --color-card-foreground: var(--text-primary);
-  --color-card: var(--bg-secondary);
+
+  --color-popover: var(--bg-card);
+  --color-popover-foreground: var(--text-primary);
+
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
   --radius-xl: var(--radius-xl);
+
+  /* Sidebar 特定变量 */
+  --color-sidebar: var(--bg-sidebar);
+  --color-sidebar-foreground: var(--text-secondary);
+  --color-sidebar-primary: var(--primary-500);
+  --color-sidebar-primary-foreground: var(--text-inverse);
+  --color-sidebar-accent: var(--primary-50);
+  --color-sidebar-accent-foreground: var(--primary-700);
+  --color-sidebar-border: var(--border-subtle);
+  --color-sidebar-ring: var(--primary-500);
 }
 
 :root {
-  /* 覆盖原有的颜色变量，使用新的UI系统 */
-  --background: var(--bg-primary);
+  /* Shadcn UI 兼容性变量映射 */
+  --background: var(--bg-page);
   --foreground: var(--text-primary);
-  --card: var(--bg-secondary);
+
+  --card: var(--bg-card);
   --card-foreground: var(--text-primary);
-  --popover: var(--bg-secondary);
+
+  --popover: var(--bg-card);
   --popover-foreground: var(--text-primary);
+
   --primary: var(--primary-500);
   --primary-foreground: var(--text-inverse);
-  --secondary: var(--bg-tertiary);
+
+  --secondary: var(--neutral-100);
   --secondary-foreground: var(--text-secondary);
-  --muted: var(--bg-tertiary);
+
+  --muted: var(--neutral-100);
   --muted-foreground: var(--text-tertiary);
-  --accent: var(--bg-tertiary);
+
+  --accent: var(--neutral-100);
   --accent-foreground: var(--text-primary);
-  --destructive: #ef4444;
-  --border: var(--border-medium);
-  --input: var(--bg-secondary);
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: var(--border-default);
+  --input: var(--border-default);
   --ring: var(--primary-500);
-  --chart-1: var(--accent-300);
-  --chart-2: var(--primary-300);
-  --chart-3: var(--accent-400);
-  --chart-4: var(--primary-400);
-  --chart-5: var(--accent-500);
-  --sidebar: var(--glass-bg);
-  --sidebar-foreground: var(--text-secondary);
-  --sidebar-primary: var(--primary-500);
-  --sidebar-primary-foreground: var(--text-inverse);
-  --sidebar-accent: var(--bg-tertiary);
-  --sidebar-accent-foreground: var(--text-primary);
-  --sidebar-border: var(--border-light);
-  --sidebar-ring: var(--primary-500);
-  
-  /* 兼容性变量 */
-  --accent-color-light: var(--primary-500);
-  --accent-color-dark: var(--primary-400);
+
+  --radius: var(--radius-md);
 }
 
 .dark {
-  /* 暗色模式下的变量覆盖 */
-  --background: var(--bg-primary);
-  --foreground: var(--text-primary);
-  --card: var(--bg-secondary);
-  --card-foreground: var(--text-primary);
-  --popover: var(--bg-secondary);
-  --popover-foreground: var(--text-primary);
-  --primary: var(--primary-500);
-  --primary-foreground: var(--text-inverse);
-  --secondary: var(--bg-tertiary);
-  --secondary-foreground: var(--text-secondary);
-  --muted: var(--bg-tertiary);
-  --muted-foreground: var(--text-tertiary);
-  --accent: var(--bg-tertiary);
-  --accent-foreground: var(--text-primary);
-  --destructive: #f87171;
-  --border: var(--border-medium);
-  --input: var(--bg-secondary);
-  --ring: var(--primary-500);
-  --chart-1: var(--accent-600);
-  --chart-2: var(--primary-600);
-  --chart-3: var(--accent-700);
-  --chart-4: var(--primary-700);
-  --chart-5: var(--accent-800);
-  --sidebar: var(--glass-bg);
-  --sidebar-foreground: var(--text-secondary);
-  --sidebar-primary: var(--primary-500);
-  --sidebar-primary-foreground: var(--text-inverse);
-  --sidebar-accent: var(--bg-tertiary);
-  --sidebar-accent-foreground: var(--text-primary);
-  --sidebar-border: var(--border-light);
-  --sidebar-ring: var(--primary-500);
+  --secondary: var(--neutral-800);
+  --muted: var(--neutral-800);
+  --accent: var(--neutral-800);
+  --input: var(--neutral-800);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    /* 启用平滑滚动 */
+    scroll-behavior: smooth;
   }
 }
 
+/* 隐藏滚动条但保留功能 */
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -136,69 +111,25 @@
   scrollbar-width: none;
 }
 
-button {
-  cursor: pointer;
+/* 全局过渡效果 */
+.transition-all-smooth {
+  transition-property: all;
+  transition-timing-function: var(--ease-out);
+  transition-duration: var(--duration-normal);
 }
 
-@keyframes slide {
-  0% {
-    left: -33%;
-  }
-  50% {
-    left: 100%;
-  }
-  100% {
-    left: -33%;
-  }
+/* 玻璃拟态工具类 */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
 }
 
-/* Toast 图标着色样式 */
-[data-sonner-toast] [data-icon] {
-  margin-inline-end: 8px;
-}
-
-/* 成功类型 - 绿色图标 */
-[data-sonner-toast][data-type="success"] [data-icon] {
-  color: #10b981;
-}
-
-/* 错误类型 - 红色图标 */
-[data-sonner-toast][data-type="error"] [data-icon] {
-  color: #ef4444;
-}
-
-/* 警告类型 - 黄色图标 */
-[data-sonner-toast][data-type="warning"] [data-icon] {
-  color: #f59e0b;
-}
-
-/* 信息类型 - 蓝色图标 */
-[data-sonner-toast][data-type="info"] [data-icon] {
-  color: #3b82f6;
-}
-
-/* 加载类型 - 灰色图标 */
-[data-sonner-toast][data-type="loading"] [data-icon] {
-  color: #6b7280;
-}
-
-/* 深色模式下的图标颜色调整 */
-.dark [data-sonner-toast][data-type="success"] [data-icon] {
-  color: #34d399;
-}
-
-.dark [data-sonner-toast][data-type="error"] [data-icon] {
-  color: #f87171;
-}
-
-.dark [data-sonner-toast][data-type="warning"] [data-icon] {
-  color: #fbbf24;
-}
-
-.dark [data-sonner-toast][data-type="info"] [data-icon] {
-  color: #60a5fa;
-}
-
-.dark [data-sonner-toast][data-type="loading"] [data-icon] {
-  color: #9ca3af;
+/* 文本渐变 */
+.text-gradient {
+  background: linear-gradient(135deg, var(--primary-500), var(--primary-400));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
