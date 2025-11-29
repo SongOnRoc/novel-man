@@ -1,35 +1,48 @@
 "use client";
 
-import React from "react";
-import { AIAssistant } from "@/features/ai/components/AIAssistant";
+import React, { useState, useEffect } from "react";
+import { AIChatInterface } from "@/features/ai/components/chat/AIChatInterface";
+import { GlobalLoading } from "@/components/common/GlobalLoading";
 
 /**
  * AI写作助手页面
  * 提供完整的AI写作辅助功能
  */
 export default function AIAssistantPage(): React.ReactElement {
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Simulate initial loading for consistency
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <GlobalLoading />;
+  }
+
   return (
-    <div className="container max-w-5xl py-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">AI写作助手</h1>
-        <p className="text-muted-foreground">
-          描述您的写作需求，AI将为您提供创意、角色设计、情节构思或文本优化建议。
-        </p>
+    <div className="h-[calc(100vh-64px)] -m-8 flex flex-col bg-gradient-to-br from-background via-background to-primary/5">
+      {/* Header */}
+      <div className="px-8 py-6 z-10">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+            AI 写作助手
+          </h1>
+          <p className="text-muted-foreground mt-2 text-lg">
+            激发创作灵感，优化文字表达，您的智能创作伙伴。
+          </p>
+        </div>
       </div>
-
-      {/* 完整的AI助手组件 */}
-      <AIAssistant />
-
-      {/* 使用说明 */}
-      <div className="bg-muted p-4 rounded-lg mt-8">
-        <h3 className="font-medium mb-2">使用提示</h3>
-        <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
-          <li>选择特定的辅助类型可以获得更精准的回复</li>
-          <li>详细描述您的需求，包括背景、风格和特定要求</li>
-          <li>生成的内容仅供参考，请根据您的创作风格进行调整</li>
-          <li>您可以将满意的内容保存到草稿箱，方便后续编辑</li>
-          <li>在编辑器中，您也可以通过右下角的悬浮按钮随时使用AI助手</li>
-        </ul>
+      
+      {/* Main Content */}
+      <div className="flex-1 overflow-hidden px-8 pb-8">
+        <div className="max-w-4xl mx-auto h-full bg-background/60 backdrop-blur-xl rounded-2xl border shadow-sm overflow-hidden ring-1 ring-border/50">
+          <AIChatInterface 
+            className="h-full bg-transparent" 
+            hideBorder 
+          />
+        </div>
       </div>
     </div>
   );

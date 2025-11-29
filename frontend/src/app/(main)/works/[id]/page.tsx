@@ -12,6 +12,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteWorkDialog } from "@/features/works/components/DeleteWorkDialog";
 import { useWorkById, useDeleteWork } from "@/hooks/work/useWorkService";
 import { cn } from "@/lib/utils";
+import { Image } from "@/components/ui/image";
+import { GlobalLoading } from "@/components/common/GlobalLoading";
 
 export default function WorkDetailsPage() {
   const params = useParams();
@@ -38,7 +40,7 @@ export default function WorkDetailsPage() {
   };
 
   if (isLoading) {
-    return <WorkDetailSkeleton />;
+    return <GlobalLoading />;
   }
 
   if (!work) {
@@ -73,17 +75,13 @@ export default function WorkDetailsPage() {
             transition={{ duration: 0.5 }}
             className="relative h-48 w-36 flex-shrink-0 overflow-hidden rounded-lg shadow-2xl md:h-64 md:w-48"
           >
-             {work.coverImageUrl ? (
-                <img
-                  src={work.coverImageUrl}
-                  alt={work.title}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-primary/10 text-primary">
-                  <BookOpen className="h-12 w-12" />
-                </div>
-              )}
+             <Image
+                src={work.coverImageUrl || ""}
+                alt={work.title || "Work Cover"}
+                fallbackText={work.title || "Work"}
+                className="h-full w-full object-cover"
+                priority
+              />
           </motion.div>
 
           {/* Info */}

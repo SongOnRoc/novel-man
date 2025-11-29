@@ -10,7 +10,7 @@ import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { PageHeader } from "@/components/common/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import { GlobalLoading } from "@/components/common/GlobalLoading";
 import { CharacterCard } from "@/features/characters/components/CharacterCard";
 import { useCharacters, useDeleteCharacter } from "@/hooks/character/useCharacters";
 import { useWorkById } from "@/hooks/work/useWorkService";
@@ -63,7 +63,7 @@ export default function CharactersPage(): React.ReactElement {
   };
 
   if (isLoadingWork) {
-    return <CharactersSkeleton />;
+    return <GlobalLoading />;
   }
 
   return (
@@ -98,11 +98,7 @@ export default function CharactersPage(): React.ReactElement {
       </div>
 
       {isLoadingCharacters ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-[3/4] w-full rounded-xl" />
-          ))}
-        </div>
+        <GlobalLoading fullScreen={false} />
       ) : filteredCharacters.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredCharacters.map((character: Character, index: number) => (
@@ -114,6 +110,7 @@ export default function CharactersPage(): React.ReactElement {
             >
               <CharacterCard
                 character={character}
+                workId={workId}
                 onDelete={() => setCharacterToDelete(character)}
                 onSelect={() => {}} // Optional: for selection mode
               />
@@ -152,22 +149,4 @@ export default function CharactersPage(): React.ReactElement {
   );
 }
 
-function CharactersSkeleton() {
-  return (
-    <div className="space-y-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <Skeleton className="h-9 w-64 mb-2" />
-          <Skeleton className="h-5 w-96" />
-        </div>
-        <Skeleton className="h-10 w-32" />
-      </div>
-      <Skeleton className="h-10 w-full max-w-md" />
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} className="aspect-[3/4] w-full rounded-xl" />
-        ))}
-      </div>
-    </div>
-  );
-}
+

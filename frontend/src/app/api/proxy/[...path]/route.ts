@@ -2,7 +2,7 @@ import axios, { AxiosError } from "axios";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 
 const API_BASE_URL =
   process.env.BACKEND_API_URL || "http://localhost:8080/api/v1";
@@ -277,7 +277,7 @@ async function handler(req: NextRequest) {
       headers: headers,
       responseType: "json",
     };
-    
+
     // Handle FormData properly
     if (body instanceof FormData) {
       // For FormData, we need to let axios handle the Content-Type

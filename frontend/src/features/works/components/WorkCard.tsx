@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 
 import { Button } from "@/components/ui/button";
+import { Image } from "@/components/ui/image";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,18 +33,12 @@ export function WorkCard({ work, onDelete, isDeleting }: WorkCardProps) {
       <Link href={`/works/${work.id}`} className="flex-1">
         {/* 封面区域 */}
         <div className="relative aspect-[3/4] w-full overflow-hidden bg-muted sm:aspect-[2/1]">
-          {work.coverImageUrl ? (
-            <motion.img
-              layoutId={`work-cover-${work.id}`}
-              src={work.coverImageUrl}
-              alt={work.title}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/5 to-primary/20">
-              <BookOpen className="h-12 w-12 text-primary/30" />
-            </div>
-          )}
+          <Image
+            src={work.coverImageUrl || ""}
+            alt={work.title || "Work Cover"}
+            fallbackText={work.title || "Work"}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
           
           {/* 状态标签 */}
           <div className="absolute left-3 top-3">

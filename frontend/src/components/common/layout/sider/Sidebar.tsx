@@ -15,40 +15,23 @@ import {
   Sparkles,
   Bot,
   Feather,
-  PenTool
+  PenTool,
+  Bell,
+  Sun,
+  Moon,
+  User
 } from "lucide-react";
+
+import { ThemeToggle } from "../ThemeToggle";
+import { UserNav } from "../UserNav";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { sidebarNavConfig, dashboardLink, settingsLink, NavLink } from "@/lib/config/nav";
+import { sidebarNavConfig, dashboardLink, settingsLink, NavLink, getWorkNavConfig } from "@/lib/config/nav";
 
-// === Work Context Navigation ===
-const getWorkNavLinks = (workId: string): { title: string; items: NavLink[] }[] => [
-  {
-    title: "创作核心",
-    items: [
-      { title: "章节管理", href: `/works/${workId}`, icon: BookOpen },
-      { title: "大纲规划", href: `/works/${workId}/outline`, icon: FileText },
-    ],
-  },
-  {
-    title: "世界观构建",
-    items: [
-      { title: "角色管理", href: `/works/${workId}/characters`, icon: Users },
-      { title: "世界设定", href: `/works/${workId}/world`, icon: Globe },
-    ],
-  },
-  {
-    title: "设置",
-    items: [
-      { title: "作品设置", href: `/works/${workId}/settings`, icon: Settings },
-    ],
-  },
-];
-
-export function Sidebar() {
+export function Sidebar({ showExtraFooter = false }: { showExtraFooter?: boolean }) {
   const pathname = usePathname();
   const params = useParams();
   const workId = params.id as string;
@@ -58,6 +41,10 @@ export function Sidebar() {
   const isWorkContext = useMemo(() => {
     return !!workId && pathname.startsWith(`/works/${workId}`);
   }, [pathname, workId]);
+
+  const workNavConfig = useMemo(() => {
+    return workId ? getWorkNavConfig(workId) : [];
+  }, [workId]);
 
   return (
     <div className="flex h-full flex-col gap-4 py-4">
@@ -83,13 +70,13 @@ export function Sidebar() {
           {isWorkContext ? (
             // === 作品上下文导航 ===
             <div className="space-y-6">
-              {getWorkNavLinks(workId).map((group, index) => (
+              {workNavConfig.map((group, index) => (
                 <div key={index} className="space-y-2">
                   <h4 className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
                     {group.title}
                   </h4>
                   <div className="space-y-1">
-                    {group.items.map((item) => (
+                    {group.links.map((item) => (
                       <SidebarItem key={item.href} item={item} isActive={pathname === item.href} />
                     ))}
                   </div>
@@ -129,13 +116,46 @@ export function Sidebar() {
         </div>
       </ScrollArea>
 
-      {/* 底部设置 */}
-      <div className="mt-auto px-3">
-        <Separator className="mb-4" />
+      <div className="mt-auto px-3 space-y-4">
+        <Separator />
         <SidebarItem
           item={settingsLink}
           isActive={pathname === settingsLink.href}
         />
+        
+        {/* 仅在移动端编辑器模式下显示，替代被隐藏的 Header 功能 */}
+        {showExtraFooter && (
+          <div className="space-y-1 animate-in fade-in slide-in-from-bottom-4 pt-2">
+            {/* 主题切换行 */}
+            <div className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors">
+              <div className="flex items-center gap-3">
+                <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                <span>主题设置</span>
+              </div>
+              <ThemeToggle />
+            </div>
+
+            {/* 通知行 */}
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 px-3 py-2.5 h-auto font-medium text-muted-foreground hover:text-foreground"
+            >
+              <Bell className="h-4 w-4" />
+              <span>消息通知</span>
+              <span className="ml-auto flex h-2 w-2 rounded-full bg-red-500" />
+            </Button>
+
+            {/* 用户行 */}
+            <div className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors">
+              <div className="flex items-center gap-3">
+                <User className="h-4 w-4" />
+                <span>个人中心</span>
+              </div>
+              <UserNav />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

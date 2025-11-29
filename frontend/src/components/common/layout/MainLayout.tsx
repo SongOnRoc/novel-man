@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronRight } from "lucide-react";
+import { Menu, X, ChevronRight, ChevronDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,9 @@ export function MainLayout({ children }: MainLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
+
+  const isEditorPage = pathname?.includes("/edit") || pathname === "/drafts/new";
+  const isMobileEditor = isMobile && isEditorPage;
 
   // 检测移动端
   useEffect(() => {
@@ -42,20 +45,7 @@ export function MainLayout({ children }: MainLayoutProps) {
     }
   }, [pathname, isMobile]);
 
-  // 边缘触发逻辑 (Edge Trigger)
-  useEffect(() => {
-    if (!isMobile) return;
 
-    const handleTouchStart = (e: TouchEvent) => {
-      // 仅在屏幕左边缘 20px 内触发
-      if (e.touches[0].clientX < 20 && !isSidebarOpen) {
-        setIsSidebarOpen(true);
-      }
-    };
-
-    window.addEventListener("touchstart", handleTouchStart);
-    return () => window.removeEventListener("touchstart", handleTouchStart);
-  }, [isMobile, isSidebarOpen]);
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
@@ -95,25 +85,47 @@ export function MainLayout({ children }: MainLayoutProps) {
             )}
           </div>
           <div className="flex-1 overflow-y-auto py-4">
-            <Sidebar />
+            <Sidebar showExtraFooter={isMobileEditor} />
           </div>
         </div>
       </motion.aside>
 
       {/* 主内容区域 */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header 
-          isSidebarOpen={isSidebarOpen} 
-          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
-        />
+      <div className="flex flex-1 flex-col overflow-hidden relative">
+        {/* Header Area - 移动端编辑器模式下隐藏 */}
+        {!isMobileEditor && (
+          <Header 
+            isSidebarOpen={isSidebarOpen} 
+            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+          />
+        )}
+
+        {/* Mobile Editor Sidebar Toggle Handle (Right-Pull) */}
+        {isMobileEditor && !isSidebarOpen && (
+          <div 
+            className="fixed left-0 top-1/2 -translate-y-1/2 z-40 flex items-center"
+            onClick={() => setIsSidebarOpen(true)}
+          >
+            <div className="bg-primary/10 backdrop-blur-sm hover:bg-primary/20 text-primary rounded-r-lg py-3 px-0.5 shadow-sm cursor-pointer transition-all opacity-30 hover:opacity-100">
+              <ChevronRight className="h-4 w-4" />
+            </div>
+          </div>
+        )}
         
-        <main className="flex-1 overflow-y-auto bg-secondary/30 p-4 md:p-6">
-          <div className="mx-auto max-w-7xl">
+        <main className={cn(
+          "flex-1 bg-secondary/30 transition-all duration-300",
+          pathname?.includes("/edit") ? "p-0 overflow-hidden" : "p-4 md:p-6 overflow-y-auto"
+        )}>
+          <div className={cn(
+            "mx-auto transition-all duration-300",
+            pathname?.includes("/edit") ? "h-full w-full max-w-none" : "max-w-7xl"
+          )}>
             <motion.div
               key={pathname}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
+              className={pathname?.includes("/edit") ? "h-full" : ""}
             >
               {children}
             </motion.div>
@@ -121,10 +133,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         </main>
       </div>
 
-      {/* 移动端边缘触发提示条 (可选) */}
-      {isMobile && !isSidebarOpen && (
-        <div className="fixed left-0 top-1/2 h-20 w-1 -translate-y-1/2 rounded-r-full bg-primary/20" />
-      )}
+
     </div>
   );
 }

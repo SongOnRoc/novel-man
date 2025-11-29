@@ -48,10 +48,12 @@ const EditDraftPage = (): React.ReactElement => {
   const [selectedWorkId, setSelectedWorkId] = useState<string | undefined>(
     undefined
   );
+  const [isAIOpen, setIsAIOpen] = useState(true);
+  const [selectedText, setSelectedText] = useState("");
 
   const draftId = parseInt(params.id as string, 10);
   const { data: draft, isLoading, error } = useDraftById(draftId);
-  const { mutate: updateDraft, isPending: isSaving } = useUpdateDraft();
+  const { mutate: updateDraft, mutateAsync: updateDraftAsync, isPending: isSaving } = useUpdateDraft();
   const { mutate: publishDraft, isPending: isPublishingPending } =
     usePublishDraft();
 
@@ -74,27 +76,24 @@ const EditDraftPage = (): React.ReactElement => {
     }
   }, [error]);
 
-  const handleSave = (data: {
+  const handleSave = async (data: {
     title: string;
     content: string;
     wordCount: number;
-  }): void => {
+  }): Promise<void> => {
     const payload: UpdateDraftPayloadForClient = {
       title: data.title,
       content: data.content,
       wordCount: data.wordCount,
     };
-    updateDraft(
-      { id: draftId, data: payload },
-      {
-        onSuccess: () => {
-          toast.success("草稿自动保存成功");
-        },
-        onError: (error: Error) => {
-          toast.error(`自动保存失败: ${error.message}`);
-        },
-      }
-    );
+    
+    try {
+      await updateDraftAsync({ id: draftId, data: payload });
+      // toast.success("草稿自动保存成功");
+    } catch (error: any) {
+      // toast.error(`自动保存失败: ${error.message}`);
+      throw error; // Re-throw to let TiptapEditor know it failed
+    }
   };
 
   const handleConfirmPublish = () => {
@@ -150,53 +149,35 @@ const EditDraftPage = (): React.ReactElement => {
 
   return (
     <>
-      <div className="space-y-6">
-        <PageHeader
-          title="编辑草稿"
-          description="编辑草稿内容，内容将自动保存。"
-        />
-
-        {draft ? (
-          <TiptapEditor
-            initialContent={{
-              title: draft.title!,
-              content: draft.content!,
-            }}
-            onSave={handleSave}
-            placeholder="开始你的创作..."
-            autoFocus
-            contentId={draft.id!.toString()}
-            workId={draft.workId?.toString()}
-            containerId={`editor-${draft.id}`}
-            targetCount={2000}
-            onTargetCountChange={() => {}}
-            isSaving={isSaving}
-          />
-        ) : (
-          !isLoading && (
-            <div className="text-center text-muted-foreground">
+      <div className="h-full overflow-hidden bg-background flex flex-col">
+        
+        <div className="flex-1 overflow-hidden relative">
+          {draft ? (
+            <TiptapEditor
+              initialContent={{
+                title: draft.title!,
+                content: draft.content!,
+              }}
+              onSave={handleSave}
+              placeholder="开始你的创作..."
+              autoFocus
+              contentId={draft.id!.toString()}
+              workId={draft.workId?.toString()}
+              containerId={`editor-${draft.id}`}
+              targetCount={2000}
+              onTargetCountChange={() => {}}
+              isSaving={isSaving}
+              onBack={() => router.back()}
+              onPublish={() => setIsPublishing(true)}
+            />
+          ) : (
+            <div className="text-center text-muted-foreground p-8">
               草稿未找到或加载失败。
             </div>
-          )
-        )}
-
-        <div className="flex justify-end space-x-2">
-          <Button
-            variant="outline"
-            disabled={isSaving || isPublishingPending}
-            onClick={() =>
-              toast.info("内容已自动保存，或使用编辑器工具栏中的保存按钮。")
-            }
-          >
-            存为草稿
-          </Button>
-          <Button
-            disabled={isSaving || isPublishingPending}
-            onClick={() => setIsPublishing(true)}
-          >
-            {isPublishingPending ? "发布中..." : "发布为新章节"}
-          </Button>
+          )}
         </div>
+
+
       </div>
 
       <AlertDialog open={isPublishing} onOpenChange={setIsPublishing}>

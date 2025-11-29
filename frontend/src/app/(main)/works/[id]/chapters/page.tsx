@@ -28,6 +28,7 @@ import {
 import { ImportDialog } from "@/components/common/ImportDialog";
 import { ChapterForClient } from "@/lib/services/chapter.service";
 import { useWorkById } from "@/hooks/work/useWorkService";
+import { GlobalLoading } from "@/components/common/GlobalLoading";
 
 export default function ChaptersPage(): React.ReactElement {
   const router = useRouter();
@@ -93,10 +94,6 @@ export default function ChaptersPage(): React.ReactElement {
     setIsImportDialogOpen(false);
   };
 
-  if (isLoadingWork || isNaN(workId)) {
-    return <ChaptersSkeleton />;
-  }
-
   return (
     <div className="min-h-screen space-y-8 pb-20 animate-in fade-in duration-500">
       <PageHeader
@@ -120,11 +117,7 @@ export default function ChaptersPage(): React.ReactElement {
       />
 
       {isLoadingChapters ? (
-        <div className="space-y-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-20 w-full rounded-lg" />
-          ))}
-        </div>
+        <GlobalLoading fullScreen={false} />
       ) : chapters.length > 0 ? (
         <div className="space-y-6">
           <TOCChapterList 
@@ -203,28 +196,6 @@ export default function ChaptersPage(): React.ReactElement {
           itemType="章节"
         />
       )}
-    </div>
-  );
-}
-
-function ChaptersSkeleton() {
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <Skeleton className="h-9 w-64 mb-2" />
-          <Skeleton className="h-5 w-96" />
-        </div>
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-10 w-24" />
-          <Skeleton className="h-10 w-24" />
-        </div>
-      </div>
-      <div className="space-y-4">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-20 w-full rounded-lg" />
-        ))}
-      </div>
     </div>
   );
 }

@@ -13,7 +13,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Skeleton } from "@/components/ui/skeleton";
+import { GlobalLoading } from "@/components/common/GlobalLoading";
 import { Button } from "@/components/ui/button";
 import { DeleteWorkDialog } from "@/features/works/components/DeleteWorkDialog";
 import { NewWorkButton } from "@/features/works/components/NewWorkButton";
@@ -104,11 +104,7 @@ export default function WorksPage(): React.ReactElement {
       {/* Works Grid */}
       <div className="px-2">
         {isLoading ? (
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} className="aspect-[3/4] w-full rounded-2xl" />
-            ))}
-          </div>
+          <GlobalLoading fullScreen={false} />
         ) : (
           <>
             {works.length > 0 ? (

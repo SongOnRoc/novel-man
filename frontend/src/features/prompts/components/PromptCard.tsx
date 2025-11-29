@@ -38,7 +38,9 @@ function PromptCard({ prompt }: { prompt: PromptForClient }) {
         <div className="flex items-center text-xs text-muted-foreground mb-3">
           <Avatar className="h-6 w-6 mr-2">
             <AvatarImage src={prompt.authorAvatar} alt={prompt.author} />
-            <AvatarFallback>{prompt.author?.charAt(0)}</AvatarFallback>
+            <AvatarFallback className="bg-primary/10 text-xs font-bold text-primary">
+              {prompt.author?.charAt(0)}
+            </AvatarFallback>
           </Avatar>
           <span className="font-medium text-gray-700 flex items-center">
             {prompt.author}

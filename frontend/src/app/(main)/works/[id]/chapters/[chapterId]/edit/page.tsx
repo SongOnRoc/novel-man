@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
-import { Skeleton } from "@/components/ui/skeleton";
+import { GlobalLoading } from "@/components/common/GlobalLoading";
 import { TiptapEditor } from "@/features/editor/components/TiptapEditor";
 import {
   useChapterById,
@@ -18,8 +18,8 @@ import { useWorkById } from "@/hooks/work/useWorkService";
 
 const EditChapterPage = (): React.ReactElement => {
   const params = useParams();
+  const router = useRouter();
   const { setBreadcrumb } = useBreadcrumb();
-  const [targetCount, setTargetCount] = useState(2000);
 
   const workId = parseInt(params.id as string, 10);
   const chapterId = parseInt(params.chapterId as string, 10);
@@ -57,7 +57,7 @@ const EditChapterPage = (): React.ReactElement => {
       { id: chapterId, data: payload },
       {
         onSuccess: () => {
-          toast.success("章节保存成功");
+          // toast.success("章节保存成功");
         },
         onError: (error) => {
           toast.error(`章节保存失败: ${error.message}`);
@@ -67,16 +67,7 @@ const EditChapterPage = (): React.ReactElement => {
   };
 
   if (isLoading) {
-    return (
-      <div className="h-screen w-full flex items-center justify-center">
-        <div className="space-y-4 w-full max-w-3xl px-6">
-          <Skeleton className="h-12 w-3/4" />
-          <Skeleton className="h-6 w-full" />
-          <Skeleton className="h-6 w-full" />
-          <Skeleton className="h-6 w-5/6" />
-        </div>
-      </div>
-    );
+    return <GlobalLoading />;
   }
 
   if (!chapter) {
@@ -91,26 +82,22 @@ const EditChapterPage = (): React.ReactElement => {
   }
 
   return (
-    <div className="h-[calc(100vh-64px)] -m-8"> 
-      {/* -m-8 to counteract the default padding of the main layout if present, 
-          but ideally we should control this via layout. 
-          Assuming MainLayout adds padding, we might want to portal or use a different layout.
-          For now, we'll try to fill the available space.
-      */}
+    <div className="h-full overflow-hidden bg-background">
       <TiptapEditor
         initialContent={{
           title: chapter.title!,
           content: chapter.content!,
         }}
         onSave={handleSave}
-        placeholder="开始你的章节创作..."
+        placeholder="开始你的创作..."
         autoFocus
         contentId={chapter.id!.toString()}
-        workId={chapter.workId!.toString()}
+        workId={workId.toString()}
         containerId={`editor-${chapter.id}`}
-        targetCount={targetCount}
-        onTargetCountChange={setTargetCount}
+        targetCount={2000}
+        onTargetCountChange={() => {}}
         isSaving={isSaving}
+        onBack={() => router.back()}
       />
     </div>
   );

@@ -17,22 +17,22 @@ export function EditorLayout({ children, sidebar }: EditorLayoutProps) {
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] w-full overflow-hidden">
+    <div className="flex h-full w-full overflow-hidden bg-background">
       {/* 主编辑器区域 */}
-      <div className="flex-1 overflow-hidden relative">
-        <div className="h-full w-full overflow-y-auto p-4 md:p-8">
-          <div className="mx-auto max-w-3xl h-full">
+      <div className="flex-1 overflow-hidden relative flex flex-col">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth">
+          <div className="mx-auto max-w-3xl min-h-full bg-card rounded-xl shadow-sm border p-8 md:p-12">
             {children}
           </div>
         </div>
         
         {/* 桌面端：展开/折叠按钮 (悬浮) */}
-        <div className="absolute right-4 top-4 z-10 hidden md:block">
+        <div className="absolute right-6 top-6 z-10 hidden md:block">
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}
-            className="bg-background/80 backdrop-blur shadow-sm hover:bg-background"
+            className="bg-background/50 backdrop-blur-md shadow-sm hover:bg-primary/10 hover:text-primary transition-all duration-300 border"
             title={isRightPanelOpen ? "收起 AI 助手" : "展开 AI 助手"}
           >
             {isRightPanelOpen ? (
@@ -48,23 +48,21 @@ export function EditorLayout({ children, sidebar }: EditorLayoutProps) {
       <motion.div
         initial={false}
         animate={{
-          width: isRightPanelOpen ? "320px" : "0px",
+          width: isRightPanelOpen ? "360px" : "0px",
           opacity: isRightPanelOpen ? 1 : 0,
         }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="hidden border-l bg-background md:flex md:flex-col overflow-hidden"
+        className="hidden border-l border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:flex md:flex-col overflow-hidden shadow-2xl z-20"
       >
-        <div className="flex h-12 items-center justify-between border-b px-4 bg-muted/30">
-          <div className="flex items-center gap-2 text-sm font-medium text-primary">
+        <div className="flex h-14 shrink-0 items-center justify-between border-b px-4 bg-muted/30 backdrop-blur-sm">
+          <div className="flex items-center gap-2 text-sm font-semibold text-primary">
             <Sparkles className="h-4 w-4" />
-            <span>AI 助手</span>
+            <span>AI 写作助手</span>
           </div>
         </div>
-        <ScrollArea className="flex-1">
-          <div className="p-4">
-            {sidebar}
-          </div>
-        </ScrollArea>
+        <div className="flex-1 overflow-hidden bg-gradient-to-b from-background to-muted/20">
+          {sidebar}
+        </div>
       </motion.div>
 
       {/* 移动端：底部抽屉 */}

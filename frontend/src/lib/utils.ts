@@ -78,3 +78,13 @@ export function formatWordCount(count: number): string {
     return `${(count / 10000).toFixed(2)}万`;
   }
 }
+
+/**
+ * Strips HTML tags from a string.
+ * @param html - The HTML string to strip.
+ * @returns The plain text string.
+ */
+export function stripHtml(html: string): string {
+  if (!html) return "";
+  return html.replace(/<[^>]*>/g, "");
+}

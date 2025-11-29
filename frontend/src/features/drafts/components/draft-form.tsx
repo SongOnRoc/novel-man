@@ -99,14 +99,8 @@ export const DraftForm = ({ workId, draft }: DraftFormProps) => {
             content: editorData.content,
           }}
           onContentUpdate={handleContentUpdate}
-          placeholder="Start writing your draft..."
         />
-        <Button
-          type="submit"
-          disabled={
-            createDraftMutation.isPending || updateDraftMutation.isPending
-          }
-        >
+        <Button type="submit">
           {draft ? "Update Draft" : "Create Draft"}
         </Button>
       </form>

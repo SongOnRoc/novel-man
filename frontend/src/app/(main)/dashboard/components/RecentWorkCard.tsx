@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { WorkForClient } from "@/lib/services/work.service";
 import { cn } from "@/lib/utils";
+import { Image } from "@/components/ui/image";
 
 interface RecentWorkCardProps {
   work: WorkForClient;
@@ -30,17 +31,12 @@ export function RecentWorkCard({ work, index }: RecentWorkCardProps) {
     >
       {/* 封面/图标 */}
       <div className="relative h-16 w-12 flex-shrink-0 overflow-hidden rounded-md bg-muted shadow-sm">
-        {work.coverImageUrl ? (
-          <img
-            src={work.coverImageUrl}
-            alt={work.title}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-primary/5 text-primary/40">
-            <BookOpen className="h-6 w-6" />
-          </div>
-        )}
+        <Image
+          src={work.coverImageUrl || ""}
+          alt={work.title || "Work Cover"}
+          fallbackText={work.title || "Work"}
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+        />
       </div>
 
       {/* 信息 */}

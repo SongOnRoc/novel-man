@@ -1,10 +1,11 @@
 "use client";
 
-import { FilePlus, LayoutGrid, List } from "lucide-react";
+import { FilePlus, LayoutGrid, List, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState, useMemo } from "react";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 import { DeleteItemDialog } from "@/components/common/DeleteItemDialog";
 import { Button } from "@/components/ui/button";
@@ -23,8 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GlobalLoading } from "@/components/common/GlobalLoading";
 import {
   ToggleGroup,
   ToggleGroupItem,
@@ -40,7 +40,6 @@ import { useWorkList } from "@/hooks/work/useWorkService";
 import { DraftForClient } from "@/lib/services/draft.service";
 import { Work, WorksList } from "@/lib/services/work.service";
 
-type DraftType = "all" | "chapter" | "note";
 type ViewMode = "list" | "grid";
 
 const DraftsContent = ({
@@ -84,45 +83,39 @@ const DraftsContent = ({
   }, [pagination]);
 
   if (isLoading) {
-    return (
-      <div
-        className={
-          view === "grid"
-            ? "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
-            : ""
-        }
-      >
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton
-            key={i}
-            className={view === "grid" ? "h-48 w-full" : "h-16 w-full"}
-          />
-        ))}
-      </div>
-    );
+    return <GlobalLoading fullScreen={false} />;
   }
 
   if (drafts.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center">
-        <h2 className="text-2xl font-semibold">暂无草稿</h2>
-        <p className="mb-6 mt-2 text-muted-foreground">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-primary/10 bg-primary/5 p-20 text-center"
+      >
+        <div className="mb-8 rounded-full bg-background p-6 shadow-xl shadow-primary/5 ring-1 ring-primary/10">
+          <Sparkles className="h-12 w-12 text-primary" />
+        </div>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+          {workId ? "这部作品暂无草稿" : "灵感空空如也"}
+        </h2>
+        <p className="mb-8 mt-3 max-w-md text-muted-foreground leading-relaxed">
           {workId
-            ? "这部作品还没有任何草稿，立即开始创作吧！"
-            : "您还没有任何草稿，开始新的创作吧！"}
+            ? "每一个伟大的故事都始于一个微小的想法。现在就开始记录，让灵感生根发芽。"
+            : "不要让灵感溜走。无论是只言片语还是宏大构想，这里都是它们最好的归宿。"}
         </p>
-        <Button asChild>
+        <Button asChild size="lg" className="h-12 rounded-full px-8 shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:shadow-primary/30">
           <Link href={workId ? `/drafts/new?workId=${workId}` : "/drafts/new"}>
-            <FilePlus className="mr-2 h-4 w-4" />
-            创建新草稿
+            <FilePlus className="mr-2 h-5 w-5" />
+            开始创作
           </Link>
         </Button>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {view === "list" ? (
         <DraftList
           drafts={drafts}
@@ -130,7 +123,7 @@ const DraftsContent = ({
           onPublish={onPublish}
         />
       ) : (
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {drafts.map((draft) => (
             <DraftCard
               key={draft.id}
@@ -144,33 +137,36 @@ const DraftsContent = ({
           ))}
         </div>
       )}
+      
       {totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            {page > 1 && (
-              <PaginationItem>
-                <PaginationPrevious onClick={() => onPageChange(page - 1)} />
-              </PaginationItem>
-            )}
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-              (pageNumber) => (
-                <PaginationItem key={pageNumber}>
-                  <PaginationLink
-                    onClick={() => onPageChange(pageNumber)}
-                    isActive={page === pageNumber}
-                  >
-                    {pageNumber}
-                  </PaginationLink>
+        <div className="flex justify-center pt-8">
+          <Pagination>
+            <PaginationContent>
+              {page > 1 && (
+                <PaginationItem>
+                  <PaginationPrevious onClick={() => onPageChange(page - 1)} />
                 </PaginationItem>
-              )
-            )}
-            {page < totalPages && (
-              <PaginationItem>
-                <PaginationNext onClick={() => onPageChange(page + 1)} />
-              </PaginationItem>
-            )}
-          </PaginationContent>
-        </Pagination>
+              )}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (pageNumber) => (
+                  <PaginationItem key={pageNumber}>
+                    <PaginationLink
+                      onClick={() => onPageChange(pageNumber)}
+                      isActive={page === pageNumber}
+                    >
+                      {pageNumber}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              )}
+              {page < totalPages && (
+                <PaginationItem>
+                  <PaginationNext onClick={() => onPageChange(page + 1)} />
+                </PaginationItem>
+              )}
+            </PaginationContent>
+          </Pagination>
+        </div>
       )}
     </div>
   );
@@ -245,7 +241,7 @@ export default function DraftsPage(): React.ReactElement {
 
   const renderContent = (): React.ReactElement => {
     if (isLoadingWorks) {
-      return <Skeleton className="h-[400px] w-full" />;
+      return <GlobalLoading fullScreen={false} />;
     }
     return (
       <DraftsContent
@@ -262,21 +258,24 @@ export default function DraftsPage(): React.ReactElement {
 
   return (
     <>
-      <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">草稿箱</h1>
-            <p className="text-muted-foreground">
-              管理您的草稿，将它们转化为章节，或继续您的创作。
+      <div className="min-h-screen space-y-10 pb-20 animate-in fade-in duration-500">
+        <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
+              灵感草稿箱
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl">
+              捕捉稍纵即逝的想法，将碎片化的灵感编织成动人的故事。
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          
+          <div className="flex flex-col sm:flex-row items-center gap-4 bg-background/50 p-2 rounded-2xl backdrop-blur-sm border border-border/40">
             <Select
               onValueChange={handleSelectWork}
               value={workId ?? "all"}
             >
-              <SelectTrigger className="w-auto min-w-[180px]">
-                <SelectValue placeholder="选择作品" />
+              <SelectTrigger className="w-full sm:w-[180px] border-0 bg-transparent focus:ring-0 hover:bg-muted/50 transition-colors">
+                <SelectValue placeholder="筛选作品" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">全部作品</SelectItem>
@@ -288,19 +287,24 @@ export default function DraftsPage(): React.ReactElement {
                 ))}
               </SelectContent>
             </Select>
+            
+            <div className="h-6 w-px bg-border/50 hidden sm:block" />
+            
             <ToggleGroup
               type="single"
               value={view}
               onValueChange={(value) => value && setView(value as ViewMode)}
+              className="bg-muted/30 p-1 rounded-lg"
             >
-              <ToggleGroupItem value="list" aria-label="列表视图">
+              <ToggleGroupItem value="list" aria-label="列表视图" size="sm" className="rounded-md data-[state=on]:bg-background data-[state=on]:shadow-sm transition-all">
                 <List className="h-4 w-4" />
               </ToggleGroupItem>
-              <ToggleGroupItem value="grid" aria-label="网格视图">
+              <ToggleGroupItem value="grid" aria-label="网格视图" size="sm" className="rounded-md data-[state=on]:bg-background data-[state=on]:shadow-sm transition-all">
                 <LayoutGrid className="h-4 w-4" />
               </ToggleGroupItem>
             </ToggleGroup>
-            <Button asChild>
+
+            <Button asChild className="w-full sm:w-auto rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:shadow-primary/30">
               <Link
                 href={
                   selectedWorkId
@@ -314,8 +318,12 @@ export default function DraftsPage(): React.ReactElement {
             </Button>
           </div>
         </div>
-        {renderContent()}
+        
+        <div className="min-h-[500px]">
+          {renderContent()}
+        </div>
       </div>
+      
       {draftToDelete && (
         <DeleteItemDialog
           open={!!draftToDelete}

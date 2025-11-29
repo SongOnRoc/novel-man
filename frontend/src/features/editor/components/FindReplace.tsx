@@ -16,9 +16,10 @@ import { Switch } from "@/components/ui/switch";
 
 interface FindReplaceProps {
   editor: Editor | null;
+  embedded?: boolean;
 }
 
-export function FindReplace({ editor }: FindReplaceProps) {
+export function FindReplace({ editor, embedded = false }: FindReplaceProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [replaceTerm, setReplaceTerm] = useState("");
@@ -92,22 +93,16 @@ export function FindReplace({ editor }: FindReplaceProps) {
 
   if (!editor) return null;
 
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
-          <Search className="h-4 w-4" />
-          查找
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80">
-        <div className="grid gap-4">
-          <div className="space-y-2">
-            <h4 className="font-medium leading-none">查找与替换</h4>
-            <p className="text-sm text-muted-foreground">
-              在文档中查找并替换文本。
-            </p>
-          </div>
+  const content = (
+    <div className="grid gap-4">
+          {!embedded && (
+            <div className="space-y-2">
+              <h4 className="font-medium leading-none">查找与替换</h4>
+              <p className="text-sm text-muted-foreground">
+                在文档中查找并替换文本。
+              </p>
+            </div>
+          )}
           <div className="grid gap-2">
             <div className="grid grid-cols-3 items-center gap-4">
               <Label htmlFor="find">查找</Label>
@@ -183,6 +178,22 @@ export function FindReplace({ editor }: FindReplaceProps) {
             </Button>
           </div>
         </div>
+  );
+
+  if (embedded) {
+    return content;
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-2">
+          <Search className="h-4 w-4" />
+          查找
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80">
+        {content}
       </PopoverContent>
     </Popover>
   );

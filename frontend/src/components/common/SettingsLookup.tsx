@@ -25,6 +25,7 @@ export interface LookupSource<T = any> {
   }) => { data: T[]; isLoading: boolean };
   renderItem: (props: {
     item: T;
+    workId: string;
     onSelect?: (name: string) => void;
   }) => React.ReactNode;
 }
@@ -33,6 +34,7 @@ interface SettingsLookupProps {
   workId: string;
   sources: LookupSource[];
   onSelectItem?: (name: string) => void;
+  trigger?: React.ReactNode;
 }
 
 const LookupContent = ({
@@ -69,6 +71,7 @@ const LookupContent = ({
           <source.renderItem
             key={item.id}
             item={item}
+            workId={workId}
             onSelect={onSelectItem}
           />
         ))}
@@ -81,6 +84,7 @@ export function SettingsLookup({
   workId,
   sources,
   onSelectItem,
+  trigger,
 }: SettingsLookupProps) {
   const [open, setOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
@@ -99,10 +103,12 @@ export function SettingsLookup({
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
-          <Search className="h-4 w-4" />
-          设定速查
-        </Button>
+        {trigger || (
+          <Button variant="outline" size="sm" className="gap-2">
+            <Search className="h-4 w-4" />
+            设定速查
+          </Button>
+        )}
       </SheetTrigger>
       <SheetContent className="w-[400px] sm:w-[540px] p-0">
         <SheetHeader className="px-6 pt-6 pb-2">

@@ -21,12 +21,14 @@ import { Character } from "@/lib/services/characters.service";
 
 interface CharacterCardProps {
   character: Character;
+  workId: number;
   onDelete?: () => void;
   onSelect?: (name: string) => void;
 }
 
 export function CharacterCard({
   character,
+  workId,
   onDelete,
   onSelect,
 }: CharacterCardProps) {
@@ -48,15 +50,15 @@ export function CharacterCard({
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
               <AvatarImage src={character.avatar_url || ""} alt={character.name} />
-              <AvatarFallback>
-                <User className="h-8 w-8" />
+              <AvatarFallback className="bg-primary/10 text-lg font-bold text-primary">
+                {character.name ? character.name.slice(0, 1).toUpperCase() : <User className="h-6 w-6" />}
               </AvatarFallback>
             </Avatar>
             <div>
               {onSelect ? (
                 <CardTitle>{character.name}</CardTitle>
               ) : (
-                <Link href={`/tools/characters/${character.id}`}>
+                <Link href={`/works/${workId}/characters`}>
                   <CardTitle className="hover:underline">
                     {character.name}
                   </CardTitle>
@@ -70,6 +72,7 @@ export function CharacterCard({
           {onDelete && (
             <CharacterCardMenu
               characterId={character.id!}
+              workId={workId}
               onDelete={onDelete}
             />
           )}
@@ -86,9 +89,11 @@ export function CharacterCard({
 
 function CharacterCardMenu({
   characterId,
+  workId,
   onDelete,
 }: {
   characterId: number;
+  workId: number;
   onDelete: () => void;
 }) {
   return (
@@ -101,7 +106,7 @@ function CharacterCardMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
-          <Link href={`/tools/characters/${characterId}/edit`}>
+          <Link href={`/works/${workId}/characters`}>
             <Edit className="mr-2 h-4 w-4" />
             编辑
           </Link>
