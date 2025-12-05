@@ -136,6 +136,12 @@ export const generateStreamService = (
     requestData,
     {
       onData: (chunk: any) => {
+        // console.log("AI Service Chunk:", chunk);
+        if (chunk.error) {
+          console.warn("AI Service Error Chunk:", chunk.error);
+          onError(new Error(chunk.error));
+          return; // Stop processing if there's an error
+        }
         if (chunk.content) {
           onData(chunk.content);
         }

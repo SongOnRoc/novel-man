@@ -8,9 +8,10 @@ import { AIContext } from "@/lib/services/ai.service";
 import { v4 as uuidv4 } from "uuid";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Send, Loader2, Wand2, PenTool, BookOpen } from "lucide-react";
+import { Sparkles, Send, Loader2, Wand2, PenTool, BookOpen, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { EditMessageDialog } from "./EditMessageDialog";
 
 interface AIChatInterfaceProps {
   workId?: number;
@@ -29,7 +30,23 @@ export function AIChatInterface({
   className,
   hideBorder = false,
 }: AIChatInterfaceProps) {
-  const [messages, setMessages] = useState<Message[]>([
+  const [input, setInput] = useState("");
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
+
+  const {
+    messages,
+    setMessages,
+    generate,
+    stop,
+    isLoading,
+    streamingContent,
+    error,
+    editMessage,
+    deleteMessage,
+  } = useGenerateStream([
     {
       id: "welcome",
       role: "assistant",
@@ -37,12 +54,6 @@ export function AIChatInterface({
       timestamp: Date.now(),
     },
   ]);
-  const [input, setInput] = useState("");
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  const { generate, isLoading, streamingContent, error } = useGenerateStream();
   const [currentAiMsgId, setCurrentAiMsgId] = useState<string | null>(null);
 
   // Update AI message with streaming content
@@ -77,20 +88,34 @@ export function AIChatInterface({
 
   // Handle stream error
   useEffect(() => {
-    if (error && currentAiMsgId) {
-      setMessages((prev) => {
-        return prev.map((msg) => {
-          if (msg.id === currentAiMsgId) {
-            return {
-              ...msg,
-              content: msg.content + "\n\n[生成出错，请重试]",
-              isError: true,
-            };
-          }
-          return msg;
+    if (error) {
+      // 如果已经有正在生成的消息，更新它
+      if (currentAiMsgId) {
+        setMessages((prev) => {
+          return prev.map((msg) => {
+            if (msg.id === currentAiMsgId) {
+              return {
+                ...msg,
+                content: msg.content + `\n\n${error.message || "未知错误"}`,
+                isError: true,
+              };
+            }
+            return msg;
+          });
         });
-      });
-      setCurrentAiMsgId(null);
+        setCurrentAiMsgId(null);
+      } else {
+        // 如果还没有消息（比如连接直接失败），创建一个新的错误消息
+        const errorMsgId = uuidv4();
+        const errorMsg: Message = {
+          id: errorMsgId,
+          role: "assistant",
+          content: `${error.message || "未知错误"}`,
+          timestamp: Date.now(),
+          isError: true,
+        };
+        setMessages((prev) => [...prev, errorMsg]);
+      }
     }
   }, [error, currentAiMsgId]);
 
@@ -100,6 +125,12 @@ export function AIChatInterface({
   }, [messages, isLoading, streamingContent]);
 
   const handleSend = async () => {
+    // 如果正在生成，点击按钮（此时显示为停止图标）应停止生成
+    if (isLoading) {
+      stop();
+      return;
+    }
+
     if (!input.trim()) return;
     
     const text = input.trim();
@@ -143,7 +174,10 @@ export function AIChatInterface({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      // 只有在非加载状态下才允许通过 Enter 发送
+      if (!isLoading) {
+        handleSend();
+      }
     }
   };
 
@@ -187,6 +221,10 @@ export function AIChatInterface({
                       onInsert={onApplyToEditor}
                       onCopy={(content) => navigator.clipboard.writeText(content)}
                       onOptionSelect={(option) => onApplyToEditor?.(option)}
+                      onEdit={(id, currentContent) => {
+                        setEditingMessage({ id, content: currentContent, role: 'user', timestamp: Date.now() });
+                      }}
+                      onDelete={deleteMessage}
                     />
                   </motion.div>
                 ))}
@@ -245,19 +283,37 @@ export function AIChatInterface({
             <Button
               size="icon"
               onClick={handleSend}
-              disabled={!input.trim() || isLoading}
+              // 如果正在加载，按钮始终启用（用于停止）；否则只有输入不为空时启用
+              disabled={!isLoading && !input.trim()}
               className={cn(
                 "h-8 w-8 rounded-full shrink-0 transition-all duration-300 shadow-sm",
-                input.trim() 
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 hover:shadow-primary/25" 
+                (isLoading || input.trim())
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 hover:shadow-primary/25"
                   : "bg-muted/50 text-muted-foreground hover:bg-muted/80"
               )}
             >
-              <Send className="h-3.5 w-3.5" />
+              {isLoading ? (
+                <Square className="h-3 w-3 fill-current" />
+              ) : (
+                <Send className="h-3.5 w-3.5" />
+              )}
             </Button>
           </div>
         </div>
       </div>
+
+      {editingMessage && (
+        <EditMessageDialog
+          isOpen={!!editingMessage}
+          onClose={() => setEditingMessage(null)}
+          initialContent={editingMessage.content}
+          onSave={(newContent) => {
+            if (newContent.trim() !== "") {
+              editMessage(editingMessage.id, newContent);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

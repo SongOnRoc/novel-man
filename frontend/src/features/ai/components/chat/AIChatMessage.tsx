@@ -2,7 +2,7 @@
 
 import React from "react";
 import ReactMarkdown from "react-markdown";
-import { Copy, RefreshCw, Check, ArrowRight, Sparkles } from "lucide-react";
+import { Copy, RefreshCw, Check, ArrowRight, Sparkles, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +21,8 @@ interface AIChatMessageProps {
   onInsert?: (content: string) => void;
   onRegenerate?: () => void;
   onOptionSelect?: (option: string) => void;
+  onEdit?: (id: string, content: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 export function AIChatMessage({
@@ -29,6 +31,8 @@ export function AIChatMessage({
   onInsert,
   onRegenerate,
   onOptionSelect,
+  onEdit,
+  onDelete,
 }: AIChatMessageProps) {
   const isUser = message.role === "user";
   const [copied, setCopied] = React.useState(false);
@@ -64,7 +68,7 @@ export function AIChatMessage({
 
       <div
         className={cn(
-          "flex max-w-[85%] flex-col gap-2",
+          "group flex max-w-[85%] flex-col gap-2",
           isUser ? "items-end" : "items-start"
         )}
       >
@@ -77,9 +81,9 @@ export function AIChatMessage({
           )}
         >
           {isUser ? (
-            <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+            <p className="whitespace-pre-wrap leading-relaxed" style={{ wordBreak: 'break-word' }}>{message.content}</p>
           ) : (
-            <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed prose-p:my-1 prose-headings:my-2 prose-strong:text-foreground/90">
+            <div className="prose prose-sm dark:prose-invert leading-relaxed prose-p:my-1 prose-headings:my-2 prose-strong:text-foreground/90" style={{ wordBreak: 'break-word' }}>
               <ReactMarkdown>{message.content}</ReactMarkdown>
             </div>
           )}
@@ -105,41 +109,65 @@ export function AIChatMessage({
         )}
 
         {/* Actions */}
-        {!isUser && (
-          <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 px-1">
+        <div className="flex items-center gap-1 px-1 opacity-0 transition-opacity group-hover:opacity-100">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-background/50"
+            onClick={handleCopy}
+            title="复制"
+          >
+            {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+          </Button>
+
+          {isUser && onEdit && (
             <Button
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-background/50"
-              onClick={handleCopy}
-              title="复制"
+              onClick={() => onEdit(message.id, message.content)}
+              title="编辑"
             >
-              {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+              <Pencil className="h-3.5 w-3.5" />
             </Button>
-            {onInsert && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-background/50"
-                onClick={() => onInsert(message.content)}
-                title="插入编辑器"
-              >
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Button>
-            )}
-            {onRegenerate && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-background/50"
-                onClick={onRegenerate}
-                title="重新生成"
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-              </Button>
-            )}
-          </div>
-        )}
+          )}
+
+          {!isUser && onInsert && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-background/50"
+              onClick={() => onInsert(message.content)}
+              title="插入编辑器"
+            >
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          )}
+
+          {!isUser && onRegenerate && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-background/50"
+              onClick={onRegenerate}
+              title="重新生成"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+            </Button>
+          )}
+
+          {onDelete && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+              onClick={() => onDelete(message.id)}
+              title="删除"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

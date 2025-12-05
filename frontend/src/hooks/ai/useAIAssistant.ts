@@ -8,6 +8,7 @@ import {
   generateStreamService,
   type GenerateRequest,
 } from "@/lib/services/ai.service";
+import type { Message } from "@/features/ai/components/chat/AIChatMessage";
 import type {
   PolishRequest,
   PolishResponse,
@@ -22,7 +23,10 @@ import type {
 /**
  * Hook for streaming AI generation.
  */
-export const useGenerateStream = () => {
+export const useGenerateStream = (
+  initialMessages: Message[] = []
+) => {
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
   const [error, setError] = useState<Error | null>(null);
@@ -62,12 +66,26 @@ export const useGenerateStream = () => {
     }
   }, []);
 
+  const editMessage = useCallback((id: string, content: string) => {
+    setMessages(prev => prev.map(msg => msg.id === id ? { ...msg, content } : msg));
+    // Here you could add an API call to update the message on the server
+  }, []);
+
+  const deleteMessage = useCallback((id: string) => {
+    setMessages(prev => prev.filter(msg => msg.id !== id));
+    // Here you could add an API call to delete the message on the server
+  }, []);
+
   return {
+    messages,
+    setMessages,
     generate,
     stop,
     isLoading,
     streamingContent,
     error,
+    editMessage,
+    deleteMessage,
   };
 };
 
