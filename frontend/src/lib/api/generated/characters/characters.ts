@@ -33,7 +33,7 @@ import type {
   ResponseStandardResponse,
 } from "../api10.schemas";
 
-import { customInstance } from "../../../axios";
+import { customFetch } from "../../../fetch";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -43,10 +43,10 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
  */
 export const getCharacters = (
   params?: GetCharactersParams,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetCharacters200>(
+  return customFetch<GetCharacters200>(
     { url: `/characters`, method: "GET", params, signal },
     options,
   );
@@ -65,7 +65,7 @@ export const getGetCharactersQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getCharacters>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -107,7 +107,7 @@ export function useGetCharacters<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -130,7 +130,7 @@ export function useGetCharacters<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -145,7 +145,7 @@ export function useGetCharacters<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getCharacters>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -164,7 +164,7 @@ export function useGetCharacters<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getCharacters>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -188,10 +188,10 @@ export function useGetCharacters<
  */
 export const postCharacters = (
   charactersCreateCharacterRequest: CharactersCreateCharacterRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostCharacters201>(
+  return customFetch<PostCharacters201>(
     {
       url: `/characters`,
       method: "POST",
@@ -216,7 +216,7 @@ export const getPostCharactersMutationOptions = <
     { data: CharactersCreateCharacterRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postCharacters>>,
   TError,
@@ -270,7 +270,7 @@ export const usePostCharacters = <
       { data: CharactersCreateCharacterRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -289,9 +289,9 @@ export const usePostCharacters = <
  */
 export const deleteCharactersId = (
   id: number,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<DeleteCharactersId200>(
+  return customFetch<DeleteCharactersId200>(
     { url: `/characters/${id}`, method: "DELETE" },
     options,
   );
@@ -310,7 +310,7 @@ export const getDeleteCharactersIdMutationOptions = <
     { id: number },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteCharactersId>>,
   TError,
@@ -364,7 +364,7 @@ export const useDeleteCharactersId = <
       { id: number },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -383,10 +383,10 @@ export const useDeleteCharactersId = <
  */
 export const getCharactersId = (
   id: number,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetCharactersId200>(
+  return customFetch<GetCharactersId200>(
     { url: `/characters/${id}`, method: "GET", signal },
     options,
   );
@@ -412,7 +412,7 @@ export const getGetCharactersIdQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -467,7 +467,7 @@ export function useGetCharactersId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -497,7 +497,7 @@ export function useGetCharactersId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -519,7 +519,7 @@ export function useGetCharactersId<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -545,7 +545,7 @@ export function useGetCharactersId<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -570,9 +570,9 @@ export function useGetCharactersId<
 export const putCharactersId = (
   id: number,
   charactersUpdateCharacterRequest: CharactersUpdateCharacterRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<PutCharactersId200>(
+  return customFetch<PutCharactersId200>(
     {
       url: `/characters/${id}`,
       method: "PUT",
@@ -596,7 +596,7 @@ export const getPutCharactersIdMutationOptions = <
     { id: number; data: CharactersUpdateCharacterRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putCharactersId>>,
   TError,
@@ -650,7 +650,7 @@ export const usePutCharactersId = <
       { id: number; data: CharactersUpdateCharacterRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

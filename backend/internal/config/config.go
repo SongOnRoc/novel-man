@@ -22,6 +22,15 @@ type Config struct {
 	Server   ServerConfig   `mapstructure:"server"`
 	Database DatabaseConfig `mapstructure:"database"`
 	Log      LogConfig      `mapstructure:"logger"`
+	LLM      LLMConfig      `mapstructure:"llm"`
+}
+
+// LLMConfig 存储大语言模型相关的配置
+type LLMConfig struct {
+	Provider string `mapstructure:"provider"`
+	BaseURL  string `mapstructure:"base_url"`
+	APIKey   string `mapstructure:"api_key"`
+	Model    string `mapstructure:"model"`
 }
 
 // ServerConfig 存储服务器相关的配置

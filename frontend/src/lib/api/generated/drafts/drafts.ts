@@ -34,7 +34,7 @@ import type {
   ResponseStandardResponse,
 } from "../api10.schemas";
 
-import { customInstance } from "../../../axios";
+import { customFetch } from "../../../fetch";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -44,10 +44,10 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
  */
 export const getDrafts = (
   params?: GetDraftsParams,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetDrafts200>(
+  return customFetch<GetDrafts200>(
     { url: `/drafts`, method: "GET", params, signal },
     options,
   );
@@ -69,7 +69,7 @@ export const getGetDraftsQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getDrafts>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -115,7 +115,7 @@ export function useGetDrafts<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -141,7 +141,7 @@ export function useGetDrafts<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -159,7 +159,7 @@ export function useGetDrafts<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getDrafts>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -181,7 +181,7 @@ export function useGetDrafts<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getDrafts>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -205,10 +205,10 @@ export function useGetDrafts<
  */
 export const postDrafts = (
   draftsCreateDraftRequest: DraftsCreateDraftRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostDrafts201>(
+  return customFetch<PostDrafts201>(
     {
       url: `/drafts`,
       method: "POST",
@@ -233,7 +233,7 @@ export const getPostDraftsMutationOptions = <
     { data: DraftsCreateDraftRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postDrafts>>,
   TError,
@@ -287,7 +287,7 @@ export const usePostDrafts = <
       { data: DraftsCreateDraftRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -306,9 +306,9 @@ export const usePostDrafts = <
  */
 export const deleteDraftsId = (
   id: number,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<DeleteDraftsId200>(
+  return customFetch<DeleteDraftsId200>(
     { url: `/drafts/${id}`, method: "DELETE" },
     options,
   );
@@ -327,7 +327,7 @@ export const getDeleteDraftsIdMutationOptions = <
     { id: number },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteDraftsId>>,
   TError,
@@ -381,7 +381,7 @@ export const useDeleteDraftsId = <
       { id: number },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -400,10 +400,10 @@ export const useDeleteDraftsId = <
  */
 export const getDraftsId = (
   id: number,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetDraftsId200>(
+  return customFetch<GetDraftsId200>(
     { url: `/drafts/${id}`, method: "GET", signal },
     options,
   );
@@ -425,7 +425,7 @@ export const getGetDraftsIdQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getDraftsId>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -476,7 +476,7 @@ export function useGetDraftsId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -502,7 +502,7 @@ export function useGetDraftsId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -520,7 +520,7 @@ export function useGetDraftsId<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getDraftsId>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -542,7 +542,7 @@ export function useGetDraftsId<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getDraftsId>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -567,9 +567,9 @@ export function useGetDraftsId<
 export const putDraftsId = (
   id: number,
   draftsUpdateDraftRequest: DraftsUpdateDraftRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<PutDraftsId200>(
+  return customFetch<PutDraftsId200>(
     {
       url: `/drafts/${id}`,
       method: "PUT",
@@ -593,7 +593,7 @@ export const getPutDraftsIdMutationOptions = <
     { id: number; data: DraftsUpdateDraftRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putDraftsId>>,
   TError,
@@ -647,7 +647,7 @@ export const usePutDraftsId = <
       { id: number; data: DraftsUpdateDraftRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -666,10 +666,10 @@ export const usePutDraftsId = <
  */
 export const postDraftsIdPublish = (
   id: number,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostDraftsIdPublish200>(
+  return customFetch<PostDraftsIdPublish200>(
     { url: `/drafts/${id}/publish`, method: "POST", signal },
     options,
   );
@@ -688,7 +688,7 @@ export const getPostDraftsIdPublishMutationOptions = <
     { id: number },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postDraftsIdPublish>>,
   TError,
@@ -742,7 +742,7 @@ export const usePostDraftsIdPublish = <
       { id: number },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

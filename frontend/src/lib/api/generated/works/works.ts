@@ -36,7 +36,7 @@ import type {
   WorksUpdateWorkRequest,
 } from "../api10.schemas";
 
-import { customInstance } from "../../../axios";
+import { customFetch } from "../../../fetch";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -46,10 +46,10 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
  */
 export const getWorks = (
   params?: GetWorksParams,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetWorks200>(
+  return customFetch<GetWorks200>(
     { url: `/works`, method: "GET", params, signal },
     options,
   );
@@ -68,7 +68,7 @@ export const getGetWorksQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getWorks>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -110,7 +110,7 @@ export function useGetWorks<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -133,7 +133,7 @@ export function useGetWorks<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -148,7 +148,7 @@ export function useGetWorks<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getWorks>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -167,7 +167,7 @@ export function useGetWorks<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getWorks>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -191,10 +191,10 @@ export function useGetWorks<
  */
 export const postWorks = (
   worksCreateWorkRequest: WorksCreateWorkRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostWorks201>(
+  return customFetch<PostWorks201>(
     {
       url: `/works`,
       method: "POST",
@@ -219,7 +219,7 @@ export const getPostWorksMutationOptions = <
     { data: WorksCreateWorkRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postWorks>>,
   TError,
@@ -273,7 +273,7 @@ export const usePostWorks = <
       { data: WorksCreateWorkRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -292,13 +292,13 @@ export const usePostWorks = <
  */
 export const postWorksImport = (
   postWorksImportBody: PostWorksImportBody,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
   const formData = new FormData();
   formData.append(`file`, postWorksImportBody.file);
 
-  return customInstance<PostWorksImport200>(
+  return customFetch<PostWorksImport200>(
     {
       url: `/works/import`,
       method: "POST",
@@ -325,7 +325,7 @@ export const getPostWorksImportMutationOptions = <
     { data: PostWorksImportBody },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postWorksImport>>,
   TError,
@@ -383,7 +383,7 @@ export const usePostWorksImport = <
       { data: PostWorksImportBody },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -402,9 +402,9 @@ export const usePostWorksImport = <
  */
 export const deleteWorksId = (
   id: number,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<DeleteWorksId200>(
+  return customFetch<DeleteWorksId200>(
     { url: `/works/${id}`, method: "DELETE" },
     options,
   );
@@ -423,7 +423,7 @@ export const getDeleteWorksIdMutationOptions = <
     { id: number },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteWorksId>>,
   TError,
@@ -477,7 +477,7 @@ export const useDeleteWorksId = <
       { id: number },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -496,10 +496,10 @@ export const useDeleteWorksId = <
  */
 export const getWorksId = (
   id: number,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetWorksId200>(
+  return customFetch<GetWorksId200>(
     { url: `/works/${id}`, method: "GET", signal },
     options,
   );
@@ -521,7 +521,7 @@ export const getGetWorksIdQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getWorksId>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -572,7 +572,7 @@ export function useGetWorksId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -598,7 +598,7 @@ export function useGetWorksId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -616,7 +616,7 @@ export function useGetWorksId<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getWorksId>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -638,7 +638,7 @@ export function useGetWorksId<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getWorksId>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -663,9 +663,9 @@ export function useGetWorksId<
 export const putWorksId = (
   id: number,
   worksUpdateWorkRequest: WorksUpdateWorkRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<PutWorksId200>(
+  return customFetch<PutWorksId200>(
     {
       url: `/works/${id}`,
       method: "PUT",
@@ -689,7 +689,7 @@ export const getPutWorksIdMutationOptions = <
     { id: number; data: WorksUpdateWorkRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putWorksId>>,
   TError,
@@ -743,7 +743,7 @@ export const usePutWorksId = <
       { id: number; data: WorksUpdateWorkRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -762,10 +762,10 @@ export const usePutWorksId = <
  */
 export const postWorksIdPublish = (
   id: number,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostWorksIdPublish200>(
+  return customFetch<PostWorksIdPublish200>(
     { url: `/works/${id}/publish`, method: "POST", signal },
     options,
   );
@@ -784,7 +784,7 @@ export const getPostWorksIdPublishMutationOptions = <
     { id: number },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postWorksIdPublish>>,
   TError,
@@ -838,7 +838,7 @@ export const usePostWorksIdPublish = <
       { id: number },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

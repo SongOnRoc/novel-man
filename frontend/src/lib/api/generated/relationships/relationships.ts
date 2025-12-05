@@ -32,7 +32,7 @@ import type {
   ResponseStandardResponse,
 } from "../api10.schemas";
 
-import { customInstance } from "../../../axios";
+import { customFetch } from "../../../fetch";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -42,10 +42,10 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
  */
 export const getRelationships = (
   params?: GetRelationshipsParams,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetRelationships200>(
+  return customFetch<GetRelationships200>(
     { url: `/relationships`, method: "GET", params, signal },
     options,
   );
@@ -75,7 +75,7 @@ export const getGetRelationshipsQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -130,7 +130,7 @@ export function useGetRelationships<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -162,7 +162,7 @@ export function useGetRelationships<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -186,7 +186,7 @@ export function useGetRelationships<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -214,7 +214,7 @@ export function useGetRelationships<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -238,10 +238,10 @@ export function useGetRelationships<
  */
 export const postRelationships = (
   relationshipsRelationshipRequest: RelationshipsRelationshipRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostRelationships201>(
+  return customFetch<PostRelationships201>(
     {
       url: `/relationships`,
       method: "POST",
@@ -263,7 +263,7 @@ export const getPostRelationshipsMutationOptions = <
     { data: RelationshipsRelationshipRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postRelationships>>,
   TError,
@@ -313,7 +313,7 @@ export const usePostRelationships = <
       { data: RelationshipsRelationshipRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -332,9 +332,9 @@ export const usePostRelationships = <
  */
 export const deleteRelationshipsId = (
   id: number,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<DeleteRelationshipsId200>(
+  return customFetch<DeleteRelationshipsId200>(
     { url: `/relationships/${id}`, method: "DELETE" },
     options,
   );
@@ -353,7 +353,7 @@ export const getDeleteRelationshipsIdMutationOptions = <
     { id: number },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteRelationshipsId>>,
   TError,
@@ -407,7 +407,7 @@ export const useDeleteRelationshipsId = <
       { id: number },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -426,10 +426,10 @@ export const useDeleteRelationshipsId = <
  */
 export const getRelationshipsId = (
   id: number,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetRelationshipsId200>(
+  return customFetch<GetRelationshipsId200>(
     { url: `/relationships/${id}`, method: "GET", signal },
     options,
   );
@@ -455,7 +455,7 @@ export const getGetRelationshipsIdQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -510,7 +510,7 @@ export function useGetRelationshipsId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -540,7 +540,7 @@ export function useGetRelationshipsId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -562,7 +562,7 @@ export function useGetRelationshipsId<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -588,7 +588,7 @@ export function useGetRelationshipsId<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -613,9 +613,9 @@ export function useGetRelationshipsId<
 export const putRelationshipsId = (
   id: number,
   relationshipsRelationshipRequest: RelationshipsRelationshipRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<PutRelationshipsId200>(
+  return customFetch<PutRelationshipsId200>(
     {
       url: `/relationships/${id}`,
       method: "PUT",
@@ -639,7 +639,7 @@ export const getPutRelationshipsIdMutationOptions = <
     { id: number; data: RelationshipsRelationshipRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putRelationshipsId>>,
   TError,
@@ -693,7 +693,7 @@ export const usePutRelationshipsId = <
       { id: number; data: RelationshipsRelationshipRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

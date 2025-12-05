@@ -29,7 +29,7 @@ import type {
   ResponseStandardResponse,
 } from "../api10.schemas";
 
-import { customInstance } from "../../../axios";
+import { customFetch } from "../../../fetch";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -39,10 +39,10 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
  */
 export const getGenerate = (
   getGenerateBody: GetGenerateBody,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetGenerate200>(
+  return customFetch<GetGenerate200>(
     {
       url: `/generate`,
       method: "GET",
@@ -66,7 +66,7 @@ export const getGetGenerateQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getGenerate>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -107,7 +107,7 @@ export function useGetGenerate<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -130,7 +130,7 @@ export function useGetGenerate<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -145,7 +145,7 @@ export function useGetGenerate<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getGenerate>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -164,7 +164,7 @@ export function useGetGenerate<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getGenerate>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -188,10 +188,10 @@ export function useGetGenerate<
  */
 export const postGenerate = (
   modelsGenerateRequest: ModelsGenerateRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostGenerate200>(
+  return customFetch<PostGenerate200>(
     {
       url: `/generate`,
       method: "POST",
@@ -213,7 +213,7 @@ export const getPostGenerateMutationOptions = <
     { data: ModelsGenerateRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postGenerate>>,
   TError,
@@ -263,7 +263,7 @@ export const usePostGenerate = <
       { data: ModelsGenerateRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

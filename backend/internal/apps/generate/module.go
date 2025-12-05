@@ -19,6 +19,7 @@ func init() {
 	apps.Register(&generateModule{})
 
 	// Register service implementation
+	container.Container.Provide(services.NewLLMService)
 	container.Container.Provide(services.NewGenerateService)
 
 	// Register controller implementation

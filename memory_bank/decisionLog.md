@@ -1,52 +1,33 @@
-# 决策日志
-记录架构和实现决策。
+# 决策日志 (Decision Log)
+
+## 2025-12-05: 项目初始化与 Memory Bank 建立
+
+- **背景**: 项目是一个小说写作平台，需要集成 AI 写作助手。为了更好地管理项目上下文和开发进度，决定引入 Memory Bank 机制。
+- **决策**:
+    1.  建立标准的 Memory Bank 结构 (`productContext`, `activeContext`, `systemPatterns`, `progress`, `decisionLog`)。
+    2.  确认技术栈为 Next.js (前端) + Go (后端)。
+    3.  当前开发重点锁定在 "AI 写作助手" 功能的实现。
+- **影响**:
+    -  后续所有开发任务将基于 Memory Bank 中的上下文进行。
+    -  AI 功能的实现将优先考虑后端 `internal/apps/ai` 模块的开发和前端 `Tiptap` 编辑器的集成。
 
 ---
+### 代码实现 [Generate Module Stream Support]
+[2025-12-05 15:01:00] - [实现后端 AI 生成功能的流式增强]
 
-### 2025-08-16: 确立前端架构蓝图
+**实现细节：**
+1.  **LangChainGo 集成**: 引入 `github.com/tmc/langchaingo` 作为 LLM 交互层，支持 OpenAI 协议。
+2.  **LLMService**: 创建了 `internal/services/generate/llm_service.go`，封装了 `Generate` 和 `GenerateStream` 方法，支持通过配置 (`config.yaml`) 动态加载 API Key 和 BaseURL。
+3.  **流式接口设计**:
+    -   `GenerateRequest` 模型新增 `Stream` (bool) 字段。
+    -   `GenerateController` 根据 `Stream` 字段切换响应模式：普通 JSON 响应或 SSE (Server-Sent Events) 流式响应。
+    -   SSE 格式规范化为 `data: {"content": "...", "done": false}`。
+4.  **依赖注入**: 更新 `internal/apps/generate/module.go`，将 `LLMService` 注入到 `GenerateService` 中。
 
-**决策:**
+**测试框架：**
+-   使用 Go 标准库 `testing` 配合 `github.com/stretchr/testify` 进行断言和 Mock。
+-   创建 `MockLLMService` 模拟 LLM 行为，隔离外部 API 依赖。
 
-项目将严格且唯一地遵循 `docs/design/new/frontend/ultimate_frontend_architecture.md` 中定义的架构设计。
-
-**理由:**
-
-该架构蓝图提供了一个现代、健壮、可扩展且类型安全的前端设计方案，完全符合项目构建“标杆级”应用的目标。它明确了技术栈、分层数据流、BFF策略和组件化思想，为后续所有开发工作提供了清晰的指导方针和统一的规范。
-
----
-
-### 2025-08-16: 采纳架构审计报告与三阶段修复计划
-
-**决策:**
-
-项目正式采纳由 `architect` 模式于 2025-08-16 生成的 `frontend_audit_detailed_report.md` 的内容。报告中提出的三阶段修复计划（拨乱反正、归置整合、补全清扫）将作为后续所有前端重构工作的唯一行动纲领。
-
-**理由:**
-
-该审计报告全面、深入地分析了现有代码与架构蓝图的差距，其提出的修复计划逻辑清晰、优先级明确（先修核心，再调结构，后补功能），是确保项目回归正轨、实现高质量交付的最佳路径。
-
----
-
-### 2025-10-16: 修复提示词导入服务架构模式
-
-**决策:**
-
-重构提示词导入服务，使其符合现有的分层架构模式（Controller -> Service -> Repository -> Database），通过接口组合和组件化设计提高代码复用性和可维护性。
-
-**理由:**
-
-原始的 PromptImporter 实现存在架构不一致问题，没有正确使用现有的服务层模式。通过借鉴 Work 服务的架构模式，采用接口组合方式扩展功能，同时保持服务层的纯粹性。这种设计模式可以为后续其他模块的导入功能提供统一的架构参考，确保整个项目的一致性和可扩展性。
-
-**实现方案:**
-
-1. **接口设计**：修改 PromptService 接口，组合 contracts.GenericCRUD 和 contracts.Importer
-2. **组件化**：将 PromptImporter 重构为独立组件，专注于文件解析和映射逻辑
-3. **依赖注入**：通过函数类型 CreateFunc 实现松耦合的依赖注入
-4. **分层调用**：控制器直接调用服务的 Import 方法，符合分层架构原则
-
-**验证结果:**
-
-- 编译验证通过，无语法错误
-- 架构一致性符合现有模式
-- 代码复用性通过接口组合得到提升
-- 为其他模块导入功能提供了可复用的架构模式
+**测试结果：**
+-   覆盖率：`internal/services/generate` 包逻辑覆盖率接近 100% (排除 `llm_service.go` 的真实调用)。
+-   通过率：100% (所有单元测试通过)。

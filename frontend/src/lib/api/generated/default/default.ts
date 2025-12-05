@@ -27,7 +27,7 @@ import type {
   WebAPIError,
 } from "../api10.schemas";
 
-import { customInstance } from "../../../axios";
+import { customFetch } from "../../../fetch";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -37,10 +37,10 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
  */
 export const getBooks = (
   getBooksBody: GetBooksBody,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<V2Book[]>(
+  return customFetch<V2Book[]>(
     {
       url: `/books`,
       method: "GET",
@@ -64,7 +64,7 @@ export const getGetBooksQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getBooks>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -104,7 +104,7 @@ export function useGetBooks<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -127,7 +127,7 @@ export function useGetBooks<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -142,7 +142,7 @@ export function useGetBooks<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getBooks>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -161,7 +161,7 @@ export function useGetBooks<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getBooks>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -186,10 +186,10 @@ export function useGetBooks<
 export const getTestapiGetStringByIntSomeId = (
   someId: number,
   getTestapiGetStringByIntSomeIdBody: GetTestapiGetStringByIntSomeIdBody,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<string>(
+  return customFetch<string>(
     {
       url: `/testapi/get-string-by-int/${someId}`,
       method: "GET",
@@ -224,7 +224,7 @@ export const getGetTestapiGetStringByIntSomeIdQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -287,7 +287,7 @@ export function useGetTestapiGetStringByIntSomeId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -315,7 +315,7 @@ export function useGetTestapiGetStringByIntSomeId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -335,7 +335,7 @@ export function useGetTestapiGetStringByIntSomeId<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -359,7 +359,7 @@ export function useGetTestapiGetStringByIntSomeId<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -388,10 +388,10 @@ export const getTestapiGetStructArrayByStringSomeId = (
   someId: string,
   getTestapiGetStructArrayByStringSomeIdBody: GetTestapiGetStructArrayByStringSomeIdBody,
   params: GetTestapiGetStructArrayByStringSomeIdParams,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<string>(
+  return customFetch<string>(
     {
       url: `/testapi/get-struct-array-by-string/${someId}`,
       method: "GET",
@@ -430,7 +430,7 @@ export const getGetTestapiGetStructArrayByStringSomeIdQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -496,7 +496,7 @@ export function useGetTestapiGetStructArrayByStringSomeId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -525,7 +525,7 @@ export function useGetTestapiGetStructArrayByStringSomeId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -546,7 +546,7 @@ export function useGetTestapiGetStructArrayByStringSomeId<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -568,7 +568,7 @@ export function useGetTestapiGetStructArrayByStringSomeId<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {

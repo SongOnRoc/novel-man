@@ -31,7 +31,7 @@ import type {
   ResponseStandardResponse,
 } from "../api10.schemas";
 
-import { customInstance } from "../../../axios";
+import { customFetch } from "../../../fetch";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -41,10 +41,10 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
  */
 export const postAuthLogin = (
   authLoginRequest: AuthLoginRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostAuthLogin200>(
+  return customFetch<PostAuthLogin200>(
     {
       url: `/auth/login`,
       method: "POST",
@@ -66,7 +66,7 @@ export const getPostAuthLoginMutationOptions = <
     { data: AuthLoginRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postAuthLogin>>,
   TError,
@@ -116,7 +116,7 @@ export const usePostAuthLogin = <
       { data: AuthLoginRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -134,10 +134,10 @@ export const usePostAuthLogin = <
  * @summary Log out a user
  */
 export const postAuthLogout = (
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostAuthLogout200>(
+  return customFetch<PostAuthLogout200>(
     { url: `/auth/logout`, method: "POST", signal },
     options,
   );
@@ -153,7 +153,7 @@ export const getPostAuthLogoutMutationOptions = <
     void,
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postAuthLogout>>,
   TError,
@@ -199,7 +199,7 @@ export const usePostAuthLogout = <
       void,
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -217,10 +217,10 @@ export const usePostAuthLogout = <
  * @summary Get current user info
  */
 export const getAuthMe = (
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetAuthMe200>(
+  return customFetch<GetAuthMe200>(
     { url: `/auth/me`, method: "GET", signal },
     options,
   );
@@ -237,7 +237,7 @@ export const getGetAuthMeQueryOptions = <
   query?: Partial<
     UseQueryOptions<Awaited<ReturnType<typeof getAuthMe>>, TError, TData>
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
@@ -277,7 +277,7 @@ export function useGetAuthMe<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -299,7 +299,7 @@ export function useGetAuthMe<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -313,7 +313,7 @@ export function useGetAuthMe<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getAuthMe>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -331,7 +331,7 @@ export function useGetAuthMe<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getAuthMe>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -355,10 +355,10 @@ export function useGetAuthMe<
  */
 export const postAuthRegister = (
   authRegisterRequest: AuthRegisterRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostAuthRegister201>(
+  return customFetch<PostAuthRegister201>(
     {
       url: `/auth/register`,
       method: "POST",
@@ -383,7 +383,7 @@ export const getPostAuthRegisterMutationOptions = <
     { data: AuthRegisterRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postAuthRegister>>,
   TError,
@@ -437,7 +437,7 @@ export const usePostAuthRegister = <
       { data: AuthRegisterRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

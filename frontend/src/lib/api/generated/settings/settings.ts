@@ -36,7 +36,7 @@ import type {
   SettingsUpdateAIModelRequest,
 } from "../api10.schemas";
 
-import { customInstance } from "../../../axios";
+import { customFetch } from "../../../fetch";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -46,10 +46,10 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
  */
 export const getSettings = (
   params?: GetSettingsParams,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetSettings200>(
+  return customFetch<GetSettings200>(
     { url: `/settings`, method: "GET", params, signal },
     options,
   );
@@ -71,7 +71,7 @@ export const getGetSettingsQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getSettings>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -117,7 +117,7 @@ export function useGetSettings<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -143,7 +143,7 @@ export function useGetSettings<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -161,7 +161,7 @@ export function useGetSettings<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getSettings>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -183,7 +183,7 @@ export function useGetSettings<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getSettings>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -207,10 +207,10 @@ export function useGetSettings<
  */
 export const postSettings = (
   settingsSettingRequest: SettingsSettingRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostSettings201>(
+  return customFetch<PostSettings201>(
     {
       url: `/settings`,
       method: "POST",
@@ -235,7 +235,7 @@ export const getPostSettingsMutationOptions = <
     { data: SettingsSettingRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postSettings>>,
   TError,
@@ -289,7 +289,7 @@ export const usePostSettings = <
       { data: SettingsSettingRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -308,10 +308,10 @@ export const usePostSettings = <
  */
 export const getSettingsUserUserId = (
   userId: number,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetSettingsUserUserId200>(
+  return customFetch<GetSettingsUserUserId200>(
     { url: `/settings/user/${userId}`, method: "GET", signal },
     options,
   );
@@ -339,7 +339,7 @@ export const getGetSettingsUserUserIdQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -399,7 +399,7 @@ export function useGetSettingsUserUserId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -431,7 +431,7 @@ export function useGetSettingsUserUserId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -455,7 +455,7 @@ export function useGetSettingsUserUserId<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -483,7 +483,7 @@ export function useGetSettingsUserUserId<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -508,9 +508,9 @@ export function useGetSettingsUserUserId<
 export const putSettingsUserUserId = (
   userId: number,
   settingsSettingRequest: SettingsSettingRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<PutSettingsUserUserId200>(
+  return customFetch<PutSettingsUserUserId200>(
     {
       url: `/settings/user/${userId}`,
       method: "PUT",
@@ -536,7 +536,7 @@ export const getPutSettingsUserUserIdMutationOptions = <
     { userId: number; data: SettingsSettingRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putSettingsUserUserId>>,
   TError,
@@ -594,7 +594,7 @@ export const usePutSettingsUserUserId = <
       { userId: number; data: SettingsSettingRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -613,9 +613,9 @@ export const usePutSettingsUserUserId = <
  */
 export const deleteSettingsId = (
   id: number,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<DeleteSettingsId200>(
+  return customFetch<DeleteSettingsId200>(
     { url: `/settings/${id}`, method: "DELETE" },
     options,
   );
@@ -634,7 +634,7 @@ export const getDeleteSettingsIdMutationOptions = <
     { id: number },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteSettingsId>>,
   TError,
@@ -688,7 +688,7 @@ export const useDeleteSettingsId = <
       { id: number },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -707,10 +707,10 @@ export const useDeleteSettingsId = <
  */
 export const getSettingsId = (
   id: number,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetSettingsId200>(
+  return customFetch<GetSettingsId200>(
     { url: `/settings/${id}`, method: "GET", signal },
     options,
   );
@@ -732,7 +732,7 @@ export const getGetSettingsIdQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getSettingsId>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -783,7 +783,7 @@ export function useGetSettingsId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -809,7 +809,7 @@ export function useGetSettingsId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -827,7 +827,7 @@ export function useGetSettingsId<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getSettingsId>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -849,7 +849,7 @@ export function useGetSettingsId<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getSettingsId>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -874,9 +874,9 @@ export function useGetSettingsId<
 export const putSettingsId = (
   id: number,
   settingsSettingRequest: SettingsSettingRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<PutSettingsId200>(
+  return customFetch<PutSettingsId200>(
     {
       url: `/settings/${id}`,
       method: "PUT",
@@ -900,7 +900,7 @@ export const getPutSettingsIdMutationOptions = <
     { id: number; data: SettingsSettingRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putSettingsId>>,
   TError,
@@ -954,7 +954,7 @@ export const usePutSettingsId = <
       { id: number; data: SettingsSettingRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -974,9 +974,9 @@ export const usePutSettingsId = <
 export const putSettingsUserIdAiModel = (
   userId: number,
   settingsUpdateAIModelRequest: SettingsUpdateAIModelRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<PutSettingsUserIdAiModel200>(
+  return customFetch<PutSettingsUserIdAiModel200>(
     {
       url: `/settings/${userId}/ai-model`,
       method: "PUT",
@@ -1002,7 +1002,7 @@ export const getPutSettingsUserIdAiModelMutationOptions = <
     { userId: number; data: SettingsUpdateAIModelRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putSettingsUserIdAiModel>>,
   TError,
@@ -1060,7 +1060,7 @@ export const usePutSettingsUserIdAiModel = <
       { userId: number; data: SettingsUpdateAIModelRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

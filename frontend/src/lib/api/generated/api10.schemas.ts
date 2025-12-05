@@ -204,6 +204,7 @@ export interface ModelsGenerateRequest {
   assistant_type?: string;
   context?: ModelsAIContext;
   prompt_id?: number;
+  stream?: boolean;
   text: string;
 }
 

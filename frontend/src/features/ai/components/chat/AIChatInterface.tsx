@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AIChatMessage, Message } from "./AIChatMessage";
-import { usePolishTextMutation, useGetCompletionMutation } from "@/hooks/ai/useAIAssistant";
+import { useGenerateStream } from "@/hooks/ai/useAIAssistant";
 import { AIContext } from "@/lib/services/ai.service";
 import { v4 as uuidv4 } from "uuid";
 import { Button } from "@/components/ui/button";
@@ -42,15 +42,62 @@ export function AIChatInterface({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const polishMutation = usePolishTextMutation();
-  const completionMutation = useGetCompletionMutation();
+  const { generate, isLoading, streamingContent, error } = useGenerateStream();
+  const [currentAiMsgId, setCurrentAiMsgId] = useState<string | null>(null);
 
-  const isLoading = polishMutation.isPending || completionMutation.isPending;
+  // Update AI message with streaming content
+  useEffect(() => {
+    // 如果没有流式内容，什么都不做
+    if (!streamingContent) return;
+
+    // 如果还没有当前的 AI 消息 ID，说明这是流式响应的第一个数据块
+    // 我们需要创建一个新的消息
+    if (!currentAiMsgId) {
+      const newMsgId = uuidv4();
+      const aiMsg: Message = {
+        id: newMsgId,
+        role: "assistant",
+        content: streamingContent,
+        timestamp: Date.now(),
+      };
+      setMessages((prev) => [...prev, aiMsg]);
+      setCurrentAiMsgId(newMsgId);
+    } else {
+      // 如果已经有消息 ID，更新该消息的内容
+      setMessages((prev) => {
+        return prev.map((msg) => {
+          if (msg.id === currentAiMsgId) {
+            return { ...msg, content: streamingContent };
+          }
+          return msg;
+        });
+      });
+    }
+  }, [streamingContent, currentAiMsgId]);
+
+  // Handle stream error
+  useEffect(() => {
+    if (error && currentAiMsgId) {
+      setMessages((prev) => {
+        return prev.map((msg) => {
+          if (msg.id === currentAiMsgId) {
+            return {
+              ...msg,
+              content: msg.content + "\n\n[生成出错，请重试]",
+              isError: true,
+            };
+          }
+          return msg;
+        });
+      });
+      setCurrentAiMsgId(null);
+    }
+  }, [error, currentAiMsgId]);
 
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading]);
+  }, [messages, isLoading, streamingContent]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -67,47 +114,30 @@ export function AIChatInterface({
     };
     setMessages((prev) => [...prev, userMsg]);
 
+    // Reset current AI message ID for new generation
+    setCurrentAiMsgId(null);
+
     // Prepare context
     const context: AIContext = {
       work_id: workId,
     };
 
-    let mutation = completionMutation;
     let prompt = text;
+    let assistantType = "chat"; // Default to chat
 
     if (text.startsWith("润色") || text.includes("优化")) {
-      mutation = polishMutation;
+      assistantType = "polish";
       if (selectedText) {
-        prompt = selectedText; 
+        prompt = selectedText;
       }
     }
 
-    try {
-      const result = await mutation.mutateAsync({ text: prompt, context });
-      
-      const generatedText = result?.generated_text || "生成失败，请重试。";
-
-      const aiMsg: Message = {
-        id: uuidv4(),
-        role: "assistant",
-        content: generatedText,
-        timestamp: Date.now(),
-        options: generatedText.includes("\n1.") 
-          ? generatedText.split("\n").filter(line => /^\d+\./.test(line)).map(line => line.replace(/^\d+\.\s*/, ""))
-          : undefined
-      };
-      
-      setMessages((prev) => [...prev, aiMsg]);
-    } catch (error) {
-      const errorMsg: Message = {
-        id: uuidv4(),
-        role: "assistant",
-        content: "抱歉，我遇到了一些问题，请稍后再试。",
-        timestamp: Date.now(),
-        isError: true,
-      };
-      setMessages((prev) => [...prev, errorMsg]);
-    }
+    // Start streaming
+    generate({
+      text: prompt,
+      context,
+      assistant_type: assistantType,
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -162,8 +192,8 @@ export function AIChatInterface({
                 ))}
               </AnimatePresence>
             )}
-            {isLoading && (
-              <motion.div 
+            {isLoading && !currentAiMsgId && (
+              <motion.div
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="flex justify-start"

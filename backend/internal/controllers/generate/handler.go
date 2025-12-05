@@ -1,6 +1,9 @@
 package generate
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"novel-man/backend/internal/contracts/generate"
 	"novel-man/backend/internal/models"
@@ -57,11 +60,55 @@ func (c *GenerateController) GenerateText(ctx *gin.Context) {
 		return
 	}
 
-	resp, err := c.generateService.GenerateText(&req)
+	if req.Stream {
+		c.handleStream(ctx, &req)
+		return
+	}
+
+	resp, err := c.generateService.GenerateText(ctx.Request.Context(), &req)
 	if err != nil {
 		response.Error(ctx, http.StatusInternalServerError, 1, "Failed to generate text", err)
 		return
 	}
 
 	response.Success(ctx, http.StatusOK, resp)
+}
+
+func (c *GenerateController) handleStream(ctx *gin.Context, req *models.GenerateRequest) {
+	contentChan, errChan, err := c.generateService.GenerateTextStream(ctx.Request.Context(), req)
+	if err != nil {
+		response.Error(ctx, http.StatusInternalServerError, 1, "Failed to start stream", err)
+		return
+	}
+
+	ctx.Header("Content-Type", "text/event-stream")
+	ctx.Header("Cache-Control", "no-cache")
+	ctx.Header("Connection", "keep-alive")
+	ctx.Header("Transfer-Encoding", "chunked")
+
+	ctx.Stream(func(w io.Writer) bool {
+		select {
+		case content, ok := <-contentChan:
+			if !ok {
+				// Stream finished
+				c.sendSSE(w, map[string]interface{}{"content": "", "done": true})
+				return false
+			}
+			c.sendSSE(w, map[string]interface{}{"content": content, "done": false})
+			return true
+		case err := <-errChan:
+			if err != nil {
+				// Send error event
+				c.sendSSE(w, map[string]interface{}{"error": err.Error(), "done": true})
+			}
+			return false
+		case <-ctx.Request.Context().Done():
+			return false
+		}
+	})
+}
+
+func (c *GenerateController) sendSSE(w io.Writer, data interface{}) {
+	jsonData, _ := json.Marshal(data)
+	fmt.Fprintf(w, "data: %s\n\n", jsonData)
 }

@@ -37,7 +37,7 @@ import type {
   ResponseStandardResponse,
 } from "../api10.schemas";
 
-import { customInstance } from "../../../axios";
+import { customFetch } from "../../../fetch";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -48,10 +48,10 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 export const getPrompts = (
   getPromptsBody: GetPromptsBody,
   params?: GetPromptsParams,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetPrompts200>(
+  return customFetch<GetPrompts200>(
     {
       url: `/prompts`,
       method: "GET",
@@ -80,7 +80,7 @@ export const getGetPromptsQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getPrompts>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -124,7 +124,7 @@ export function useGetPrompts<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -148,7 +148,7 @@ export function useGetPrompts<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -164,7 +164,7 @@ export function useGetPrompts<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getPrompts>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -184,7 +184,7 @@ export function useGetPrompts<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getPrompts>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -212,10 +212,10 @@ export function useGetPrompts<
  */
 export const postPrompts = (
   promptsCreatePromptRequest: PromptsCreatePromptRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostPrompts201>(
+  return customFetch<PostPrompts201>(
     {
       url: `/prompts`,
       method: "POST",
@@ -240,7 +240,7 @@ export const getPostPromptsMutationOptions = <
     { data: PromptsCreatePromptRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postPrompts>>,
   TError,
@@ -294,7 +294,7 @@ export const usePostPrompts = <
       { data: PromptsCreatePromptRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -313,13 +313,13 @@ export const usePostPrompts = <
  */
 export const postPromptsImport = (
   postPromptsImportBody: PostPromptsImportBody,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
   const formData = new FormData();
   formData.append(`file`, postPromptsImportBody.file);
 
-  return customInstance<PostPromptsImport200>(
+  return customFetch<PostPromptsImport200>(
     {
       url: `/prompts/import`,
       method: "POST",
@@ -346,7 +346,7 @@ export const getPostPromptsImportMutationOptions = <
     { data: PostPromptsImportBody },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postPromptsImport>>,
   TError,
@@ -404,7 +404,7 @@ export const usePostPromptsImport = <
       { data: PostPromptsImportBody },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -424,9 +424,9 @@ export const usePostPromptsImport = <
 export const deletePromptsId = (
   id: number,
   deletePromptsIdBody: DeletePromptsIdBody,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<null>(
+  return customFetch<null>(
     {
       url: `/prompts/${id}`,
       method: "DELETE",
@@ -452,7 +452,7 @@ export const getDeletePromptsIdMutationOptions = <
     { id: number; data: DeletePromptsIdBody },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deletePromptsId>>,
   TError,
@@ -510,7 +510,7 @@ export const useDeletePromptsId = <
       { id: number; data: DeletePromptsIdBody },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -530,10 +530,10 @@ export const useDeletePromptsId = <
 export const getPromptsId = (
   id: number,
   getPromptsIdBody: GetPromptsIdBody,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetPromptsId200>(
+  return customFetch<GetPromptsId200>(
     {
       url: `/prompts/${id}`,
       method: "GET",
@@ -566,7 +566,7 @@ export const getGetPromptsIdQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getPromptsId>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -623,7 +623,7 @@ export function useGetPromptsId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -652,7 +652,7 @@ export function useGetPromptsId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -673,7 +673,7 @@ export function useGetPromptsId<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getPromptsId>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -698,7 +698,7 @@ export function useGetPromptsId<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getPromptsId>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -727,9 +727,9 @@ export function useGetPromptsId<
 export const putPromptsId = (
   id: number,
   promptsUpdatePromptRequest: PromptsUpdatePromptRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<PutPromptsId200>(
+  return customFetch<PutPromptsId200>(
     {
       url: `/prompts/${id}`,
       method: "PUT",
@@ -755,7 +755,7 @@ export const getPutPromptsIdMutationOptions = <
     { id: number; data: PromptsUpdatePromptRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putPromptsId>>,
   TError,
@@ -813,7 +813,7 @@ export const usePutPromptsId = <
       { id: number; data: PromptsUpdatePromptRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

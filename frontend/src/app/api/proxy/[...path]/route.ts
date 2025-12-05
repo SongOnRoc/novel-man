@@ -1,4 +1,3 @@
-import axios, { AxiosError } from "axios";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 
@@ -120,7 +119,7 @@ async function validateFileUpload(
 }
 
 // Public path whitelist (prefix match)
-const PUBLIC_PATHS = ["/auth/login", "/auth/register"];
+const PUBLIC_PATHS = ["/auth/login", "/auth/register", "/health"];
 
 function isPublicPath(path: string): boolean {
   return PUBLIC_PATHS.some((p) => path.startsWith(p));
@@ -271,45 +270,50 @@ async function handler(req: NextRequest) {
     const body = await getBody();
 
     // For FormData requests, we need special handling
-    let axiosConfig: any = {
+    const fetchOptions: RequestInit = {
       method: req.method,
-      url: url,
       headers: headers,
-      responseType: "json",
     };
 
     // Handle FormData properly
     if (body instanceof FormData) {
-      // For FormData, we need to let axios handle the Content-Type
-      delete axiosConfig.headers["Content-Type"];
-      axiosConfig.data = body;
-      axiosConfig.maxBodyLength = Infinity; // Allow large file uploads
-    } else {
-      axiosConfig.data = body;
+      // For FormData, we need to let fetch handle the Content-Type
+      delete headers["Content-Type"];
+      fetchOptions.body = body;
+    } else if (body) {
+      fetchOptions.body = JSON.stringify(body);
     }
 
-    const response = await axios(axiosConfig);
+    const response = await fetch(url, fetchOptions);
 
     if (response.status === 204) {
       return new NextResponse(null, { status: 204, headers: baseHeaders });
     }
-    return NextResponse.json(response.data, {
+
+    // Handle Server-Sent Events (SSE)
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("text/event-stream")) {
+      // Merge baseHeaders with response headers for SSE
+      const sseHeaders = new Headers(baseHeaders);
+      sseHeaders.set("Content-Type", "text/event-stream");
+      sseHeaders.set("Cache-Control", "no-cache");
+      sseHeaders.set("Connection", "keep-alive");
+      
+      return new NextResponse(response.body, {
+        status: response.status,
+        headers: sseHeaders,
+      });
+    }
+
+    // Get response body for non-stream requests
+    const responseData = await response.json().catch(() => ({}));
+
+    return NextResponse.json(responseData, {
       status: response.status,
       headers: baseHeaders,
     });
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      // Ensure we send a proper JSON response even if the upstream service doesn't.
-      const status = axiosError.response?.status || 500;
-      const data = axiosError.response?.data || {
-        message: "An error occurred",
-      };
-      // If data is not a valid JSON object, create one.
-      const responseData =
-        typeof data === "object" ? data : { message: String(data) };
-      return NextResponse.json(responseData, { status, headers: baseHeaders });
-    }
+    console.error("Proxy Error:", error);
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500, headers: baseHeaders }

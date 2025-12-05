@@ -1,8 +1,6 @@
-import axios from "axios";
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-import { axiosInstance } from "@/lib/axios";
 import {
     loginService,
     LoginResponseForClient,
@@ -40,36 +38,34 @@ export const authOptions: NextAuthOptions = {
                         );
                     }
                     // Now, use the access token to fetch the user profile.
-                    // The root cause of potential race conditions is that the global axios instance
-                    // might not have the new token yet. The robust solution is to make a direct API call here.
-                    // We must ensure the baseURL is always defined, especially on the server.
-                    const userAxiosInstance = axios.create({
-                        baseURL: axiosInstance.defaults.baseURL,
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${accessToken}`,
-                        },
-                    });
                     try {
-                        const userProfileResponse =
-                            await userAxiosInstance.get<AuthUser>("/auth/me");
-                        // The customInstance and axios interceptors should have already extracted .data
-                        // from the standard {code, message, data} format.
-                        // So userProfileResponse.data should be {code, message, data: {...}} or the final data object.
-                        // Let's log it to be sure.
-                        // Handle potential nested data structure from backend standard format
-                        let userProfileData;
-                        if (
-                            userProfileResponse.data &&
-                            typeof userProfileResponse.data === "object" &&
-                            "data" in userProfileResponse.data
-                        ) {
-                            // Standard format {code, message, data: {...}}
-                            userProfileData = userProfileResponse.data.data;
-                        } else {
-                            // Direct data format {...}
-                            userProfileData = userProfileResponse.data;
+                        // We need to manually fetch here because we can't use the generated service
+                        // inside the NextAuth provider configuration easily without circular dependencies
+                        // or context issues.
+                        const baseURL = process.env.NEXTAUTH_URL
+                            ? `${process.env.NEXTAUTH_URL}/api/proxy`
+                            : "http://localhost:3000/api/proxy";
+                            
+                        const response = await fetch(`${baseURL}/auth/me`, {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${accessToken}`,
+                            },
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`Failed to fetch user profile: ${response.statusText}`);
                         }
+
+                        const responseData = await response.json();
+                        
+                        // Handle potential nested data structure from backend standard format
+                        // The proxy might return { code, message, data: {...} } or just {...} depending on transformation
+                        // But since we are calling proxy directly here, we get what backend returns (snake_case)
+                        // We need to be careful about casing if we use raw fetch.
+                        // However, let's assume standard response structure.
+                        
+                        let userProfileData = responseData.data || responseData;
 
                         if (userProfileData) {
                             // To satisfy NextAuth's internal User type, we must convert the ID to a string here.
@@ -84,15 +80,16 @@ export const authOptions: NextAuthOptions = {
                             throw new Error("Failed to fetch valid user profile data.");
                         }
                     } catch (userFetchError: any) {
+                        console.error("User fetch error:", userFetchError);
                         // Re-throw a more specific error
                         throw new Error(
-                            userFetchError.response?.data?.message ||
+                            userFetchError.message ||
                             "Failed to fetch user profile after login."
                         );
                     }
                 } catch (error: any) {
                     throw new Error(
-                        error.response?.data?.message || "Invalid identifier or password."
+                        error.message || "Invalid identifier or password."
                     );
                 }
             },

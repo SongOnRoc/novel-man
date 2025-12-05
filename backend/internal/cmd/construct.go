@@ -6,6 +6,7 @@ import (
 	_ "novel-man/backend/internal/apps/chapters"
 	_ "novel-man/backend/internal/apps/characters"
 	_ "novel-man/backend/internal/apps/drafts"
+	_ "novel-man/backend/internal/apps/generate"
 	_ "novel-man/backend/internal/apps/prompts"
 	_ "novel-man/backend/internal/apps/relationships"
 	_ "novel-man/backend/internal/apps/settings"

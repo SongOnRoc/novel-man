@@ -12,6 +12,7 @@ type GenerateRequest struct {
 	AssistantType string     `json:"assistant_type"` // Corresponds to a model name or a system prompt category
 	PromptID      *uint      `json:"prompt_id,omitempty"`
 	Context       *AIContext `json:"context,omitempty"`
+	Stream        bool       `json:"stream,omitempty"`
 }
 
 // AIContext contains additional context for the AI generation.

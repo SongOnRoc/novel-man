@@ -18,8 +18,8 @@ module.exports = {
       client: 'react-query',
       override: {
         mutator: {
-          path: './src/lib/axios.ts',
-          name: 'customInstance',
+          path: './src/lib/fetch.ts',
+          name: 'customFetch',
         },
       },
       // The output directory for all our generated code (client and types)

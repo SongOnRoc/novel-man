@@ -36,7 +36,7 @@ import type {
   ResponseStandardResponse,
 } from "../api10.schemas";
 
-import { customInstance } from "../../../axios";
+import { customFetch } from "../../../fetch";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -46,10 +46,10 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
  */
 export const getChapters = (
   params: GetChaptersParams,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetChapters200>(
+  return customFetch<GetChapters200>(
     { url: `/chapters`, method: "GET", params, signal },
     options,
   );
@@ -73,7 +73,7 @@ export const getGetChaptersQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getChapters>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -123,7 +123,7 @@ export function useGetChapters<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -151,7 +151,7 @@ export function useGetChapters<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -171,7 +171,7 @@ export function useGetChapters<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getChapters>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -195,7 +195,7 @@ export function useGetChapters<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getChapters>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -219,10 +219,10 @@ export function useGetChapters<
  */
 export const postChapters = (
   chaptersCreateChapterRequest: ChaptersCreateChapterRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostChapters201>(
+  return customFetch<PostChapters201>(
     {
       url: `/chapters`,
       method: "POST",
@@ -244,7 +244,7 @@ export const getPostChaptersMutationOptions = <
     { data: ChaptersCreateChapterRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postChapters>>,
   TError,
@@ -294,7 +294,7 @@ export const usePostChapters = <
       { data: ChaptersCreateChapterRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -314,13 +314,13 @@ export const usePostChapters = <
 export const postChaptersImport = (
   postChaptersImportBody: PostChaptersImportBody,
   params: PostChaptersImportParams,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
   const formData = new FormData();
   formData.append(`file`, postChaptersImportBody.file);
 
-  return customInstance<PostChaptersImport200>(
+  return customFetch<PostChaptersImport200>(
     {
       url: `/chapters/import`,
       method: "POST",
@@ -349,7 +349,7 @@ export const getPostChaptersImportMutationOptions = <
     { data: PostChaptersImportBody; params: PostChaptersImportParams },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postChaptersImport>>,
   TError,
@@ -409,7 +409,7 @@ export const usePostChaptersImport = <
       { data: PostChaptersImportBody; params: PostChaptersImportParams },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -428,9 +428,9 @@ export const usePostChaptersImport = <
  */
 export const deleteChaptersId = (
   id: number,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<DeleteChaptersId200>(
+  return customFetch<DeleteChaptersId200>(
     { url: `/chapters/${id}`, method: "DELETE" },
     options,
   );
@@ -449,7 +449,7 @@ export const getDeleteChaptersIdMutationOptions = <
     { id: number },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteChaptersId>>,
   TError,
@@ -503,7 +503,7 @@ export const useDeleteChaptersId = <
       { id: number },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -522,10 +522,10 @@ export const useDeleteChaptersId = <
  */
 export const getChaptersId = (
   id: number,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetChaptersId200>(
+  return customFetch<GetChaptersId200>(
     { url: `/chapters/${id}`, method: "GET", signal },
     options,
   );
@@ -547,7 +547,7 @@ export const getGetChaptersIdQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getChaptersId>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -598,7 +598,7 @@ export function useGetChaptersId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -624,7 +624,7 @@ export function useGetChaptersId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -642,7 +642,7 @@ export function useGetChaptersId<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getChaptersId>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -664,7 +664,7 @@ export function useGetChaptersId<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getChaptersId>>, TError, TData>
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -689,9 +689,9 @@ export function useGetChaptersId<
 export const putChaptersId = (
   id: number,
   chaptersUpdateChapterRequest: ChaptersUpdateChapterRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<PutChaptersId200>(
+  return customFetch<PutChaptersId200>(
     {
       url: `/chapters/${id}`,
       method: "PUT",
@@ -715,7 +715,7 @@ export const getPutChaptersIdMutationOptions = <
     { id: number; data: ChaptersUpdateChapterRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putChaptersId>>,
   TError,
@@ -769,7 +769,7 @@ export const usePutChaptersId = <
       { id: number; data: ChaptersUpdateChapterRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

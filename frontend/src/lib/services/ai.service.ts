@@ -3,12 +3,12 @@
  * @description This service handles all AI-related API calls using the new generate endpoint.
  */
 
-import { postGenerate } from '@/lib/api/generated/generate/generate';
+import { postGenerate } from "@/lib/api/generated/generate/generate";
 import type {
   ModelsGenerateRequest,
   ModelsGenerateResponse,
   ModelsAIContext,
-} from '@/lib/api/generated/api10.schemas';
+} from "@/lib/api/generated/api10.schemas";
 
 // =================================================================
 // Re-exporting Core AI Types for Application-wide Use
@@ -106,4 +106,50 @@ export const polishTextService = async (
   data: PolishRequest
 ): Promise<PolishResponse> => {
   return generateService(data);
+};
+
+/**
+ * Service for streaming AI generation.
+ * Handles Server-Sent Events (SSE) for real-time text generation.
+ *
+ * @param data - The generation request parameters
+ * @param onData - Callback function invoked when a new text chunk is received
+ * @param onError - Callback function invoked when an error occurs
+ * @param onComplete - Callback function invoked when generation is complete
+ * @returns A function to abort the stream
+ */
+export const generateStreamService = (
+  data: GenerateRequest,
+  onData: (text: string) => void,
+  onError: (error: Error) => void,
+  onComplete: () => void
+): (() => void) => {
+  const controller = new AbortController();
+  const signal = controller.signal;
+
+  // Ensure stream parameter is set to true
+  const requestData = { ...data, stream: true };
+
+  // Use the generated postGenerate function, passing options to configure the request
+  // The generated function uses customFetch internally, which supports onData via options
+  postGenerate(
+    requestData,
+    {
+      onData: (chunk: any) => {
+        if (chunk.content) {
+          onData(chunk.content);
+        }
+        if (chunk.done) {
+          onComplete();
+        }
+      },
+    },
+    signal
+  ).catch((err) => {
+    if (err.name !== "AbortError") {
+      onError(err);
+    }
+  });
+
+  return () => controller.abort();
 };

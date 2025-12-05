@@ -351,6 +351,8 @@ components:
           $ref: '#/components/schemas/models.AIContext'
         prompt_id:
           type: integer
+        stream:
+          type: boolean
         text:
           type: string
       required:

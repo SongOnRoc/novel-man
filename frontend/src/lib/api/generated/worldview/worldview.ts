@@ -41,7 +41,7 @@ import type {
   WorldviewUpdateItemRequest,
 } from "../api10.schemas";
 
-import { customInstance } from "../../../axios";
+import { customFetch } from "../../../fetch";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -51,10 +51,10 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
  */
 export const getWorldviewCategories = (
   params?: GetWorldviewCategoriesParams,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetWorldviewCategories200>(
+  return customFetch<GetWorldviewCategories200>(
     { url: `/worldview/categories`, method: "GET", params, signal },
     options,
   );
@@ -79,7 +79,7 @@ export const getGetWorldviewCategoriesQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -126,7 +126,7 @@ export function useGetWorldviewCategories<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -153,7 +153,7 @@ export function useGetWorldviewCategories<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -172,7 +172,7 @@ export function useGetWorldviewCategories<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -195,7 +195,7 @@ export function useGetWorldviewCategories<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -219,10 +219,10 @@ export function useGetWorldviewCategories<
  */
 export const postWorldviewCategories = (
   worldviewCreateCategoryRequest: WorldviewCreateCategoryRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostWorldviewCategories201>(
+  return customFetch<PostWorldviewCategories201>(
     {
       url: `/worldview/categories`,
       method: "POST",
@@ -247,7 +247,7 @@ export const getPostWorldviewCategoriesMutationOptions = <
     { data: WorldviewCreateCategoryRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postWorldviewCategories>>,
   TError,
@@ -302,7 +302,7 @@ export const usePostWorldviewCategories = <
       { data: WorldviewCreateCategoryRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -321,9 +321,9 @@ export const usePostWorldviewCategories = <
  */
 export const deleteWorldviewCategoriesId = (
   id: number,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<DeleteWorldviewCategoriesId200>(
+  return customFetch<DeleteWorldviewCategoriesId200>(
     { url: `/worldview/categories/${id}`, method: "DELETE" },
     options,
   );
@@ -343,7 +343,7 @@ export const getDeleteWorldviewCategoriesIdMutationOptions = <
     { id: number },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteWorldviewCategoriesId>>,
   TError,
@@ -399,7 +399,7 @@ export const useDeleteWorldviewCategoriesId = <
       { id: number },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -419,10 +419,10 @@ export const useDeleteWorldviewCategoriesId = <
  */
 export const getWorldviewCategoriesId = (
   id: number,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetWorldviewCategoriesId200>(
+  return customFetch<GetWorldviewCategoriesId200>(
     { url: `/worldview/categories/${id}`, method: "GET", signal },
     options,
   );
@@ -449,7 +449,7 @@ export const getGetWorldviewCategoriesIdQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -507,7 +507,7 @@ export function useGetWorldviewCategoriesId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -538,7 +538,7 @@ export function useGetWorldviewCategoriesId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -561,7 +561,7 @@ export function useGetWorldviewCategoriesId<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -588,7 +588,7 @@ export function useGetWorldviewCategoriesId<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -613,9 +613,9 @@ export function useGetWorldviewCategoriesId<
 export const putWorldviewCategoriesId = (
   id: number,
   worldviewUpdateCategoryRequest: WorldviewUpdateCategoryRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<PutWorldviewCategoriesId200>(
+  return customFetch<PutWorldviewCategoriesId200>(
     {
       url: `/worldview/categories/${id}`,
       method: "PUT",
@@ -640,7 +640,7 @@ export const getPutWorldviewCategoriesIdMutationOptions = <
     { id: number; data: WorldviewUpdateCategoryRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putWorldviewCategoriesId>>,
   TError,
@@ -697,7 +697,7 @@ export const usePutWorldviewCategoriesId = <
       { id: number; data: WorldviewUpdateCategoryRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -716,10 +716,10 @@ export const usePutWorldviewCategoriesId = <
  */
 export const getWorldviewItems = (
   params: GetWorldviewItemsParams,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetWorldviewItems200>(
+  return customFetch<GetWorldviewItems200>(
     { url: `/worldview/items`, method: "GET", params, signal },
     options,
   );
@@ -749,7 +749,7 @@ export const getGetWorldviewItemsQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -804,7 +804,7 @@ export function useGetWorldviewItems<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -836,7 +836,7 @@ export function useGetWorldviewItems<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -860,7 +860,7 @@ export function useGetWorldviewItems<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -888,7 +888,7 @@ export function useGetWorldviewItems<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -912,10 +912,10 @@ export function useGetWorldviewItems<
  */
 export const postWorldviewItems = (
   worldviewCreateItemRequest: WorldviewCreateItemRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<PostWorldviewItems201>(
+  return customFetch<PostWorldviewItems201>(
     {
       url: `/worldview/items`,
       method: "POST",
@@ -940,7 +940,7 @@ export const getPostWorldviewItemsMutationOptions = <
     { data: WorldviewCreateItemRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postWorldviewItems>>,
   TError,
@@ -994,7 +994,7 @@ export const usePostWorldviewItems = <
       { data: WorldviewCreateItemRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -1013,9 +1013,9 @@ export const usePostWorldviewItems = <
  */
 export const deleteWorldviewItemsId = (
   id: number,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<DeleteWorldviewItemsId200>(
+  return customFetch<DeleteWorldviewItemsId200>(
     { url: `/worldview/items/${id}`, method: "DELETE" },
     options,
   );
@@ -1035,7 +1035,7 @@ export const getDeleteWorldviewItemsIdMutationOptions = <
     { id: number },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteWorldviewItemsId>>,
   TError,
@@ -1091,7 +1091,7 @@ export const useDeleteWorldviewItemsId = <
       { id: number },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -1110,10 +1110,10 @@ export const useDeleteWorldviewItemsId = <
  */
 export const getWorldviewItemsId = (
   id: number,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<GetWorldviewItemsId200>(
+  return customFetch<GetWorldviewItemsId200>(
     { url: `/worldview/items/${id}`, method: "GET", signal },
     options,
   );
@@ -1140,7 +1140,7 @@ export const getGetWorldviewItemsIdQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -1197,7 +1197,7 @@ export function useGetWorldviewItemsId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -1228,7 +1228,7 @@ export function useGetWorldviewItemsId<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -1251,7 +1251,7 @@ export function useGetWorldviewItemsId<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -1278,7 +1278,7 @@ export function useGetWorldviewItemsId<
         TData
       >
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -1303,9 +1303,9 @@ export function useGetWorldviewItemsId<
 export const putWorldviewItemsId = (
   id: number,
   worldviewUpdateItemRequest: WorldviewUpdateItemRequest,
-  options?: SecondParameter<typeof customInstance>,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
-  return customInstance<PutWorldviewItemsId200>(
+  return customFetch<PutWorldviewItemsId200>(
     {
       url: `/worldview/items/${id}`,
       method: "PUT",
@@ -1330,7 +1330,7 @@ export const getPutWorldviewItemsIdMutationOptions = <
     { id: number; data: WorldviewUpdateItemRequest },
     TContext
   >;
-  request?: SecondParameter<typeof customInstance>;
+  request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putWorldviewItemsId>>,
   TError,
@@ -1386,7 +1386,7 @@ export const usePutWorldviewItemsId = <
       { id: number; data: WorldviewUpdateItemRequest },
       TContext
     >;
-    request?: SecondParameter<typeof customInstance>;
+    request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
