@@ -8,10 +8,37 @@ import { AIContext } from "@/lib/services/ai.service";
 import { v4 as uuidv4 } from "uuid";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Send, Loader2, Wand2, PenTool, BookOpen, Square } from "lucide-react";
+import {
+  Sparkles,
+  Send,
+  Loader2,
+  Wand2,
+  PenTool,
+  BookOpen,
+  Square,
+  Bot,
+  Settings2,
+  Check,
+  ChevronsUpDown,
+} from "lucide-react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { EditMessageDialog } from "./EditMessageDialog";
+import { AISettingsDialog } from "./AISettingsDialog";
+import { useAIModels, AIModel } from "@/hooks/ai/useAIModels";
 
 interface AIChatInterfaceProps {
   workId?: number;
@@ -31,10 +58,44 @@ export function AIChatInterface({
   hideBorder = false,
 }: AIChatInterfaceProps) {
   const [input, setInput] = useState("");
+  const [selectedModel, setSelectedModel] = useState("gpt-3.5-turbo");
+  const [showSettings, setShowSettings] = useState(false);
+  const [openModelSelect, setOpenModelSelect] = useState(false);
+  const [apiKey, setApiKey] = useState("");
+  const [baseUrl, setBaseUrl] = useState("");
+
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
+
+  useEffect(() => {
+    const storedApiKey = localStorage.getItem("ai_api_key");
+    const storedBaseUrl = localStorage.getItem("ai_base_url");
+    if (storedApiKey) setApiKey(storedApiKey);
+    if (storedBaseUrl) setBaseUrl(storedBaseUrl);
+  }, []);
+
+  const handleSaveSettings = (key: string, url: string) => {
+    setApiKey(key);
+    setBaseUrl(url);
+    localStorage.setItem("ai_api_key", key);
+    localStorage.setItem("ai_base_url", url);
+  };
+
+  const { models } = useAIModels(apiKey, baseUrl);
+  const modelOptions: AIModel[] = models;
+
+  // If selected model is not in options, select first one
+  useEffect(() => {
+    if (modelOptions.length > 0) {
+      if (!modelOptions.find((m: AIModel) => m.value === selectedModel)) {
+        setSelectedModel(modelOptions[0].value);
+      }
+    } else {
+      setSelectedModel("");
+    }
+  }, [modelOptions, selectedModel]);
 
   const {
     messages,
@@ -132,10 +193,10 @@ export function AIChatInterface({
     }
 
     if (!input.trim()) return;
-    
+
     const text = input.trim();
     setInput("");
-    
+
     // Add user message
     const userMsg: Message = {
       id: uuidv4(),
@@ -164,10 +225,15 @@ export function AIChatInterface({
     }
 
     // Start streaming
+    // NOTE: We don't pass api_key and base_url here anymore.
+    // They are handled by the /api/proxy/generate route using cookies.
     generate({
       text: prompt,
       context,
       assistant_type: assistantType,
+      model: selectedModel,
+      // api_key: apiKey, // Removed to prevent exposure in payload
+      // base_url: baseUrl, // Removed to prevent exposure in payload
     });
   };
 
@@ -192,7 +258,12 @@ export function AIChatInterface({
   };
 
   return (
-    <div className={cn("flex flex-col h-full w-full overflow-hidden bg-transparent", className)}>
+    <div
+      className={cn(
+        "flex flex-col h-full w-full overflow-hidden bg-transparent",
+        className
+      )}
+    >
       {/* Messages Area */}
       <div className="flex-1 overflow-hidden relative">
         <ScrollArea className="h-full w-full p-4" ref={scrollAreaRef}>
@@ -200,7 +271,7 @@ export function AIChatInterface({
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center p-8 text-muted-foreground/60 space-y-4 mt-20">
                 <div className="p-4 rounded-full bg-primary/5 mb-2 ring-1 ring-primary/10">
-                    <Sparkles className="h-8 w-8 text-primary/60" />
+                  <Sparkles className="h-8 w-8 text-primary/60" />
                 </div>
                 <p className="text-sm font-medium">AI 助手准备就绪</p>
                 <p className="text-xs max-w-[200px]">
@@ -219,10 +290,17 @@ export function AIChatInterface({
                     <AIChatMessage
                       message={msg}
                       onInsert={onApplyToEditor}
-                      onCopy={(content) => navigator.clipboard.writeText(content)}
+                      onCopy={(content) =>
+                        navigator.clipboard.writeText(content)
+                      }
                       onOptionSelect={(option) => onApplyToEditor?.(option)}
                       onEdit={(id, currentContent) => {
-                        setEditingMessage({ id, content: currentContent, role: 'user', timestamp: Date.now() });
+                        setEditingMessage({
+                          id,
+                          content: currentContent,
+                          role: "user",
+                          timestamp: Date.now(),
+                        });
                       }}
                       onDelete={deleteMessage}
                     />
@@ -238,7 +316,9 @@ export function AIChatInterface({
               >
                 <div className="flex items-center gap-2 bg-muted/50 backdrop-blur-sm rounded-2xl px-4 py-3 border border-border/10 shadow-sm">
                   <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                  <span className="text-xs text-muted-foreground font-medium">AI 正在思考...</span>
+                  <span className="text-xs text-muted-foreground font-medium">
+                    AI 正在思考...
+                  </span>
                 </div>
               </motion.div>
             )}
@@ -259,25 +339,152 @@ export function AIChatInterface({
             className="min-h-[44px] max-h-[120px] w-full resize-none border-0 bg-transparent px-2 py-1 text-sm focus-visible:ring-0 placeholder:text-muted-foreground/50 scrollbar-hide"
             rows={1}
           />
-          
-          <div className="flex items-center justify-between pt-2 border-t border-border/5">
-             {/* Quick Actions */}
-            <div className="flex gap-1 overflow-x-auto scrollbar-hide mask-linear-fade max-w-[calc(100%-40px)]">
+
+          <div className="flex items-center justify-between pt-2 border-t border-border/5 gap-2">
+            <div className="flex items-center gap-2 flex-1 overflow-hidden">
+              {/* Settings Button */}
+              <button
+                onClick={() => setShowSettings(true)}
+                className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/5 hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors duration-200 shrink-0"
+                title="AI 设置"
+              >
+                <Settings2 className="h-3.5 w-3.5" />
+              </button>
+
+              {/* Model Selector */}
+              <Popover open={openModelSelect} onOpenChange={setOpenModelSelect}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    role="combobox"
+                    aria-expanded={openModelSelect}
+                    className="h-6 w-[130px] text-[10px] bg-primary/5 border-0 rounded-full px-2 focus:ring-0 focus:ring-offset-0 shrink-0 justify-between font-normal hover:bg-primary/10 hover:text-foreground"
+                  >
+                    <div className="flex items-center truncate">
+                      <Bot className="h-3 w-3 mr-1 opacity-70 shrink-0" />
+                      <span className="truncate">
+                        {selectedModel
+                          ? modelOptions.find(
+                              (model) => model.value === selectedModel
+                            )?.label || selectedModel
+                          : "请配置模型接口"}
+                      </span>
+                    </div>
+                    <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-[260px] p-0 rounded-2xl shadow-2xl border-border/10 bg-background/80 backdrop-blur-xl overflow-hidden ring-1 ring-black/5 max-h-[320px]"
+                  side="top"
+                  align="start"
+                  sideOffset={12}
+                  onOpenAutoFocus={(e) => e.preventDefault()}
+                >
+                  <Command className="bg-transparent h-full flex flex-col">
+                    <div className="shrink-0 p-1">
+                      <CommandInput
+                        placeholder="搜索模型..."
+                        className="h-9 text-xs border-none bg-muted/30 rounded-lg px-2 focus:ring-0"
+                      />
+                    </div>
+                    <CommandList className="flex-1 overflow-y-auto py-1 px-1 scrollbar-thin scrollbar-thumb-border/20 scrollbar-track-transparent">
+                      <CommandEmpty className="py-8 text-xs text-center text-muted-foreground/60 flex flex-col items-center gap-2">
+                        <Bot className="h-8 w-8 opacity-20" />
+                        <span>
+                          {modelOptions.length === 0
+                            ? "请先在设置中配置模型"
+                            : "未找到相关模型"}
+                        </span>
+                      </CommandEmpty>
+                      <CommandGroup>
+                        {modelOptions.map((model) => (
+                          <CommandItem
+                            key={model.value}
+                            value={model.value}
+                            onSelect={(currentValue) => {
+                              setSelectedModel(
+                                currentValue === selectedModel
+                                  ? ""
+                                  : model.value
+                              );
+                              setOpenModelSelect(false);
+                            }}
+                            className="text-xs py-2.5 px-3 mx-0.5 mb-1 rounded-xl aria-selected:bg-primary/10 aria-selected:text-primary cursor-pointer transition-all duration-200 group relative overflow-hidden"
+                          >
+                            <div className="flex items-start justify-between w-full z-10 relative">
+                              <span className="font-medium opacity-80 group-aria-selected:opacity-100 break-words whitespace-normal pr-2">
+                                {model.label}
+                              </span>
+                              {selectedModel === model.value && (
+                                <motion.div
+                                  initial={{ scale: 0, opacity: 0 }}
+                                  animate={{ scale: 1, opacity: 1 }}
+                                  transition={{
+                                    type: "spring",
+                                    stiffness: 500,
+                                    damping: 30,
+                                  }}
+                                >
+                                  <Check className="h-3.5 w-3.5 text-primary shrink-0 ml-2" />
+                                </motion.div>
+                              )}
+                            </div>
+                            {selectedModel === model.value && (
+                              <motion.div
+                                layoutId="activeModel"
+                                className="absolute inset-0 bg-primary/5 z-0"
+                                initial={false}
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 500,
+                                  damping: 30,
+                                }}
+                              />
+                            )}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                    {modelOptions.length === 0 && (
+                      <div className="p-2 border-t border-border/5 bg-muted/20 backdrop-blur-sm shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full h-9 text-xs justify-center px-3 rounded-xl hover:bg-primary/10 hover:text-primary transition-colors font-medium"
+                          onClick={() => {
+                            setShowSettings(true);
+                            setOpenModelSelect(false);
+                          }}
+                        >
+                          <Settings2 className="mr-2 h-3.5 w-3.5" />
+                          配置模型接口
+                        </Button>
+                      </div>
+                    )}
+                  </Command>
+                </PopoverContent>
+              </Popover>
+
+              <div className="w-px h-4 bg-border/10 shrink-0" />
+
+              {/* Quick Actions */}
+              <div className="flex gap-1 overflow-x-auto scrollbar-hide mask-linear-fade">
                 {[
                   { label: "润色", icon: Sparkles },
                   { label: "续写", icon: PenTool },
                   { label: "分析", icon: BookOpen },
-                  { label: "扩写", icon: Wand2 }
+                  { label: "扩写", icon: Wand2 },
                 ].map((action) => (
-                    <button
-                        key={action.label}
-                        onClick={() => handleQuickAction(action.label)}
-                        className="flex items-center gap-1 whitespace-nowrap px-2.5 py-1 rounded-full bg-primary/5 hover:bg-primary/10 text-[10px] text-muted-foreground hover:text-primary transition-colors duration-200"
-                    >
-                        <action.icon className="h-3 w-3" />
-                        {action.label}
-                    </button>
+                  <button
+                    key={action.label}
+                    onClick={() => handleQuickAction(action.label)}
+                    className="flex items-center gap-1 whitespace-nowrap px-2.5 py-1 rounded-full bg-primary/5 hover:bg-primary/10 text-[10px] text-muted-foreground hover:text-primary transition-colors duration-200"
+                  >
+                    <action.icon className="h-3 w-3" />
+                    {action.label}
+                  </button>
                 ))}
+              </div>
             </div>
 
             <Button
@@ -287,7 +494,7 @@ export function AIChatInterface({
               disabled={!isLoading && !input.trim()}
               className={cn(
                 "h-8 w-8 rounded-full shrink-0 transition-all duration-300 shadow-sm",
-                (isLoading || input.trim())
+                isLoading || input.trim()
                   ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 hover:shadow-primary/25"
                   : "bg-muted/50 text-muted-foreground hover:bg-muted/80"
               )}
@@ -314,6 +521,14 @@ export function AIChatInterface({
           }}
         />
       )}
+
+      <AISettingsDialog
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        onSave={handleSaveSettings}
+        initialApiKey={apiKey}
+        initialBaseUrl={baseUrl}
+      />
     </div>
   );
 }

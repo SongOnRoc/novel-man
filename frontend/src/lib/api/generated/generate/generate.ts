@@ -24,6 +24,9 @@ import type {
 import type {
   GetGenerate200,
   GetGenerateBody,
+  GetGenerateModels200,
+  GetGenerateModelsBody,
+  GetGenerateModelsParams,
   ModelsGenerateRequest,
   PostGenerate200,
   ResponseStandardResponse,
@@ -276,3 +279,191 @@ export const usePostGenerate = <
 
   return useMutation(mutationOptions, queryClient);
 };
+/**
+ * Retrieves a list of all available models.
+ * @summary Get Available Models
+ */
+export const getGenerateModels = (
+  getGenerateModelsBody: GetGenerateModelsBody,
+  params?: GetGenerateModelsParams,
+  options?: SecondParameter<typeof customFetch>,
+  signal?: AbortSignal,
+) => {
+  return customFetch<GetGenerateModels200>(
+    {
+      url: `/generate/models`,
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      params,
+      signal,
+    },
+    options,
+  );
+};
+
+export const getGetGenerateModelsQueryKey = (
+  getGenerateModelsBody?: GetGenerateModelsBody,
+  params?: GetGenerateModelsParams,
+) => {
+  return [
+    `/generate/models`,
+    ...(params ? [params] : []),
+    getGenerateModelsBody,
+  ] as const;
+};
+
+export const getGetGenerateModelsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getGenerateModels>>,
+  TError = ResponseStandardResponse,
+>(
+  getGenerateModelsBody: GetGenerateModelsBody,
+  params?: GetGenerateModelsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getGenerateModels>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getGetGenerateModelsQueryKey(getGenerateModelsBody, params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getGenerateModels>>
+  > = ({ signal }) =>
+    getGenerateModels(getGenerateModelsBody, params, requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getGenerateModels>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetGenerateModelsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getGenerateModels>>
+>;
+export type GetGenerateModelsQueryError = ResponseStandardResponse;
+
+export function useGetGenerateModels<
+  TData = Awaited<ReturnType<typeof getGenerateModels>>,
+  TError = ResponseStandardResponse,
+>(
+  getGenerateModelsBody: GetGenerateModelsBody,
+  params: undefined | GetGenerateModelsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getGenerateModels>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getGenerateModels>>,
+          TError,
+          Awaited<ReturnType<typeof getGenerateModels>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetGenerateModels<
+  TData = Awaited<ReturnType<typeof getGenerateModels>>,
+  TError = ResponseStandardResponse,
+>(
+  getGenerateModelsBody: GetGenerateModelsBody,
+  params?: GetGenerateModelsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getGenerateModels>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getGenerateModels>>,
+          TError,
+          Awaited<ReturnType<typeof getGenerateModels>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetGenerateModels<
+  TData = Awaited<ReturnType<typeof getGenerateModels>>,
+  TError = ResponseStandardResponse,
+>(
+  getGenerateModelsBody: GetGenerateModelsBody,
+  params?: GetGenerateModelsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getGenerateModels>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get Available Models
+ */
+
+export function useGetGenerateModels<
+  TData = Awaited<ReturnType<typeof getGenerateModels>>,
+  TError = ResponseStandardResponse,
+>(
+  getGenerateModelsBody: GetGenerateModelsBody,
+  params?: GetGenerateModelsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getGenerateModels>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetGenerateModelsQueryOptions(
+    getGenerateModelsBody,
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}

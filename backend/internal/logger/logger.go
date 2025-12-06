@@ -76,10 +76,24 @@ func New(opts Options) *Logger {
 // getDefaultLogger 获取全局默认的 logger 实例
 func getDefaultLogger() *Logger {
 	initOnce.Do(func() {
-		cfg := config.Cfg.Log
+		var isDebug, isConsole bool
+		// 检查 config.Cfg 是否已初始化
+		// 注意：这里我们直接访问 Cfg，因为在 logger 初始化阶段可能还没有并发问题，
+		// 或者我们可以使用 config.GetLLMConfig() 类似的访问器，但 Log 配置还没有访问器。
+		// 为了简单起见，且 logger 通常在 config 加载后初始化，我们这里做一个简单的 nil 检查。
+		// 在测试环境中，Cfg 可能为 nil。
+		if config.Cfg != nil {
+			isDebug = config.Cfg.Log.Debug
+			isConsole = config.Cfg.Log.ConsoleLog
+		} else {
+			// 默认值
+			isDebug = true
+			isConsole = true
+		}
+
 		defaultLogger = New(Options{
-			IsDebug:       cfg.Debug,
-			EnableConsole: cfg.ConsoleLog,
+			IsDebug:       isDebug,
+			EnableConsole: isConsole,
 		})
 	})
 	return defaultLogger

@@ -16,14 +16,19 @@ type MockLLMService struct {
 	mock.Mock
 }
 
-func (m *MockLLMService) GenerateStream(ctx context.Context, prompt string) (<-chan string, <-chan error) {
-	args := m.Called(ctx, prompt)
+func (m *MockLLMService) GenerateStream(ctx context.Context, prompt string, opts LLMOptions) (<-chan string, <-chan error) {
+	args := m.Called(ctx, prompt, opts)
 	return args.Get(0).(<-chan string), args.Get(1).(<-chan error)
 }
 
-func (m *MockLLMService) Generate(ctx context.Context, prompt string) (string, error) {
-	args := m.Called(ctx, prompt)
+func (m *MockLLMService) Generate(ctx context.Context, prompt string, opts LLMOptions) (string, error) {
+	args := m.Called(ctx, prompt, opts)
 	return args.String(0), args.Error(1)
+}
+
+func (m *MockLLMService) ListModels(ctx context.Context, opts LLMOptions) ([]string, error) {
+	args := m.Called(ctx, opts)
+	return args.Get(0).([]string), args.Error(1)
 }
 
 func TestGenerateService_GenerateTextStream(t *testing.T) {
@@ -48,7 +53,7 @@ func TestGenerateService_GenerateTextStream(t *testing.T) {
 		close(contentChan)
 		close(errChan)
 
-		mockLLM.On("GenerateStream", mock.Anything, expectedPrompt).Return((<-chan string)(contentChan), (<-chan error)(errChan))
+		mockLLM.On("GenerateStream", mock.Anything, expectedPrompt, mock.AnythingOfType("LLMOptions")).Return((<-chan string)(contentChan), (<-chan error)(errChan))
 
 		ctx := context.Background()
 		respContentChan, respErrChan, err := service.GenerateTextStream(ctx, req)
@@ -92,7 +97,7 @@ func TestGenerateService_GenerateTextStream(t *testing.T) {
 		close(contentChan)
 		close(errChan)
 
-		mockLLM.On("GenerateStream", mock.Anything, "Error case").Return((<-chan string)(contentChan), (<-chan error)(errChan))
+		mockLLM.On("GenerateStream", mock.Anything, "Error case", mock.AnythingOfType("LLMOptions")).Return((<-chan string)(contentChan), (<-chan error)(errChan))
 
 		ctx := context.Background()
 		respContentChan, respErrChan, err := service.GenerateTextStream(ctx, req)
@@ -129,7 +134,7 @@ func TestGenerateService_GenerateTextStream(t *testing.T) {
 		close(contentChan)
 		close(errChan)
 
-		mockLLM.On("GenerateStream", mock.Anything, expectedPrompt).Return((<-chan string)(contentChan), (<-chan error)(errChan))
+		mockLLM.On("GenerateStream", mock.Anything, expectedPrompt, mock.AnythingOfType("LLMOptions")).Return((<-chan string)(contentChan), (<-chan error)(errChan))
 
 		service.GenerateTextStream(context.Background(), req)
 
@@ -152,7 +157,7 @@ func TestGenerateService_GenerateText(t *testing.T) {
 		expectedPrompt := "Role: creative-writing\nWrite a story"
 		expectedResponse := "Once upon a time..."
 
-		mockLLM.On("Generate", mock.Anything, expectedPrompt).Return(expectedResponse, nil)
+		mockLLM.On("Generate", mock.Anything, expectedPrompt, mock.AnythingOfType("LLMOptions")).Return(expectedResponse, nil)
 
 		ctx := context.Background()
 		resp, err := service.GenerateText(ctx, req)
@@ -173,7 +178,7 @@ func TestGenerateService_GenerateText(t *testing.T) {
 		}
 
 		expectedErr := errors.New("llm error")
-		mockLLM.On("Generate", mock.Anything, "Error case").Return("", expectedErr)
+		mockLLM.On("Generate", mock.Anything, "Error case", mock.AnythingOfType("LLMOptions")).Return("", expectedErr)
 
 		ctx := context.Background()
 		resp, err := service.GenerateText(ctx, req)

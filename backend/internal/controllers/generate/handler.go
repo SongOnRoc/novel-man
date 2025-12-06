@@ -42,6 +42,31 @@ func (c *GenerateController) GetAssistantTypes(ctx *gin.Context) {
 	response.Success(ctx, http.StatusOK, types)
 }
 
+// GetAvailableModels godoc
+// @Summary      Get Available Models
+// @Description  Retrieves a list of all available models.
+// @Tags         Generate
+// @Accept       json
+// @Produce      json
+// @Param        api_key    query     string  false  "API Key"
+// @Param        base_url   query     string  false  "Base URL"
+// @Success      200  {object}  response.StandardResponse{data=[]models.ModelResponse}
+// @Failure      500  {object}  response.StandardResponse
+// @Router       /generate/models [get]
+func (c *GenerateController) GetAvailableModels(ctx *gin.Context) {
+	var req models.ModelListRequest
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		// Ignore binding error, just use empty values
+	}
+
+	models, err := c.generateService.GetAvailableModels(ctx.Request.Context(), &req)
+	if err != nil {
+		response.Error(ctx, http.StatusInternalServerError, 1, "Could not fetch models", err)
+		return
+	}
+	response.Success(ctx, http.StatusOK, models)
+}
+
 // GenerateText godoc
 // @Summary      Generate Text
 // @Description  Generates text based on a given prompt, assistant type, or text.

@@ -200,9 +200,13 @@ export interface ModelsAssistantTypeResponse {
 }
 
 export interface ModelsGenerateRequest {
+  api_key?: string;
   /** Corresponds to a model name or a system prompt category */
   assistant_type?: string;
+  base_url?: string;
   context?: ModelsAIContext;
+  /** Configuration overrides */
+  model?: string;
   prompt_id?: number;
   stream?: boolean;
   text: string;
@@ -210,6 +214,12 @@ export interface ModelsGenerateRequest {
 
 export interface ModelsGenerateResponse {
   generated_text?: string;
+}
+
+export interface ModelsModelResponse {
+  id?: string;
+  label?: string;
+  name?: string;
 }
 
 export type PromptsCreatePromptRequestSummary = { [key: string]: unknown };
@@ -697,6 +707,27 @@ export type GetGenerate200 = Data & {
 };
 
 export type PostGenerate200 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type GetGenerateModelsParams = {
+  /**
+   * API Key
+   */
+  api_key?: string;
+  /**
+   * Base URL
+   */
+  base_url?: string;
+};
+
+export type GetGenerateModelsBody = { [key: string]: unknown };
+
+export type GetGenerateModels200 = Data & {
   code?: number;
   data?: unknown;
   message?: string;

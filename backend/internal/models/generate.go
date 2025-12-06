@@ -6,6 +6,19 @@ type AssistantTypeResponse struct {
 	Label string `json:"label"`
 }
 
+// ModelResponse is the response for model list.
+type ModelResponse struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Label string `json:"label"`
+}
+
+// ModelListRequest contains parameters for listing available models.
+type ModelListRequest struct {
+	APIKey  string `form:"api_key"`
+	BaseURL string `form:"base_url"`
+}
+
 // GenerateRequest is the unified generation interface request body.
 type GenerateRequest struct {
 	Text          string     `json:"text" binding:"required"`
@@ -13,6 +26,10 @@ type GenerateRequest struct {
 	PromptID      *uint      `json:"prompt_id,omitempty"`
 	Context       *AIContext `json:"context,omitempty"`
 	Stream        bool       `json:"stream,omitempty"`
+	// Configuration overrides
+	Model   string `json:"model,omitempty"`
+	APIKey  string `json:"api_key,omitempty"`
+	BaseURL string `json:"base_url,omitempty"`
 }
 
 // AIContext contains additional context for the AI generation.

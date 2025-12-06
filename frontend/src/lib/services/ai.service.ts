@@ -3,12 +3,13 @@
  * @description This service handles all AI-related API calls using the new generate endpoint.
  */
 
-import { postGenerate } from "@/lib/api/generated/generate/generate";
 import type {
+  ModelsAIContext,
   ModelsGenerateRequest,
   ModelsGenerateResponse,
-  ModelsAIContext,
+  ModelsModelResponse,
 } from "@/lib/api/generated/api10.schemas";
+import { getGenerateModels, postGenerate } from "@/lib/api/generated/generate/generate";
 
 // =================================================================
 // Re-exporting Core AI Types for Application-wide Use
@@ -16,6 +17,7 @@ import type {
 export type GenerateRequest = ModelsGenerateRequest;
 export type GenerateResponse = ModelsGenerateResponse;
 export type AIContext = ModelsAIContext;
+export type ModelsModel = ModelsModelResponse;
 
 // Legacy type aliases for backward compatibility
 export type CompletionRequest = GenerateRequest;
@@ -132,6 +134,9 @@ export const generateStreamService = (
 
   // Use the generated postGenerate function, passing options to configure the request
   // The generated function uses customFetch internally, which supports onData via options
+  // NOTE: We are now calling the specific proxy route /api/proxy/generate which handles API Key injection
+  // The generated client calls /api/proxy/generate by default because of the setup in customFetch/orval
+  // But we need to make sure we don't pass sensitive info in requestData (handled in UI component)
   postGenerate(
     requestData,
     {
@@ -158,4 +163,23 @@ export const generateStreamService = (
   });
 
   return () => controller.abort();
+};
+
+/**
+ * Fetches available AI models.
+ * If apiKey/baseUrl are provided, it acts as a "save settings" operation (via proxy headers).
+ * If not provided, it fetches models using stored cookies (via proxy).
+ */
+export const getAvailableModelsService = async (
+  apiKey?: string,
+  baseUrl?: string
+): Promise<ModelsModel[]> => {
+  const headers: Record<string, string> = {};
+  if (apiKey !== undefined) headers["X-API-Key"] = apiKey;
+  if (baseUrl !== undefined) headers["X-Base-URL"] = baseUrl;
+
+  // Pass empty body as first arg, undefined params as second arg, headers in options as third
+  const res = await getGenerateModels({}, undefined, { headers });
+  // customFetch returns extracted data, but types might be mismatched
+  return res as unknown as ModelsModel[];
 };

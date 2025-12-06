@@ -13,4 +13,6 @@ type GenerateService interface {
 	GenerateTextStream(ctx context.Context, req *models.GenerateRequest) (<-chan string, <-chan error, error)
 	// GetAssistantTypes returns a list of available assistant types.
 	GetAssistantTypes() ([]models.AssistantTypeResponse, error)
+	// GetAvailableModels returns a list of available models.
+	GetAvailableModels(ctx context.Context, req *models.ModelListRequest) ([]models.ModelResponse, error)
 }

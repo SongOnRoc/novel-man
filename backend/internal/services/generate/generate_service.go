@@ -32,7 +32,13 @@ func (s *generateService) GenerateText(ctx context.Context, req *models.Generate
 		prompt = fmt.Sprintf("Role: %s\n%s", req.AssistantType, prompt)
 	}
 
-	generatedText, err := s.llmService.Generate(ctx, prompt)
+	opts := LLMOptions{
+		Model:   req.Model,
+		APIKey:  req.APIKey,
+		BaseURL: req.BaseURL,
+	}
+
+	generatedText, err := s.llmService.Generate(ctx, prompt, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +58,13 @@ func (s *generateService) GenerateTextStream(ctx context.Context, req *models.Ge
 		prompt = fmt.Sprintf("Role: %s\n%s", req.AssistantType, prompt)
 	}
 
-	contentChan, errChan := s.llmService.GenerateStream(ctx, prompt)
+	opts := LLMOptions{
+		Model:   req.Model,
+		APIKey:  req.APIKey,
+		BaseURL: req.BaseURL,
+	}
+
+	contentChan, errChan := s.llmService.GenerateStream(ctx, prompt, opts)
 	return contentChan, errChan, nil
 }
 
@@ -63,4 +75,28 @@ func (s *generateService) GetAssistantTypes() ([]models.AssistantTypeResponse, e
 		{Name: "creative-writing", Label: "创意写作助手"},
 		{Name: "technical-writing", Label: "技术写作助手"},
 	}, nil
+}
+
+// GetAvailableModels returns a list of available models.
+func (s *generateService) GetAvailableModels(ctx context.Context, req *models.ModelListRequest) ([]models.ModelResponse, error) {
+	opts := LLMOptions{
+		APIKey:  req.APIKey,
+		BaseURL: req.BaseURL,
+	}
+
+	modelIDs, err := s.llmService.ListModels(ctx, opts)
+	if err != nil {
+		logger.Error(Ctx.New(ctx), "Failed to list models: {}", err)
+		return nil, err
+	}
+
+	res := make([]models.ModelResponse, len(modelIDs))
+	for i, id := range modelIDs {
+		res[i] = models.ModelResponse{
+			ID:    id,
+			Name:  id,
+			Label: id, // Use ID as label for now
+		}
+	}
+	return res, nil
 }

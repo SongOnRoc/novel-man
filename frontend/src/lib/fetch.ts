@@ -25,10 +25,15 @@ export const customFetch = async <T>(
   },
   options?: {
     onData?: (data: any) => void;
+    headers?: Record<string, string>;
   }
 ): Promise<T> => {
   const { url, method = "GET", headers = {}, params, data, signal } = config;
-  const { onData } = options || {};
+  const { onData, headers: optionHeaders } = options || {};
+
+  if (optionHeaders) {
+    Object.assign(headers, optionHeaders);
+  }
 
   // 1. Authentication
   // getSession() is client-side only. On the server, tokens are handled directly.

@@ -41,6 +41,7 @@ func (m *generateModule) RegisterRoutes(router *gin.RouterGroup) {
 		authedGroup.Use(authMiddleware)
 		{
 			authedGroup.GET("", controller.GetAssistantTypes)
+			authedGroup.GET("/models", controller.GetAvailableModels)
 			authedGroup.POST("", controller.GenerateText)
 		}
 	})

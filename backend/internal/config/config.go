@@ -3,6 +3,8 @@ package config
 import (
 	"fmt"
 
+	"sync"
+
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 )
@@ -44,7 +46,20 @@ type DatabaseConfig struct {
 	DSN  string `mapstructure:"dsn"`
 }
 
-var Cfg *Config
+var (
+	Cfg      *Config
+	cfgMutex sync.RWMutex
+)
+
+// GetLLMConfig 线程安全地获取 LLM 配置副本
+func GetLLMConfig() LLMConfig {
+	cfgMutex.RLock()
+	defer cfgMutex.RUnlock()
+	if Cfg == nil {
+		return LLMConfig{}
+	}
+	return Cfg.LLM
+}
 
 // LogConfig 存储日志相关的配置
 type LogConfig struct {
@@ -75,7 +90,9 @@ func LoadConfig(configPath string) (*Config, error) {
 		return nil, fmt.Errorf("无法解析配置: %w", err)
 	}
 
+	cfgMutex.Lock()
 	Cfg = &config
+	cfgMutex.Unlock()
 
 	// 监控配置文件变化
 	viper.WatchConfig()
@@ -85,12 +102,14 @@ func LoadConfig(configPath string) (*Config, error) {
 		if err := viper.Unmarshal(&newConfig); err != nil {
 			fmt.Println("Error reloading config:", err)
 		} else {
+			cfgMutex.Lock()
 			Cfg = &newConfig
+			cfgMutex.Unlock()
 			for _, cb := range onConfigChangeCallbacks {
-				cb(Cfg)
+				cb(&newConfig)
 			}
 		}
 	})
 
-	return Cfg, nil
+	return &config, nil
 }

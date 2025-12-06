@@ -2,86 +2,108 @@ package generate
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"novel-man/backend/internal/config"
 	"novel-man/backend/internal/logger"
 	Ctx "novel-man/backend/utils/context"
+	"strings"
 
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
 )
 
+// LLMOptions defines configuration options for the LLM client.
+type LLMOptions struct {
+	Model   string
+	APIKey  string
+	BaseURL string
+}
+
 // LLMService defines the interface for interacting with LLM providers.
 type LLMService interface {
 	// GenerateStream generates text in a streaming fashion.
-	GenerateStream(ctx context.Context, prompt string) (<-chan string, <-chan error)
+	GenerateStream(ctx context.Context, prompt string, opts LLMOptions) (<-chan string, <-chan error)
 	// Generate generates text in a blocking fashion.
-	Generate(ctx context.Context, prompt string) (string, error)
+	Generate(ctx context.Context, prompt string, opts LLMOptions) (string, error)
+	// ListModels retrieves the list of available models from the provider.
+	ListModels(ctx context.Context, opts LLMOptions) ([]string, error)
 }
 
 type llmService struct {
-	llm llms.Model
+	// Stateless service, no fields needed
 }
 
 // NewLLMService creates a new instance of LLMService.
 func NewLLMService() (LLMService, error) {
-	cfg := config.Cfg.LLM
-
-	// Default to OpenAI if provider is not specified or is "openai"
-	// We can extend this switch for other providers later
-	var llm llms.Model
-	var err error
-
-	opts := []openai.Option{}
-
-	if cfg.APIKey != "" {
-		opts = append(opts, openai.WithToken(cfg.APIKey))
-	}
-	if cfg.BaseURL != "" {
-		opts = append(opts, openai.WithBaseURL(cfg.BaseURL))
-	}
-	if cfg.Model != "" {
-		opts = append(opts, openai.WithModel(cfg.Model))
-	}
-
-	// 如果没有配置 API Key，我们不立即报错，而是允许服务启动。
-	if cfg.APIKey == "" && cfg.BaseURL == "" {
-		return &llmService{
-			llm: nil,
-		}, nil
-	}
-
-	llm, err = openai.New(opts...)
-	if err != nil {
-		// 如果初始化失败（例如环境变量也没设置），我们也不 Panic，而是返回 nil llm
-		// 这样服务可以启动，调用时再报错
-		logger.Warn(Ctx.New(context.Background()), "failed to create llm client: {}. AI features will be unavailable.", err)
-		return &llmService{
-			llm: nil,
-		}, nil
-	}
-
-	return &llmService{
-		llm: llm,
-	}, nil
+	return &llmService{}, nil
 }
 
-func (s *llmService) GenerateStream(ctx context.Context, prompt string) (<-chan string, <-chan error) {
+// createClient creates a new LLM client based on system config and request options.
+func (s *llmService) createClient(ctx context.Context, opts LLMOptions) (llms.Model, error) {
+	// 1. Read system default config
+	sysCfg := config.GetLLMConfig()
+
+	// 2. Prepare options
+	openaiOpts := []openai.Option{}
+
+	// Priority: Request Options > System Config
+	apiKey := sysCfg.APIKey
+	if opts.APIKey != "" {
+		apiKey = opts.APIKey
+	}
+	if apiKey != "" {
+		openaiOpts = append(openaiOpts, openai.WithToken(apiKey))
+	}
+
+	baseURL := sysCfg.BaseURL
+	if opts.BaseURL != "" {
+		baseURL = opts.BaseURL
+	}
+	if baseURL != "" {
+		openaiOpts = append(openaiOpts, openai.WithBaseURL(baseURL))
+	}
+
+	model := sysCfg.Model
+	if opts.Model != "" {
+		model = opts.Model
+	}
+	if model != "" {
+		openaiOpts = append(openaiOpts, openai.WithModel(model))
+	}
+
+	// 3. Validation
+	if apiKey == "" && baseURL == "" {
+		return nil, fmt.Errorf("LLM configuration missing: API Key or Base URL is required")
+	}
+
+	// 4. Create client
+	llm, err := openai.New(openaiOpts...)
+	if err != nil {
+		logger.Warn(Ctx.New(ctx), "failed to create llm client: {}", err)
+		return nil, err
+	}
+
+	return llm, nil
+}
+
+func (s *llmService) GenerateStream(ctx context.Context, prompt string, opts LLMOptions) (<-chan string, <-chan error) {
 	contentChan := make(chan string)
 	errChan := make(chan error, 1)
-
-	if s.llm == nil {
-		errChan <- fmt.Errorf("LLM client is not initialized. Please check your configuration.")
-		close(contentChan)
-		close(errChan)
-		return contentChan, errChan
-	}
 
 	go func() {
 		defer close(contentChan)
 		defer close(errChan)
 
-		_, err := s.llm.Call(ctx, prompt,
+		llm, err := s.createClient(ctx, opts)
+		if err != nil {
+			errChan <- err
+			return
+		}
+
+		_, err = llm.Call(ctx, prompt,
 			llms.WithStreamingFunc(func(ctx context.Context, chunk []byte) error {
 				content := string(chunk)
 				logger.Debug(Ctx.New(ctx), "GenerateStream chunk: {}", content)
@@ -97,9 +119,147 @@ func (s *llmService) GenerateStream(ctx context.Context, prompt string) (<-chan 
 	return contentChan, errChan
 }
 
-func (s *llmService) Generate(ctx context.Context, prompt string) (string, error) {
-	if s.llm == nil {
-		return "", fmt.Errorf("LLM client is not initialized. Please check your configuration.")
+func (s *llmService) Generate(ctx context.Context, prompt string, opts LLMOptions) (string, error) {
+	llm, err := s.createClient(ctx, opts)
+	if err != nil {
+		return "", err
 	}
-	return s.llm.Call(ctx, prompt)
+	return llm.Call(ctx, prompt)
+}
+
+// ListModels retrieves the list of available models from the provider.
+func (s *llmService) ListModels(ctx context.Context, opts LLMOptions) ([]string, error) {
+	// 1. Read system default config
+	sysCfg := config.GetLLMConfig()
+
+	// 2. Merge options (Priority: Request Options > System Config)
+	cfg := sysCfg
+	if opts.APIKey != "" {
+		cfg.APIKey = opts.APIKey
+	}
+	if opts.BaseURL != "" {
+		cfg.BaseURL = opts.BaseURL
+	}
+	// Provider is assumed to be from system config for now.
+
+	provider := strings.ToLower(cfg.Provider)
+
+	switch provider {
+	case "gemini", "google":
+		return s.listModelsGemini(ctx, cfg)
+	case "anthropic":
+		return s.listModelsAnthropic(ctx, cfg)
+	case "openai":
+		return s.listModelsOpenAI(ctx, cfg)
+	default:
+		// Default to OpenAI logic
+		return s.listModelsOpenAI(ctx, cfg)
+	}
+}
+
+func (s *llmService) listModelsAnthropic(ctx context.Context, cfg config.LLMConfig) ([]string, error) {
+	// Anthropic API (or compatible proxy) reuses OpenAI logic
+	return s.listModelsOpenAI(ctx, cfg)
+}
+
+func (s *llmService) listModelsOpenAI(ctx context.Context, cfg config.LLMConfig) ([]string, error) {
+	baseURL := cfg.BaseURL
+	if baseURL == "" {
+		// If BaseURL is empty, we assume official OpenAI API
+		baseURL = "https://api.openai.com/v1"
+	}
+
+	// Ensure URL ends with /models
+	url := fmt.Sprintf("%s/models", strings.TrimRight(baseURL, "/"))
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if cfg.APIKey != "" {
+		req.Header.Set("Authorization", "Bearer "+cfg.APIKey)
+		// Some providers/proxies might expect x-api-key as well
+		req.Header.Set("x-api-key", cfg.APIKey)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("failed to fetch models from OpenAI/Anthropic: status %d, body: %s", resp.StatusCode, string(body))
+	}
+
+	var result struct {
+		Data []struct {
+			ID string `json:"id"`
+		} `json:"data"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	models := make([]string, len(result.Data))
+	for i, m := range result.Data {
+		models[i] = m.ID
+	}
+
+	return models, nil
+}
+
+func (s *llmService) listModelsGemini(ctx context.Context, cfg config.LLMConfig) ([]string, error) {
+	baseURL := cfg.BaseURL
+	if baseURL == "" {
+		baseURL = "https://generativelanguage.googleapis.com/v1beta"
+	}
+
+	url := fmt.Sprintf("%s/models?key=%s", strings.TrimRight(baseURL, "/"), cfg.APIKey)
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("failed to fetch models from Gemini: status %d, body: %s", resp.StatusCode, string(body))
+	}
+
+	var result struct {
+		Models []struct {
+			Name        string `json:"name"`
+			DisplayName string `json:"displayName"`
+		} `json:"models"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	models := make([]string, 0, len(result.Models))
+	for _, m := range result.Models {
+		// Gemini model names usually come as "models/gemini-pro".
+		// We strip "models/" prefix.
+		name := m.Name
+		if len(name) > 7 && name[:7] == "models/" {
+			name = name[7:]
+		}
+		models = append(models, name)
+	}
+
+	return models, nil
 }

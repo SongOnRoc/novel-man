@@ -344,11 +344,18 @@ components:
       type: object
     models.GenerateRequest:
       properties:
+        api_key:
+          type: string
         assistant_type:
           description: Corresponds to a model name or a system prompt category
           type: string
+        base_url:
+          type: string
         context:
           $ref: '#/components/schemas/models.AIContext'
+        model:
+          description: Configuration overrides
+          type: string
         prompt_id:
           type: integer
         stream:
@@ -361,6 +368,15 @@ components:
     models.GenerateResponse:
       properties:
         generated_text:
+          type: string
+      type: object
+    models.ModelResponse:
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        name:
           type: string
       type: object
     prompts.CreatePromptRequest:
@@ -2054,6 +2070,53 @@ paths:
                 $ref: '#/components/schemas/response.StandardResponse'
           description: Internal Server Error
       summary: Generate Text
+      tags:
+      - Generate
+  /generate/models:
+    get:
+      description: Retrieves a list of all available models.
+      parameters:
+      - description: API Key
+        in: query
+        name: api_key
+        schema:
+          type: string
+      - description: Base URL
+        in: query
+        name: base_url
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Internal Server Error
+      summary: Get Available Models
       tags:
       - Generate
   /prompts:

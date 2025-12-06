@@ -1,33 +1,22 @@
 # 决策日志 (Decision Log)
 
-## 2025-12-05: 项目初始化与 Memory Bank 建立
+## 2025-12-07
 
-- **背景**: 项目是一个小说写作平台，需要集成 AI 写作助手。为了更好地管理项目上下文和开发进度，决定引入 Memory Bank 机制。
-- **决策**:
-    1.  建立标准的 Memory Bank 结构 (`productContext`, `activeContext`, `systemPatterns`, `progress`, `decisionLog`)。
-    2.  确认技术栈为 Next.js (前端) + Go (后端)。
-    3.  当前开发重点锁定在 "AI 写作助手" 功能的实现。
-- **影响**:
-    -  后续所有开发任务将基于 Memory Bank 中的上下文进行。
-    -  AI 功能的实现将优先考虑后端 `internal/apps/ai` 模块的开发和前端 `Tiptap` 编辑器的集成。
-
----
-### 代码实现 [Generate Module Stream Support]
-[2025-12-05 15:01:00] - [实现后端 AI 生成功能的流式增强]
+### 代码实现 [后端 LLM 服务重构]
+[2025-12-07 21:39:00] - [重构后端 LLM 服务以支持高并发、多租户配置隔离和热重载]
 
 **实现细节：**
-1.  **LangChainGo 集成**: 引入 `github.com/tmc/langchaingo` 作为 LLM 交互层，支持 OpenAI 协议。
-2.  **LLMService**: 创建了 `internal/services/generate/llm_service.go`，封装了 `Generate` 和 `GenerateStream` 方法，支持通过配置 (`config.yaml`) 动态加载 API Key 和 BaseURL。
-3.  **流式接口设计**:
-    -   `GenerateRequest` 模型新增 `Stream` (bool) 字段。
-    -   `GenerateController` 根据 `Stream` 字段切换响应模式：普通 JSON 响应或 SSE (Server-Sent Events) 流式响应。
-    -   SSE 格式规范化为 `data: {"content": "...", "done": false}`。
-4.  **依赖注入**: 更新 `internal/apps/generate/module.go`，将 `LLMService` 注入到 `GenerateService` 中。
+1.  **并发安全配置**: 在 `backend/internal/config/config.go` 中引入 `sync.RWMutex` 保护全局配置 `Cfg`，并添加 `GetLLMConfig()` 方法用于线程安全读取。
+2.  **无状态 LLM 服务**: 重构 `backend/internal/services/generate/llm_service.go`，移除 `llmService` 中的长连接客户端字段。实现 `createClient` 方法，每次请求时根据系统配置和请求级覆盖（BYOK）动态创建 LLM 客户端。
+3.  **请求级配置**: 更新 `backend/internal/models/generate.go`，在 `GenerateRequest` 中添加 `Model`, `APIKey`, `BaseURL` 字段，允许客户端覆盖默认配置。
+4.  **业务逻辑适配**: 修改 `backend/internal/services/generate/generate_service.go`，从请求中提取配置并传递给 LLM 服务。
+5.  **测试增强**: 修复并更新 `backend/internal/services/generate/generate_service_test.go` 以匹配新接口。新增 `backend/internal/services/generate/llm_service_test.go` 测试配置验证和优先级逻辑。
+6.  **日志系统容错**: 增强 `backend/internal/logger/logger.go`，在配置未初始化时提供默认值，防止测试环境 panic。
 
 **测试框架：**
--   使用 Go 标准库 `testing` 配合 `github.com/stretchr/testify` 进行断言和 Mock。
--   创建 `MockLLMService` 模拟 LLM 行为，隔离外部 API 依赖。
+- Go `testing` 标准库
+- `github.com/stretchr/testify` 用于断言和 Mock
 
 **测试结果：**
--   覆盖率：`internal/services/generate` 包逻辑覆盖率接近 100% (排除 `llm_service.go` 的真实调用)。
--   通过率：100% (所有单元测试通过)。
+- 覆盖率：59.1% (backend/internal/services/generate)
+- 通过率：100%
