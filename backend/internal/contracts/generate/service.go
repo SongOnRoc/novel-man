@@ -10,7 +10,7 @@ type GenerateService interface {
 	// GenerateText generates text based on the provided request.
 	GenerateText(ctx context.Context, req *models.GenerateRequest) (*models.GenerateResponse, error)
 	// GenerateTextStream generates text in a streaming fashion.
-	GenerateTextStream(ctx context.Context, req *models.GenerateRequest) (<-chan string, <-chan error, error)
+	GenerateTextStream(ctx context.Context, req *models.GenerateRequest) (<-chan models.StreamResult, error)
 	// GetAssistantTypes returns a list of available assistant types.
 	GetAssistantTypes() ([]models.AssistantTypeResponse, error)
 	// GetAvailableModels returns a list of available models.

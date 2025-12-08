@@ -9,7 +9,10 @@ import type {
   ModelsGenerateResponse,
   ModelsModelResponse,
 } from "@/lib/api/generated/api10.schemas";
-import { getGenerateModels, postGenerate } from "@/lib/api/generated/generate/generate";
+import {
+  getGenerateModels,
+  postGenerate,
+} from "@/lib/api/generated/generate/generate";
 
 // =================================================================
 // Re-exporting Core AI Types for Application-wide Use

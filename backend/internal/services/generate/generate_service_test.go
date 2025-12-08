@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	"novel-man/backend/internal/models"
 
@@ -16,9 +15,9 @@ type MockLLMService struct {
 	mock.Mock
 }
 
-func (m *MockLLMService) GenerateStream(ctx context.Context, prompt string, opts LLMOptions) (<-chan string, <-chan error) {
+func (m *MockLLMService) GenerateStream(ctx context.Context, prompt string, opts LLMOptions) <-chan models.StreamResult {
 	args := m.Called(ctx, prompt, opts)
-	return args.Get(0).(<-chan string), args.Get(1).(<-chan error)
+	return args.Get(0).(<-chan models.StreamResult)
 }
 
 func (m *MockLLMService) Generate(ctx context.Context, prompt string, opts LLMOptions) (string, error) {
@@ -45,34 +44,23 @@ func TestGenerateService_GenerateTextStream(t *testing.T) {
 
 		expectedPrompt := "Role: creative-writing\nHello"
 
-		contentChan := make(chan string, 2)
-		errChan := make(chan error, 1)
+		resultChan := make(chan models.StreamResult, 2)
+		resultChan <- models.StreamResult{Content: "World"}
+		resultChan <- models.StreamResult{Content: "!"}
+		close(resultChan)
 
-		contentChan <- "World"
-		contentChan <- "!"
-		close(contentChan)
-		close(errChan)
-
-		mockLLM.On("GenerateStream", mock.Anything, expectedPrompt, mock.AnythingOfType("LLMOptions")).Return((<-chan string)(contentChan), (<-chan error)(errChan))
+		mockLLM.On("GenerateStream", mock.Anything, expectedPrompt, mock.AnythingOfType("LLMOptions")).Return((<-chan models.StreamResult)(resultChan))
 
 		ctx := context.Background()
-		respContentChan, respErrChan, err := service.GenerateTextStream(ctx, req)
+		respChan, err := service.GenerateTextStream(ctx, req)
 
 		assert.NoError(t, err)
-		assert.NotNil(t, respContentChan)
-		assert.NotNil(t, respErrChan)
+		assert.NotNil(t, respChan)
 
 		var result string
-		for chunk := range respContentChan {
-			result += chunk
-		}
-
-		select {
-		case err := <-respErrChan:
-			if err != nil {
-				t.Errorf("unexpected error from stream: %v", err)
-			}
-		default:
+		for chunk := range respChan {
+			assert.NoError(t, chunk.Error)
+			result += chunk.Content
 		}
 
 		assert.Equal(t, "World!", result)
@@ -89,30 +77,20 @@ func TestGenerateService_GenerateTextStream(t *testing.T) {
 			Text: "Error case",
 		}
 
-		contentChan := make(chan string)
-		errChan := make(chan error, 1)
-
+		resultChan := make(chan models.StreamResult, 1)
 		expectedErr := errors.New("llm error")
-		errChan <- expectedErr
-		close(contentChan)
-		close(errChan)
+		resultChan <- models.StreamResult{Error: expectedErr}
+		close(resultChan)
 
-		mockLLM.On("GenerateStream", mock.Anything, "Error case", mock.AnythingOfType("LLMOptions")).Return((<-chan string)(contentChan), (<-chan error)(errChan))
+		mockLLM.On("GenerateStream", mock.Anything, "Error case", mock.AnythingOfType("LLMOptions")).Return((<-chan models.StreamResult)(resultChan))
 
 		ctx := context.Background()
-		respContentChan, respErrChan, err := service.GenerateTextStream(ctx, req)
+		respChan, err := service.GenerateTextStream(ctx, req)
 
 		assert.NoError(t, err)
 
-		for range respContentChan {
-		}
-
-		select {
-		case receivedErr := <-respErrChan:
-			assert.Equal(t, expectedErr, receivedErr)
-		case <-time.After(1 * time.Second):
-			t.Error("timeout waiting for error")
-		}
+		received := <-respChan
+		assert.Equal(t, expectedErr, received.Error)
 
 		mockLLM.AssertExpectations(t)
 	})
@@ -129,12 +107,10 @@ func TestGenerateService_GenerateTextStream(t *testing.T) {
 
 		expectedPrompt := "Just text"
 
-		contentChan := make(chan string)
-		errChan := make(chan error)
-		close(contentChan)
-		close(errChan)
+		resultChan := make(chan models.StreamResult)
+		close(resultChan)
 
-		mockLLM.On("GenerateStream", mock.Anything, expectedPrompt, mock.AnythingOfType("LLMOptions")).Return((<-chan string)(contentChan), (<-chan error)(errChan))
+		mockLLM.On("GenerateStream", mock.Anything, expectedPrompt, mock.AnythingOfType("LLMOptions")).Return((<-chan models.StreamResult)(resultChan))
 
 		service.GenerateTextStream(context.Background(), req)
 

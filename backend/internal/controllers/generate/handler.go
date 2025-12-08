@@ -6,7 +6,9 @@ import (
 	"io"
 	"net/http"
 	"novel-man/backend/internal/contracts/generate"
+	"novel-man/backend/internal/logger"
 	"novel-man/backend/internal/models"
+	Ctx "novel-man/backend/utils/context"
 	"novel-man/backend/utils/response"
 
 	"github.com/gin-gonic/gin"
@@ -100,7 +102,7 @@ func (c *GenerateController) GenerateText(ctx *gin.Context) {
 }
 
 func (c *GenerateController) handleStream(ctx *gin.Context, req *models.GenerateRequest) {
-	contentChan, errChan, err := c.generateService.GenerateTextStream(ctx.Request.Context(), req)
+	resultChan, err := c.generateService.GenerateTextStream(ctx.Request.Context(), req)
 	if err != nil {
 		response.Error(ctx, http.StatusInternalServerError, 1, "Failed to start stream", err)
 		return
@@ -111,29 +113,39 @@ func (c *GenerateController) handleStream(ctx *gin.Context, req *models.Generate
 	ctx.Header("Connection", "keep-alive")
 	ctx.Header("Transfer-Encoding", "chunked")
 
-	ctx.Stream(func(w io.Writer) bool {
+	w := ctx.Writer
+	var fullContent string
+	for {
 		select {
-		case content, ok := <-contentChan:
+		case result, ok := <-resultChan:
 			if !ok {
-				// Stream finished
-				c.sendSSE(w, map[string]interface{}{"content": "", "done": true})
-				return false
+				logger.Debug(Ctx.New(ctx), "Stream finished. Full content:\n{}", fullContent)
+				c.sendSSE(ctx, w, map[string]interface{}{"content": "", "done": true})
+				return
 			}
-			c.sendSSE(w, map[string]interface{}{"content": content, "done": false})
-			return true
-		case err := <-errChan:
-			if err != nil {
-				// Send error event
-				c.sendSSE(w, map[string]interface{}{"error": err.Error(), "done": true})
+
+			if result.Error != nil {
+				logger.Warn(Ctx.New(ctx), "Stream error: {}", result.Error)
+				c.sendSSE(ctx, w, map[string]interface{}{"error": result.Error.Error(), "done": true})
+				return
 			}
-			return false
+
+			fullContent += result.Content
+			c.sendSSE(ctx, w, map[string]interface{}{"content": result.Content, "done": false})
 		case <-ctx.Request.Context().Done():
-			return false
+			logger.Debug(Ctx.New(ctx), "Client disconnected (ctx.Done). Sent content length: {}", len(fullContent))
+			return
 		}
-	})
+	}
 }
 
-func (c *GenerateController) sendSSE(w io.Writer, data interface{}) {
+func (c *GenerateController) sendSSE(ctx *gin.Context, w io.Writer, data interface{}) {
 	jsonData, _ := json.Marshal(data)
-	fmt.Fprintf(w, "data: %s\n\n", jsonData)
+	_, err := fmt.Fprintf(w, "data: %s\n\n", jsonData)
+	if err != nil {
+		logger.Error(Ctx.New(ctx), "Failed to write SSE data: {}", err)
+	}
+	if flusher, ok := w.(http.Flusher); ok {
+		flusher.Flush()
+	}
 }

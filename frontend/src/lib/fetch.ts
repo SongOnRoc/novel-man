@@ -124,13 +124,21 @@ export const customFetch = async <T>(
       try {
         while (true) {
           const { done, value } = await reader.read();
-          if (done) break;
 
-          const chunk = decoder.decode(value, { stream: true });
-          buffer += chunk;
+          if (value) {
+            const chunk = decoder.decode(value, { stream: !done });
+            buffer += chunk;
+          }
 
           const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
+
+          // If not done, keep the last line in buffer as it might be incomplete
+          // If done, process all lines including the last one
+          if (!done) {
+            buffer = lines.pop() || '';
+          } else {
+            buffer = '';
+          }
 
           for (const line of lines) {
             const trimmedLine = line.trim();
@@ -151,6 +159,8 @@ export const customFetch = async <T>(
               console.warn('Failed to parse SSE message:', trimmedLine, e);
             }
           }
+
+          if (done) break;
         }
       } finally {
         reader.releaseLock();

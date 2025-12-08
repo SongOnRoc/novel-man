@@ -51,7 +51,7 @@ func (s *generateService) GenerateText(ctx context.Context, req *models.Generate
 }
 
 // GenerateTextStream generates text in a streaming fashion.
-func (s *generateService) GenerateTextStream(ctx context.Context, req *models.GenerateRequest) (<-chan string, <-chan error, error) {
+func (s *generateService) GenerateTextStream(ctx context.Context, req *models.GenerateRequest) (<-chan models.StreamResult, error) {
 	// Construct prompt based on request
 	prompt := req.Text
 	if req.AssistantType != "" {
@@ -64,8 +64,7 @@ func (s *generateService) GenerateTextStream(ctx context.Context, req *models.Ge
 		BaseURL: req.BaseURL,
 	}
 
-	contentChan, errChan := s.llmService.GenerateStream(ctx, prompt, opts)
-	return contentChan, errChan, nil
+	return s.llmService.GenerateStream(ctx, prompt, opts), nil
 }
 
 // GetAssistantTypes returns a hardcoded list of assistant types as specified in the requirements.

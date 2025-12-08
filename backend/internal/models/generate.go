@@ -42,3 +42,9 @@ type AIContext struct {
 type GenerateResponse struct {
 	GeneratedText string `json:"generated_text"`
 }
+
+// StreamResult represents a chunk of streamed data or an error.
+type StreamResult struct {
+	Content string
+	Error   error
+}

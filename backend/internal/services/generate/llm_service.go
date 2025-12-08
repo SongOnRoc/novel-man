@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"novel-man/backend/internal/config"
 	"novel-man/backend/internal/logger"
+	"novel-man/backend/internal/models"
 	Ctx "novel-man/backend/utils/context"
 	"strings"
 
@@ -25,7 +26,7 @@ type LLMOptions struct {
 // LLMService defines the interface for interacting with LLM providers.
 type LLMService interface {
 	// GenerateStream generates text in a streaming fashion.
-	GenerateStream(ctx context.Context, prompt string, opts LLMOptions) (<-chan string, <-chan error)
+	GenerateStream(ctx context.Context, prompt string, opts LLMOptions) <-chan models.StreamResult
 	// Generate generates text in a blocking fashion.
 	Generate(ctx context.Context, prompt string, opts LLMOptions) (string, error)
 	// ListModels retrieves the list of available models from the provider.
@@ -89,34 +90,41 @@ func (s *llmService) createClient(ctx context.Context, opts LLMOptions) (llms.Mo
 	return llm, nil
 }
 
-func (s *llmService) GenerateStream(ctx context.Context, prompt string, opts LLMOptions) (<-chan string, <-chan error) {
-	contentChan := make(chan string)
-	errChan := make(chan error, 1)
+func (s *llmService) GenerateStream(ctx context.Context, prompt string, opts LLMOptions) <-chan models.StreamResult {
+	resultChan := make(chan models.StreamResult, 100)
 
 	go func() {
-		defer close(contentChan)
-		defer close(errChan)
+		defer close(resultChan)
+
+		logger.Debug(Ctx.New(ctx), "Starting GenerateStream with model: {}", opts.Model)
 
 		llm, err := s.createClient(ctx, opts)
 		if err != nil {
-			errChan <- err
+			logger.Error(Ctx.New(ctx), "Failed to create LLM client: {}", err)
+			resultChan <- models.StreamResult{Error: err}
 			return
 		}
 
+		logger.Debug(Ctx.New(ctx), "Calling LLM， prompt:\n{}", prompt)
 		_, err = llm.Call(ctx, prompt,
 			llms.WithStreamingFunc(func(ctx context.Context, chunk []byte) error {
+				if len(chunk) == 0 {
+					return nil
+				}
 				content := string(chunk)
-				logger.Debug(Ctx.New(ctx), "GenerateStream chunk: {}", content)
-				contentChan <- content
+				resultChan <- models.StreamResult{Content: content}
 				return nil
 			}),
 		)
 		if err != nil {
-			errChan <- err
+			logger.Warn(Ctx.New(ctx), "LLM Call failed: {}", err)
+			resultChan <- models.StreamResult{Error: err}
+		} else {
+			logger.Debug(Ctx.New(ctx), "GenerateStream completed successfully")
 		}
 	}()
 
-	return contentChan, errChan
+	return resultChan
 }
 
 func (s *llmService) Generate(ctx context.Context, prompt string, opts LLMOptions) (string, error) {
