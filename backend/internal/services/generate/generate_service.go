@@ -25,12 +25,44 @@ func NewGenerateService() (generate.GenerateService, error) {
 }
 
 // GenerateText generates text based on the provided request.
-func (s *generateService) GenerateText(ctx context.Context, req *models.GenerateRequest) (*models.GenerateResponse, error) {
-	// Construct prompt based on request
-	prompt := req.Text
+func (s *generateService) prepareMessages(req *models.GenerateRequest) []models.Message {
+	var messages []models.Message
+
+	// 1. Add System Prompt
 	if req.AssistantType != "" {
-		prompt = fmt.Sprintf("Role: %s\n%s", req.AssistantType, prompt)
+		// Priority: AssistantType overrides explicit SystemPrompt
+		messages = append(messages, models.Message{
+			Role:    "system",
+			Content: fmt.Sprintf("You are a %s assistant.", req.AssistantType),
+		})
+	} else if req.SystemPrompt != "" {
+		messages = append(messages, models.Message{
+			Role:    "system",
+			Content: req.SystemPrompt,
+		})
 	}
+
+	// 2. Add History Messages
+	if len(req.Messages) > 0 {
+		messages = append(messages, req.Messages...)
+	}
+
+	// 3. Add Text as User Message (Backward Compatibility)
+	// Only add if Text is provided and (Messages is empty OR Text is not already in Messages)
+	// To avoid duplication, we assume if Messages is provided, Text might be redundant or supplementary.
+	// Simple rule: If Text is present, append it as a User message.
+	if req.Text != "" {
+		messages = append(messages, models.Message{
+			Role:    "user",
+			Content: req.Text,
+		})
+	}
+
+	return messages
+}
+
+func (s *generateService) GenerateText(ctx context.Context, req *models.GenerateRequest) (*models.GenerateResponse, error) {
+	messages := s.prepareMessages(req)
 
 	opts := LLMOptions{
 		Model:   req.Model,
@@ -38,7 +70,7 @@ func (s *generateService) GenerateText(ctx context.Context, req *models.Generate
 		BaseURL: req.BaseURL,
 	}
 
-	generatedText, err := s.llmService.Generate(ctx, prompt, opts)
+	generatedText, err := s.llmService.Generate(ctx, messages, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -52,11 +84,7 @@ func (s *generateService) GenerateText(ctx context.Context, req *models.Generate
 
 // GenerateTextStream generates text in a streaming fashion.
 func (s *generateService) GenerateTextStream(ctx context.Context, req *models.GenerateRequest) (<-chan models.StreamResult, error) {
-	// Construct prompt based on request
-	prompt := req.Text
-	if req.AssistantType != "" {
-		prompt = fmt.Sprintf("Role: %s\n%s", req.AssistantType, prompt)
-	}
+	messages := s.prepareMessages(req)
 
 	opts := LLMOptions{
 		Model:   req.Model,
@@ -64,7 +92,7 @@ func (s *generateService) GenerateTextStream(ctx context.Context, req *models.Ge
 		BaseURL: req.BaseURL,
 	}
 
-	return s.llmService.GenerateStream(ctx, prompt, opts), nil
+	return s.llmService.GenerateStream(ctx, messages, opts), nil
 }
 
 // GetAssistantTypes returns a hardcoded list of assistant types as specified in the requirements.

@@ -19,9 +19,17 @@ type ModelListRequest struct {
 	BaseURL string `form:"base_url"`
 }
 
+// Message represents a chat message.
+type Message struct {
+	Role    string `json:"role"` // "user", "assistant", "system"
+	Content string `json:"content"`
+}
+
 // GenerateRequest is the unified generation interface request body.
 type GenerateRequest struct {
-	Text          string     `json:"text" binding:"required"`
+	Text          string     `json:"text"` // Optional if Messages is provided
+	Messages      []Message  `json:"messages,omitempty"`
+	SystemPrompt  string     `json:"system_prompt,omitempty"`
 	AssistantType string     `json:"assistant_type"` // Corresponds to a model name or a system prompt category
 	PromptID      *uint      `json:"prompt_id,omitempty"`
 	Context       *AIContext `json:"context,omitempty"`

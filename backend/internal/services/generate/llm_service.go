@@ -26,9 +26,9 @@ type LLMOptions struct {
 // LLMService defines the interface for interacting with LLM providers.
 type LLMService interface {
 	// GenerateStream generates text in a streaming fashion.
-	GenerateStream(ctx context.Context, prompt string, opts LLMOptions) <-chan models.StreamResult
+	GenerateStream(ctx context.Context, messages []models.Message, opts LLMOptions) <-chan models.StreamResult
 	// Generate generates text in a blocking fashion.
-	Generate(ctx context.Context, prompt string, opts LLMOptions) (string, error)
+	Generate(ctx context.Context, messages []models.Message, opts LLMOptions) (string, error)
 	// ListModels retrieves the list of available models from the provider.
 	ListModels(ctx context.Context, opts LLMOptions) ([]string, error)
 }
@@ -90,7 +90,24 @@ func (s *llmService) createClient(ctx context.Context, opts LLMOptions) (llms.Mo
 	return llm, nil
 }
 
-func (s *llmService) GenerateStream(ctx context.Context, prompt string, opts LLMOptions) <-chan models.StreamResult {
+func (s *llmService) convertMessages(messages []models.Message) []llms.MessageContent {
+	var content []llms.MessageContent
+	for _, msg := range messages {
+		role := llms.ChatMessageTypeHuman
+		switch msg.Role {
+		case "system":
+			role = llms.ChatMessageTypeSystem
+		case "assistant":
+			role = llms.ChatMessageTypeAI
+		case "user":
+			role = llms.ChatMessageTypeHuman
+		}
+		content = append(content, llms.TextParts(role, msg.Content))
+	}
+	return content
+}
+
+func (s *llmService) GenerateStream(ctx context.Context, messages []models.Message, opts LLMOptions) <-chan models.StreamResult {
 	resultChan := make(chan models.StreamResult, 100)
 
 	go func() {
@@ -105,8 +122,10 @@ func (s *llmService) GenerateStream(ctx context.Context, prompt string, opts LLM
 			return
 		}
 
-		logger.Debug(Ctx.New(ctx), "Calling LLM， prompt:\n{}", prompt)
-		_, err = llm.Call(ctx, prompt,
+		logger.Debug(Ctx.New(ctx), "Calling LLM with messages count: {}", len(messages))
+
+		content := s.convertMessages(messages)
+		_, err = llm.GenerateContent(ctx, content,
 			llms.WithStreamingFunc(func(ctx context.Context, chunk []byte) error {
 				if len(chunk) == 0 {
 					return nil
@@ -127,12 +146,22 @@ func (s *llmService) GenerateStream(ctx context.Context, prompt string, opts LLM
 	return resultChan
 }
 
-func (s *llmService) Generate(ctx context.Context, prompt string, opts LLMOptions) (string, error) {
+func (s *llmService) Generate(ctx context.Context, messages []models.Message, opts LLMOptions) (string, error) {
 	llm, err := s.createClient(ctx, opts)
 	if err != nil {
 		return "", err
 	}
-	return llm.Call(ctx, prompt)
+
+	content := s.convertMessages(messages)
+	resp, err := llm.GenerateContent(ctx, content)
+	if err != nil {
+		return "", err
+	}
+
+	if len(resp.Choices) > 0 {
+		return resp.Choices[0].Content, nil
+	}
+	return "", nil
 }
 
 // ListModels retrieves the list of available models from the provider.

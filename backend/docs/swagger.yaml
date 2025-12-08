@@ -353,6 +353,11 @@ components:
           type: string
         context:
           $ref: '#/components/schemas/models.AIContext'
+        messages:
+          items:
+            $ref: '#/components/schemas/models.Message'
+          type: array
+          uniqueItems: false
         model:
           description: Configuration overrides
           type: string
@@ -360,14 +365,23 @@ components:
           type: integer
         stream:
           type: boolean
-        text:
+        system_prompt:
           type: string
-      required:
-      - text
+        text:
+          description: Optional if Messages is provided
+          type: string
       type: object
     models.GenerateResponse:
       properties:
         generated_text:
+          type: string
+      type: object
+    models.Message:
+      properties:
+        content:
+          type: string
+        role:
+          description: '"user", "assistant", "system"'
           type: string
       type: object
     models.ModelResponse:

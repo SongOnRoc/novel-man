@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 	"novel-man/backend/internal/config"
+	"novel-man/backend/internal/models"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -28,7 +29,7 @@ func TestLLMService_CreateClient_Validation(t *testing.T) {
 	ctx := context.Background()
 	
 	// Case 1: No API Key anywhere
-	_, err := service.Generate(ctx, "test", LLMOptions{})
+	_, err := service.Generate(ctx, []models.Message{{Role: "user", Content: "test"}}, LLMOptions{})
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "LLM configuration missing")
 
@@ -64,7 +65,7 @@ func TestLLMService_ConfigurationPriority(t *testing.T) {
 	// If openai.New fails, we get an error "failed to create llm client".
 	// If it succeeds, we get an error from Call (likely 401 or connection error).
 	
-	_, err := service.Generate(ctx, "test", LLMOptions{})
+	_, err := service.Generate(ctx, []models.Message{{Role: "user", Content: "test"}}, LLMOptions{})
 	// We expect either "failed to create llm client" or an error from Call.
 	// But definitely NOT "LLM configuration missing".
 	if err != nil {
@@ -83,7 +84,7 @@ func TestLLMService_OptionsOverride(t *testing.T) {
 	ctx := context.Background()
 	
 	// Provide key in options
-	_, err := service.Generate(ctx, "test", LLMOptions{APIKey: "user-key"})
+	_, err := service.Generate(ctx, []models.Message{{Role: "user", Content: "test"}}, LLMOptions{APIKey: "user-key"})
 	// Should not be "LLM configuration missing"
 	if err != nil {
 		assert.NotContains(t, err.Error(), "LLM configuration missing")
