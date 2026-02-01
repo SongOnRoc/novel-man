@@ -1,12 +1,22 @@
 "use client";
 
 import { type FC, useState, useCallback } from "react";
-import { SettingsIcon, PanelLeftCloseIcon, PanelLeftOpenIcon } from "lucide-react";
+import {
+  SettingsIcon,
+  PanelLeftCloseIcon,
+  PanelLeftOpenIcon,
+} from "lucide-react";
 import { useMediaQuery } from "react-responsive";
 
 import { Thread } from "@/components/assistant-ui/thread";
-import { ThreadList, type ThreadListProps } from "@/components/assistant-ui/thread-list";
-import { AssistantRuntimeProvider, useChatRuntimeContext } from "@/components/assistant-ui/assistant-runtime-provider";
+import {
+  ThreadList,
+  type ThreadListProps,
+} from "@/components/assistant-ui/thread-list";
+import {
+  AssistantRuntimeProvider,
+  useChatRuntimeContext,
+} from "@/components/assistant-ui/assistant-runtime-provider";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -42,7 +52,7 @@ export interface AIAssistantShellProps {
 // Shell Component (without Provider)
 // =============================================================================
 
-const AIAssistantShellContent: FC<Omit<AIAssistantShellProps, 'config'>> = ({
+const AIAssistantShellContent: FC<Omit<AIAssistantShellProps, "config">> = ({
   showThreadList = true,
   compact = false,
   onSettingsClick,
@@ -52,14 +62,19 @@ const AIAssistantShellContent: FC<Omit<AIAssistantShellProps, 'config'>> = ({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const isMobile = useMediaQuery({ maxWidth: 768 });
-  const { switchToSession, createNewSession } = useChatRuntimeContext();
+  const { switchToSession, createNewSession, currentSessionId } =
+    useChatRuntimeContext();
 
   // 处理会话切换
-  const handleSessionSwitch = useCallback((sessionId: string) => {
-    switchToSession(sessionId);if (isMobile) {
-      setMobileSheetOpen(false);
-    }
-  }, [switchToSession, isMobile]);
+  const handleSessionSwitch = useCallback(
+    (sessionId: string) => {
+      switchToSession(sessionId);
+      if (isMobile) {
+        setMobileSheetOpen(false);
+      }
+    },
+    [switchToSession, isMobile]
+  );
 
   // 处理创建新会话
   const handleCreateSession = useCallback(() => {
@@ -107,7 +122,8 @@ const AIAssistantShellContent: FC<Omit<AIAssistantShellProps, 'config'>> = ({
       {/* 主内容区*/}
       <div className="aui-assistant-main flex flex-1 flex-col min-w-0">
         {/* 头部工具栏 */}
-        <div className="aui-assistant-header flex items-center justify-between px-3 py-2 border-b border-border"><div className="flex items-center gap-2">
+        <div className="aui-assistant-header flex items-center justify-between px-3 py-2 border-b border-border">
+          <div className="flex items-center gap-2">
             {/* 侧边栏切换按钮（桌面端）*/}
             {showThreadList && !isMobile && (
               <TooltipIconButton
@@ -165,7 +181,13 @@ const AIAssistantShellContent: FC<Omit<AIAssistantShellProps, 'config'>> = ({
 
         {/* 对话区域 */}
         <div className="aui-assistant-thread flex-1 overflow-hidden">
-          <Thread />
+          {currentSessionId ? (
+            <Thread />
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -184,15 +206,15 @@ const AIAssistantShellContent: FC<Omit<AIAssistantShellProps, 'config'>> = ({
  * - 对话区域（Thread）
  * - 输入区域（Composer）
  * - 设置入口
- * 
+ *
  * @example
  * ```tsx
  * // 完整版（独立页面）
- * <AIAssistantShell 
+ * <AIAssistantShell
  *   config={{ model: 'gpt-4' }}
  *   onSettingsClick={() => setSettingsOpen(true)}
  * />
- * 
+ *
  * // 紧凑版（悬浮窗）
  * <AIAssistantShell
  *   compact

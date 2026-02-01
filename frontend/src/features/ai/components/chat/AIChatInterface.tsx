@@ -29,7 +29,10 @@ import { AISettingsDialog } from "./AISettingsDialog";
 import { useAIModels, AIModel } from "@/hooks/ai/useAIModels";
 import { Thread } from "@/components/assistant-ui/thread";
 import { ThreadList } from "@/components/assistant-ui/thread-list";
-import { AssistantRuntimeProvider, useChatRuntimeContext } from "@/components/assistant-ui/assistant-runtime-provider";
+import {
+  AssistantRuntimeProvider,
+  useChatRuntimeContext,
+} from "@/components/assistant-ui/assistant-runtime-provider";
 import type { RuntimeConfig } from "@/lib/ai/runtime";
 
 interface AIChatInterfaceProps {
@@ -71,13 +74,17 @@ function AIChatInterfaceContent({
   modelOptions,
 }: AIChatInterfaceContentProps) {
   // 从 Context 获取会话管理函数
-  const { switchToSession, createNewSession } = useChatRuntimeContext();
+  const { switchToSession, createNewSession, currentSessionId } =
+    useChatRuntimeContext();
 
   // 处理会话切换
-  const handleSessionSwitch = useCallback((sessionId: string) => {
-    switchToSession(sessionId);
-    setShowHistory(false);
-  }, [switchToSession, setShowHistory]);
+  const handleSessionSwitch = useCallback(
+    (sessionId: string) => {
+      switchToSession(sessionId);
+      setShowHistory(false);
+    },
+    [switchToSession, setShowHistory]
+  );
 
   // 处理创建新会话
   const handleCreateSession = useCallback(() => {
@@ -229,7 +236,13 @@ function AIChatInterfaceContent({
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden relative">
-        <Thread />
+        {currentSessionId ? (
+          <Thread />
+        ) : (
+          <div className="flex h-full items-center justify-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          </div>
+        )}
 
         {/* History Drawer */}
         <AnimatePresence>
