@@ -93,4 +93,4 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace github.com/SongOnRoc/gin-swagger => /pkg/gin-swagger
+replace github.com/SongOnRoc/gin-swagger => ./pkg/gin-swagger
