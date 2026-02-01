@@ -205,15 +205,24 @@ export interface ModelsGenerateRequest {
   assistant_type?: string;
   base_url?: string;
   context?: ModelsAIContext;
+  messages?: ModelsMessage[];
   /** Configuration overrides */
   model?: string;
   prompt_id?: number;
   stream?: boolean;
-  text: string;
+  system_prompt?: string;
+  /** Optional if Messages is provided */
+  text?: string;
 }
 
 export interface ModelsGenerateResponse {
   generated_text?: string;
+}
+
+export interface ModelsMessage {
+  content?: string;
+  /** "user", "assistant", "system" */
+  role?: string;
 }
 
 export interface ModelsModelResponse {

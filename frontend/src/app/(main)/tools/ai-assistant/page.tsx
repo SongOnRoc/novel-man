@@ -1,25 +1,34 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { AIChatInterface } from "@/features/ai/components/chat/AIChatInterface";
-import { GlobalLoading } from "@/components/common/GlobalLoading";
+import React, { useState, useCallback } from "react";
+import { AIAssistantShell } from "@/components/assistant-ui/ai-assistant-shell";
+import {
+  AISettingsDialog,
+  useAISettings,
+} from "@/components/assistant-ui/ai-settings-dialog";
 
 /**
  * AI写作助手页面
- * 提供完整的AI写作辅助功能
+ * 
+ * 使用新的 assistant-ui 集成架构，提供完整的 AI 写作辅助功能。
+ * 包含：
+ * - 多会话管理（侧边栏）
+ * - 对话区域（消息展示、分支管理）
+ * - 输入区域（快捷操作、发送/停止）
+ * - 设置对话框（模型、API Key、参数）
  */
 export default function AIAssistantPage(): React.ReactElement {
-  const [isLoading, setIsLoading] = useState(true);
+  const {
+    settings,
+    isDialogOpen,
+    setIsDialogOpen,
+    handleSave,
+  } = useAISettings();
 
-  // Simulate initial loading for consistency
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading) {
-    return <GlobalLoading />;
-  }
+  // 打开设置对话框
+  const handleSettingsClick = useCallback(() => {
+    setIsDialogOpen(true);
+  }, [setIsDialogOpen]);
 
   return (
     <div className="h-[calc(100vh-64px)] -m-8 flex flex-col bg-gradient-to-br from-background via-background to-primary/5">
@@ -37,13 +46,27 @@ export default function AIAssistantPage(): React.ReactElement {
       
       {/* Main Content */}
       <div className="flex-1 overflow-hidden px-8 pb-8">
-        <div className="max-w-4xl mx-auto h-full bg-background/60 backdrop-blur-xl rounded-2xl border shadow-sm overflow-hidden ring-1 ring-border/50">
-          <AIChatInterface 
-            className="h-full bg-transparent" 
-            hideBorder 
+        <div className="h-full bg-background/60 backdrop-blur-xl rounded-2xl border shadow-sm overflow-hidden ring-1 ring-border/50">
+          <AIAssistantShell
+            config={{
+              model: settings.model,
+              temperature: settings.temperature,
+              maxTokens: settings.maxTokens,
+            }}
+            showThreadList={true}
+            onSettingsClick={handleSettingsClick}
+            className="h-full bg-transparent"
           />
         </div>
       </div>
+
+      {/* 设置对话框 */}
+      <AISettingsDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        settings={settings}
+        onSave={handleSave}
+      />
     </div>
   );
 }

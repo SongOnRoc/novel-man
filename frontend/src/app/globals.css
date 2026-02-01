@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "../styles/modern-ui-system.css";
+@import "../styles/assistant-ui-theme.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -47,6 +48,29 @@
   --color-sidebar-accent-foreground: var(--primary-700);
   --color-sidebar-border: var(--border-subtle);
   --color-sidebar-ring: var(--primary-500);
+
+  /* assistant-ui 变量映射 */
+  --aui-radius: var(--radius-xl);
+  --aui-font-family: var(--font-sans);
+  --aui-color-background: transparent;
+  --aui-color-foreground: var(--text-primary);
+  --aui-color-card: var(--bg-card);
+  --aui-color-card-foreground: var(--text-primary);
+  --aui-color-popover: var(--bg-card);
+  --aui-color-popover-foreground: var(--text-primary);
+  --aui-color-primary: var(--primary-500);
+  --aui-color-primary-foreground: var(--text-inverse);
+  --aui-color-secondary: var(--neutral-100);
+  --aui-color-secondary-foreground: var(--text-secondary);
+  --aui-color-muted: var(--neutral-100);
+  --aui-color-muted-foreground: var(--text-tertiary);
+  --aui-color-accent: var(--neutral-100);
+  --aui-color-accent-foreground: var(--text-primary);
+  --aui-color-destructive: #ef4444;
+  --aui-color-destructive-foreground: #ffffff;
+  --aui-color-border: var(--border-default);
+  --aui-color-input: var(--border-default);
+  --aui-color-ring: var(--primary-500);
 }
 
 :root {
