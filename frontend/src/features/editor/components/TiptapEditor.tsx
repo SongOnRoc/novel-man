@@ -531,6 +531,8 @@ export function TiptapEditor({
               </Button>
             </SheetTrigger>
             <SheetContent side="bottom" className={cn("h-[62vh] p-0 rounded-t-[2rem] border-t-0 shadow-2xl editor-paper", `theme-${settings.theme}`)}>
+               <SheetTitle className="sr-only">AI 写作助手</SheetTitle>
+               <SheetDescription className="sr-only">与 AI 助手对话以获取写作帮助</SheetDescription>
                <AIChatInterface
                  workId={workId ? parseInt(workId, 10) : undefined}
                  selectedText={selectedText}
