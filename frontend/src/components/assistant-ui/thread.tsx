@@ -71,35 +71,39 @@ interface ThreadProps {
 // Thread Component
 // =============================================================================
 
-export const Thread: FC<ThreadProps> = ({ onApplyToEditor, selectedText }) => {return (
+export const Thread: FC<ThreadProps> = ({ onApplyToEditor, selectedText }) => {
+  return (
     <ThreadContext.Provider value={{ onApplyToEditor, selectedText }}>
       <ThreadPrimitive.Root
-      className="aui-root aui-thread-root @container flex h-full flex-col bg-transparent"
-      style={{
-        ["--thread-max-width" as string]: "44rem",
-      }}
-    >
-      <ThreadPrimitive.Viewport
-        turnAnchor="top"
-        className="aui-thread-viewport relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth px-4 pt-4 scrollbar-hide"
+        className="aui-root aui-thread-root @container flex h-full flex-col bg-transparent"
+        style={{
+          ["--thread-max-width" as string]: "44rem",
+        }}
       >
-        <ThreadPrimitive.If empty>
-          <ThreadWelcome />
-        </ThreadPrimitive.If>
+        {/* 滚动内容区域 */}
+        <ThreadPrimitive.Viewport
+          turnAnchor="top"
+          className="aui-thread-viewport relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth px-4 pt-4 pb-4 scrollbar-hide"
+        >
+          <ThreadPrimitive.If empty>
+            <ThreadWelcome />
+          </ThreadPrimitive.If>
 
-        <ThreadPrimitive.Messages
-          components={{
-            UserMessage,
-            EditComposer,
-            AssistantMessage,
-          }}
-        />
+          <ThreadPrimitive.Messages
+            components={{
+              UserMessage,
+              EditComposer,
+              AssistantMessage,
+            }}
+          />
+        </ThreadPrimitive.Viewport>
 
-        <ThreadPrimitive.ViewportFooter className="aui-thread-viewport-footer sticky bottom-0 mx-auto mt-4 flex w-full max-w-(--thread-max-width) flex-col gap-4 overflow-visible rounded-t-3xl bg-transparent pb-4 md:pb-6">
+        {/* 底部固定区域 - Composer始终在底部 */}
+        <div className="aui-thread-footer relative mx-auto w-full max-w-(--thread-max-width) flex-shrink-0 px-4 pb-4 md:pb-6">
           <ThreadScrollToBottom />
           <Composer />
-        </ThreadPrimitive.ViewportFooter>
-      </ThreadPrimitive.Viewport></ThreadPrimitive.Root>
+        </div>
+      </ThreadPrimitive.Root>
     </ThreadContext.Provider>
   );
 };
@@ -110,7 +114,7 @@ const ThreadScrollToBottom: FC = () => {
       <TooltipIconButton
         tooltip="滚动到底部"
         variant="outline"
-        className="aui-thread-scroll-to-bottom -top-12 absolute z-10 self-center rounded-full p-4 disabled:invisible dark:bg-background dark:hover:bg-accent"
+        className="aui-thread-scroll-to-bottom absolute -top-12 left-1/2 -translate-x-1/2 z-10 rounded-full p-4 disabled:invisible dark:bg-background dark:hover:bg-accent"
       >
         <ArrowDownIcon />
       </TooltipIconButton>
