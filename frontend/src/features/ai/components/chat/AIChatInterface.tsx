@@ -58,7 +58,8 @@ interface AIChatInterfaceContentProps {
   setOpenModelSelect: (open: boolean) => void;
   selectedModel: string;
   setSelectedModel: (model: string) => void;
-  modelOptions: AIModel[];
+  modelOptions: AIModel[];selectedText?: string;
+  onApplyToEditor?: (text: string) => void;
 }
 
 function AIChatInterfaceContent({
@@ -72,6 +73,8 @@ function AIChatInterfaceContent({
   selectedModel,
   setSelectedModel,
   modelOptions,
+  selectedText,
+  onApplyToEditor,
 }: AIChatInterfaceContentProps) {
   // 从 Context 获取会话管理函数
   const { switchToSession, createNewSession, currentSessionId } =
@@ -237,7 +240,7 @@ function AIChatInterfaceContent({
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden relative">
         {currentSessionId ? (
-          <Thread />
+          <Thread selectedText={selectedText} onApplyToEditor={onApplyToEditor} />
         ) : (
           <div className="flex h-full items-center justify-center">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -366,6 +369,8 @@ export function AIChatInterface({
           selectedModel={selectedModel}
           setSelectedModel={setSelectedModel}
           modelOptions={modelOptions}
+          selectedText={selectedText}
+          onApplyToEditor={onApplyToEditor}
         />
       </AssistantRuntimeProvider>
 

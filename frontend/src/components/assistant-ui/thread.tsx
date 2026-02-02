@@ -44,6 +44,25 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 // =============================================================================
+// Utils
+// =============================================================================
+/**
+ * 从assistant-ui消息中提取纯文本内容
+ */
+function extractTextFromMessage(message: any): string {
+  if (!message) return "";
+  
+  // useMessage 返回的是 MessageState，其中 content 是消息部分的数组
+  const content = message.content;
+  if (!content || !Array.isArray(content)) return "";
+  
+  return content
+    .filter((part: any) => part.type === "text")
+    .map((part: any) => part.text || "")
+    .join("");
+}
+
+// =============================================================================
 // Thread Context
 // =============================================================================
 
@@ -216,23 +235,51 @@ const QuickActions: FC = () => {
     }
   };
 
+  // 截断选中文本用于显示
+  const truncatedText = selectedText && selectedText.length > 50
+    ? selectedText.substring(0, 50) + "..."
+    : selectedText;
+
   return (
-    <div className="flex gap-1 overflow-x-auto scrollbar-hide mask-linear-fade px-1">
-      {[
-        { label: "润色", icon: Sparkles },
-        { label: "续写", icon: PenTool },
-        { label: "分析", icon: BookOpen },
-        { label: "扩写", icon: Wand2 },
-      ].map((action) => (
-        <button
-          key={action.label}
-          onClick={() => handleAction(action.label)}
-          className="flex items-center gap-1 whitespace-nowrap px-2.5 py-1 rounded-full bg-primary/5 hover:bg-primary/10 text-[10px] text-muted-foreground hover:text-primary transition-colors duration-200 cursor-pointer"
-        >
-          <action.icon className="h-3 w-3" />
-          {action.label}
-        </button>
-      ))}
+    <div className="flex flex-col gap-2">
+      {/* 选中文本提示区域 */}
+      {selectedText && (
+        <div className="flex items-center gap-2 px-3 py-2 bg-primary/5 rounded-xl border border-primary/10 text-xs">
+          <div className="flex items-center gap-1 text-primary font-medium whitespace-nowrap">
+            <FileEditIcon className="h-3 w-3" />
+            <span>已选中文本:</span>
+          </div>
+          <span className="text-muted-foreground truncate" title={selectedText}>
+            "{truncatedText}"
+          </span>
+        </div>
+      )}
+      
+      {/* 快捷操作按钮 */}
+      <div className="flex gap-1 overflow-x-auto scrollbar-hide mask-linear-fade px-1">
+        {[
+          { label: "润色", icon: Sparkles, hint: "优化文字表达" },
+          { label: "续写", icon: PenTool, hint: "继续写作" },
+          { label: "分析", icon: BookOpen, hint: "分析文本内容" },
+          { label: "扩写", icon: Wand2, hint: "扩展内容" },
+        ].map((action) => (
+          <button
+            key={action.label}
+            onClick={() => handleAction(action.label)}
+            title={selectedText ? `${action.label}选中的文本` : action.hint}
+            className={cn(
+              "flex items-center gap-1 whitespace-nowrap px-2.5 py-1 rounded-full text-[10px] transition-colors duration-200 cursor-pointer",
+              selectedText
+                ? "bg-primary/10 text-primary hover:bg-primary/20 ring-1 ring-primary/20"
+                : "bg-primary/5 hover:bg-primary/10 text-muted-foreground hover:text-primary"
+            )}
+          >
+            <action.icon className="h-3 w-3" />
+            {action.label}
+            {selectedText && <span className="text-[8px] opacity-60">选中</span>}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };
@@ -309,6 +356,30 @@ const AssistantMessage: FC = () => {
   );
 };
 
+const ApplyToEditorButton: FC = () => {
+  const { onApplyToEditor } = useThreadContext();
+  const message = useMessage();
+  
+  // 只在有 onApplyToEditor 回调时显示
+  if (!onApplyToEditor) return null;
+  
+  const handleApply = useCallback(() => {
+    const text = extractTextFromMessage(message);
+    if (text) {
+      onApplyToEditor(text);
+      toast.success("已应用到编辑器");
+    } else {
+      toast.error("没有可应用的内容");
+    }
+  }, [message, onApplyToEditor]);
+  
+  return (
+    <TooltipIconButton tooltip="应用到编辑器" onClick={handleApply}>
+      <FileEditIcon />
+    </TooltipIconButton>
+  );
+};
+
 const AssistantActionBar: FC = () => {
   return (
     <ActionBarPrimitive.Root
@@ -327,6 +398,7 @@ const AssistantActionBar: FC = () => {
           </MessagePrimitive.If>
         </TooltipIconButton>
       </ActionBarPrimitive.Copy>
+      <ApplyToEditorButton />
       <ActionBarPrimitive.Reload asChild>
         <TooltipIconButton tooltip="重新生成">
           <RefreshCwIcon />
