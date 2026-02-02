@@ -101,7 +101,8 @@ export const Thread: FC<ThreadProps> = ({ onApplyToEditor, selectedText }) => {
       >
         {/* 滚动内容区域 */}
         <ThreadPrimitive.Viewport
-          turnAnchor="top"
+          // turnAnchor="top" 会自己滚动到顶部
+          autoScroll
           className="aui-thread-viewport relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth px-4 pt-4 pb-4 scrollbar-hide"
         >
           <ThreadPrimitive.If empty>
