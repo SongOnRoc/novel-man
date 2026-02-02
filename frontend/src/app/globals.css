@@ -2,10 +2,10 @@
 @import "../styles/modern-ui-system.css";
 @import "../styles/assistant-ui-theme.css";
 
-@custom-variant dark (&:is(.dark *));
+@variant dark (&:is(.dark *));
 
 @theme inline {
-  /* 映射 Design System 变量到 Tailwind */
+  /*映射 Design System 变量到 Tailwind */
   --color-background: var(--bg-page);
   --color-foreground: var(--text-primary);
 
@@ -71,10 +71,36 @@
   --aui-color-border: var(--border-default);
   --aui-color-input: var(--border-default);
   --aui-color-ring: var(--primary-500);
+
+  /* Mobile AI Assistant 变量 */
+  --mobile-touch-target-min: 44px;
+  --mobile-floating-bar-height: 56px;
+  --mobile-header-height: 48px;
+  --mobile-vh: 1vh;
+}
+
+/* Safe area insets using CSS env() */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  :root {
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-right: env(safe-area-inset-right, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-left: env(safe-area-inset-left, 0px);
+  }
+}
+
+/* Fallback for browsers without safe-area support */
+@supports not (padding-bottom: env(safe-area-inset-bottom)) {
+  :root {
+    --safe-area-inset-top: 0px;
+    --safe-area-inset-right: 0px;
+    --safe-area-inset-bottom: 0px;
+    --safe-area-inset-left: 0px;
+  }
 }
 
 :root {
-  /* Shadcn UI 兼容性变量映射 */
+  /* Shadcn UI兼容性变量映射 */
   --background: var(--bg-page);
   --foreground: var(--text-primary);
 
@@ -120,7 +146,6 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    /* 启用平滑滚动 */
     scroll-behavior: smooth;
   }
 }
@@ -156,4 +181,52 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Mobile viewport height utilities */
+.h-mobile-screen {
+  height: 100vh;
+  height: 100dvh;
+  height: calc(var(--mobile-vh, 1vh) * 100);
+}
+
+.min-h-mobile-screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: calc(var(--mobile-vh, 1vh) * 100);
+}
+
+/* Safe area padding utilities */
+.pb-safe {
+  padding-bottom: var(--safe-area-inset-bottom);
+}
+
+.pt-safe {
+  padding-top: var(--safe-area-inset-top);
+}
+
+.px-safe {
+  padding-left: var(--safe-area-inset-left);
+  padding-right: var(--safe-area-inset-right);
+}
+
+/* Touch target minimum size utility */
+.touch-target {
+  min-width: var(--mobile-touch-target-min);
+  min-height: var(--mobile-touch-target-min);
+}
+
+/* Mobile AI floating bar */
+.mobile-floating-bar {
+  height: calc(var(--mobile-floating-bar-height) + var(--safe-area-inset-bottom));
+  padding-bottom: var(--safe-area-inset-bottom);
+}
+
+/* Mobile AI immersive mode */
+.mobile-immersive {
+  height: 100vh;
+  height: 100dvh;
+  height: calc(var(--mobile-vh, 1vh) * 100);
+  padding-top: var(--safe-area-inset-top);
+  padding-bottom: var(--safe-area-inset-bottom);
 }

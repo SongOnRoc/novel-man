@@ -39,6 +39,10 @@ import {
 } from "@/components/ui/sheet";
 import { useMediaQuery } from "@/hooks/ui/useMediaQuery";
 import { AIChatInterface } from "@/features/ai/components/chat/AIChatInterface";
+import {
+  MobileAIContainer,
+  type MobileAIMode,
+} from "@/features/ai/components/mobile";
 import { useDebounce } from "@/hooks/useDebounce";
 
 import { SearchPanel } from "./SearchPanel";
@@ -114,11 +118,14 @@ export function TiptapEditor({
   const [wordCount, setWordCount] = useState(0);
 
   // Side Panel States
+  // Side Panel States
   const [isAIOpen, setInternalIsAIOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAICollapsed, setIsAICollapsed] = useState(false);
   const [isSearchCollapsed, setIsSearchCollapsed] = useState(false);
 
+  // Mobile AI Mode State
+  const [mobileAIMode, setMobileAIMode] = useState<MobileAIMode>("floating");
   const [selectedText, setSelectedText] = useState("");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
   const router = useRouter();
@@ -560,55 +567,17 @@ export function TiptapEditor({
         </Sheet>
       )}
 
-      {/* AI 助手悬浮按钮 - 移动端 */}
+      {/* Mobile AI Assistant - New Dual-Mode Architecture */}
       {!isDesktop && (
-        <div
-          className={cn(
-            "fixed z-50 transition-all duration-300 ease-in-out",
-            isAIOpen
-              ? "bottom-6 right-4"
-              : "bottom-8 right-0 translate-x-1/2 hover:translate-x-0 opacity-50 hover:opacity-100"
-          )}
-        >
-          <Sheet open={isAIOpen} onOpenChange={setInternalIsAIOpen}>
-            <SheetTrigger asChild>
-              <Button
-                variant="default"
-                size="icon"
-                className={cn(
-                  "rounded-full shadow-lg transition-all duration-300",
-                  isAIOpen
-                    ? "h-12 w-12 bg-background text-foreground border border-border/40 hover:bg-muted"
-                    : "h-10 w-10 bg-primary/80 text-primary-foreground hover:bg-primary shadow-none"
-                )}
-              >
-                {isAIOpen ? (
-                  <PanelRightClose className="h-5 w-5" />
-                ) : (
-                  <Sparkles className="h-5 w-5" />
-                )}
-              </Button>
-            </SheetTrigger>
-            <SheetContent
-              side="bottom"
-              className={cn(
-                "h-[62vh] p-0 rounded-t-[2rem] border-t-0 shadow-2xl editor-paper",
-                `theme-${settings.theme}`
-              )}
-            >
-              <SheetTitle className="sr-only">AI 写作助手</SheetTitle>
-              <SheetDescription className="sr-only">
-                与 AI 助手对话以获取写作帮助
-              </SheetDescription>
-              <AIChatInterface
-                workId={workId ? parseInt(workId, 10) : undefined}
-                selectedText={selectedText}
-                onApplyToEditor={handleApplyToEditor}
-                className="h-full border-none rounded-t-[2rem] bg-transparent"
-              />
-            </SheetContent>
-          </Sheet>
-        </div>
+        <MobileAIContainer
+          selectedText={selectedText}
+          onApplyToEditor={handleApplyToEditor}
+          workId={workId ? parseInt(workId, 10) : undefined}
+          initialMode={mobileAIMode}
+          onModeChange={setMobileAIMode}
+          isVisible={true}
+          theme={settings.theme}
+        />
       )}
     </div>
   );
