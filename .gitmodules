@@ -1,3 +1,0 @@
-[submodule "backend/pkg/gin-swagger"]
-	path = backend/pkg/gin-swagger
-	url = https://github.com/SongOnRoc/gin-swagger.git
