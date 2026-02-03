@@ -391,7 +391,7 @@ export function TiptapEditor({
   const EditorLayout = (
     <div
       id={containerId}
-      className={`flex h-full flex-col relative font-sans group/editor theme-${settings.theme} bg-background transition-colors duration-500`}
+      className={`flex h-full flex-col relative font-sans group/editor theme-${settings.theme} editor-paper transition-colors duration-500`}
     >
       {/* 顶部工具栏 - 移动端和桌面端都使用sticky定位 */}
       <div className="sticky top-0 z-20 border-b border-border/10 editor-paper transition-all duration-300">
