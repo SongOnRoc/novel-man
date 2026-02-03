@@ -123,6 +123,12 @@ export const customFetch = async <T>(
 
       try {
         while (true) {
+          // 检查是否已取消
+          if (signal?.aborted) {
+            onData({ done: true, aborted: true });
+            break;
+          }
+
           const { done, value } = await reader.read();
 
           if (value) {
@@ -146,6 +152,7 @@ export const customFetch = async <T>(
 
             const jsonStr = trimmedLine.slice(6);
             if (jsonStr === '[DONE]') {
+              onData({ done: true });
               return {} as T;
             }
 
@@ -160,7 +167,18 @@ export const customFetch = async <T>(
             }
           }
 
-          if (done) break;
+          if (done) {
+            // 流自然结束时也发送 done 信号
+            onData({ done: true });
+            break;
+          }
+        }
+      } catch (e: any) {
+        // 处理 abort 错误，发送 done 信号
+        if (e.name === 'AbortError') {
+          onData({ done: true, aborted: true });
+        } else {
+          throw e;
         }
       } finally {
         reader.releaseLock();

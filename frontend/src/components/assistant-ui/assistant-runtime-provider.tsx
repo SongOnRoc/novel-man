@@ -112,6 +112,8 @@ const createModelAdapter = (config: RuntimeConfig = {}): ChatModelAdapter => {
             }
           });
 
+          // 再次检查 abortSignal，防止在等待 Promise 期间被取消
+          if (abortSignal.aborted) break;
           if (next.type === "done" || next.type === "aborted") break;
           if (next.type === "error") throw next.value;
 
@@ -148,14 +150,31 @@ const RuntimeInner: FC<RuntimeInnerProps> = ({ children, config, sessionId }) =>
   // 创建 adapter
   const adapter = useMemo(() => createModelAdapter(config), [config]);
 
-  // 计算初始消息
+  // 计算初始消息，同时修复"僵尸" running 状态
+  // 如果消息状态是 running 但页面刚加载，说明之前的流没有正确结束
   const initialMessages = useMemo(() => {
     if (!session) return [];
-    return Object.values(session.messages).map((msg) => ({
-      ...msg,
-      id: msg.id,
-      parentId: msg.parentId,
-    }));
+    return Object.values(session.messages).map((msg) => {
+      const message = {
+        ...msg,
+        id: msg.id,
+        parentId: msg.parentId,
+      };
+
+      // 修复卡住的 "running" 状态消息
+      // 页面加载时不可能有真正在运行的流，所以标记为 incomplete
+      if (msg.status && (msg.status as any).type === "running") {
+        return {
+          ...message,
+          status: {
+            type: "incomplete" as const,
+            reason: "cancelled" as const,
+          },
+        };
+      }
+
+      return message;
+    });
   }, [session]);
 
   // 创建 runtime

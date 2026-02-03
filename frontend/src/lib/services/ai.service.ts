@@ -153,6 +153,7 @@ export const generateStreamService = (
         if (chunk.content) {
           onData(chunk.content);
         }
+        // 处理 done 信号（包括正常完成和取消）
         if (chunk.done) {
           onComplete();
         }
@@ -162,6 +163,9 @@ export const generateStreamService = (
   ).catch((err) => {
     if (err.name !== "AbortError") {
       onError(err);
+    } else {
+      // AbortError 时也调用 onComplete 确保流正确结束
+      onComplete();
     }
   });
 
