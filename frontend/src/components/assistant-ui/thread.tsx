@@ -14,8 +14,11 @@ import {
   PenTool,
   BookOpen,
   Wand2,
-  FileEditIcon,
-} from "lucide-react";
+    FileEditIcon,
+  } from "lucide-react";
+  
+  import { PromptSelector } from "@/features/ai/components/prompt-selector/PromptSelector";
+  import { useSelectedPromptStore } from "@/features/ai/components/prompt-selector/useSelectedPromptStore";
 
 import {
   ActionBarPrimitive,
@@ -28,7 +31,7 @@ import {
   useMessage,
 } from "@assistant-ui/react";
 
-import { type FC, createContext, useContext, useCallback } from "react";
+import { type FC, createContext, useContext, useCallback, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { MarkdownText } from "@/components/assistant-ui/markdown-text";
@@ -224,22 +227,17 @@ const Composer: FC = () => {
 };
 
 const QuickActions: FC = () => {
-  const api = useAssistantApi();
   const { selectedText } = useThreadContext();
-
-  const handleAction = (label: string) => {
-    if (selectedText) {
-      // 如果有选中文本，将其作为上下文包含在提示中
-      api.composer().setText(`${label}以下文本：\n\n"${selectedText}"\n\n`);
-    } else {
-      api.composer().setText(label + "：\n");
-    }
-  };
+  const { selectedPromptId, setSelectedPromptId } = useSelectedPromptStore();
 
   // 截断选中文本用于显示
   const truncatedText = selectedText && selectedText.length > 50
     ? selectedText.substring(0, 50) + "..."
     : selectedText;
+
+  const handleSelectPrompt = (id: number | null) => {
+    setSelectedPromptId?.(id);
+  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -256,31 +254,14 @@ const QuickActions: FC = () => {
         </div>
       )}
       
-      {/* 快捷操作按钮 */}
-      <div className="flex gap-1 overflow-x-auto scrollbar-hide mask-linear-fade px-1">
-        {[
-          { label: "润色", icon: Sparkles, hint: "优化文字表达" },
-          { label: "续写", icon: PenTool, hint: "继续写作" },
-          { label: "分析", icon: BookOpen, hint: "分析文本内容" },
-          { label: "扩写", icon: Wand2, hint: "扩展内容" },
-        ].map((action) => (
-          <button
-            key={action.label}
-            onClick={() => handleAction(action.label)}
-            title={selectedText ? `${action.label}选中的文本` : action.hint}
-            className={cn(
-              "flex items-center gap-1 whitespace-nowrap px-2.5 py-1 rounded-full text-[10px] transition-colors duration-200 cursor-pointer",
-              selectedText
-                ? "bg-primary/10 text-primary hover:bg-primary/20 ring-1 ring-primary/20"
-                : "bg-primary/5 hover:bg-primary/10 text-muted-foreground hover:text-primary"
-            )}
-          >
-            <action.icon className="h-3 w-3" />
-            {action.label}
-            {selectedText && <span className="text-[8px] opacity-60">选中</span>}
-          </button>
-        ))}
-      </div>
+      {/* 提示词选择器 */}
+      <PromptSelector
+        selectedPromptId={selectedPromptId ?? null}
+        onSelectPrompt={handleSelectPrompt}
+        visibleCount={4}
+        isMobile={false}
+        className="px-1"
+      />
     </div>
   );
 };

@@ -2155,6 +2155,11 @@ paths:
         name: category
         schema:
           type: string
+      - description: Filter system prompts only
+        in: query
+        name: is_system
+        schema:
+          type: boolean
       requestBody:
         content:
           application/json:

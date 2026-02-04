@@ -757,6 +757,10 @@ export type GetPromptsParams = {
    * Filter by category
    */
   category?: string;
+  /**
+   * Filter system prompts only
+   */
+  is_system?: boolean;
 };
 
 export type GetPromptsBody = { [key: string]: unknown };

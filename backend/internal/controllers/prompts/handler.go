@@ -134,6 +134,7 @@ func toPromptResponse(p *models.Prompt) PromptResponse {
 // @Param page query int false "Page number" default(1)
 // @Param limit query int false "Items per page" default(10)
 // @Param category query string false "Filter by category"
+// @Param is_system query bool false "Filter system prompts only"
 // @Success 200 {object} response.StandardResponse{data=PromptListResponse}
 // @Failure 401 {object} response.StandardResponse "Unauthorized"
 // @Failure 500 {object} response.StandardResponse "Internal Server Error"
@@ -178,9 +179,18 @@ func (c *PromptController) ListPrompts(ctx *gin.Context) {
 
 // buildListQuery 构建提示词列表的查询条件
 func (c *PromptController) buildListQuery(ctx *gin.Context, userID uint) *contracts.Condition {
-	// Base filter: (user_id = ? OR is_system = ?)
-	query := contracts.NewCondition("user_id", userID).
-		Or(contracts.NewCondition("is_system", true))
+	// 检查 is_system 参数
+	isSystemParam := ctx.Query("is_system")
+	
+	var query *contracts.Condition
+	if isSystemParam == "true" {
+		// 仅返回系统提示词
+		query = contracts.NewCondition("is_system", true)
+	} else {
+		// 默认行为: (user_id = ? OR is_system = ?)
+		query = contracts.NewCondition("user_id", userID).
+			Or(contracts.NewCondition("is_system", true))
+	}
 
 	if category := ctx.Query("category"); category != "" {
 		// Category filter: (categories LIKE ? OR primary_tag = ?)

@@ -16,6 +16,10 @@ export interface RuntimeConfig {
   temperature?: number;
   /** 最大 token 数 */
   maxTokens?: number;
+  /** 获取当前选中的提示词 ID 的回调函数 */
+  getSelectedPromptId?: () => number | null;
+  /** 发送消息后的回调（用于清除选中状态） */
+  onMessageSent?: () => void;
 }
 
 export interface AssistantRuntimeProviderProps {
@@ -82,9 +86,14 @@ const createModelAdapter = (config: RuntimeConfig = {}): ChatModelAdapter => {
         }
       };
 
+      // 获取当前选中的提示词 ID（必须是正整数才有效）
+      const promptId = config.getSelectedPromptId?.() ?? null;
+      const validPromptId = promptId && promptId > 0 ? promptId : null;
+
       const requestData: GenerateRequest = {
         messages: history,
         model: config.model,
+        ...(validPromptId && { prompt_id: validPromptId }),
       };
 
       const abortFn = generateStreamService(
@@ -120,6 +129,11 @@ const createModelAdapter = (config: RuntimeConfig = {}): ChatModelAdapter => {
           if (next.type === "chunk") {
             fullText += next.value;
             yield { content: [{ type: "text", text: fullText }] };
+          }
+
+          // 首次收到响应时，触发发送后回调（清除选中状态）
+          if (next.type === "chunk" && fullText === next.value) {
+            config.onMessageSent?.();
           }
         }
       } finally {

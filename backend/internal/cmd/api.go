@@ -28,6 +28,12 @@ var apiCmd = &cobra.Command{
 			return
 		}
 
+		// 初始化系统提示词种子数据
+		if err := db.SeedSystemPrompts(ctx, dbInstance); err != nil {
+			logger.Error(ctx, "Error seeding system prompts: {}", err)
+			// 不中断启动，仅记录错误
+		}
+
 		// 初始化中间件
 		if err := middlewares.InitMiddlewares(); err != nil {
 			logger.Error(ctx, "Error initializing middlewares: {}", err)

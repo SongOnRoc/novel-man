@@ -34,6 +34,7 @@ import {
   useChatRuntimeContext,
 } from "@/components/assistant-ui/assistant-runtime-provider";
 import type { RuntimeConfig } from "@/lib/ai/runtime";
+import { getSelectedPromptId, clearSelectedPrompt } from "@/features/ai/components/prompt-selector/useSelectedPromptStore";
 
 interface AIChatInterfaceProps {
   workId?: number;
@@ -348,6 +349,8 @@ export function AIChatInterface({
   // 构建 runtime 配置
   const runtimeConfig: RuntimeConfig = {
     model: selectedModel,
+    getSelectedPromptId,
+    onMessageSent: clearSelectedPrompt,
   };
 
   return (

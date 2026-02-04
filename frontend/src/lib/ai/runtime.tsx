@@ -12,6 +12,10 @@ export interface RuntimeConfig {
   temperature?: number;
   /** 最大 token 数 */
   maxTokens?: number;
+  /** 获取当前选中的提示词 ID的回调函数 */
+  getSelectedPromptId?: () => number | null;
+  /** 发送消息后的回调（用于清除选中状态） */
+  onMessageSent?: () => void;
 }
 
 // =============================================================================

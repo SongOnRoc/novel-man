@@ -20,6 +20,7 @@ func init() {
 
 	// Register service implementation
 	container.Container.Provide(services.NewLLMService)
+	// GenerateService 需要 PromptRepository,所以需要在 prompts module 中注册后才能使用
 	container.Container.Provide(services.NewGenerateService)
 
 	// Register controller implementation
