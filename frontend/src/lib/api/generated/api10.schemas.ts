@@ -189,6 +189,20 @@ export interface DraftsUpdateDraftRequest {
   work_id?: number;
 }
 
+export interface FavoritesAddFavoriteRequest {
+  resource_id: number;
+  resource_type: string;
+}
+
+export interface FavoritesFavoriteIDsResponse {
+  resource_ids?: number[];
+  resource_type?: string;
+}
+
+export interface FavoritesIsFavoriteResponse {
+  is_favorite?: boolean;
+}
+
 export interface ModelsAIContext {
   style_preference?: string;
   work_id?: number;
@@ -698,6 +712,45 @@ export type PutDraftsId200 = Data & {
 };
 
 export type PostDraftsIdPublish200 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type GetFavoritesParams = {
+  /**
+   * Resource type (prompt, snippet, sentence)
+   */
+  type: string;
+};
+
+export type GetFavorites200 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type PostFavorites201 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type DeleteFavoritesTypeId200 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type GetFavoritesTypeId200 = Data & {
   code?: number;
   data?: unknown;
   message?: string;

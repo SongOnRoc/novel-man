@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { cn } from '@/lib/utils';
-import { PromptSelector } from '@/features/ai/components/prompt-selector/PromptSelector';
+import React from "react";
+import { cn } from "@/lib/utils";
+import { PromptSelector } from "@/features/ai/components/prompt-selector/PromptSelector";
 
 interface MobileQuickActionsProps {
   /** 当前选中的提示词 ID */
@@ -17,7 +17,7 @@ interface MobileQuickActionsProps {
 
 /**
  * Mobile Quick Actions
- * 
+ *
  * A row of quick action buttons for common AI operations.
  * Uses PromptSelector for dynamic prompt selection.
  */
@@ -28,11 +28,10 @@ export function MobileQuickActions({
   className,
 }: MobileQuickActionsProps) {
   return (
-    <div className={cn('flex items-center shrink-0', className)}>
+    <div className={cn("flex items-center shrink-0", className)}>
       <PromptSelector
         selectedPromptId={selectedPromptId}
         onSelectPrompt={onSelectPrompt}
-        visibleCount={maxActions}
         isMobile={true}
       />
     </div>

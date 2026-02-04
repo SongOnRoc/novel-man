@@ -328,6 +328,31 @@ components:
         work_id:
           type: integer
       type: object
+    favorites.AddFavoriteRequest:
+      properties:
+        resource_id:
+          type: integer
+        resource_type:
+          type: string
+      required:
+      - resource_id
+      - resource_type
+      type: object
+    favorites.FavoriteIDsResponse:
+      properties:
+        resource_ids:
+          items:
+            type: integer
+          type: array
+          uniqueItems: false
+        resource_type:
+          type: string
+      type: object
+    favorites.IsFavoriteResponse:
+      properties:
+        is_favorite:
+          type: boolean
+      type: object
     models.AIContext:
       properties:
         style_preference:
@@ -2007,6 +2032,225 @@ paths:
       summary: Publish a draft to a chapter
       tags:
       - drafts
+  /favorites:
+    get:
+      description: Get a list of user's favorite resource IDs filtered by resource
+        type
+      parameters:
+      - description: Resource type (prompt, snippet, sentence)
+        in: query
+        name: type
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Missing type parameter
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Failed to list favorites
+      security:
+      - BearerAuth: []
+      summary: Get user's favorites by type
+      tags:
+      - favorites
+    post:
+      description: Add a resource to user's favorites
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/favorites.AddFavoriteRequest'
+        description: Add Favorite Request
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Invalid request body
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Failed to add favorite
+      security:
+      - BearerAuth: []
+      summary: Add a favorite
+      tags:
+      - favorites
+  /favorites/{type}/{id}:
+    delete:
+      description: Remove a resource from user's favorites
+      parameters:
+      - description: Resource type
+        in: path
+        name: type
+        required: true
+        schema:
+          type: string
+      - description: Resource ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Invalid ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Failed to remove favorite
+      security:
+      - BearerAuth: []
+      summary: Remove a favorite
+      tags:
+      - favorites
+    get:
+      description: Check if a specific resource is in user's favorites
+      parameters:
+      - description: Resource type
+        in: path
+        name: type
+        required: true
+        schema:
+          type: string
+      - description: Resource ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Invalid ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Failed to check favorite
+      security:
+      - BearerAuth: []
+      summary: Check if resource is favorited
+      tags:
+      - favorites
   /generate:
     get:
       description: Retrieves a list of all available assistant types.

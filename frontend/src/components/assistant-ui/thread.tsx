@@ -14,11 +14,11 @@ import {
   PenTool,
   BookOpen,
   Wand2,
-    FileEditIcon,
-  } from "lucide-react";
-  
-  import { PromptSelector } from "@/features/ai/components/prompt-selector/PromptSelector";
-  import { useSelectedPromptStore } from "@/features/ai/components/prompt-selector/useSelectedPromptStore";
+  FileEditIcon,
+} from "lucide-react";
+
+import { PromptSelector } from "@/features/ai/components/prompt-selector/PromptSelector";
+import { useSelectedPromptStore } from "@/features/ai/components/prompt-selector/useSelectedPromptStore";
 
 import {
   ActionBarPrimitive,
@@ -31,7 +31,13 @@ import {
   useMessage,
 } from "@assistant-ui/react";
 
-import { type FC, createContext, useContext, useCallback, useState } from "react";
+import {
+  type FC,
+  createContext,
+  useContext,
+  useCallback,
+  useState,
+} from "react";
 
 import { Button } from "@/components/ui/button";
 import { MarkdownText } from "@/components/assistant-ui/markdown-text";
@@ -231,9 +237,10 @@ const QuickActions: FC = () => {
   const { selectedPromptId, setSelectedPromptId } = useSelectedPromptStore();
 
   // 截断选中文本用于显示
-  const truncatedText = selectedText && selectedText.length > 50
-    ? selectedText.substring(0, 50) + "..."
-    : selectedText;
+  const truncatedText =
+    selectedText && selectedText.length > 50
+      ? selectedText.substring(0, 50) + "..."
+      : selectedText;
 
   const handleSelectPrompt = (id: number | null) => {
     setSelectedPromptId?.(id);
@@ -258,7 +265,6 @@ const QuickActions: FC = () => {
       <PromptSelector
         selectedPromptId={selectedPromptId ?? null}
         onSelectPrompt={handleSelectPrompt}
-        visibleCount={4}
         isMobile={false}
         className="px-1"
       />

@@ -71,6 +71,7 @@ var rootCmd = &cobra.Command{
 			&models.EntityRelationship{},
 			&models.Prompt{},
 			&models.UserAICustomSetting{},
+			&models.UserFavorite{},
 			// &settings.UserSetting{}, // TODO: Refactor UserSetting to also use the central models package if needed.
 		)
 	},
