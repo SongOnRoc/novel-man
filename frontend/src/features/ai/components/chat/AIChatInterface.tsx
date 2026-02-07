@@ -34,7 +34,7 @@ import {
   useChatRuntimeContext,
 } from "@/components/assistant-ui/assistant-runtime-provider";
 import type { RuntimeConfig } from "@/lib/ai/runtime";
-import { getSelectedPromptId, clearSelectedPrompt } from "@/features/ai/components/prompt-selector/useSelectedPromptStore";
+import { getSelectedPromptId } from "@/features/ai/components/prompt-selector/useSelectedPromptStore";
 
 interface AIChatInterfaceProps {
   workId?: number;
@@ -59,7 +59,8 @@ interface AIChatInterfaceContentProps {
   setOpenModelSelect: (open: boolean) => void;
   selectedModel: string;
   setSelectedModel: (model: string) => void;
-  modelOptions: AIModel[];selectedText?: string;
+  modelOptions: AIModel[];
+  selectedText?: string;
   onApplyToEditor?: (text: string) => void;
 }
 
@@ -241,7 +242,10 @@ function AIChatInterfaceContent({
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden relative">
         {currentSessionId ? (
-          <Thread selectedText={selectedText} onApplyToEditor={onApplyToEditor} />
+          <Thread
+            selectedText={selectedText}
+            onApplyToEditor={onApplyToEditor}
+          />
         ) : (
           <div className="flex h-full items-center justify-center">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -350,7 +354,7 @@ export function AIChatInterface({
   const runtimeConfig: RuntimeConfig = {
     model: selectedModel,
     getSelectedPromptId,
-    onMessageSent: clearSelectedPrompt,
+    selectedText,
   };
 
   return (

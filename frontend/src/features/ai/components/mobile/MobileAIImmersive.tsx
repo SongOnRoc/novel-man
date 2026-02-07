@@ -20,7 +20,7 @@ import {
   useChatRuntimeContext,
 } from "@/components/assistant-ui/assistant-runtime-provider";
 import type { RuntimeConfig } from "@/lib/ai/runtime";
-import { getSelectedPromptId, clearSelectedPrompt } from "@/features/ai/components/prompt-selector/useSelectedPromptStore";
+import { getSelectedPromptId } from "@/features/ai/components/prompt-selector/useSelectedPromptStore";
 import { useAIModels, type AIModel } from "@/hooks/ai/useAIModels";
 import type { EditorTheme } from "@/types/editor";
 
@@ -481,7 +481,7 @@ export function MobileAIImmersive(props: MobileAIImmersiveProps) {
   const runtimeConfig: RuntimeConfig = {
     model: selectedModel,
     getSelectedPromptId,
-    onMessageSent: clearSelectedPrompt,
+    selectedText: props.selectedText,
   };
 
   return (

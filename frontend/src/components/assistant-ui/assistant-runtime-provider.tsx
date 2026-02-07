@@ -18,8 +18,8 @@ export interface RuntimeConfig {
   maxTokens?: number;
   /** 获取当前选中的提示词 ID 的回调函数 */
   getSelectedPromptId?: () => number | null;
-  /** 发送消息后的回调（用于清除选中状态） */
-  onMessageSent?: () => void;
+  /** 编辑器当前选中文本（会注入本轮用户消息上下文） */
+  selectedText?: string;
 }
 
 export interface AssistantRuntimeProviderProps {
@@ -73,6 +73,19 @@ const createModelAdapter = (config: RuntimeConfig = {}): ChatModelAdapter => {
         }
         return { role: msg.role, content };
       });
+
+      const selectedText = config.selectedText?.trim();
+      if (selectedText) {
+        for (let i = history.length - 1; i >= 0; i--) {
+          if (history[i].role === "user") {
+            history[i] = {
+              ...history[i],
+              content: `${history[i].content}\n\n【引用文本】\n${selectedText}`,
+            };
+            break;
+          }
+        }
+      }
 
       let fullText = "";
       const resolveQueue: ((val: any) => void)[] = [];
@@ -131,10 +144,6 @@ const createModelAdapter = (config: RuntimeConfig = {}): ChatModelAdapter => {
             yield { content: [{ type: "text", text: fullText }] };
           }
 
-          // 首次收到响应时，触发发送后回调（清除选中状态）
-          if (next.type === "chunk" && fullText === next.value) {
-            config.onMessageSent?.();
-          }
         }
       } finally {
         abortSignal.removeEventListener("abort", abortHandler);
