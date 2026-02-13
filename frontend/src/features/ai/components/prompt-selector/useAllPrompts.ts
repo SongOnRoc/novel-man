@@ -101,7 +101,8 @@ export const useAllPrompts = (limit: number = 50): UseAllPromptsReturn => {
     return items.map((item) => ({
       id: item.id as number,
       title: item.title || "",
-      description: item.content?.substring(0, 50) || "",
+      // 仅展示后端 description，避免在选择器中泄露 content
+      description: item.description,
       primaryTag: item.primaryTag,
       icon: undefined,
       isFavorite: isFavorite(item.id as number),

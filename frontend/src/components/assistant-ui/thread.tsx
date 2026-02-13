@@ -51,6 +51,7 @@ import {
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
+import { useMediaQuery } from "@/hooks/ui/useMediaQuery";
 
 // =============================================================================
 // Utils
@@ -235,6 +236,7 @@ const Composer: FC = () => {
 const QuickActions: FC = () => {
   const { selectedText } = useThreadContext();
   const { selectedPromptId, setSelectedPromptId } = useSelectedPromptStore();
+  const isMobileViewport = useMediaQuery("(max-width: 767px)");
 
   // 截断选中文本用于显示
   const truncatedText =
@@ -265,8 +267,8 @@ const QuickActions: FC = () => {
       <PromptSelector
         selectedPromptId={selectedPromptId ?? null}
         onSelectPrompt={handleSelectPrompt}
-        isMobile={false}
-        className="px-1"
+        isMobile={isMobileViewport}
+        className="w-full"
       />
     </div>
   );

@@ -94,13 +94,22 @@ export const PromptSelector: FC<PromptSelectorProps> = ({
     [toggleFavorite]
   );
 
-      if (isLoading) {
-      return (
-        <div
-          className={cn("h-8 w-32 rounded-lg bg-muted animate-pulse", className)}
-        />
-      );
-    }
+  if (isLoading) {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        disabled
+        className={cn(
+          "h-8 w-full px-3 gap-2 rounded-lg border-dashed border-muted-foreground/30 text-muted-foreground",
+          className
+        )}
+      >
+        <Sparkles className="h-3.5 w-3.5" />
+        <span className="text-xs truncate">选择提示词</span>
+      </Button>
+    );
+  }
 
   // 根据设备类型渲染不同的选择器入口
   if (isMobile) {
@@ -267,7 +276,7 @@ const DesktopSelectorTrigger: FC<SelectorTriggerProps> = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[min(430px,calc(100vw-20px))] p-0"
+        className="w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-20px)] p-0"
         align="start"
         side="top"
         sideOffset={8}
@@ -418,8 +427,8 @@ const MobileSelectorTrigger: FC<SelectorTriggerProps> = ({
           </span>
         </Button>
       </DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader className="pb-2">
+      <DrawerContent className="h-[min(86dvh,560px)] max-h-[86dvh] p-0 flex flex-col">
+        <DrawerHeader className="pb-2 px-4 pt-3 shrink-0 border-b">
           <DrawerTitle>选择提示词</DrawerTitle>
           <PromptSearchInput
             value={searchKeyword}
@@ -430,20 +439,22 @@ const MobileSelectorTrigger: FC<SelectorTriggerProps> = ({
           />
         </DrawerHeader>
 
-        <PromptListContainer
-          prompts={prompts}
-          selectedPromptId={selectedPromptId}
-          searchKeyword={searchKeyword}
-          builtInPromptIds={builtInPromptIds}
-          onSelect={handleItemClick}
-          onToggleFavorite={onToggleFavorite}
-          onPreview={handlePreview}
-          onClearSearch={handleClearSearch}
-          isFavoriteDisabled={isFavoriteDisabled}
-          hideFavorite={hideFavorite}
-          maxHeight="52vh"
-          className="px-2 pb-6"
-        />
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <PromptListContainer
+            prompts={prompts}
+            selectedPromptId={selectedPromptId}
+            searchKeyword={searchKeyword}
+            builtInPromptIds={builtInPromptIds}
+            onSelect={handleItemClick}
+            onToggleFavorite={onToggleFavorite}
+            onPreview={handlePreview}
+            onClearSearch={handleClearSearch}
+            isFavoriteDisabled={isFavoriteDisabled}
+            hideFavorite={hideFavorite}
+            maxHeight="100%"
+            className="px-2 pb-[max(env(safe-area-inset-bottom),12px)]"
+          />
+        </div>
       </DrawerContent>
 
       <Sheet open={mobilePreviewOpen} onOpenChange={setMobilePreviewOpen}>

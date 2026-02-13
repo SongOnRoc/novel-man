@@ -52,11 +52,11 @@ export const PromptPreviewCard: FC<PromptPreviewCardProps> = ({
 
   const handleCopy = useCallback(async () => {
     if (!prompt) return;
-    const textToCopy = fullContent || prompt.description || prompt.title;
+    const textToCopy = prompt.description || prompt.title;
     await navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, [prompt, fullContent]);
+  }, [prompt]);
 
   const handleFavoriteClick = useCallback(() => {
     if (prompt && !isBuiltIn && onToggleFavorite) {
@@ -81,7 +81,7 @@ export const PromptPreviewCard: FC<PromptPreviewCardProps> = ({
     );
   }
 
-  const displayContent = fullContent || prompt.description || "";
+  const displayContent = prompt.description || "";
 
   return (
     <Card
@@ -130,12 +130,14 @@ export const PromptPreviewCard: FC<PromptPreviewCardProps> = ({
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        {/* 内容预览 */}
-        <div className="bg-muted/50 rounded-md p-3 mb-3">
-          <p className="text-xs text-muted-foreground line-clamp-4 whitespace-pre-wrap">
-            {displayContent || "暂无描述"}
-          </p>
-        </div>
+        {/* 内容预览：仅展示 description，无 description 则不展示 */}
+        {displayContent && (
+          <div className="bg-muted/50 rounded-md p-3 mb-3">
+            <p className="text-xs text-muted-foreground line-clamp-4 whitespace-pre-wrap">
+              {displayContent}
+            </p>
+          </div>
+        )}
 
         {/* 操作按钮 */}
         <div className="flex items-center gap-2">
