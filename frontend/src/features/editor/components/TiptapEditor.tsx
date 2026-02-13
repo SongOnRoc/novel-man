@@ -391,10 +391,10 @@ export function TiptapEditor({
   const EditorLayout = (
     <div
       id={containerId}
-      className={`flex h-full flex-col relative font-sans group/editor theme-${settings.theme} editor-paper transition-colors duration-500`}
+      className={`flex h-full min-h-0 flex-col relative font-sans group/editor theme-${settings.theme} editor-paper transition-colors duration-500`}
     >
       {/* 顶部工具栏 - 移动端和桌面端都使用sticky定位 */}
-      <div className="sticky top-0 z-20 border-b border-border/10 editor-paper transition-all duration-300">
+      <div className="sticky top-0 z-20 shrink-0 border-b border-border/10 editor-paper transition-all duration-300">
         <div className="mx-auto w-full max-w-5xl px-2 sm:px-8 py-2 sm:py-3">
           <EditorToolbar
             editor={editor}
@@ -418,14 +418,34 @@ export function TiptapEditor({
       </div>
 
       {/* 内容编辑区 - 移动端全屏，桌面端纸张模式 */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar sm:p-8">
+      <div
+        className={cn("flex-1 min-h-0 overflow-y-auto custom-scrollbar sm:p-8")}
+        style={
+          !isDesktop && mobileAIMode === "floating"
+            ? {
+                paddingBottom:
+                  "calc(var(--mobile-floating-bar-height) + var(--safe-area-inset-bottom) + 12px)",
+              }
+            : undefined
+        }
+      >
         <div
           id="editor-paper-content"
           className={cn(
-            "mx-auto max-w-5xl min-h-[calc(100vh-4rem)] editor-paper",
-            "sm:shadow-sm sm:border sm:border-border/40 sm:rounded-xl sm:px-8 sm:py-12",
+            "mx-auto max-w-5xl editor-paper",
+            "sm:min-h-[calc(100vh-4rem)] sm:shadow-sm sm:border sm:border-border/40 sm:rounded-xl sm:px-8 sm:py-12",
             "px-4 py-6 transition-all duration-500 ease-out"
           )}
+          style={
+            !isDesktop
+              ? {
+                  paddingBottom:
+                    mobileAIMode === "floating"
+                      ? "calc(1.5rem + var(--mobile-floating-bar-height) + var(--safe-area-inset-bottom) + 20px)"
+                      : "1.5rem",
+                }
+              : undefined
+          }
         >
           {/* 标题输入框 - 融入编辑区 */}
           <div
@@ -528,7 +548,24 @@ export function TiptapEditor({
           <EditorContent
             editor={editor}
             className="outline-none prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-p:text-foreground/90 prose-p:my-4 prose-p:text-lg"
+            style={
+              !isDesktop && mobileAIMode === "floating"
+                ? {
+                    paddingBottom:
+                      "calc(var(--mobile-floating-bar-height) + var(--safe-area-inset-bottom) + 40px)",
+                  }
+                : undefined
+            }
           />
+          {!isDesktop && mobileAIMode === "floating" ? (
+            <div
+              aria-hidden="true"
+              style={{
+                height:
+                  "calc(var(--mobile-floating-bar-height) + var(--safe-area-inset-bottom) + 30px)",
+              }}
+            />
+          ) : null}
         </div>
       </div>
 

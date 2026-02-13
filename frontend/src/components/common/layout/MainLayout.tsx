@@ -48,7 +48,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background">
+    <div className="flex h-mobile-screen md:h-screen w-full overflow-hidden bg-background">
       {/* 移动端遮罩 */}
       <AnimatePresence>
         {isMobile && isSidebarOpen && (
@@ -91,7 +91,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       </motion.aside>
 
       {/* 主内容区域 */}
-      <div className="flex flex-1 flex-col overflow-hidden relative">
+      <div className="flex flex-1 min-h-0 flex-col overflow-hidden relative">
         {/* Header Area - 移动端编辑器模式下隐藏 */}
         {!isMobileEditor && (
           <Header 
@@ -113,8 +113,12 @@ export function MainLayout({ children }: MainLayoutProps) {
         )}
         
         <main className={cn(
-          "flex-1 bg-secondary/30 transition-all duration-300",
-          isEditorPage ? "p-0 overflow-hidden" : "p-4 md:p-6 overflow-y-auto"
+          "flex-1 min-h-0 bg-secondary/30 transition-all duration-300",
+          isMobileEditor
+            ? "p-0 overflow-y-auto"
+            : isEditorPage
+              ? "p-0 overflow-hidden"
+              : "p-4 md:p-6 overflow-y-auto"
         )}>
           <div className={cn(
             "mx-auto transition-all duration-300",
@@ -122,8 +126,8 @@ export function MainLayout({ children }: MainLayoutProps) {
           )}>
             <motion.div
               key={pathname}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={isEditorPage ? { opacity: 1 } : { opacity: 0, y: 20 }}
+              animate={isEditorPage ? { opacity: 1 } : { opacity: 1, y: 0 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
               className={isEditorPage ? "h-full" : ""}
             >
