@@ -205,9 +205,9 @@ export function TiptapEditor({
       CustomHardBreak, // Use custom HardBreak
       Underline,
       Placeholder.configure({
-        placeholder: "没有思路，不妨试试右下角的AI写作助手。",
+        placeholder: "没有思路，问问ai试试。",
         includeChildren: true,
-        showOnlyCurrent: false,
+        showOnlyCurrent: true,
       }),
       TextAlign.configure({
         types: ["heading", "paragraph"],

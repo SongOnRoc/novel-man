@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useRef } from 'react';
-import { PenLine } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MobileCompactComposerProps {
@@ -58,20 +57,6 @@ export function MobileCompactComposer({
         )}
         onFocus={onFocus}
       />
-      <button
-        className={cn(
-          'touch-target flex items-center justify-center',
-          'h-8 w-8 rounded-lg',
-          // 使用主色调，表示编辑操作
-          'bg-primary/15 text-primary',
-          'transition-all duration-200',
-          'hover:bg-primary/25',
-          'active:scale-95'
-        )}
-        aria-label="编辑"
-      >
-        <PenLine className="h-4 w-4" />
-      </button>
     </div>
   );
 }
