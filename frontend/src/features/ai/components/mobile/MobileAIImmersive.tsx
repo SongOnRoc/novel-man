@@ -117,10 +117,12 @@ function MobileAIImmersiveContent({
     }
   };
 
-  // Calculate content height based on keyboard
-  const contentHeight = isKeyboardVisible
-    ? viewportHeight - keyboardHeight
-    : viewportHeight;
+  // Edge 移动端下 viewportHeight 已反映可视区高度，不能再次减去 keyboardHeight
+  // 否则会导致沉浸层高度被二次缩减，底部露出正文层
+  //   const contentHeight = isKeyboardVisible
+  //     ? viewportHeight - keyboardHeight
+  //     : viewportHeight;
+  const contentHeight = viewportHeight;
 
   // Session handlers
   const handleSessionSwitch = useCallback(
@@ -148,14 +150,19 @@ function MobileAIImmersiveContent({
       dragElastic={{ top: 0, bottom: 0.3 }}
       onDragEnd={handleDragEnd}
       className={cn(
-        "fixed inset-0 z-50",
+        "fixed top-0 inset-x-0 z-50",
         //使用主题类继承编辑器主题颜色
         `theme-${theme}`,
         "editor-paper",
-        "flex flex-col",
-        "mobile-immersive"
+        "flex flex-col"
       )}
-      style={{ height: contentHeight }}
+      style={{
+        height: contentHeight,
+        maxHeight: contentHeight,
+        minHeight: contentHeight,
+        paddingTop: "var(--safe-area-inset-top)",
+        paddingBottom: "var(--safe-area-inset-bottom)",
+      }}
     >
       {/* Header */}
       <header className="shrink-0 flex items-center justify-between px-3 h-12 border-b border-foreground/10">
