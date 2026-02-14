@@ -39,6 +39,8 @@ import { cn } from "@/lib/utils";
 
 import { AISettingsDialog } from "./AISettingsDialog";
 
+const SELECTED_MODEL_CACHE_KEY = "ai_selected_model";
+
 interface AIChatInterfaceProps {
   workId?: number;
   characterIds?: number[];
@@ -63,6 +65,7 @@ interface AIChatInterfaceContentProps {
   selectedModel: string;
   setSelectedModel: (model: string) => void;
   modelOptions: AIModel[];
+  isModelsLoading: boolean;
   selectedText?: string;
   onApplyToEditor?: (text: string) => void;
 }
@@ -78,6 +81,7 @@ function AIChatInterfaceContent({
   selectedModel,
   setSelectedModel,
   modelOptions,
+  isModelsLoading,
   selectedText,
   onApplyToEditor,
 }: AIChatInterfaceContentProps) {
@@ -131,11 +135,13 @@ function AIChatInterfaceContent({
                 <div className="flex min-w-0 items-center truncate">
                   <Bot className="h-3.5 w-3.5 mr-1.5 opacity-70 shrink-0" />
                   <span className="truncate">
-                    {selectedModel
-                      ? modelOptions.find(
-                          (model) => model.value === selectedModel
-                        )?.label || selectedModel
-                      : "请配置模型接口"}
+                    {isModelsLoading
+                      ? "加载模型中..."
+                      : selectedModel
+                        ? modelOptions.find(
+                            (model) => model.value === selectedModel
+                          )?.label || selectedModel
+                        : "请配置模型接口"}
                   </span>
                 </div>
                 <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
@@ -169,9 +175,11 @@ function AIChatInterfaceContent({
                       <CommandItem
                         key={model.value}
                         value={model.value}
-                        onSelect={(currentValue) => {
-                          setSelectedModel(
-                            currentValue === selectedModel ? "" : model.value
+                        onSelect={() => {
+                          setSelectedModel(model.value);
+                          localStorage.setItem(
+                            SELECTED_MODEL_CACHE_KEY,
+                            model.value
                           );
                           setOpenModelSelect(false);
                         }}
@@ -331,7 +339,8 @@ export function AIChatInterface({
   className,
   hideBorder = false,
 }: AIChatInterfaceProps) {
-  const [selectedModel, setSelectedModel] = useState("gpt-3.5-turbo");
+  const [selectedModel, setSelectedModel] = useState("");
+  const [cachedModel, setCachedModel] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [openModelSelect, setOpenModelSelect] = useState(false);
@@ -345,6 +354,10 @@ export function AIChatInterface({
     if (storedBaseUrl) setBaseUrl(storedBaseUrl);
   }, []);
 
+  useEffect(() => {
+    setCachedModel(localStorage.getItem(SELECTED_MODEL_CACHE_KEY));
+  }, []);
+
   const handleSaveSettings = (key: string, url: string) => {
     setApiKey(key);
     setBaseUrl(url);
@@ -352,19 +365,31 @@ export function AIChatInterface({
     localStorage.setItem("ai_base_url", url);
   };
 
-  const { models } = useAIModels(apiKey, baseUrl);
+  const { models, isLoading: isModelsLoading } = useAIModels(apiKey, baseUrl);
   const modelOptions: AIModel[] = models;
 
-  // If selected model is not in options, select first one
+  // 模型初始化策略：加载中不覆盖；优先缓存；其次首项；空列表提示配置
   useEffect(() => {
-    if (modelOptions.length > 0) {
-      if (!modelOptions.find((m: AIModel) => m.value === selectedModel)) {
-        setSelectedModel(modelOptions[0].value);
+    if (isModelsLoading) return;
+
+    if (modelOptions.length === 0) {
+      if (selectedModel !== "") {
+        setSelectedModel("");
       }
-    } else {
-      setSelectedModel("");
+      return;
     }
-  }, [modelOptions, selectedModel]);
+
+    if (modelOptions.some((m: AIModel) => m.value === selectedModel)) {
+      return;
+    }
+
+    if (cachedModel && modelOptions.some((m: AIModel) => m.value === cachedModel)) {
+      setSelectedModel(cachedModel);
+      return;
+    }
+
+    setSelectedModel(modelOptions[0].value);
+  }, [modelOptions, selectedModel, cachedModel, isModelsLoading]);
 
   // 构建 runtime 配置
   const runtimeConfig: RuntimeConfig = {
@@ -392,6 +417,7 @@ export function AIChatInterface({
           selectedModel={selectedModel}
           setSelectedModel={setSelectedModel}
           modelOptions={modelOptions}
+          isModelsLoading={isModelsLoading}
           selectedText={selectedText}
           onApplyToEditor={onApplyToEditor}
         />

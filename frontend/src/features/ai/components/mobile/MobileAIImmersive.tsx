@@ -27,6 +27,8 @@ import type { EditorTheme } from "@/types/editor";
 
 import { AISettingsDialog } from "../chat/AISettingsDialog";
 
+const SELECTED_MODEL_CACHE_KEY = "ai_selected_model";
+
 interface MobileAIImmersiveProps {
   /** Currently selected text from editor */
   selectedText?: string;
@@ -67,6 +69,8 @@ interface MobileAIImmersiveContentProps
   selectedModel: string;
   /** Callback to change selected model */
   onModelChange: (model: string) => void;
+  /** Whether models are loading */
+  isModelsLoading: boolean;
 }
 
 function MobileAIImmersiveContent({
@@ -81,6 +85,7 @@ function MobileAIImmersiveContent({
   models,
   selectedModel,
   onModelChange,
+  isModelsLoading,
 }: MobileAIImmersiveContentProps) {
   const [showHistory, setShowHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -200,10 +205,12 @@ function MobileAIImmersiveContent({
           >
             <Bot className="h-4 w-4 shrink-0" />
             <span className="truncate text-xs sm:text-sm">
-              {selectedModel
-                ? models.find((m) => m.value === selectedModel)?.label ||
-                  selectedModel.split("/").pop()
-                : "选择模型"}
+              {isModelsLoading
+                ? "加载模型中..."
+                : selectedModel
+                  ? models.find((m) => m.value === selectedModel)?.label ||
+                    selectedModel.split("/").pop()
+                  : "请配置模型接口"}
             </span>
             <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-60" />
           </button>
@@ -485,22 +492,45 @@ function MobileAIImmersiveContent({
 export function MobileAIImmersive(props: MobileAIImmersiveProps) {
   const [apiKey, setApiKey] = useState("");
   const [baseUrl, setBaseUrl] = useState("");
-  const [selectedModel, setSelectedModel] = useState("gpt-3.5-turbo");
+  const [selectedModel, setSelectedModel] = useState("");
+  const [cachedModel, setCachedModel] = useState<string | null>(null);
 
   useEffect(() => {
     const storedApiKey = localStorage.getItem("ai_api_key");
     const storedBaseUrl = localStorage.getItem("ai_base_url");
     if (storedApiKey) setApiKey(storedApiKey);
     if (storedBaseUrl) setBaseUrl(storedBaseUrl);
+    setCachedModel(localStorage.getItem(SELECTED_MODEL_CACHE_KEY));
   }, []);
 
-  const { models } = useAIModels(apiKey, baseUrl);
+  const { models, isLoading: isModelsLoading } = useAIModels(apiKey, baseUrl);
 
   useEffect(() => {
-    if (models.length > 0 && !models.find((m) => m.value === selectedModel)) {
-      setSelectedModel(models[0].value);
+    if (isModelsLoading) return;
+
+    if (models.length === 0) {
+      if (selectedModel !== "") {
+        setSelectedModel("");
+      }
+      return;
     }
-  }, [models, selectedModel]);
+
+    if (models.some((m) => m.value === selectedModel)) {
+      return;
+    }
+
+    if (cachedModel && models.some((m) => m.value === cachedModel)) {
+      setSelectedModel(cachedModel);
+      return;
+    }
+
+    setSelectedModel(models[0].value);
+  }, [models, selectedModel, cachedModel, isModelsLoading]);
+
+  const handleModelChange = useCallback((model: string) => {
+    setSelectedModel(model);
+    localStorage.setItem(SELECTED_MODEL_CACHE_KEY, model);
+  }, []);
 
   const runtimeConfig: RuntimeConfig = {
     model: selectedModel,
@@ -514,7 +544,8 @@ export function MobileAIImmersive(props: MobileAIImmersiveProps) {
         {...props}
         models={models}
         selectedModel={selectedModel}
-        onModelChange={setSelectedModel}
+        onModelChange={handleModelChange}
+        isModelsLoading={isModelsLoading}
       />
     </AssistantRuntimeProvider>
   );
