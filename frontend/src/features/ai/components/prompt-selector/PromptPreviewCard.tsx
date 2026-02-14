@@ -19,14 +19,14 @@ interface PromptPreviewCardProps {
   prompt: PromptWithFavorite | null;
   /** 是否为内置提示词 */
   isBuiltIn?: boolean;
-  /** 完整内容（如果需要显示更多） */
-  fullContent?: string;
   /** 收藏切换回调 */
   onToggleFavorite?: (id: number) => void;
   /** 选择回调 */
   onSelect?: (id: number) => void;
   /** 是否显示选择按钮 */
   showSelectButton?: boolean;
+  /** 是否展开完整 description（默认会截断） */
+  expandDescription?: boolean;
   /** 自定义类名 */
   className?: string;
 }
@@ -42,10 +42,10 @@ interface PromptPreviewCardProps {
 export const PromptPreviewCard: FC<PromptPreviewCardProps> = ({
   prompt,
   isBuiltIn = false,
-  fullContent,
   onToggleFavorite,
   onSelect,
   showSelectButton = true,
+  expandDescription = false,
   className,
 }) => {
   const [copied, setCopied] = useState(false);
@@ -75,7 +75,7 @@ export const PromptPreviewCard: FC<PromptPreviewCardProps> = ({
       <Card className={cn("w-64 opacity-50", className)}>
         <CardContent className="py-8 text-center text-muted-foreground">
           <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">悬停提示词查看预览</p>
+          <p className="text-sm">点击列表右侧眼睛图标预览</p>
         </CardContent>
       </Card>
     );
@@ -111,6 +111,7 @@ export const PromptPreviewCard: FC<PromptPreviewCardProps> = ({
             </div>
           </div>
           <button
+            type="button"
             onClick={handleFavoriteClick}
             disabled={isBuiltIn}
             className={cn(
@@ -133,7 +134,12 @@ export const PromptPreviewCard: FC<PromptPreviewCardProps> = ({
         {/* 内容预览：仅展示 description，无 description 则不展示 */}
         {displayContent && (
           <div className="bg-muted/50 rounded-md p-3 mb-3">
-            <p className="text-xs text-muted-foreground line-clamp-4 whitespace-pre-wrap">
+            <p
+              className={cn(
+                "text-xs text-muted-foreground whitespace-pre-wrap break-words",
+                !expandDescription && "line-clamp-4"
+              )}
+            >
               {displayContent}
             </p>
           </div>
@@ -143,6 +149,7 @@ export const PromptPreviewCard: FC<PromptPreviewCardProps> = ({
         <div className="flex items-center gap-2">
           {showSelectButton && onSelect && (
             <Button
+              type="button"
               size="sm"
               onClick={handleSelect}
               className="flex-1 h-8 text-xs"
@@ -151,6 +158,7 @@ export const PromptPreviewCard: FC<PromptPreviewCardProps> = ({
             </Button>
           )}
           <Button
+            type="button"
             size="sm"
             variant="outline"
             onClick={handleCopy}

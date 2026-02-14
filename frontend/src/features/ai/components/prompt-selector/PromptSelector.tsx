@@ -214,9 +214,6 @@ const DesktopSelectorTrigger: FC<SelectorTriggerProps> = ({
   );
   const [previewPrompt, setPreviewPrompt] = useState<PromptWithFavorite | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
   const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const handleSelect = (id: number | null): void => {
@@ -225,32 +222,13 @@ const DesktopSelectorTrigger: FC<SelectorTriggerProps> = ({
     setPreviewOpen(false);
   };
 
-  //悬停延迟逻辑：300ms 触发，150ms 关闭
+  // 悬停仅用于高亮上下文，不再自动开预览弹窗，避免触发 Popover 关闭回归
   const handleHover = useCallback((prompt: PromptWithFavorite | null) => {
-    if (leaveTimeoutRef.current) {
-      clearTimeout(leaveTimeoutRef.current);
-      leaveTimeoutRef.current = null;
-    }
-
-    if (prompt) {
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-      }
-      hoverTimeoutRef.current = setTimeout(() => {
-        setHoveredPrompt(prompt);
-      }, 300);
-    } else {
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-        hoverTimeoutRef.current = null;
-      }
-      leaveTimeoutRef.current = setTimeout(() => {
-        setHoveredPrompt(null);
-      }, 150);
-    }
+    setHoveredPrompt(prompt);
   }, []);
 
   const handlePreview = useCallback((prompt: PromptWithFavorite): void => {
+    setHoveredPrompt(prompt);
     setPreviewPrompt(prompt);
     setPreviewOpen(true);
   }, []);
@@ -260,18 +238,12 @@ const DesktopSelectorTrigger: FC<SelectorTriggerProps> = ({
   }, [onSearchChange]);
 
   useEffect(() => {
-    if (!open) {
+    // 打开预览时，Popover 可能因焦点切换暂时关闭；此时不要清空预览态
+    if (!open && !previewOpen) {
       setHoveredPrompt(null);
-      setPreviewOpen(false);
       setPreviewPrompt(null);
     }
-  }, [open]);
-
-  useEffect(() => {
-    if (hoveredPrompt && previewOpen) {
-      setPreviewPrompt(hoveredPrompt);
-    }
-  }, [hoveredPrompt, previewOpen]);
+  }, [open, previewOpen]);
 
   useEffect(() => {
     if (!searchKeyword.trim()) return;
@@ -289,8 +261,16 @@ const DesktopSelectorTrigger: FC<SelectorTriggerProps> = ({
   const handleOpenChange = (nextOpen: boolean): void => {
     if (nextOpen) {
       setActiveTheme(resolveThemeFromElement(triggerButtonRef.current));
+      setOpen(true);
+      return;
     }
-    setOpen(nextOpen);
+
+    // 预览打开期间不关闭选择面板，避免点击“预览”后面板瞬间消失
+    if (previewOpen) {
+      return;
+    }
+
+    setOpen(false);
   };
 
   return (
@@ -380,6 +360,7 @@ const DesktopSelectorTrigger: FC<SelectorTriggerProps> = ({
               onSelect={handleSelect}
               showSelectButton={true}
               className="w-full"
+              expandDescription={true}
             />
           </div>
         </DialogContent>
@@ -409,18 +390,12 @@ const MobileSelectorTrigger: FC<SelectorTriggerProps> = ({
   const [activeTheme, setActiveTheme] = useState<EditorThemeId>("default");
   const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
   const [expandedPromptId, setExpandedPromptId] = useState<number | null>(null);
+  const suppressNextDrawerCloseRef = useRef(false);
 
   const handleSelect = (id: number | null): void => {
     onSelect(id);
     setOpen(false);
     setMobilePreviewOpen(false);
-  };
-
-  // 移动端点击展开预览
-  const handleItemClick = (id: number | null): void => {
-    if (id === null) return;
-    setExpandedPromptId(id);
-    setMobilePreviewOpen(true);
   };
 
   const handlePreview = useCallback((prompt: PromptWithFavorite): void => {
@@ -458,12 +433,43 @@ const MobileSelectorTrigger: FC<SelectorTriggerProps> = ({
 
   const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
 
+  const handleFavoriteFromPreview = useCallback(
+    async (id: number): Promise<void> => {
+      await onToggleFavorite(id);
+      setExpandedPromptId(id);
+    },
+    [onToggleFavorite]
+  );
+
   const handleOpenChange = (nextOpen: boolean): void => {
     if (nextOpen) {
       setActiveTheme(resolveThemeFromElement(triggerButtonRef.current));
+      setOpen(true);
+      return;
     }
-    setOpen(nextOpen);
+
+    // 预览 Sheet 打开期间忽略 Drawer 的关闭信号，避免“关闭预览连带关闭选择器”
+    if (mobilePreviewOpen) {
+      return;
+    }
+
+    if (suppressNextDrawerCloseRef.current) {
+      suppressNextDrawerCloseRef.current = false;
+      return;
+    }
+
+    setOpen(false);
   };
+
+  const handleMobilePreviewOpenChange = useCallback((nextOpen: boolean): void => {
+    setMobilePreviewOpen(nextOpen);
+    if (!nextOpen) {
+      suppressNextDrawerCloseRef.current = true;
+      // 关闭预览时强制保持选择器仍处于打开态
+      setOpen(true);
+      setExpandedPromptId(null);
+    }
+  }, []);
 
   return (
     <Drawer open={open} onOpenChange={handleOpenChange}>
@@ -509,7 +515,7 @@ const MobileSelectorTrigger: FC<SelectorTriggerProps> = ({
             selectedPromptId={selectedPromptId}
             searchKeyword={searchKeyword}
             builtInPromptIds={builtInPromptIds}
-            onSelect={handleItemClick}
+            onSelect={handleSelect}
             onToggleFavorite={onToggleFavorite}
             onPreview={handlePreview}
             onClearSearch={handleClearSearch}
@@ -521,7 +527,7 @@ const MobileSelectorTrigger: FC<SelectorTriggerProps> = ({
         </div>
       </DrawerContent>
 
-      <Sheet open={mobilePreviewOpen} onOpenChange={setMobilePreviewOpen}>
+      <Sheet open={mobilePreviewOpen} onOpenChange={handleMobilePreviewOpenChange}>
         <SheetContent
           side="bottom"
           className={cn(
@@ -536,10 +542,11 @@ const MobileSelectorTrigger: FC<SelectorTriggerProps> = ({
             <PromptPreviewCard
               prompt={expandedPrompt}
               isBuiltIn={expandedPrompt ? builtInPromptIds.includes(expandedPrompt.id) : false}
-              onToggleFavorite={onToggleFavorite}
+              onToggleFavorite={handleFavoriteFromPreview}
               onSelect={handleSelect}
               showSelectButton={true}
               className="w-full"
+              expandDescription={true}
             />
           </div>
         </SheetContent>

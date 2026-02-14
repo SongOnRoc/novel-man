@@ -3,7 +3,7 @@
  * @description 获取所有提示词列表（包括系统提示词和用户导入的），并集成收藏状态
  */
 
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   getPromptsService,
@@ -88,6 +88,37 @@ export const useAllPrompts = (limit: number = 50): UseAllPromptsReturn => {
     isAvailable: isFavoriteAvailable,
   } = useFavorites("prompt");
 
+  const [favoriteOverrides, setFavoriteOverrides] = useState<
+    Record<number, boolean>
+  >({});
+
+  const getFavoriteState = useCallback(
+    (promptId: number): boolean => {
+      if (Object.prototype.hasOwnProperty.call(favoriteOverrides, promptId)) {
+        return favoriteOverrides[promptId];
+      }
+      return isFavorite(promptId);
+    },
+    [favoriteOverrides, isFavorite]
+  );
+
+  const handleToggleFavorite = useCallback(
+    async (promptId: number): Promise<void> => {
+      const previous = getFavoriteState(promptId);
+      const next = !previous;
+
+      setFavoriteOverrides((prev) => ({ ...prev, [promptId]: next }));
+
+      try {
+        await toggleFavorite(promptId);
+      } catch (toggleError) {
+        setFavoriteOverrides((prev) => ({ ...prev, [promptId]: previous }));
+        throw toggleError;
+      }
+    },
+    [getFavoriteState, toggleFavorite]
+  );
+
   // 转换数据格式并集成收藏状态
   const prompts: PromptWithFavorite[] = useMemo(() => {
     if (!data) return [];
@@ -105,9 +136,10 @@ export const useAllPrompts = (limit: number = 50): UseAllPromptsReturn => {
       description: item.description,
       primaryTag: item.primaryTag,
       icon: undefined,
-      isFavorite: isFavorite(item.id as number),
+      isFavorite: getFavoriteState(item.id as number),
     }));
-  }, [data, isFavorite]);
+  }, [data, getFavoriteState]);
+
   return {
     prompts,
     // 只等待提示词加载，收藏状态可以后台加载或失败也没关系
@@ -115,8 +147,8 @@ export const useAllPrompts = (limit: number = 50): UseAllPromptsReturn => {
     isError,
     error: error as Error | null,
     refetch,
-    toggleFavorite,
-    isFavorite,
+    toggleFavorite: handleToggleFavorite,
+    isFavorite: getFavoriteState,
     isAddingFavorite,
     isRemovingFavorite,
     // 暴露收藏功能可用性，让UI可以决定是否显示收藏按钮

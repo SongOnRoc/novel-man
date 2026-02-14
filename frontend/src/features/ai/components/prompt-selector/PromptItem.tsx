@@ -176,29 +176,30 @@ export const PromptItem: FC<PromptItemProps> = ({
 
       {/* 操作区 */}
       <div className="flex items-center gap-1 flex-shrink-0 w-[56px] justify-end">
-        <button
-          type="button"
-          onClick={handlePreviewClick}
-          className={cn(
-            "inline-flex h-7 min-w-7 items-center justify-center p-1.5 rounded-full transition-colors text-muted-foreground hover:text-primary hover:bg-muted",
-            isHovering ? "opacity-100" : "opacity-90"
-          )}
-          aria-label="预览提示词"
-        >
-          <Eye className="h-4 w-4" />
-        </button>
-
-        {!hideFavorite && (
+        {!isBuiltIn && (
           <button
+            type="button"
+            onClick={handlePreviewClick}
+            className={cn(
+              "inline-flex h-7 min-w-7 items-center justify-center p-1.5 rounded-full transition-colors text-muted-foreground hover:text-primary hover:bg-muted",
+              isHovering ? "opacity-100" : "opacity-90"
+            )}
+            aria-label="预览提示词"
+          >
+            <Eye className="h-4 w-4" />
+          </button>
+        )}
+
+        {!hideFavorite && !isBuiltIn && (
+          <button
+            type="button"
             onClick={handleFavoriteClick}
-            disabled={isBuiltIn || isFavoriteDisabled}
+            disabled={isFavoriteDisabled}
             className={cn(
               "inline-flex h-7 min-w-7 items-center justify-center p-1.5 rounded-full transition-all duration-200",
-              isBuiltIn
-                ? "opacity-30 cursor-not-allowed"
-                : prompt.isFavorite
-                  ? "text-amber-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-                  : "text-muted-foreground opacity-80 hover:opacity-100 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+              prompt.isFavorite
+                ? "text-amber-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                : "text-muted-foreground opacity-80 hover:opacity-100 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20"
             )}
             aria-label={prompt.isFavorite ? "取消收藏" : "添加收藏"}
           >
