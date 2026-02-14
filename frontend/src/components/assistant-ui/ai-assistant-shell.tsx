@@ -1,22 +1,21 @@
 "use client";
 
-import { type FC, useState, useCallback } from "react";
 import {
   SettingsIcon,
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
+  PlusIcon,
 } from "lucide-react";
+import { type FC, useState, useCallback } from "react";
 import { useMediaQuery } from "react-responsive";
 
-import { Thread } from "@/components/assistant-ui/thread";
-import {
-  ThreadList,
-  type ThreadListProps,
-} from "@/components/assistant-ui/thread-list";
 import {
   AssistantRuntimeProvider,
   useChatRuntimeContext,
 } from "@/components/assistant-ui/assistant-runtime-provider";
+import { Thread } from "@/components/assistant-ui/thread";
+import { ThreadList } from "@/components/assistant-ui/thread-list";
+import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -25,9 +24,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
-import { cn } from "@/lib/utils";
 import { type RuntimeConfig } from "@/lib/ai/runtime";
+import { cn } from "@/lib/utils";
 
 // =============================================================================
 // Types
@@ -52,12 +50,15 @@ export interface AIAssistantShellProps {
 // Shell Component (without Provider)
 // =============================================================================
 
-const AIAssistantShellContent: FC<Omit<AIAssistantShellProps, "config">> = ({
+const AIAssistantShellContent: FC<
+  Omit<AIAssistantShellProps, "config"> & { currentModel?: string }
+> = ({
   showThreadList = true,
   compact = false,
   onSettingsClick,
   className,
   headerExtra,
+  currentModel,
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
@@ -104,7 +105,7 @@ const AIAssistantShellContent: FC<Omit<AIAssistantShellProps, "config">> = ({
         <div
           className={cn(
             "aui-assistant-sidebar border-r border-border transition-all duration-200 ease-in-out",
-            sidebarOpen ? "w-64" : "w-0"
+            sidebarOpen ? "w-[clamp(15rem,24vw,18rem)] min-w-[15rem]" : "w-0 min-w-0"
           )}
         >
           {sidebarOpen && (
@@ -120,10 +121,10 @@ const AIAssistantShellContent: FC<Omit<AIAssistantShellProps, "config">> = ({
       )}
 
       {/* 主内容区*/}
-      <div className="aui-assistant-main flex flex-1 flex-col min-w-0">
+      <div className="aui-assistant-main flex flex-1 min-w-[22rem] flex-col">
         {/* 头部工具栏 */}
-        <div className="aui-assistant-header flex items-center justify-between px-3 py-2 border-b border-border">
-          <div className="flex items-center gap-2">
+        <div className="aui-assistant-header flex items-center justify-between border-b border-border px-3 py-2">
+          <div className="flex min-w-0 items-center gap-2">
             {/* 侧边栏切换按钮（桌面端）*/}
             {showThreadList && !isMobile && (
               <TooltipIconButton
@@ -144,13 +145,13 @@ const AIAssistantShellContent: FC<Omit<AIAssistantShellProps, "config">> = ({
             {showThreadList && isMobile && (
               <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <PanelLeftOpenIcon className="h-4 w-4 mr-2" />
-                    会话列表
+                  <Button variant="ghost" size="sm" className="h-8 px-2.5">
+                    <PanelLeftOpenIcon className="mr-1.5 h-4 w-4" />
+                    会话
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-72p-0">
-                  <SheetHeader className="p-4border-b">
+                <SheetContent side="left" className="w-72 p-0">
+                  <SheetHeader className="border-b p-4">
                     <SheetTitle>会话列表</SheetTitle>
                   </SheetHeader>
                   <ThreadList
@@ -163,20 +164,42 @@ const AIAssistantShellContent: FC<Omit<AIAssistantShellProps, "config">> = ({
               </Sheet>
             )}
 
+            <div
+              className="flex max-w-[12rem] min-w-0 items-center gap-1 rounded-md border border-border/60 bg-muted/30 px-2 py-1 text-[11px] md:max-w-[14rem]"
+              title={currentModel || "未配置模型"}
+            >
+              <span className="shrink-0 text-muted-foreground">模型</span>
+              <span className="truncate font-medium text-foreground/90">
+                {currentModel || "未配置"}
+              </span>
+            </div>
             {headerExtra}
           </div>
 
-          {/* 设置按钮 */}
-          {onSettingsClick && (
-            <TooltipIconButton
-              tooltip="AI 设置"
-              variant="ghost"
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
               size="sm"
-              onClick={onSettingsClick}
+              onClick={handleCreateSession}
+              className="h-8 gap-1.5 px-2"
+              aria-label="新建会话"
             >
-              <SettingsIcon className="h-4 w-4" />
-            </TooltipIconButton>
-          )}
+              <PlusIcon className="h-4 w-4" />
+              <span className="hidden md:inline">新建</span>
+            </Button>
+
+            {/* 设置按钮 */}
+            {onSettingsClick && (
+              <TooltipIconButton
+                tooltip="AI 设置"
+                variant="ghost"
+                size="sm"
+                onClick={onSettingsClick}
+              >
+                <SettingsIcon className="h-4 w-4" />
+              </TooltipIconButton>
+            )}
+          </div>
         </div>
 
         {/* 对话区域 */}
@@ -228,7 +251,7 @@ export const AIAssistantShell: FC<AIAssistantShellProps> = ({
 }) => {
   return (
     <AssistantRuntimeProvider config={config}>
-      <AIAssistantShellContent {...rest} />
+      <AIAssistantShellContent {...rest} currentModel={config?.model} />
     </AssistantRuntimeProvider>
   );
 };

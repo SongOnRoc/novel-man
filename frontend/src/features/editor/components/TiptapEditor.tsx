@@ -349,7 +349,7 @@ export function TiptapEditor({
     const panel = aiPanelRef.current;
     if (panel) {
       if (isAIOpen || isSearchOpen) {
-        panel.resize(25);
+        panel.resize(30);
       } else {
         panel.collapse();
       }
@@ -673,8 +673,8 @@ export function TiptapEditor({
             collapsible={true}
             collapsedSize={0}
             defaultSize={0}
-            minSize={20}
-            maxSize={45}
+            minSize={26}
+            maxSize={48}
             onCollapse={() => {
               setInternalIsAIOpen(false);
               setIsSearchOpen(false);

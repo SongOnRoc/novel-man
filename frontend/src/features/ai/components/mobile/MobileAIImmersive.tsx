@@ -1,6 +1,5 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
 import { motion, PanInfo, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -10,19 +9,23 @@ import {
   Check,
   ChevronDown,
   Search,
+  MessageSquarePlus,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Thread } from "@/components/assistant-ui/thread";
-import { ThreadList } from "@/components/assistant-ui/thread-list";
-import { AISettingsDialog } from "../chat/AISettingsDialog";
+import React, { useState, useRef, useCallback, useEffect } from "react";
+
 import {
   AssistantRuntimeProvider,
   useChatRuntimeContext,
 } from "@/components/assistant-ui/assistant-runtime-provider";
-import type { RuntimeConfig } from "@/lib/ai/runtime";
+import { Thread } from "@/components/assistant-ui/thread";
+import { ThreadList } from "@/components/assistant-ui/thread-list";
 import { getSelectedPromptId } from "@/features/ai/components/prompt-selector/useSelectedPromptStore";
 import { useAIModels, type AIModel } from "@/hooks/ai/useAIModels";
+import type { RuntimeConfig } from "@/lib/ai/runtime";
+import { cn } from "@/lib/utils";
 import type { EditorTheme } from "@/types/editor";
+
+import { AISettingsDialog } from "../chat/AISettingsDialog";
 
 interface MobileAIImmersiveProps {
   /** Currently selected text from editor */
@@ -187,8 +190,8 @@ function MobileAIImmersiveContent({
           <button
             onClick={() => setShowModelSheet(true)}
             className={cn(
-              "touch-target flex items-center gap-1.5",
-              "h-10 px-3 rounded-full",
+              "touch-target flex min-w-0 items-center gap-1",
+              "max-w-[120px] px-2.5 rounded-full",
               "bg-foreground/5 text-foreground/80",
               "transition-colors",
               "hover:bg-foreground/10"
@@ -196,7 +199,7 @@ function MobileAIImmersiveContent({
             aria-label="选择模型"
           >
             <Bot className="h-4 w-4 shrink-0" />
-            <span className="text-sm truncate max-w-[100px]">
+            <span className="truncate text-xs sm:text-sm">
               {selectedModel
                 ? models.find((m) => m.value === selectedModel)?.label ||
                   selectedModel.split("/").pop()
@@ -207,6 +210,20 @@ function MobileAIImmersiveContent({
         </div>
 
         <div className="flex items-center gap-1">
+          {/* New Session Button */}
+          <button
+            onClick={handleCreateSession}
+            className={cn(
+              "touch-target flex items-center justify-center",
+              "h-10 w-10 rounded-full",
+              "text-foreground/60 hover:text-foreground hover:bg-foreground/5",
+              "transition-colors"
+            )}
+            aria-label="新建会话"
+          >
+            <MessageSquarePlus className="h-5 w-5" />
+          </button>
+
           {/* Settings Button */}
           <button
             onClick={() => setShowSettings(true)}
