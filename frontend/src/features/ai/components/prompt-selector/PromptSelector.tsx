@@ -56,6 +56,35 @@ interface PromptSelectorProps {
 // =============================================================================
 
 const BUILT_IN_PROMPT_IDS = [10, 11, 12, 13];
+const EDITOR_THEME_IDS = [
+  "default",
+  "sepia",
+  "dark",
+  "minimal",
+  "green",
+  "parchment",
+  "blue",
+  "custom",
+] as const;
+
+type EditorThemeId = (typeof EDITOR_THEME_IDS)[number];
+
+const resolveThemeFromElement = (element: HTMLElement | null): EditorThemeId => {
+  if (!element) return "default";
+
+  let current: HTMLElement | null = element;
+  while (current) {
+    for (const themeId of EDITOR_THEME_IDS) {
+      if (current.classList.contains(`theme-${themeId}`)) {
+        return themeId;
+      }
+    }
+    current = current.parentElement;
+  }
+
+  return "default";
+};
+
 // =============================================================================
 // Main PromptSelector Component
 // =============================================================================
@@ -179,6 +208,7 @@ const DesktopSelectorTrigger: FC<SelectorTriggerProps> = ({
   className,
 }) => {
   const [open, setOpen] = useState(false);
+  const [activeTheme, setActiveTheme] = useState<EditorThemeId>("default");
   const [hoveredPrompt, setHoveredPrompt] = useState<PromptWithFavorite | null>(
     null
   );
@@ -186,6 +216,8 @@ const DesktopSelectorTrigger: FC<SelectorTriggerProps> = ({
   const [previewOpen, setPreviewOpen] = useState(false);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const handleSelect = (id: number | null): void => {
     onSelect(id);
@@ -254,10 +286,18 @@ const DesktopSelectorTrigger: FC<SelectorTriggerProps> = ({
     }
   }, [prompts, searchKeyword]);
 
+  const handleOpenChange = (nextOpen: boolean): void => {
+    if (nextOpen) {
+      setActiveTheme(resolveThemeFromElement(triggerButtonRef.current));
+    }
+    setOpen(nextOpen);
+  };
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
+          ref={triggerButtonRef}
           variant="outline"
           size="sm"
           className={cn(
@@ -276,7 +316,10 @@ const DesktopSelectorTrigger: FC<SelectorTriggerProps> = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-20px)] p-0"
+        className={cn(
+          "w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-20px)] p-0 border border-border/70 shadow-xl editor-paper",
+          `theme-${activeTheme}`
+        )}
         align="start"
         side="top"
         sideOffset={8}
@@ -310,7 +353,12 @@ const DesktopSelectorTrigger: FC<SelectorTriggerProps> = ({
       </PopoverContent>
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="max-w-md p-0">
+        <DialogContent
+          className={cn(
+            "max-w-md p-0 border border-border/70 shadow-xl editor-paper",
+            `theme-${activeTheme}`
+          )}
+        >
           <DialogHeader className="px-4 pt-4 pb-0">
             <DialogTitle className="text-sm font-medium flex items-center gap-2">
               <Eye className="h-4 w-4" />
@@ -358,6 +406,7 @@ const MobileSelectorTrigger: FC<SelectorTriggerProps> = ({
   className,
 }) => {
   const [open, setOpen] = useState(false);
+  const [activeTheme, setActiveTheme] = useState<EditorThemeId>("default");
   const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
   const [expandedPromptId, setExpandedPromptId] = useState<number | null>(null);
 
@@ -407,10 +456,20 @@ const MobileSelectorTrigger: FC<SelectorTriggerProps> = ({
     ? prompts.find((p) => p.id === expandedPromptId) || null
     : null;
 
+  const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  const handleOpenChange = (nextOpen: boolean): void => {
+    if (nextOpen) {
+      setActiveTheme(resolveThemeFromElement(triggerButtonRef.current));
+    }
+    setOpen(nextOpen);
+  };
+
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
+    <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerTrigger asChild>
         <Button
+          ref={triggerButtonRef}
           variant="outline"
           size="sm"
           className={cn(
@@ -427,7 +486,12 @@ const MobileSelectorTrigger: FC<SelectorTriggerProps> = ({
           </span>
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="h-[min(86dvh,560px)] max-h-[86dvh] p-0 flex flex-col">
+      <DrawerContent
+        className={cn(
+          "h-[min(86dvh,560px)] max-h-[86dvh] p-0 flex flex-col border border-border/60 shadow-xl editor-paper",
+          `theme-${activeTheme}`
+        )}
+      >
         <DrawerHeader className="pb-2 px-4 pt-3 shrink-0 border-b">
           <DrawerTitle>选择提示词</DrawerTitle>
           <PromptSearchInput
@@ -458,7 +522,13 @@ const MobileSelectorTrigger: FC<SelectorTriggerProps> = ({
       </DrawerContent>
 
       <Sheet open={mobilePreviewOpen} onOpenChange={setMobilePreviewOpen}>
-        <SheetContent side="bottom" className="max-h-[78vh] rounded-t-xl p-0">
+        <SheetContent
+          side="bottom"
+          className={cn(
+            "max-h-[78vh] rounded-t-xl p-0 border border-border/70 shadow-xl editor-paper",
+            `theme-${activeTheme}`
+          )}
+        >
           <SheetHeader className="border-b pb-2">
             <SheetTitle className="text-sm font-medium">提示词预览</SheetTitle>
           </SheetHeader>
