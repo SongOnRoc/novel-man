@@ -33,8 +33,8 @@ COPY --from=builder /novel-man-backend /app/novel-man-backend
 # Copy default config (can be overridden by volume mount)
 COPY --from=builder /app/config.example.yaml /app/config.yaml
 
-# Set ownership
-RUN chown -R appuser:appgroup /app
+# Create data directory for SQLite database
+RUN mkdir -p /app/data && chown -R appuser:appgroup /app
 
 USER appuser
 
