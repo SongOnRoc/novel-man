@@ -107,7 +107,7 @@ export default function ChaptersPage(): React.ReactElement {
               导入章节
             </Button>
             <Button asChild>
-              <Link href={`/drafts/new?workId=${workId}`}>
+              <Link href={`/drafts?workId=${workId}`}>
                 <Plus className="mr-2 h-4 w-4" />
                 新章节
               </Link>
@@ -166,7 +166,7 @@ export default function ChaptersPage(): React.ReactElement {
               导入章节
             </Button>
             <Button asChild>
-              <Link href={`/drafts/new?workId=${workId}`}>
+              <Link href={`/drafts?workId=${workId}`}>
                 <Plus className="mr-2 h-4 w-4" />
                 创建第一章
               </Link>

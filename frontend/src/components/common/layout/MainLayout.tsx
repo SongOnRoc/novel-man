@@ -19,7 +19,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
 
-  const isEditorPage = pathname?.includes("/edit") || pathname === "/drafts/new";
+  const isEditorPage = pathname?.includes("/edit");
   const isMobileEditor = isMobile && isEditorPage;
 
   // 检测移动端

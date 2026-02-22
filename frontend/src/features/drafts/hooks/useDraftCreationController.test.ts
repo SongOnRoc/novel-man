@@ -1,0 +1,132 @@
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import { useDraftCreationController } from "./useDraftCreationController";
+
+const createDeferred = <T,>() => {
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+};
+
+describe("useDraftCreationController", () => {
+  it("未选择模板时应使用空白模板并使用默认标题", async () => {
+    const createDraft = vi.fn().mockResolvedValue({ id: 101 });
+    const onNavigate = vi.fn();
+
+    const { result } = renderHook(() =>
+      useDraftCreationController({
+        initialWorkId: undefined,
+        createDraft,
+        onNavigate,
+      }),
+    );
+
+    act(() => {
+      result.current.openDialog();
+    });
+
+    await act(async () => {
+      await result.current.confirmCreate();
+    });
+
+    expect(createDraft).toHaveBeenCalledWith({
+      title: "无标题草稿",
+      content: "",
+      workId: undefined,
+    });
+    expect(onNavigate).toHaveBeenCalledWith("/drafts/101/edit");
+  });
+
+  it("选择模板后应注入模板内容并携带作品 ID", async () => {
+    const createDraft = vi.fn().mockResolvedValue({ data: { id: 202 } });
+    const onNavigate = vi.fn();
+
+    const { result } = renderHook(() =>
+      useDraftCreationController({
+        initialWorkId: 9,
+        createDraft,
+        onNavigate,
+      }),
+    );
+
+    act(() => {
+      result.current.openDialog(12);
+      result.current.updateValues({ title: "剧情草稿", templateKey: "plot" });
+    });
+
+    await act(async () => {
+      await result.current.confirmCreate();
+    });
+
+    expect(createDraft).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "剧情草稿",
+        workId: 12,
+      }),
+    );
+    expect(createDraft.mock.calls[0][0].content).toContain("剧情推进草稿");
+    expect(onNavigate).toHaveBeenCalledWith("/drafts/202/edit");
+  });
+
+  it("创建失败时应保留输入并展示错误", async () => {
+    const createDraft = vi.fn().mockRejectedValue(new Error("网络异常"));
+
+    const { result } = renderHook(() =>
+      useDraftCreationController({
+        createDraft,
+        onNavigate: vi.fn(),
+      }),
+    );
+
+    act(() => {
+      result.current.openDialog();
+      result.current.updateValues({ title: "保留标题", templateKey: "scene" });
+    });
+
+    await act(async () => {
+      await result.current.confirmCreate();
+    });
+
+    expect(result.current.open).toBe(true);
+    expect(result.current.values.title).toBe("保留标题");
+    expect(result.current.values.templateKey).toBe("scene");
+    expect(result.current.errorMessage).toContain("创建失败");
+  });
+
+  it("创建中重复确认仅发送一次请求", async () => {
+    const deferred = createDeferred<{ id: number }>();
+    const createDraft = vi.fn().mockImplementation(() => deferred.promise);
+
+    const { result } = renderHook(() =>
+      useDraftCreationController({
+        createDraft,
+        onNavigate: vi.fn(),
+      }),
+    );
+
+    act(() => {
+      result.current.openDialog();
+    });
+
+    act(() => {
+      void result.current.confirmCreate();
+      void result.current.confirmCreate();
+    });
+
+    expect(createDraft).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      deferred.resolve({ id: 303 });
+      await deferred.promise;
+    });
+
+    await waitFor(() => {
+      expect(result.current.isCreating).toBe(false);
+    });
+  });
+});

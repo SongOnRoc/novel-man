@@ -1,7 +1,6 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -41,10 +40,7 @@ import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 const EditDraftPage = (): React.ReactElement => {
   const params = useParams();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const queryClient = useQueryClient();
   const { setBreadcrumb } = useBreadcrumb();
-  const toastShownRef = React.useRef(false);
 
   const [isPublishing, setIsPublishing] = useState(false);
   const [selectedWorkId, setSelectedWorkId] = useState<string | undefined>(
@@ -55,21 +51,16 @@ const EditDraftPage = (): React.ReactElement => {
 
   const draftId = parseInt(params.id as string, 10);
   const { data: draft, isLoading, error } = useDraftById(draftId);
-  const { mutate: updateDraft, mutateAsync: updateDraftAsync, isPending: isSaving } = useUpdateDraft();
+  const {
+    mutate: updateDraft,
+    mutateAsync: updateDraftAsync,
+    isPending: isSaving,
+  } = useUpdateDraft();
   const { mutate: publishDraft, isPending: isPublishingPending } =
     usePublishDraft();
 
   const { data: worksResponse } = useWorkList({});
   const works = worksResponse?.data || [];
-
-  useEffect(() => {
-    if (searchParams.get("created") === "true" && !toastShownRef.current) {
-      toast.success("草稿创建成功");
-      toastShownRef.current = true;
-      // Remove the query param to prevent toast on refresh
-      router.replace(`/drafts/${draftId}/edit`, { scroll: false });
-    }
-  }, [searchParams, draftId, router]);
 
   useEffect(() => {
     if (draft) {
@@ -97,7 +88,7 @@ const EditDraftPage = (): React.ReactElement => {
       content: data.content,
       wordCount: data.wordCount,
     };
-    
+
     try {
       await updateDraftAsync({ id: draftId, data: payload });
       // toast.success("草稿自动保存成功");
@@ -150,7 +141,6 @@ const EditDraftPage = (): React.ReactElement => {
   return (
     <>
       <div className="h-full overflow-hidden bg-background flex flex-col">
-        
         <div className="flex-1 overflow-hidden relative">
           {draft ? (
             <TiptapEditor
@@ -176,8 +166,6 @@ const EditDraftPage = (): React.ReactElement => {
             </div>
           )}
         </div>
-
-
       </div>
 
       <AlertDialog open={isPublishing} onOpenChange={setIsPublishing}>

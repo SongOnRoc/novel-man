@@ -1,7 +1,6 @@
 "use client";
 
 import { FilePlus, Sparkles } from "lucide-react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
@@ -20,8 +19,11 @@ import { GlobalLoading } from "@/components/common/GlobalLoading";
 import { DraftCard } from "@/features/drafts/components/DraftCard";
 import { DraftList } from "@/features/drafts/components/DraftList";
 import { DraftToolbar } from "@/features/drafts/components/DraftToolbar";
+import { NewDraftDialog } from "@/features/drafts/components/NewDraftDialog";
+import { useDraftCreationController } from "@/features/drafts/hooks/useDraftCreationController";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
+  useCreateDraft,
   useDraftList,
   useDeleteDraft,
   usePublishDraft,
@@ -41,6 +43,7 @@ const DraftsContent = ({
   onPageChange,
   onDelete,
   onPublish,
+  onCreateDraft,
 }: {
   workId?: number;
   page: number;
@@ -50,6 +53,7 @@ const DraftsContent = ({
   onPageChange: (newPage: number) => void;
   onDelete: (draft: DraftForClient) => void;
   onPublish: (draft: DraftForClient) => void;
+  onCreateDraft: (workId?: number) => void;
 }) => {
   // Determine if we are filtering by "Other Drafts" (workId=0)
   // workId=0 means drafts without a work association
@@ -108,14 +112,13 @@ const DraftsContent = ({
             : "不要让灵感溜走。无论是只言片语还是宏大构想，这里都是它们最好的归宿。"}
         </p>
         <Button
-          asChild
+          type="button"
           size="lg"
+          onClick={() => onCreateDraft(workId)}
           className="h-12 rounded-full px-8 shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:shadow-primary/30"
         >
-          <Link href={workId ? `/drafts/new?workId=${workId}` : "/drafts/new"}>
-            <FilePlus className="mr-2 h-5 w-5" />
-            开始创作
-          </Link>
+          <FilePlus className="mr-2 h-5 w-5" />
+          开始创作
         </Button>
       </div>
     );
@@ -244,6 +247,7 @@ export default function DraftsPage(): React.ReactElement {
 
   const { mutate: deleteDraft, isPending: isDeleting } = useDeleteDraft();
   const { mutate: publishDraft } = usePublishDraft();
+  const { mutateAsync: createDraft } = useCreateDraft();
 
   const workId = searchParams.get("workId");
   const page = useMemo(() => {
@@ -301,6 +305,21 @@ export default function DraftsPage(): React.ReactElement {
     });
   };
 
+  const {
+    open,
+    isCreating,
+    values,
+    errorMessage,
+    openDialog,
+    closeDialog,
+    updateValues,
+    confirmCreate,
+  } = useDraftCreationController({
+    initialWorkId: selectedWorkId,
+    createDraft,
+    onNavigate: (path) => router.push(path),
+  });
+
   const renderContent = (): React.ReactElement => {
     if (isLoadingWorks) {
       return <GlobalLoading fullScreen={false} />;
@@ -314,6 +333,7 @@ export default function DraftsPage(): React.ReactElement {
         onPageChange={handlePageChange}
         onDelete={setDraftToDelete}
         onPublish={handlePublish}
+        onCreateDraft={openDialog}
         works={works}
       />
     );
@@ -338,11 +358,7 @@ export default function DraftsPage(): React.ReactElement {
             workId={workId ?? "all"}
             onWorkIdChange={handleSelectWork}
             works={works}
-            newDraftHref={
-              selectedWorkId
-                ? `/drafts/new?workId=${selectedWorkId}`
-                : "/drafts/new"
-            }
+            onCreateDraft={() => openDialog(selectedWorkId)}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
           />
@@ -361,6 +377,23 @@ export default function DraftsPage(): React.ReactElement {
           itemType="草稿"
         />
       )}
+
+      <NewDraftDialog
+        open={open}
+        isCreating={isCreating}
+        works={works}
+        values={values}
+        errorMessage={errorMessage}
+        onOpenChange={(next) => {
+          if (next) {
+            openDialog(selectedWorkId);
+            return;
+          }
+          closeDialog();
+        }}
+        onValuesChange={updateValues}
+        onConfirm={confirmCreate}
+      />
     </>
   );
 }
