@@ -11,9 +11,7 @@ import {
   useChapterById,
   useUpdateChapter,
 } from "@/hooks/chapter/useChapterService";
-import {
-  UpdateChapterPayloadForClient,
-} from "@/lib/services/chapter.service";
+import { UpdateChapterPayloadForClient } from "@/lib/services/chapter.service";
 import { useWorkById } from "@/hooks/work/useWorkService";
 
 const EditChapterPage = (): React.ReactElement => {

@@ -255,10 +255,11 @@ export default function DraftsPage(): React.ReactElement {
     return pageParam ? parseInt(pageParam, 10) : 1;
   }, [searchParams]);
 
-  const selectedWorkId = useMemo(
-    () => (workId ? parseInt(workId, 10) : undefined),
-    [workId]
-  );
+  const selectedWorkId = useMemo(() => {
+    if (!workId) return undefined;
+    const parsed = parseInt(workId, 10);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }, [workId]);
 
   const updateParams = (updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams.toString());

@@ -162,7 +162,7 @@ export default function WorkDetailsPage() {
             title="作品设置"
             description="修改元数据，导出作品"
             icon={Settings}
-            href={`/works/${work.id}/settings`} // Assuming this route exists or will exist
+            href={`/works/${work.id}/edit`}
             color="text-orange-500"
             delay={0.6}
           />

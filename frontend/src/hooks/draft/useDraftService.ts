@@ -57,10 +57,14 @@ const draftKeys = {
 export const useDraftList = (params: UseDraftListParams) => {
   const { workId, ...rest } = params;
 
+  // 仅在 workId 为有效数字时传递 work_id，避免 NaN 污染查询参数
+  const normalizedWorkId =
+    typeof workId === "number" && Number.isFinite(workId) ? workId : undefined;
+
   // Transform to the snake_case format expected by the API service
   const serviceParams: DraftsParams = {
-    work_id: workId,
     ...rest,
+    ...(normalizedWorkId !== undefined ? { work_id: normalizedWorkId } : {}),
   };
 
   return useQuery({
