@@ -3,7 +3,9 @@ package settings
 import (
 	"novel-man/backend/internal/apps"
 	"novel-man/backend/internal/container"
+	settings_contract "novel-man/backend/internal/contracts/settings"
 	"novel-man/backend/internal/controllers/settings"
+	"novel-man/backend/internal/events"
 	middle "novel-man/backend/internal/middlewares"
 	"novel-man/backend/internal/middlewares/auth"
 	"novel-man/backend/internal/repositories/gorm"
@@ -30,8 +32,14 @@ func (m *settingsModule) RegisterRoutes(router *gin.RouterGroup) {
 	err := container.Container.Invoke(func(
 		controller *settings.SettingController,
 		provider *middle.MiddlewareProvider,
+		eventManager *events.EventManager,
+		settingService settings_contract.SettingService,
 	) {
 		m.middlewareProvider = provider
+
+		eventManager.RegisterRoutes(events.EventTypeSettingsCreate, events.ModuleSettings)
+		eventManager.RegisterRoutes(events.EventTypeSettingsUpdate, events.ModuleSettings)
+		eventManager.RegisterConsumer(events.ModuleSettings, settingService.HandleSettingTask)
 
 		authedGroup := router.Group("/settings")
 		authMiddleware, ok := m.getMiddleware(auth.AuthMiddlewareName)

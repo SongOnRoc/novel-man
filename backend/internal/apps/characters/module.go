@@ -3,7 +3,9 @@ package characters
 import (
 	"novel-man/backend/internal/apps"
 	"novel-man/backend/internal/container"
+	characters_contract "novel-man/backend/internal/contracts/characters"
 	"novel-man/backend/internal/controllers/characters"
+	"novel-man/backend/internal/events"
 	middle "novel-man/backend/internal/middlewares"
 	"novel-man/backend/internal/middlewares/auth"
 	"novel-man/backend/internal/middlewares/resource"
@@ -31,8 +33,14 @@ func (m *charactersModule) RegisterRoutes(router *gin.RouterGroup) {
 	err := container.Container.Invoke(func(
 		controller *characters.CharacterController,
 		provider *middle.MiddlewareProvider,
+		eventManager *events.EventManager,
+		characterService characters_contract.CharacterService,
 	) {
 		m.middlewareProvider = provider
+
+		eventManager.RegisterRoutes(events.EventTypeCharactersCreate, events.ModuleCharacters)
+		eventManager.RegisterRoutes(events.EventTypeCharactersUpdate, events.ModuleCharacters)
+		eventManager.RegisterConsumer(events.ModuleCharacters, characterService.HandleCharacterTask)
 
 		authedGroup := router.Group("/characters")
 		authMiddleware, ok := m.getMiddleware(auth.AuthMiddlewareName)

@@ -5,7 +5,7 @@ on:
     branches:
       - cdk-like
     tags:
-      - 'v*'
+      - "v*"
   pull_request:
     branches:
       - cdk-like
@@ -17,6 +17,25 @@ env:
   FRONTEND_IMAGE_NAME: ${{ github.repository }}/frontend
 
 jobs:
+  backend-quality-gate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+
+      - name: Run governance quality gates
+        working-directory: ./backend
+        run: |
+          go test ./internal/controllers -run TestReadPath_NoWriteCallsInGetHandlers
+          go test ./internal/services/works -run 'TestRefreshDerivedStats_(HighConcurrency_Stability|IdempotentConvergence|DerivedPathTracksRetryAndBacklog)'
+          go test ./internal/services/drafts -run 'TestPublish_(RefreshesWorkDerivedStats|Integration_UsesDerivedPatchWithRetry)'
+
   build-backend:
     runs-on: ubuntu-latest
     permissions:

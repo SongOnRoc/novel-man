@@ -3,12 +3,15 @@ package worldview
 import (
 	"novel-man/backend/internal/apps"
 	"novel-man/backend/internal/container"
+	worldviewcontracts "novel-man/backend/internal/contracts/worldview"
 	worldviewcontroller "novel-man/backend/internal/controllers/worldview"
+	"novel-man/backend/internal/events"
 	middle "novel-man/backend/internal/middlewares"
 	"novel-man/backend/internal/middlewares/auth"
 	"novel-man/backend/internal/middlewares/resource"
 	"novel-man/backend/internal/repositories/gorm"
 	worldviewservice "novel-man/backend/internal/services/worldview"
+	appctx "novel-man/backend/utils/context"
 
 	"github.com/gin-gonic/gin"
 )
@@ -34,8 +37,22 @@ func (m *worldviewModule) RegisterRoutes(router *gin.RouterGroup) {
 	err := container.Container.Invoke(func(
 		controller *worldviewcontroller.WorldviewController,
 		provider *middle.MiddlewareProvider,
+		eventManager *events.EventManager,
+		categoryService worldviewcontracts.WorldviewCategoryService,
+		itemService worldviewcontracts.WorldviewItemService,
 	) {
 		m.middlewareProvider = provider
+
+		eventManager.RegisterRoutes(events.EventTypeWorldviewCategoryCreate, events.ModuleWorldview)
+		eventManager.RegisterRoutes(events.EventTypeWorldviewCategoryUpdate, events.ModuleWorldview)
+		eventManager.RegisterRoutes(events.EventTypeWorldviewItemCreate, events.ModuleWorldview)
+		eventManager.RegisterRoutes(events.EventTypeWorldviewItemUpdate, events.ModuleWorldview)
+		eventManager.RegisterConsumer(events.ModuleWorldview, func(ctx appctx.Context, task events.QueueTask) error {
+			if task.AggregateType == events.AggregateTypeWorldviewCategory {
+				return categoryService.HandleWorldviewCategoryTask(ctx, task)
+			}
+			return itemService.HandleWorldviewItemTask(ctx, task)
+		})
 
 		worldviewGroup := router.Group("/worldview")
 		authMiddleware, ok := m.getMiddleware(auth.AuthMiddlewareName)

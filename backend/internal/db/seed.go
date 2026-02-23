@@ -77,10 +77,12 @@ func SeedSystemPrompts(ctx *Ctx.Context, db *gorm.DB) error {
 		}
 	}
 
-	//设置 AUTO_INCREMENT 从 1000 开始，确保自动分配的用户提示词ID >= 1000
-	if err := db.Exec("ALTER TABLE prompts AUTO_INCREMENT = 1000").Error; err != nil {
-		logger.Debug(ctx, "Failed to set AUTO_INCREMENT for prompts table: {}", err)
-		// 不返回错误，SQLite 等数据库不支持此语法
+	// 设置 AUTO_INCREMENT 从 1000 开始，确保自动分配的用户提示词ID >= 1000
+	// 仅 MySQL 支持该语法，SQLite/Postgres 跳过以避免无效语法噪音。
+	if db.Dialector.Name() == "mysql" {
+		if err := db.Exec("ALTER TABLE prompts AUTO_INCREMENT = 1000").Error; err != nil {
+			logger.Debug(ctx, "Failed to set AUTO_INCREMENT for prompts table: {}", err)
+		}
 	}
 
 	logger.Info(ctx, "System prompts seeding completed.")

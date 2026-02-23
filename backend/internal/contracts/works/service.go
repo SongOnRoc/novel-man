@@ -2,6 +2,7 @@ package works
 
 import (
 	"novel-man/backend/internal/contracts"
+	"novel-man/backend/internal/events"
 	"novel-man/backend/internal/models"
 	"novel-man/backend/utils/context"
 )
@@ -16,4 +17,5 @@ type WorkService interface {
 	contracts.GenericCRUD[models.Work, int64]
 	WorkPublish
 	contracts.Importer
+	HandleWorkStatsTask(ctx context.Context, task events.QueueTask) error
 }

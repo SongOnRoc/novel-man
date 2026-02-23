@@ -13,23 +13,20 @@ import (
 	"novel-man/backend/internal/models"
 	"novel-man/backend/utils/context"
 	"novel-man/backend/utils/response"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type WorkController struct {
-	service                 works.WorkService
-	chapter                 chapters.ChapterService
-	recalculationInProgress sync.Map
+	service works.WorkService
+	chapter chapters.ChapterService
 }
 
 func NewWorkController(service works.WorkService, chapterService chapters.ChapterService) *WorkController {
 	return &WorkController{
-		service:                 service,
-		chapter:                 chapterService,
-		recalculationInProgress: sync.Map{},
+		service: service,
+		chapter: chapterService,
 	}
 }
 
@@ -196,19 +193,6 @@ func (c *WorkController) GetWork(ctx *gin.Context) {
 		return
 	}
 
-	// 惰性计算：如果 total_word_count 为 0，则异步重新计算
-	// if work.TotalWordCount == 0 || work.TotalChapterCount == 0 {
-	// 使用 sync.Map 防止对同一个 work 的并发计算
-	if _, loaded := c.recalculationInProgress.LoadOrStore(work.ID, true); !loaded {
-		go func() {
-			// 在 goroutine 结束时，从 map 中删除标记
-			defer c.recalculationInProgress.Delete(work.ID)
-			// 使用克隆的 context，以防原始请求结束
-			c.recalculateWorkStats(*context.New(ctx.Copy()), work)
-		}()
-		// }
-	}
-
 	response.Success(ctx, http.StatusOK, toWorkResponse(work))
 }
 
@@ -336,20 +320,6 @@ func (c *WorkController) ListWorks(ctx *gin.Context) {
 
 	workResponses := make([]WorkResponse, len(works))
 	for i, work := range works {
-		// 惰性计算：如果 total_word_count 为 0，则异步重新计算
-		// if work.TotalWordCount == 0 || work.TotalChapterCount == 0 {
-		// 使用 sync.Map 防止对同一个 work 的并发计算
-		if _, loaded := c.recalculationInProgress.LoadOrStore(work.ID, true); !loaded {
-			// 捕获 work 变量以在闭包中使用
-			currentWork := work
-			go func() {
-				// 在 goroutine 结束时，从 map 中删除标记
-				defer c.recalculationInProgress.Delete(currentWork.ID)
-				// 使用克隆的 context，以防原始请求结束
-				c.recalculateWorkStats(*context.New(ctx.Copy()), &currentWork)
-			}()
-		}
-		// }
 		workResponses[i] = toWorkResponse(&work)
 	}
 
