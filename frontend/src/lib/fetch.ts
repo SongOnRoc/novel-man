@@ -4,11 +4,52 @@ import { toCamelCase, toSnakeCase } from "@/lib/utils";
 // Determine the base URL based on the environment (server-side or client-side).
 const isServer = typeof window === "undefined";
 
+const isProduction = process.env.NODE_ENV === "production";
+
+function isLocalhostHostname(hostname: string): boolean {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+}
+
+function getServerProxyBaseURL(): string {
+  const rawNextAuthUrl = process.env.NEXTAUTH_URL;
+
+  if (typeof rawNextAuthUrl === "string" && rawNextAuthUrl.trim() !== "") {
+    let parsed: URL;
+    try {
+      parsed = new URL(rawNextAuthUrl);
+    } catch (error) {
+      const message = `[auth] Invalid NEXTAUTH_URL: "${rawNextAuthUrl}"`;
+      if (isProduction) {
+        console.error(message, error);
+        throw new Error(message);
+      }
+      console.warn(message, error);
+      return "http://localhost:3000/api/proxy";
+    }
+
+    if (isProduction && isLocalhostHostname(parsed.hostname)) {
+      const message =
+        `[auth] Refusing NEXTAUTH_URL pointing to localhost in production: "${rawNextAuthUrl}"`;
+      console.error(message);
+      throw new Error(message);
+    }
+
+    return `${parsed.origin}/api/proxy`;
+  }
+
+  if (isProduction) {
+    const message =
+      "[auth] Missing NEXTAUTH_URL in production; server-side requests cannot safely determine origin.";
+    console.error(message);
+    throw new Error(message);
+  }
+
+  return "http://localhost:3000/api/proxy";
+}
+
 // For server-side requests, we need a full URL. For client-side, we can use a relative path.
-// If NEXTAUTH_URL is not set, we fall back to a default localhost URL for development.
-const baseURL = isServer
-  ? `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/proxy`
-  : "/api/proxy";
+// Production must NOT silently fall back to localhost.
+const baseURL = isServer ? getServerProxyBaseURL() : "/api/proxy";
 
 /**
  * A custom fetch wrapper that Orval will use as the mutator.

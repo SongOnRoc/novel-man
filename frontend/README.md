@@ -20,6 +20,19 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Environment Variables
+
+### Development
+
+- `NEXTAUTH_URL=http://localhost:3000`
+- `NEXTAUTH_SECRET=...` (任意安全随机值)
+
+### Production (Required)
+
+- `NEXTAUTH_URL` **必须设置为公网可访问的站点 Origin**（例如 `https://novel-man.example.com`）。
+  - 生产环境若缺失或错误配置，将导致认证回跳/重定向基址不可信；本项目会在运行时直接报错以避免静默回退到 `http://localhost:3000`。
+- `NEXTAUTH_SECRET` **必须设置为强随机值**。
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

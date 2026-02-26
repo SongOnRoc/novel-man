@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { signOut } from "next-auth/react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -14,10 +13,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/auth/useAuth";
 import { useUserQuery } from "@/hooks/auth/useUserQuery";
 
 export function UserNav() {
   const { data: user, isLoading } = useUserQuery();
+  const { logout } = useAuth();
 
   if (isLoading) {
     // You can return a skeleton loader here
@@ -63,7 +64,7 @@ export function UserNav() {
           </Link>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => signOut()}>登出</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => void logout()}>登出</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

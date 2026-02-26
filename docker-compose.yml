@@ -37,7 +37,8 @@ services:
       BACKEND_API_URL: ${BACKEND_API_URL:-http://backend:8080}
       
       # NextAuth Configuration
-      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      # Production MUST set NEXTAUTH_URL to the public origin (e.g. https://novel-man.example.com)
+      NEXTAUTH_URL: "${NEXTAUTH_URL:?NEXTAUTH_URL is required (set to public origin, e.g. https://novel-man.example.com)}"
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-your-nextauth-secret-change-in-production}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
