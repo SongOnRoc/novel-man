@@ -60,6 +60,20 @@ func (s *DraftService) Publish(ctx context.Context, draftID uint) (*models.Chapt
 		return nil, err
 	}
 
+	// 发布 chapters.create 事件（让 works 模块能基于 work_id 触发统计重算写回）。
+	if s.publisher != nil {
+		_ = s.publisher.PublishFactEvent(ctx, events.FactEvent{
+			EventType:     events.EventTypeChaptersCreate,
+			AggregateType: events.AggregateTypeChapter,
+			AggregateID:   fmt.Sprintf("%d", chapter.ID),
+			Producer:      events.ProducerDraftsService,
+			Payload: map[string]any{
+				"chapter_id": chapter.ID,
+				"work_id":    chapter.WorkID,
+			},
+		})
+	}
+
 	// 同步更新作品统计（总字数/总章节数）。
 	// 说明：章节通过草稿发布创建时，绕过 ChapterController 的增量统计更新，
 	// 导致 dashboard 依赖的 works.total_word_count / works.total_chapter_count 偏小。

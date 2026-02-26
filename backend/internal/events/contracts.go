@@ -10,6 +10,7 @@ const (
 	EventTypeWorksQuery              = "works.query"
 	EventTypeChaptersCreate          = "chapters.create"
 	EventTypeChaptersUpdate          = "chapters.update"
+	EventTypeChaptersDelete          = "chapters.delete"
 	EventTypeCharactersCreate        = "characters.create"
 	EventTypeCharactersUpdate        = "characters.update"
 	EventTypeDraftsCreate            = "drafts.create"

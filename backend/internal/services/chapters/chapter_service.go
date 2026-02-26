@@ -85,6 +85,29 @@ func (s *ChapterService) Update(ctx context.Context, id uint, entity *models.Cha
 	return nil
 }
 
+func (s *ChapterService) Delete(ctx context.Context, id uint) error {
+	// 删除需要 work_id，先查再删，避免统计回写无法定位作品。
+	ch, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	workID := ch.WorkID
+
+	if err := s.repo.Delete(ctx, id); err != nil {
+		return err
+	}
+	if s.publisher != nil {
+		return s.publisher.PublishFactEvent(ctx, events.FactEvent{
+			EventType:     events.EventTypeChaptersDelete,
+			AggregateType: events.AggregateTypeChapter,
+			AggregateID:   fmt.Sprintf("%d", id),
+			Producer:      events.ProducerChaptersService,
+			Payload:       map[string]any{"chapter_id": id, "work_id": workID},
+		})
+	}
+	return nil
+}
+
 func parseUintID(task events.QueueTask) (uint, error) {
 	if raw, ok := task.Payload["chapter_id"]; ok {
 		switch v := raw.(type) {

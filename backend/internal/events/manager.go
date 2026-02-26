@@ -33,10 +33,27 @@ func NewEventManager(scheduler *QueueScheduler) *EventManager {
 }
 
 // RegisterRoutes 注册事件类型到模块列表的映射。
+//
+// 约束：同一个 eventType 可能被多个模块订阅（例如 chapters.* 既被 chapters 模块消费，
+// 也被 works 模块用于统计回写）。因此这里应做“追加 + 去重”，而不是覆盖。
 func (m *EventManager) RegisterRoutes(eventType string, modules ...string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.subscribers[eventType] = append([]string{}, modules...)
+
+	existing := m.subscribers[eventType]
+	for _, mod := range modules {
+		seen := false
+		for _, e := range existing {
+			if e == mod {
+				seen = true
+				break
+			}
+		}
+		if !seen {
+			existing = append(existing, mod)
+		}
+	}
+	m.subscribers[eventType] = existing
 }
 
 // RegisterConsumer 注册模块消费者实现。

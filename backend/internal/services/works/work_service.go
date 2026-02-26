@@ -62,7 +62,7 @@ func (s *WorkService) Update(ctx context.Context, id int64, entity *models.Work)
 }
 
 func (s *WorkService) HandleWorkStatsTask(ctx context.Context, task events.QueueTask) error {
-	workID, err := parseWorkID(task)
+	workID, err := parseWorkIDFromTask(task)
 	if err != nil {
 		return err
 	}
@@ -113,7 +113,39 @@ func (s *WorkService) publishFactEvent(ctx context.Context, eventType string, wo
 	})
 }
 
-func parseWorkID(task events.QueueTask) (int64, error) {
+func parseWorkIDFromTask(task events.QueueTask) (int64, error) {
+	// 1) 优先从 payload.work_id 解析（适用于 chapters.* 事件）。
+	if raw, ok := task.Payload["work_id"]; ok {
+		switch v := raw.(type) {
+		case int64:
+			if v > 0 {
+				return v, nil
+			}
+		case int:
+			if v > 0 {
+				return int64(v), nil
+			}
+		case uint:
+			if v > 0 {
+				return int64(v), nil
+			}
+		case uint64:
+			if v > 0 {
+				return int64(v), nil
+			}
+		case float64:
+			if v > 0 {
+				return int64(v), nil
+			}
+		case string:
+			var parsed int64
+			if _, err := fmt.Sscanf(v, "%d", &parsed); err == nil && parsed > 0 {
+				return parsed, nil
+			}
+		}
+	}
+
+	// 2) 回退到 partition_key 解析（适用于 works.* 事件）。
 	var workID int64
 	_, err := fmt.Sscanf(task.PartitionKey, "work:%d:%s", &workID, new(string))
 	if err == nil {
@@ -123,7 +155,7 @@ func parseWorkID(task events.QueueTask) (int64, error) {
 	if err == nil {
 		return workID, nil
 	}
-	return 0, fmt.Errorf("invalid partition key: %s", task.PartitionKey)
+	return 0, fmt.Errorf("work_id missing in task payload and invalid partition key: %s", task.PartitionKey)
 }
 
 // Import 导入作品
