@@ -254,9 +254,11 @@ func (c *WorkController) UpdateWork(ctx *gin.Context) {
 // @Description Delete a work by its ID
 // @Tags works
 // @Param id path int true "Work ID"
+// @Param draftHandling query string false "How to handle associated drafts (required when drafts exist)" Enums(delete,unlink)
 // @Success 200 {object} response.StandardResponse{data=object{message=string}}
 // @Failure 400 {object} response.StandardResponse "Invalid ID"
 // @Failure 404 {object} response.StandardResponse "Work not found"
+// @Failure 409 {object} response.StandardResponse "Draft handling required" (data contains draftCount)
 // @Failure 500 {object} response.StandardResponse "Failed to delete work"
 // @Security BearerAuth
 // @Router /works/{id} [delete]
@@ -267,12 +269,43 @@ func (c *WorkController) DeleteWork(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.service.Delete(*context.New(ctx), id); err != nil {
+	var opts works.DeleteWorkOptions
+
+	// Backward/forward compatibility: some clients may send snake_case query keys.
+	raw := ctx.Query("draftHandling")
+	if raw == "" {
+		raw = ctx.Query("draft_handling")
+	}
+	if raw != "" {
+		handling := works.DraftHandling(raw)
+		switch handling {
+		case works.DraftHandlingDelete, works.DraftHandlingUnlink:
+			opts.DraftHandling = &handling
+		default:
+			response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid draftHandling", nil)
+			return
+		}
+	}
+
+	if err := c.service.DeleteWithOptions(*context.New(ctx), id, opts); err != nil {
+		var requiredErr *works.DraftHandlingRequiredError
+		if errors.As(err, &requiredErr) {
+			response.ErrorWithData(
+				ctx,
+				http.StatusConflict,
+				http.StatusConflict,
+				"Draft handling required",
+				gin.H{"draftCount": requiredErr.DraftCount},
+				nil,
+			)
+			return
+		}
+
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Work not found", err)
-		} else {
-			response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to delete work", err)
+			return
 		}
+		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to delete work", err)
 		return
 	}
 

@@ -10,4 +10,6 @@ import (
 type WorkRepository interface {
 	contracts.GenericRepository[models.Work, int64]
 	UpdateWorkStats(ctx context.Context, id int64, totalWordCount, totalChapterCount int) error
+
+	DeleteWithOptions(ctx context.Context, id int64, opts DeleteWorkOptions) error
 }

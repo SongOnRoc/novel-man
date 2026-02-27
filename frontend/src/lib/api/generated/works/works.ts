@@ -23,6 +23,7 @@ import type {
 
 import type {
   DeleteWorksId200,
+  DeleteWorksIdParams,
   GetWorks200,
   GetWorksId200,
   GetWorksParams,
@@ -402,10 +403,11 @@ export const usePostWorksImport = <
  */
 export const deleteWorksId = (
   id: number,
+  params?: DeleteWorksIdParams,
   options?: SecondParameter<typeof customFetch>,
 ) => {
   return customFetch<DeleteWorksId200>(
-    { url: `/works/${id}`, method: "DELETE" },
+    { url: `/works/${id}`, method: "DELETE", params },
     options,
   );
 };
@@ -414,20 +416,21 @@ export const getDeleteWorksIdMutationOptions = <
   TError =
     | ResponseStandardResponse
     | ResponseStandardResponse
+    | ResponseStandardResponse
     | ResponseStandardResponse,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteWorksId>>,
     TError,
-    { id: number },
+    { id: number; params?: DeleteWorksIdParams },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteWorksId>>,
   TError,
-  { id: number },
+  { id: number; params?: DeleteWorksIdParams },
   TContext
 > => {
   const mutationKey = ["deleteWorksId"];
@@ -441,11 +444,11 @@ export const getDeleteWorksIdMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteWorksId>>,
-    { id: number }
+    { id: number; params?: DeleteWorksIdParams }
   > = (props) => {
-    const { id } = props ?? {};
+    const { id, params } = props ?? {};
 
-    return deleteWorksId(id, requestOptions);
+    return deleteWorksId(id, params, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -458,6 +461,7 @@ export type DeleteWorksIdMutationResult = NonNullable<
 export type DeleteWorksIdMutationError =
   | ResponseStandardResponse
   | ResponseStandardResponse
+  | ResponseStandardResponse
   | ResponseStandardResponse;
 
 /**
@@ -467,6 +471,7 @@ export const useDeleteWorksId = <
   TError =
     | ResponseStandardResponse
     | ResponseStandardResponse
+    | ResponseStandardResponse
     | ResponseStandardResponse,
   TContext = unknown,
 >(
@@ -474,7 +479,7 @@ export const useDeleteWorksId = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deleteWorksId>>,
       TError,
-      { id: number },
+      { id: number; params?: DeleteWorksIdParams },
       TContext
     >;
     request?: SecondParameter<typeof customFetch>;
@@ -483,7 +488,7 @@ export const useDeleteWorksId = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof deleteWorksId>>,
   TError,
-  { id: number },
+  { id: number; params?: DeleteWorksIdParams },
   TContext
 > => {
   const mutationOptions = getDeleteWorksIdMutationOptions(options);

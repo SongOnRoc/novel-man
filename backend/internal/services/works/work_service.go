@@ -22,6 +22,10 @@ type WorkService struct {
 	publisher events.Publisher
 }
 
+func (s *WorkService) DeleteWithOptions(ctx context.Context, id int64, opts works.DeleteWorkOptions) error {
+	return s.repo.DeleteWithOptions(ctx, id, opts)
+}
+
 func NewWorkService(repo works.WorkRepository, chapterService chapters.ChapterService, publisher events.Publisher) works.WorkService {
 	return &WorkService{
 		GenericService: services.NewGenericService[models.Work, int64, works.WorkRepository](repo),

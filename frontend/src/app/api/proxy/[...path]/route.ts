@@ -298,19 +298,25 @@ async function handler(req: NextRequest) {
       sseHeaders.set("Content-Type", "text/event-stream");
       sseHeaders.set("Cache-Control", "no-cache");
       sseHeaders.set("Connection", "keep-alive");
-      
+
       return new NextResponse(response.body, {
         status: response.status,
         headers: sseHeaders,
       });
     }
 
-    // Get response body for non-stream requests
-    const responseData = await response.json().catch(() => ({}));
+    // Pass through upstream response body for non-stream requests as well.
+    // This avoids losing non-2xx JSON bodies (e.g. 409 conflict payload).
+    const passthroughHeaders = new Headers(baseHeaders);
+    if (contentType) {
+      passthroughHeaders.set("Content-Type", contentType);
+    } else {
+      passthroughHeaders.set("Content-Type", "application/json");
+    }
 
-    return NextResponse.json(responseData, {
+    return new NextResponse(response.body, {
       status: response.status,
-      headers: baseHeaders,
+      headers: passthroughHeaders,
     });
   } catch (error) {
     console.error("Proxy Error:", error);

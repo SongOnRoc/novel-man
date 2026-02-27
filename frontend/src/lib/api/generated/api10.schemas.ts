@@ -1074,6 +1074,22 @@ export type PostWorksImport200 = Data & {
   traceId?: string;
 };
 
+export type DeleteWorksIdParams = {
+  /**
+   * How to handle associated drafts (required when drafts exist)
+   */
+  draftHandling?: DeleteWorksIdDraftHandling;
+};
+
+export type DeleteWorksIdDraftHandling =
+  (typeof DeleteWorksIdDraftHandling)[keyof typeof DeleteWorksIdDraftHandling];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const DeleteWorksIdDraftHandling = {
+  delete: "delete",
+  unlink: "unlink",
+} as const;
+
 export type DeleteWorksId200 = Data & {
   code?: number;
   data?: unknown;

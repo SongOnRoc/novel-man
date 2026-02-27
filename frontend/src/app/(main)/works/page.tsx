@@ -34,7 +34,7 @@ export default function WorksPage(): React.ReactElement {
   }, [searchParams]);
 
   const { data: worksResponse, isLoading } = useWorkList({ page, limit: 12 });
-  const { mutate: deleteWork, isPending: isDeleting } = useDeleteWork();
+  const { mutateAsync: deleteWork, isPending: isDeleting } = useDeleteWork();
 
   const rawWorks = ((worksResponse as WorksList)?.data || []) as WorkForClient[];
   const works: WorkForClient[] = useMemo(
@@ -43,13 +43,12 @@ export default function WorksPage(): React.ReactElement {
   );
   const pagination = (worksResponse as WorksList)?.pagination;
 
-  const handleConfirmDelete = (): void => {
-    if (deleteWorkId) {
-      deleteWork(deleteWorkId, {
-        onSuccess: () => {
-          setDeleteWorkId(null);
-        },
-      });
+  const handleConfirmDelete = async (
+    draftHandling?: "delete" | "unlink"
+  ): Promise<void> => {
+    if (deleteWorkId !== null) {
+      await deleteWork({ id: deleteWorkId, draftHandling });
+      setDeleteWorkId(null);
     }
   };
 

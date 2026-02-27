@@ -66,6 +66,8 @@ const EditDraftPage = (): React.ReactElement => {
     if (draft) {
       if (draft.workId) {
         setSelectedWorkId(draft.workId.toString());
+      } else {
+        setSelectedWorkId(undefined);
       }
       // Use unique key like 'drafts-123' to avoid conflicts
       setBreadcrumb(`drafts-${draftId}`, draft.title || "Untitled Draft");

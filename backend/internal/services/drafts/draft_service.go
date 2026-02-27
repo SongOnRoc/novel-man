@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"novel-man/backend/internal/contracts"
 	"novel-man/backend/internal/contracts/chapters"
 	"novel-man/backend/internal/contracts/drafts"
 	"novel-man/backend/internal/contracts/works"
@@ -11,6 +12,8 @@ import (
 	"novel-man/backend/internal/models"
 	"novel-man/backend/internal/services"
 	"novel-man/backend/utils/context"
+
+	"gorm.io/gorm"
 )
 
 // DraftService 通过嵌入 GenericService 来复用代码
@@ -40,6 +43,47 @@ func NewDraftService(
 	}
 }
 
+func (s *DraftService) normalizeDraftWorkAssociation(ctx context.Context, draft *models.Draft) error {
+	if draft.WorkID == nil {
+		return nil
+	}
+	_, err := s.workRepo.GetByID(ctx, *draft.WorkID)
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		draft.WorkID = nil
+		return nil
+	}
+	return err
+}
+
+func (s *DraftService) GetByID(ctx context.Context, id uint) (*models.Draft, error) {
+	draft, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.normalizeDraftWorkAssociation(ctx, draft); err != nil {
+		return nil, err
+	}
+	return draft, nil
+}
+
+func (s *DraftService) List(ctx context.Context, page, limit int, filters contracts.Filters) ([]models.Draft, int64, error) {
+	items, total, err := s.repo.List(ctx, page, limit, filters)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	for i := range items {
+		if err := s.normalizeDraftWorkAssociation(ctx, &items[i]); err != nil {
+			return nil, 0, err
+		}
+	}
+
+	return items, total, nil
+}
+
 func (s *DraftService) Publish(ctx context.Context, draftID uint) (*models.Chapter, error) {
 	draft, err := s.repo.GetByID(ctx, draftID)
 	if err != nil {
@@ -47,6 +91,15 @@ func (s *DraftService) Publish(ctx context.Context, draftID uint) (*models.Chapt
 	}
 	if draft.WorkID == nil {
 		return nil, errors.New("draft is not associated with a work")
+	}
+
+	// 确保关联作品存在（含软删视为不存在），否则应返回可识别业务错误。
+	work, err := s.workRepo.GetByID(ctx, int64(*draft.WorkID))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, drafts.ErrAssociatedWorkNotFound
+		}
+		return nil, err
 	}
 
 	chapter := &models.Chapter{
@@ -77,10 +130,6 @@ func (s *DraftService) Publish(ctx context.Context, draftID uint) (*models.Chapt
 	// 同步更新作品统计（总字数/总章节数）。
 	// 说明：章节通过草稿发布创建时，绕过 ChapterController 的增量统计更新，
 	// 导致 dashboard 依赖的 works.total_word_count / works.total_chapter_count 偏小。
-	work, err := s.workRepo.GetByID(ctx, int64(*draft.WorkID))
-	if err != nil {
-		return nil, err
-	}
 	newTotalWordCount := work.TotalWordCount + draft.WordCount
 	if newTotalWordCount < 0 {
 		newTotalWordCount = 0
