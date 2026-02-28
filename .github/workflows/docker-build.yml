@@ -32,7 +32,7 @@ jobs:
       - name: Run governance quality gates
         working-directory: ./backend
         run: |
-          go test ./internal/controllers -run TestReadPath_NoWriteCallsInGetHandlers
+          go test ./internal/controllers/... -run TestReadPath_NoWriteCallsInGetHandlers
           go test ./internal/services/works -run 'TestRefreshDerivedStats_(HighConcurrency_Stability|IdempotentConvergence|DerivedPathTracksRetryAndBacklog)'
           go test ./internal/services/drafts -run 'TestPublish_(RefreshesWorkDerivedStats|Integration_UsesDerivedPatchWithRetry)'
 
@@ -119,6 +119,8 @@ jobs:
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
+          build-args: |
+            NEXTAUTH_URL=https://example.com
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

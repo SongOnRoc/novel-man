@@ -29,6 +29,12 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# NextAuth requires NEXTAUTH_URL to be present in production builds.
+# Provide a safe default for Docker build, override via --build-arg when needed.
+# Note: this repo rejects localhost NEXTAUTH_URL in production build.
+ARG NEXTAUTH_URL=https://example.com
+ENV NEXTAUTH_URL=${NEXTAUTH_URL}
+
 # Build the project
 RUN pnpm build
 
