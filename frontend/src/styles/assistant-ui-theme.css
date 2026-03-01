@@ -1,0 +1,216 @@
+/**
+ * Assistant-UI 主题桥接文件
+ * 
+ * 将 Novel-Man 设计系统变量映射到 @assistant-ui/react 的 CSS 变量。
+ * 参考：https://www.assistant-ui.com/docs/styling
+ */
+
+/* =============================================================================
+   Light Mode Theme
+   ============================================================================= */
+
+:root {
+  /*-------------------------------------------------------------------------
+     Primary Colors -主要颜色
+     ------------------------------------------------------------------------- */
+  --aui-primary: hsl(var(--primary));
+  --aui-primary-foreground: hsl(var(--primary-foreground));
+
+  /* -------------------------------------------------------------------------
+     Background & Foreground - 背景和前景色
+     ------------------------------------------------------------------------- */
+  --aui-background: hsl(var(--background));
+  --aui-foreground: hsl(var(--foreground));
+
+  /* -------------------------------------------------------------------------
+     Muted Colors - 柔和色调
+     ------------------------------------------------------------------------- */
+  --aui-muted: hsl(var(--muted));
+  --aui-muted-foreground: hsl(var(--muted-foreground));
+
+  /* -------------------------------------------------------------------------
+     Border & Ring - 边框和聚焦环
+     ------------------------------------------------------------------------- */
+  --aui-border: hsl(var(--border));
+  --aui-ring: hsl(var(--ring));
+
+  /* -------------------------------------------------------------------------
+     Message Bubble Colors - 消息气泡颜色
+     ------------------------------------------------------------------------- */
+  --aui-user-message-background: hsl(var(--primary));
+  --aui-user-message-foreground: hsl(var(--primary-foreground));
+  --aui-assistant-message-background: hsl(var(--muted));
+  --aui-assistant-message-foreground: hsl(var(--foreground));
+
+  /* -------------------------------------------------------------------------
+     Input & Composer - 输入区域
+     ------------------------------------------------------------------------- */
+  --aui-composer-background: hsl(var(--background));
+  --aui-composer-border: hsl(var(--border));
+  --aui-composer-focus-ring: hsl(var(--ring));
+
+  /* -------------------------------------------------------------------------
+     Thread List - 线程列表
+     ------------------------------------------------------------------------- */
+  --aui-thread-list-background: hsl(var(--background));
+  --aui-thread-list-item-background: transparent;
+  --aui-thread-list-item-hover: hsl(var(--accent));
+  --aui-thread-list-item-active: hsl(var(--accent));
+
+  /* -------------------------------------------------------------------------
+     Scrollbar - 滚动条
+     ------------------------------------------------------------------------- */
+  --aui-scrollbar-thumb: hsl(var(--muted-foreground) / 0.3);
+  --aui-scrollbar-thumb-hover: hsl(var(--muted-foreground) / 0.5);
+
+  /* -------------------------------------------------------------------------
+     Spacing & Sizing - 间距和尺寸
+     ------------------------------------------------------------------------- */
+  --aui-radius: var(--radius);
+  --aui-spacing-sm: 0.5rem;
+  --aui-spacing-md: 1rem;
+  --aui-spacing-lg: 1.5rem;
+
+  /* -------------------------------------------------------------------------
+     Typography - 排版
+     ------------------------------------------------------------------------- */
+  --aui-font-family: inherit;
+  --aui-font-size-sm: 0.875rem;
+  --aui-font-size-base: 1rem;
+  --aui-font-size-lg: 1.125rem;
+
+  /* -------------------------------------------------------------------------
+     Animation - 动画
+     ------------------------------------------------------------------------- */
+  --aui-transition-duration: 200ms;
+  --aui-transition-timing: ease-in-out;
+}
+
+/* =============================================================================
+   Dark Mode Theme
+   ============================================================================= */
+
+.dark {
+  /* Dark mode 自动继承 Novel-Man 的 CSS 变量，无需额外定义 */
+  /*因为我们使用的是 hsl(var(--xxx)) 形式，会自动响应主题切换 */
+}
+
+/* =============================================================================
+   Component-Specific Overrides - 组件特定覆盖
+   ============================================================================= */
+
+/* Thread容器 */
+[data-aui-thread] {
+  background: var(--aui-background);
+  color: var(--aui-foreground);
+}
+
+/* Message 样式 */
+[data-aui-message-role="user"] {
+  background: var(--aui-user-message-background);
+  color: var(--aui-user-message-foreground);
+  border-radius: var(--aui-radius);
+  padding: var(--aui-spacing-md);
+}
+
+[data-aui-message-role="assistant"] {
+  background: var(--aui-assistant-message-background);
+  color: var(--aui-assistant-message-foreground);
+  border-radius: var(--aui-radius);
+  padding: var(--aui-spacing-md);
+}
+
+/* Composer 输入框 */
+[data-aui-composer] {
+  background: var(--aui-composer-background);
+  border: 1px solid var(--aui-composer-border);
+  border-radius: var(--aui-radius);
+}
+
+[data-aui-composer]:focus-within {
+  outline: none;
+  ring: 2px solid var(--aui-composer-focus-ring);
+}
+
+/* Thread List 样式 */
+[data-aui-thread-list] {
+  background: var(--aui-thread-list-background);
+}
+
+[data-aui-thread-list-item] {
+  background: var(--aui-thread-list-item-background);
+  border-radius: var(--aui-radius);
+  transition: background var(--aui-transition-duration) var(--aui-transition-timing);
+}
+
+[data-aui-thread-list-item]:hover {
+  background: var(--aui-thread-list-item-hover);
+}
+
+[data-aui-thread-list-item][data-active="true"] {
+  background: var(--aui-thread-list-item-active);
+}
+
+/* =============================================================================
+   Custom Scrollbar - 自定义滚动条
+   ============================================================================= */
+
+[data-aui-scroll-area] {
+  scrollbar-width: thin;
+  scrollbar-color: var(--aui-scrollbar-thumb) transparent;
+}
+
+[data-aui-scroll-area]::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+[data-aui-scroll-area]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+[data-aui-scroll-area]::-webkit-scrollbar-thumb {
+  background: var(--aui-scrollbar-thumb);
+  border-radius: 3px;
+}
+
+[data-aui-scroll-area]::-webkit-scrollbar-thumb:hover {
+  background: var(--aui-scrollbar-thumb-hover);
+}
+
+/* =============================================================================
+   Responsive Adjustments - 响应式调整
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  :root {
+    --aui-spacing-sm: 0.375rem;
+    --aui-spacing-md: 0.75rem;
+    --aui-spacing-lg: 1rem;
+  }
+}
+
+/* =============================================================================
+   Loading & Status States - 加载和状态样式
+   ============================================================================= */
+
+[data-aui-loading] {
+  opacity: 0.7;
+}
+
+[data-aui-streaming] {
+  /* 流式生成时的脉冲动画 */
+}
+
+@keyframes aui-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+[data-aui-streaming] [data-aui-cursor] {
+  animation: aui-pulse 1s ease-in-out infinite;
+}

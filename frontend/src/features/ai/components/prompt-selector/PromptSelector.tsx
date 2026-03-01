@@ -1,0 +1,558 @@
+"use client";
+
+import { Check, Eye, Sparkles } from "lucide-react";
+import { type FC, useCallback, useEffect, useRef, useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+
+import { PromptListContainer } from "./PromptListContainer";
+import { PromptPreviewCard } from "./PromptPreviewCard";
+import { PromptSearchInput } from "./PromptSearchInput";
+import { useAllPrompts, type PromptWithFavorite } from "./useAllPrompts";
+
+// =============================================================================
+// Types
+// =============================================================================
+
+interface PromptSelectorProps {
+  /** 当前选中的提示词ID */
+  selectedPromptId: number | null;
+  /** 选中提示词的回调 */
+  onSelectPrompt: (id: number | null) => void;
+  /** 是否为移动端 */
+  isMobile?: boolean;
+  /** 自定义类名 */
+  className?: string;
+}
+
+// =============================================================================
+// Default Built-in Prompt IDs (内置提示词 ID 列表)
+// =============================================================================
+
+const BUILT_IN_PROMPT_IDS = [10, 11, 12, 13];
+const EDITOR_THEME_IDS = [
+  "default",
+  "sepia",
+  "dark",
+  "minimal",
+  "green",
+  "parchment",
+  "blue",
+  "custom",
+] as const;
+
+type EditorThemeId = (typeof EDITOR_THEME_IDS)[number];
+
+const resolveThemeFromElement = (element: HTMLElement | null): EditorThemeId => {
+  if (!element) return "default";
+
+  let current: HTMLElement | null = element;
+  while (current) {
+    for (const themeId of EDITOR_THEME_IDS) {
+      if (current.classList.contains(`theme-${themeId}`)) {
+        return themeId;
+      }
+    }
+    current = current.parentElement;
+  }
+
+  return "default";
+};
+
+// =============================================================================
+// Main PromptSelector Component
+// =============================================================================
+
+export const PromptSelector: FC<PromptSelectorProps> = ({
+  selectedPromptId,
+  onSelectPrompt,
+  isMobile = false,
+  className,
+}) => {
+  const [searchKeyword, setSearchKeyword] = useState("");
+
+  // 获取所有提示词，包含收藏功能
+  const {
+    prompts: allPrompts,
+    isLoading,
+    toggleFavorite,
+    isAddingFavorite,
+    isRemovingFavorite,
+    isFavoriteAvailable,
+  } = useAllPrompts();
+
+  // 获取当前选中的提示词信息
+  const selectedPrompt = selectedPromptId
+    ? allPrompts.find((p) => p.id === selectedPromptId)
+    : null;
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchKeyword(value);
+  }, []);
+
+  const handleToggleFavorite = useCallback(
+    async (promptId: number) => {
+      await toggleFavorite(promptId);
+    },
+    [toggleFavorite]
+  );
+
+  if (isLoading) {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        disabled
+        className={cn(
+          "h-8 w-full px-3 gap-2 rounded-lg border-dashed border-muted-foreground/30 text-muted-foreground",
+          className
+        )}
+      >
+        <Sparkles className="h-3.5 w-3.5" />
+        <span className="text-xs truncate">选择提示词</span>
+      </Button>
+    );
+  }
+
+  // 根据设备类型渲染不同的选择器入口
+  if (isMobile) {
+    return (
+      <MobileSelectorTrigger
+        selectedPrompt={selectedPrompt}
+        prompts={allPrompts}
+        selectedPromptId={selectedPromptId}
+        searchKeyword={searchKeyword}
+        onSearchChange={handleSearchChange}
+        onSelect={onSelectPrompt}
+        onToggleFavorite={handleToggleFavorite}
+        builtInPromptIds={BUILT_IN_PROMPT_IDS}
+        isFavoriteDisabled={isAddingFavorite || isRemovingFavorite}
+        hideFavorite={!isFavoriteAvailable}
+        className={className}
+      />
+    );
+  }
+
+  return (
+    <DesktopSelectorTrigger
+      selectedPrompt={selectedPrompt}
+      prompts={allPrompts}
+      selectedPromptId={selectedPromptId}
+      searchKeyword={searchKeyword}
+      onSearchChange={handleSearchChange}
+      onSelect={onSelectPrompt}
+      onToggleFavorite={handleToggleFavorite}
+      builtInPromptIds={BUILT_IN_PROMPT_IDS}
+      isFavoriteDisabled={isAddingFavorite || isRemovingFavorite}
+      hideFavorite={!isFavoriteAvailable}
+      className={className}
+    />
+  );
+};
+
+// =============================================================================
+// Desktop Selector Trigger (桌面端选择器入口)
+// =============================================================================
+
+interface SelectorTriggerProps {
+  selectedPrompt: PromptWithFavorite | null | undefined;
+  prompts: PromptWithFavorite[];
+  selectedPromptId: number | null;
+  searchKeyword: string;
+  onSearchChange: (value: string) => void;
+  onSelect: (id: number | null) => void;
+  onToggleFavorite: (id: number) => void;
+  builtInPromptIds: number[];
+  isFavoriteDisabled: boolean;
+  hideFavorite?: boolean;
+  className?: string;
+}
+
+const DesktopSelectorTrigger: FC<SelectorTriggerProps> = ({
+  selectedPrompt,
+  prompts,
+  selectedPromptId,
+  searchKeyword,
+  onSearchChange,
+  onSelect,
+  onToggleFavorite,
+  builtInPromptIds,
+  isFavoriteDisabled,
+  hideFavorite = false,
+  className,
+}) => {
+  const [open, setOpen] = useState(false);
+  const [activeTheme, setActiveTheme] = useState<EditorThemeId>("default");
+  const [hoveredPrompt, setHoveredPrompt] = useState<PromptWithFavorite | null>(
+    null
+  );
+  const [previewPrompt, setPreviewPrompt] = useState<PromptWithFavorite | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  const handleSelect = (id: number | null): void => {
+    onSelect(id);
+    setOpen(false);
+    setPreviewOpen(false);
+  };
+
+  // 悬停仅用于高亮上下文，不再自动开预览弹窗，避免触发 Popover 关闭回归
+  const handleHover = useCallback((prompt: PromptWithFavorite | null) => {
+    setHoveredPrompt(prompt);
+  }, []);
+
+  const handlePreview = useCallback((prompt: PromptWithFavorite): void => {
+    setHoveredPrompt(prompt);
+    setPreviewPrompt(prompt);
+    setPreviewOpen(true);
+  }, []);
+
+  const handleClearSearch = useCallback(() => {
+    onSearchChange("");
+  }, [onSearchChange]);
+
+  useEffect(() => {
+    // 打开预览时，Popover 可能因焦点切换暂时关闭；此时不要清空预览态
+    if (!open && !previewOpen) {
+      setHoveredPrompt(null);
+      setPreviewPrompt(null);
+    }
+  }, [open, previewOpen]);
+
+  useEffect(() => {
+    if (!searchKeyword.trim()) return;
+    const hasMatch = prompts.some(
+      (p) =>
+        p.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+        (p.description?.toLowerCase().includes(searchKeyword.toLowerCase()) ?? false)
+    );
+    if (!hasMatch) {
+      setPreviewOpen(false);
+      setPreviewPrompt(null);
+    }
+  }, [prompts, searchKeyword]);
+
+  const handleOpenChange = (nextOpen: boolean): void => {
+    if (nextOpen) {
+      setActiveTheme(resolveThemeFromElement(triggerButtonRef.current));
+      setOpen(true);
+      return;
+    }
+
+    // 预览打开期间不关闭选择面板，避免点击“预览”后面板瞬间消失
+    if (previewOpen) {
+      return;
+    }
+
+    setOpen(false);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={handleOpenChange}>
+      <PopoverTrigger asChild>
+        <Button
+          ref={triggerButtonRef}
+          variant="outline"
+          size="sm"
+          className={cn(
+            "h-8 px-3 gap-2 rounded-lg border-dashed",
+            selectedPrompt
+              ? "border-primary/50 bg-primary/5 text-primary"
+              : "border-muted-foreground/30 text-muted-foreground hover:text-foreground",
+            className
+          )}
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+          <span className="text-xs truncate max-w-[120px]">
+            {selectedPrompt ? selectedPrompt.title : "选择提示词"}
+          </span>
+          {selectedPrompt && <Check className="h-3 w-3 text-primary" />}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        className={cn(
+          "w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-20px)] p-0 border border-border/70 shadow-xl editor-paper",
+          `theme-${activeTheme}`
+        )}
+        align="start"
+        side="top"
+        sideOffset={8}
+      >
+        <div className="max-h-[62vh] overflow-hidden flex flex-col">
+          <div className="py-3 px-4 border-b">
+            <h4 className="text-sm font-medium mb-2">选择提示词</h4>
+            <PromptSearchInput
+              value={searchKeyword}
+              onSearchChange={onSearchChange}
+              placeholder="搜索提示词..."
+              debounceMs={300}
+            />
+          </div>
+          <PromptListContainer
+            prompts={prompts}
+            selectedPromptId={selectedPromptId}
+            searchKeyword={searchKeyword}
+            builtInPromptIds={builtInPromptIds}
+            onSelect={handleSelect}
+            onToggleFavorite={onToggleFavorite}
+            onHover={handleHover}
+            onPreview={handlePreview}
+            onClearSearch={handleClearSearch}
+            isFavoriteDisabled={isFavoriteDisabled}
+            hideFavorite={hideFavorite}
+            maxHeight="48vh"
+            className="p-2"
+          />
+        </div>
+      </PopoverContent>
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent
+          className={cn(
+            "max-w-md p-0 border border-border/70 shadow-xl editor-paper",
+            `theme-${activeTheme}`
+          )}
+        >
+          <DialogHeader className="px-4 pt-4 pb-0">
+            <DialogTitle className="text-sm font-medium flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              提示词预览
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              预览当前选中的提示词内容，并可执行收藏、复制和使用操作。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-4 pt-2">
+            <PromptPreviewCard
+              prompt={previewPrompt || hoveredPrompt}
+              isBuiltIn={
+                (previewPrompt || hoveredPrompt)
+                  ? builtInPromptIds.includes((previewPrompt || hoveredPrompt)!.id)
+                  : false
+              }
+              onToggleFavorite={onToggleFavorite}
+              onSelect={handleSelect}
+              showSelectButton={true}
+              className="w-full"
+              expandDescription={true}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </Popover>
+  );
+};
+
+// =============================================================================
+// Mobile Selector Trigger (移动端选择器入口)
+// =============================================================================
+
+const MobileSelectorTrigger: FC<SelectorTriggerProps> = ({
+  selectedPrompt,
+  prompts,
+  selectedPromptId,
+  searchKeyword,
+  onSearchChange,
+  onSelect,
+  onToggleFavorite,
+  builtInPromptIds,
+  isFavoriteDisabled,
+  hideFavorite = false,
+  className,
+}) => {
+  const [open, setOpen] = useState(false);
+  const [activeTheme, setActiveTheme] = useState<EditorThemeId>("default");
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
+  const [expandedPromptId, setExpandedPromptId] = useState<number | null>(null);
+  const suppressNextDrawerCloseRef = useRef(false);
+
+  const handleSelect = (id: number | null): void => {
+    onSelect(id);
+    setOpen(false);
+    setMobilePreviewOpen(false);
+  };
+
+  const handlePreview = useCallback((prompt: PromptWithFavorite): void => {
+    setExpandedPromptId(prompt.id);
+    setMobilePreviewOpen(true);
+  }, []);
+
+  const handleClearSearch = useCallback(() => {
+    onSearchChange("");
+  }, [onSearchChange]);
+
+  useEffect(() => {
+    if (!open) {
+      setExpandedPromptId(null);
+      setMobilePreviewOpen(false);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!searchKeyword.trim()) return;
+    const hasMatch = prompts.some(
+      (p) =>
+        p.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+        (p.description?.toLowerCase().includes(searchKeyword.toLowerCase()) ?? false)
+    );
+    if (!hasMatch) {
+      setExpandedPromptId(null);
+      setMobilePreviewOpen(false);
+    }
+  }, [prompts, searchKeyword]);
+
+  const expandedPrompt = expandedPromptId
+    ? prompts.find((p) => p.id === expandedPromptId) || null
+    : null;
+
+  const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  const handleFavoriteFromPreview = useCallback(
+    async (id: number): Promise<void> => {
+      await onToggleFavorite(id);
+      setExpandedPromptId(id);
+    },
+    [onToggleFavorite]
+  );
+
+  const handleOpenChange = (nextOpen: boolean): void => {
+    if (nextOpen) {
+      setActiveTheme(resolveThemeFromElement(triggerButtonRef.current));
+      setOpen(true);
+      return;
+    }
+
+    // 预览 Sheet 打开期间忽略 Drawer 的关闭信号，避免“关闭预览连带关闭选择器”
+    if (mobilePreviewOpen) {
+      return;
+    }
+
+    if (suppressNextDrawerCloseRef.current) {
+      suppressNextDrawerCloseRef.current = false;
+      return;
+    }
+
+    setOpen(false);
+  };
+
+  const handleMobilePreviewOpenChange = useCallback((nextOpen: boolean): void => {
+    setMobilePreviewOpen(nextOpen);
+    if (!nextOpen) {
+      suppressNextDrawerCloseRef.current = true;
+      // 关闭预览时强制保持选择器仍处于打开态
+      setOpen(true);
+      setExpandedPromptId(null);
+    }
+  }, []);
+
+  return (
+    <Drawer open={open} onOpenChange={handleOpenChange}>
+      <DrawerTrigger asChild>
+        <Button
+          ref={triggerButtonRef}
+          variant="outline"
+          size="sm"
+          className={cn(
+            "h-8 px-3 gap-2 rounded-lg border-dashed",
+            selectedPrompt
+              ? "border-primary/50 bg-primary/5 text-primary"
+              : "border-muted-foreground/30 text-muted-foreground",
+            className
+          )}
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+          <span className="text-xs truncate max-w-[100px]">
+            {selectedPrompt ? selectedPrompt.title : "选择提示词"}
+          </span>
+        </Button>
+      </DrawerTrigger>
+      <DrawerContent
+        className={cn(
+          "h-[min(86dvh,560px)] max-h-[86dvh] p-0 flex flex-col border border-border/60 shadow-xl editor-paper",
+          `theme-${activeTheme}`
+        )}
+      >
+        <DrawerHeader className="pb-2 px-4 pt-3 shrink-0 border-b">
+          <DrawerTitle>选择提示词</DrawerTitle>
+          <PromptSearchInput
+            value={searchKeyword}
+            onSearchChange={onSearchChange}
+            placeholder="搜索提示词..."
+            debounceMs={300}
+            className="mt-2"
+          />
+        </DrawerHeader>
+
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <PromptListContainer
+            prompts={prompts}
+            selectedPromptId={selectedPromptId}
+            searchKeyword={searchKeyword}
+            builtInPromptIds={builtInPromptIds}
+            onSelect={handleSelect}
+            onToggleFavorite={onToggleFavorite}
+            onPreview={handlePreview}
+            onClearSearch={handleClearSearch}
+            isFavoriteDisabled={isFavoriteDisabled}
+            hideFavorite={hideFavorite}
+            maxHeight="100%"
+            className="px-2 pb-[max(env(safe-area-inset-bottom),12px)]"
+          />
+        </div>
+      </DrawerContent>
+
+      <Sheet open={mobilePreviewOpen} onOpenChange={handleMobilePreviewOpenChange}>
+        <SheetContent
+          side="bottom"
+          className={cn(
+            "max-h-[78vh] rounded-t-xl p-0 border border-border/70 shadow-xl editor-paper",
+            `theme-${activeTheme}`
+          )}
+        >
+          <SheetHeader className="border-b pb-2">
+            <SheetTitle className="text-sm font-medium">提示词预览</SheetTitle>
+          </SheetHeader>
+          <div className="p-4 overflow-y-auto">
+            <PromptPreviewCard
+              prompt={expandedPrompt}
+              isBuiltIn={expandedPrompt ? builtInPromptIds.includes(expandedPrompt.id) : false}
+              onToggleFavorite={handleFavoriteFromPreview}
+              onSelect={handleSelect}
+              showSelectButton={true}
+              className="w-full"
+              expandDescription={true}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
+    </Drawer>
+  );
+};
+
+export default PromptSelector;

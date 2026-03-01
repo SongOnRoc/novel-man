@@ -1,53 +1,52 @@
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-
-node_modules
-packages/*/node_modules
-apps/*/node_modules
-.next
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-.pnpm-debug.log*
-
-# other lockfiles that's not pnpm-lock.yaml
-package-lock.json
-yarn.lock
-
-# local env files
-.env
-.env*.local
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-
-# intellij
+# IDE
 .idea
 
-dist/**
-/dist
-packages/*/dist
+# logs
+logs
+*.log
 
-.turbo
-/test-results/
-/playwright-report/
-/playwright/.cache/
+# config
+config.yaml
 
-packages/*/coverage
+# frontend
+frontend/build
+frontend/disk
+frontend/node_modules/*
+frontend/.next/*
+frontend/next-env.d.ts
+frontend/package-lock.json
+.env.*
+!.env.example
+*.tsbuildinfo
+
+# os
+.DS_Store
+Thumbs.db
+
+# build
+/build/
+/bin/
+/dist/
+
+# go workspace
+go.work
+go.work.sum
+main
+cdk
+
+novel-editor
+*.exe
+*.db
+*.db-shm
+*.db-wal
+memory-bank
+/*.md
+
+!Readme.md
+
+# 剔除其他文件
+/.*
+!.vscode
+!.github
+web-bundles
+openspec

@@ -2,89 +2,22 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "backend",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "args": ["api"],
+      "program": "${workspaceFolder}/backend/main.go",
+      "output": "${workspaceFolder}/backend/server.exe"
+    },
+    {
       "type": "node",
       "request": "launch",
-      "name": "novel",
+      "name": "frontend",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["dev"],
-      "skipFiles": ["<node_internals>/**"],
       "console": "internalConsole",
-      "sourceMaps": true,
-      "resolveSourceMapLocations": [
-        "${workspaceFolder}/**",
-        "!**/node_modules/**"
-      ],
-      "outFiles": ["${workspaceFolder}/.next/**/*.js"]
-    },
-    {
-      "name": "Jest: 当前文件",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/packages/card-system/node_modules/jest/bin/jest.js",
-      "args": [
-        "${fileBasename}",
-        "--config",
-        "${workspaceFolder}/packages/card-system/jest.config.js"
-      ],
-      "console": "internalConsole",
-      "internalConsoleOptions": "neverOpen",
-      "outputCapture": "std",
-      "cwd": "${workspaceFolder}/packages/card-system"
-    },
-    {
-      "name": "Jest: 所有测试",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/packages/card-system/node_modules/jest/bin/jest.js",
-      "args": [
-        "--config",
-        "${workspaceFolder}/packages/card-system/jest.config.js"
-      ],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "outputCapture": "std",
-      "cwd": "${workspaceFolder}/packages/card-system"
-    },
-    {
-      "name": "Jest: 调试卡片系统测试",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/packages/card-system/node_modules/jest/bin/jest.js",
-      "args": [
-        "--runInBand",
-        "--config",
-        "${workspaceFolder}/packages/card-system/jest.config.js"
-      ],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "outputCapture": "std",
-      "cwd": "${workspaceFolder}/packages/card-system",
-      "stopOnEntry": false,
-      "timeout": 30000,
-      "skipFiles": ["<node_internals>/**"],
-      "sourceMaps": true,
-      "resolveSourceMapLocations": [
-        "${workspaceFolder}/**",
-        "!**/node_modules/**"
-      ]
-    },
-    {
-      "name": "运行卡片系统测试脚本",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/packages/card-system/run-tests.js",
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
-    },
-    {
-      "name": "调试卡片系统演示",
-      "type": "node",
-      "request": "launch",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["run", "demo", "--port", "3002", "--host", "0.0.0.0"],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "cwd": "${workspaceFolder}/packages/card-system"
+      "cwd": "${workspaceFolder}/frontend"
     }
   ]
 }

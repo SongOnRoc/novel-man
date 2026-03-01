@@ -1,0 +1,232 @@
+@import "tailwindcss";
+@import "../styles/modern-ui-system.css";
+@import "../styles/assistant-ui-theme.css";
+
+@variant dark (&:is(.dark *));
+
+@theme inline {
+  /*映射 Design System 变量到 Tailwind */
+  --color-background: var(--bg-page);
+  --color-foreground: var(--text-primary);
+
+  --color-primary: var(--primary-500);
+  --color-primary-foreground: var(--text-inverse);
+
+  --color-secondary: var(--neutral-100);
+  --color-secondary-foreground: var(--text-secondary);
+
+  --color-muted: var(--neutral-100);
+  --color-muted-foreground: var(--text-tertiary);
+
+  --color-accent: var(--accent-500);
+  --color-accent-foreground: var(--text-inverse);
+
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+
+  --color-border: var(--border-default);
+  --color-input: var(--neutral-100);
+  --color-ring: var(--primary-500);
+
+  --color-card: var(--bg-card);
+  --color-card-foreground: var(--text-primary);
+
+  --color-popover: var(--bg-card);
+  --color-popover-foreground: var(--text-primary);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+
+  /* Sidebar 特定变量 */
+  --color-sidebar: var(--bg-sidebar);
+  --color-sidebar-foreground: var(--text-secondary);
+  --color-sidebar-primary: var(--primary-500);
+  --color-sidebar-primary-foreground: var(--text-inverse);
+  --color-sidebar-accent: var(--primary-50);
+  --color-sidebar-accent-foreground: var(--primary-700);
+  --color-sidebar-border: var(--border-subtle);
+  --color-sidebar-ring: var(--primary-500);
+
+  /* assistant-ui 变量映射 */
+  --aui-radius: var(--radius-xl);
+  --aui-font-family: var(--font-sans);
+  --aui-color-background: transparent;
+  --aui-color-foreground: var(--text-primary);
+  --aui-color-card: var(--bg-card);
+  --aui-color-card-foreground: var(--text-primary);
+  --aui-color-popover: var(--bg-card);
+  --aui-color-popover-foreground: var(--text-primary);
+  --aui-color-primary: var(--primary-500);
+  --aui-color-primary-foreground: var(--text-inverse);
+  --aui-color-secondary: var(--neutral-100);
+  --aui-color-secondary-foreground: var(--text-secondary);
+  --aui-color-muted: var(--neutral-100);
+  --aui-color-muted-foreground: var(--text-tertiary);
+  --aui-color-accent: var(--neutral-100);
+  --aui-color-accent-foreground: var(--text-primary);
+  --aui-color-destructive: #ef4444;
+  --aui-color-destructive-foreground: #ffffff;
+  --aui-color-border: var(--border-default);
+  --aui-color-input: var(--border-default);
+  --aui-color-ring: var(--primary-500);
+
+  /* Mobile AI Assistant 变量 */
+  --mobile-touch-target-min: 44px;
+  --mobile-floating-bar-height: 56px;
+  --mobile-header-height: 48px;
+  --mobile-vh: 1vh;
+}
+
+/* Safe area insets using CSS env() */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  :root {
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-right: env(safe-area-inset-right, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-left: env(safe-area-inset-left, 0px);
+  }
+}
+
+/* Fallback for browsers without safe-area support */
+@supports not (padding-bottom: env(safe-area-inset-bottom)) {
+  :root {
+    --safe-area-inset-top: 0px;
+    --safe-area-inset-right: 0px;
+    --safe-area-inset-bottom: 0px;
+    --safe-area-inset-left: 0px;
+  }
+}
+
+:root {
+  /* Shadcn UI兼容性变量映射 */
+  --background: var(--bg-page);
+  --foreground: var(--text-primary);
+
+  --card: var(--bg-card);
+  --card-foreground: var(--text-primary);
+
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-primary);
+
+  --primary: var(--primary-500);
+  --primary-foreground: var(--text-inverse);
+
+  --secondary: var(--neutral-100);
+  --secondary-foreground: var(--text-secondary);
+
+  --muted: var(--neutral-100);
+  --muted-foreground: var(--text-tertiary);
+
+  --accent: var(--neutral-100);
+  --accent-foreground: var(--text-primary);
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: var(--border-default);
+  --input: var(--border-default);
+  --ring: var(--primary-500);
+
+  --radius: var(--radius-md);
+}
+
+.dark {
+  --secondary: var(--neutral-800);
+  --muted: var(--neutral-800);
+  --accent: var(--neutral-800);
+  --input: var(--neutral-800);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    scroll-behavior: smooth;
+  }
+}
+
+/* 隐藏滚动条但保留功能 */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* 全局过渡效果 */
+.transition-all-smooth {
+  transition-property: all;
+  transition-timing-function: var(--ease-out);
+  transition-duration: var(--duration-normal);
+}
+
+/* 玻璃拟态工具类 */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+}
+
+/* 文本渐变 */
+.text-gradient {
+  background: linear-gradient(135deg, var(--primary-500), var(--primary-400));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Mobile viewport height utilities */
+.h-mobile-screen {
+  height: 100vh;
+  height: 100dvh;
+  height: calc(var(--mobile-vh, 1vh) * 100);
+}
+
+.min-h-mobile-screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: calc(var(--mobile-vh, 1vh) * 100);
+}
+
+/* Safe area padding utilities */
+.pb-safe {
+  padding-bottom: var(--safe-area-inset-bottom);
+}
+
+.pt-safe {
+  padding-top: var(--safe-area-inset-top);
+}
+
+.px-safe {
+  padding-left: var(--safe-area-inset-left);
+  padding-right: var(--safe-area-inset-right);
+}
+
+/* Touch target minimum size utility */
+.touch-target {
+  min-width: var(--mobile-touch-target-min);
+  min-height: var(--mobile-touch-target-min);
+}
+
+/* Mobile AI floating bar */
+.mobile-floating-bar {
+  height: calc(var(--mobile-floating-bar-height) + var(--safe-area-inset-bottom));
+  padding-bottom: var(--safe-area-inset-bottom);
+}
+
+/* Mobile AI immersive mode */
+.mobile-immersive {
+  height: 100vh;
+  height: 100dvh;
+  height: calc(var(--mobile-vh, 1vh) * 100);
+  padding-top: var(--safe-area-inset-top);
+  padding-bottom: var(--safe-area-inset-bottom);
+}

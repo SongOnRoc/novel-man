@@ -1,0 +1,490 @@
+"use client";
+
+import {
+  ActionBarPrimitive,
+  BranchPickerPrimitive,
+  ComposerPrimitive,
+  ErrorPrimitive,
+  MessagePrimitive,
+  ThreadPrimitive,
+  useAssistantApi,
+  useMessage,
+} from "@assistant-ui/react";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  CheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CopyIcon,
+  PencilIcon,
+  RefreshCwIcon,
+  Square,
+  Sparkles,
+  PenTool,
+  BookOpen,
+  Wand2,
+  FileEditIcon,
+} from "lucide-react";
+import {
+  type FC,
+  createContext,
+  useContext,
+  useCallback,
+  useState,
+} from "react";
+import { toast } from "sonner";
+
+import {
+  ComposerAddAttachment,
+  ComposerAttachments,
+  UserMessageAttachments,
+} from "@/components/assistant-ui/attachment";
+import { MarkdownText } from "@/components/assistant-ui/markdown-text";
+import { ToolFallback } from "@/components/assistant-ui/tool-fallback";
+import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
+import { Button } from "@/components/ui/button";
+import { PromptSelector } from "@/features/ai/components/prompt-selector/PromptSelector";
+import { useSelectedPromptStore } from "@/features/ai/components/prompt-selector/useSelectedPromptStore";
+import { useMediaQuery } from "@/hooks/ui/useMediaQuery";
+import { cn } from "@/lib/utils";
+
+// =============================================================================
+// Utils
+// =============================================================================
+/**
+ * 从assistant-ui消息中提取纯文本内容
+ */
+function extractTextFromMessage(message: any): string {
+  if (!message) return "";
+  
+  // useMessage 返回的是 MessageState，其中 content 是消息部分的数组
+  const content = message.content;
+  if (!content || !Array.isArray(content)) return "";
+  
+  return content
+    .filter((part: any) => part.type === "text")
+    .map((part: any) => part.text || "")
+    .join("");
+}
+
+// =============================================================================
+// Thread Context
+// =============================================================================
+
+interface ThreadContextValue {
+  onApplyToEditor?: (text: string) => void;
+  selectedText?: string;
+}
+
+const ThreadContext = createContext<ThreadContextValue>({});
+
+export const useThreadContext = () => useContext(ThreadContext);
+
+// =============================================================================
+// Thread Props
+// =============================================================================
+
+interface ThreadProps {
+  /** 将AI生成内容应用到编辑器的回调 */
+  onApplyToEditor?: (text: string) => void;
+  /** 编辑器中选中的文本 */
+  selectedText?: string;
+}
+
+// =============================================================================
+// Thread Component
+// =============================================================================
+
+export const Thread: FC<ThreadProps> = ({ onApplyToEditor, selectedText }) => {
+  return (
+    <ThreadContext.Provider value={{ onApplyToEditor, selectedText }}>
+      <ThreadPrimitive.Root
+        className="aui-root aui-thread-root @container flex h-full flex-col bg-transparent"
+        style={{
+          ["--thread-max-width" as string]: "44rem",
+        }}
+      >
+        {/* 滚动内容区域 */}
+        <ThreadPrimitive.Viewport
+          // turnAnchor="top" 会自己滚动到顶部
+          autoScroll
+          className="aui-thread-viewport relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth px-4 pt-4 pb-4 scrollbar-hide"
+        >
+          <ThreadPrimitive.If empty>
+            <ThreadWelcome />
+          </ThreadPrimitive.If>
+
+          <ThreadPrimitive.Messages
+            components={{
+              UserMessage,
+              EditComposer,
+              AssistantMessage,
+            }}
+          />
+        </ThreadPrimitive.Viewport>
+
+        {/* 底部固定区域 - Composer始终在底部 */}
+        <div className="aui-thread-footer relative mx-auto w-full max-w-(--thread-max-width) flex-shrink-0 px-4 pb-4 md:pb-6">
+          <ThreadScrollToBottom />
+          <Composer />
+        </div>
+      </ThreadPrimitive.Root>
+    </ThreadContext.Provider>
+  );
+};
+
+const ThreadScrollToBottom: FC = () => {
+  return (
+    <ThreadPrimitive.ScrollToBottom asChild>
+      <TooltipIconButton
+        tooltip="滚动到底部"
+        variant="outline"
+        className="aui-thread-scroll-to-bottom absolute -top-12 left-1/2 -translate-x-1/2 z-10 rounded-full p-4 disabled:invisible dark:bg-background dark:hover:bg-accent"
+      >
+        <ArrowDownIcon />
+      </TooltipIconButton>
+    </ThreadPrimitive.ScrollToBottom>
+  );
+};
+
+const ThreadWelcome: FC = () => {
+  return (
+    <div className="aui-thread-welcome-root mx-auto my-auto flex w-full max-w-(--thread-max-width) grow flex-col">
+      <div className="aui-thread-welcome-center flex w-full grow flex-col items-center justify-center">
+        <div className="aui-thread-welcome-message flex size-full flex-col justify-center px-8">
+          <div className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-2 animate-in font-semibold text-2xl duration-300 ease-out">
+            继续你的创作
+          </div>
+          <div className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-2 animate-in text-lg text-muted-foreground/80 delay-100 duration-300 ease-out">
+            我可以帮你续写情节、润色文风、扩展人物和世界观。
+          </div>
+        </div>
+      </div>
+      <ThreadSuggestions />
+    </div>
+  );
+};
+
+const ThreadSuggestions: FC = () => {
+  return (
+    <div className="aui-thread-welcome-suggestions grid w-full @md:grid-cols-2 gap-2 pb-4">
+      {[
+        {
+          title: "续写当前情节",
+          label: "延续人物动机并提升张力",
+          action: "请基于当前内容续写 300 字，保持人物语气一致并增强冲突张力。",
+        },
+        {
+          title: "润色这段文字",
+          label: "提升文采且不改变原意",
+          action: "请润色这段内容，保留原意与叙事节奏，使中文表达更自然。",
+        },
+      ].map((suggestedAction, index) => (
+        <div
+          key={`suggested-action-${suggestedAction.title}-${index}`}
+          className="aui-thread-welcome-suggestion-display fade-in slide-in-from-bottom-4 @md:nth-[n+3]:block nth-[n+3]:hidden animate-in fill-mode-both duration-300 ease-out"
+          style={{ animationDelay: `${index * 50}ms` }}
+        >
+          <ThreadPrimitive.Suggestion
+            prompt={suggestedAction.action}
+            send
+            asChild
+          >
+            <Button
+              variant="ghost"
+              className="aui-thread-welcome-suggestion h-auto w-full flex-1 @md:flex-col flex-wrap items-start justify-start gap-1 rounded-3xl border px-5 py-4 text-left text-sm dark:hover:bg-accent/60"
+              aria-label={suggestedAction.action}
+            >
+              <span className="aui-thread-welcome-suggestion-text-1 font-medium">
+                {suggestedAction.title}
+              </span>
+              <span className="aui-thread-welcome-suggestion-text-2 text-muted-foreground">
+                {suggestedAction.label}
+              </span>
+            </Button>
+          </ThreadPrimitive.Suggestion>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const Composer: FC = () => {
+  return (
+    <ComposerPrimitive.Root className="aui-composer-root relative flex w-full flex-col gap-2">
+      <QuickActions />
+      <ComposerPrimitive.AttachmentDropzone className="aui-composer-attachment-dropzone flex w-full flex-col rounded-3xl border border-white/10 bg-background/40 backdrop-blur-md px-1 pt-2 shadow-lg outline-none transition-[color,box-shadow] has-[textarea:focus-visible]:border-primary/50 has-[textarea:focus-visible]:ring-[3px] has-[textarea:focus-visible]:ring-primary/20 data-[dragging=true]:border-primary data-[dragging=true]:border-dashed data-[dragging=true]:bg-accent/50">
+        <ComposerAttachments />
+        <ComposerPrimitive.Input
+          placeholder="输入消息..."
+          className="aui-composer-input mb-1 max-h-32 min-h-16 w-full resize-none bg-transparent px-3.5 pt-1.5 pb-3 text-base outline-none placeholder:text-muted-foreground focus-visible:ring-0"
+          rows={1}
+          autoFocus
+          aria-label="Message input"
+        />
+        <ComposerAction />
+      </ComposerPrimitive.AttachmentDropzone>
+    </ComposerPrimitive.Root>
+  );
+};
+
+const QuickActions: FC = () => {
+  const { selectedText } = useThreadContext();
+  const { selectedPromptId, setSelectedPromptId } = useSelectedPromptStore();
+  const isMobileViewport = useMediaQuery("(max-width: 767px)");
+
+  // 截断选中文本用于显示
+  const truncatedText =
+    selectedText && selectedText.length > 50
+      ? selectedText.substring(0, 50) + "..."
+      : selectedText;
+
+  const handleSelectPrompt = (id: number | null) => {
+    setSelectedPromptId?.(id);
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      {/* 选中文本提示区域 */}
+      {selectedText && (
+        <div className="flex items-center gap-2 px-3 py-2 bg-primary/5 rounded-xl border border-primary/10 text-xs">
+          <div className="flex items-center gap-1 text-primary font-medium whitespace-nowrap">
+            <FileEditIcon className="h-3 w-3" />
+            <span>已选中文本:</span>
+          </div>
+          <span className="text-muted-foreground truncate" title={selectedText}>
+            "{truncatedText}"
+          </span>
+        </div>
+      )}
+      
+      {/* 提示词选择器 */}
+      <PromptSelector
+        selectedPromptId={selectedPromptId ?? null}
+        onSelectPrompt={handleSelectPrompt}
+        isMobile={isMobileViewport}
+        className="w-full"
+      />
+    </div>
+  );
+};
+
+const ComposerAction: FC = () => {
+  return (
+    <div className="aui-composer-action-wrapper relative mx-1 mt-2 mb-2 flex items-center justify-between">
+      <ComposerAddAttachment />
+
+      <ThreadPrimitive.If running={false}>
+        <ComposerPrimitive.Send asChild>
+          <TooltipIconButton
+            tooltip="发送消息"
+            side="bottom"
+            type="submit"
+            variant="default"
+            size="icon"
+            className="aui-composer-send size-[34px] rounded-full p-1"
+            aria-label="Send message"
+          >
+            <ArrowUpIcon className="aui-composer-send-icon size-5" />
+          </TooltipIconButton>
+        </ComposerPrimitive.Send>
+      </ThreadPrimitive.If>
+
+      <ThreadPrimitive.If running>
+        <ComposerPrimitive.Cancel asChild>
+          <Button
+            type="button"
+            variant="default"
+            size="icon"
+            className="aui-composer-cancel size-[34px] rounded-full border border-muted-foreground/60 hover:bg-primary/75 dark:border-muted-foreground/90"
+            aria-label="Stop generating"
+          >
+            <Square className="aui-composer-cancel-icon size-3.5 fill-white dark:fill-black" />
+          </Button>
+        </ComposerPrimitive.Cancel>
+      </ThreadPrimitive.If>
+    </div>
+  );
+};
+
+const MessageError: FC = () => {
+  return (
+    <MessagePrimitive.Error>
+      <ErrorPrimitive.Root className="aui-message-error-root mt-2 rounded-md border border-destructive bg-destructive/10 p-3 text-destructive text-sm dark:bg-destructive/5 dark:text-red-200">
+        <ErrorPrimitive.Message className="aui-message-error-message line-clamp-2" />
+      </ErrorPrimitive.Root>
+    </MessagePrimitive.Error>
+  );
+};
+
+const AssistantMessage: FC = () => {
+  return (
+    <MessagePrimitive.Root
+      className="aui-assistant-message-root fade-in slide-in-from-bottom-1 relative mx-auto w-full max-w-(--thread-max-width) animate-in py-4 duration-150 ease-out"
+      data-role="assistant"
+    >
+      <div className="aui-assistant-message-content wrap-break-word mx-2 text-foreground leading-7">
+        <MessagePrimitive.Parts
+          components={{
+            Text: MarkdownText,
+            tools: { Fallback: ToolFallback },
+          }}
+        />
+        <MessageError />
+      </div>
+
+      <div className="aui-assistant-message-footer mt-2 ml-2 flex">
+        <BranchPicker />
+        <AssistantActionBar />
+      </div>
+    </MessagePrimitive.Root>
+  );
+};
+
+const ApplyToEditorButton: FC = () => {
+  const { onApplyToEditor } = useThreadContext();
+  const message = useMessage();
+  
+  const handleApply = useCallback(() => {
+    if (!onApplyToEditor) return;
+
+    const text = extractTextFromMessage(message);
+    if (text) {
+      onApplyToEditor(text);
+      toast.success("已应用到编辑器");
+    } else {
+      toast.error("没有可应用的内容");
+    }
+  }, [message, onApplyToEditor]);
+  // 只在有 onApplyToEditor 回调时显示
+  if (!onApplyToEditor) return null;
+  
+  return (
+    <TooltipIconButton tooltip="应用到编辑器" onClick={handleApply}>
+      <FileEditIcon />
+    </TooltipIconButton>
+  );
+};
+
+const AssistantActionBar: FC = () => {
+  return (
+    <ActionBarPrimitive.Root
+      hideWhenRunning
+      autohide="not-last"
+      autohideFloat="single-branch"
+      className="aui-assistant-action-bar-root -ml-1 col-start-3 row-start-2 flex gap-1 text-muted-foreground data-floating:absolute data-floating:rounded-md data-floating:border data-floating:bg-background data-floating:p-1 data-floating:shadow-sm"
+    >
+      <ActionBarPrimitive.Copy asChild>
+        <TooltipIconButton tooltip="复制">
+          <MessagePrimitive.If copied>
+            <CheckIcon />
+          </MessagePrimitive.If>
+          <MessagePrimitive.If copied={false}>
+            <CopyIcon />
+          </MessagePrimitive.If>
+        </TooltipIconButton>
+      </ActionBarPrimitive.Copy>
+      <ApplyToEditorButton />
+      <ActionBarPrimitive.Reload asChild>
+        <TooltipIconButton tooltip="重新生成">
+          <RefreshCwIcon />
+        </TooltipIconButton>
+      </ActionBarPrimitive.Reload>
+    </ActionBarPrimitive.Root>
+  );
+};
+
+const UserMessage: FC = () => {
+  return (
+    <MessagePrimitive.Root
+      className="aui-user-message-root fade-in slide-in-from-bottom-1 mx-auto grid w-full max-w-(--thread-max-width) animate-in auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] content-start gap-y-2 px-2 py-4 duration-150 ease-out [&:where(>*)]:col-start-2"
+      data-role="user"
+    >
+      <UserMessageAttachments />
+
+      <div className="aui-user-message-content-wrapper relative col-start-2 min-w-0">
+        <div className="aui-user-message-content wrap-break-word rounded-3xl bg-muted px-5 py-2.5 text-foreground">
+          <MessagePrimitive.Parts />
+        </div>
+        <div className="aui-user-action-bar-wrapper -translate-x-full -translate-y-1/2 absolute top-1/2 left-0 pr-2">
+          <UserActionBar />
+        </div>
+      </div>
+
+      <BranchPicker className="aui-user-branch-picker -mr-1 col-span-full col-start-1 row-start-3 justify-end" />
+    </MessagePrimitive.Root>
+  );
+};
+
+const UserActionBar: FC = () => {
+  return (
+    <ActionBarPrimitive.Root
+      hideWhenRunning
+      autohide="not-last"
+      className="aui-user-action-bar-root flex flex-col items-end"
+    >
+      <ActionBarPrimitive.Edit asChild>
+        <TooltipIconButton tooltip="编辑" className="aui-user-action-edit p-4">
+          <PencilIcon />
+        </TooltipIconButton>
+      </ActionBarPrimitive.Edit>
+    </ActionBarPrimitive.Root>
+  );
+};
+
+const EditComposer: FC = () => {
+  return (
+    <MessagePrimitive.Root className="aui-edit-composer-wrapper mx-auto flex w-full max-w-(--thread-max-width) flex-col gap-4 px-2">
+      <ComposerPrimitive.Root className="aui-edit-composer-root ml-auto flex w-full max-w-7/8 flex-col rounded-xl bg-muted">
+        <ComposerPrimitive.Input
+          className="aui-edit-composer-input flex min-h-[60px] w-full resize-none bg-transparent p-4 text-foreground outline-none"
+          autoFocus
+        />
+
+        <div className="aui-edit-composer-footer mx-3 mb-3 flex items-center justify-center gap-2 self-end">
+          <ComposerPrimitive.Cancel asChild>
+            <Button variant="ghost" size="sm" aria-label="Cancel edit">
+              取消
+            </Button>
+          </ComposerPrimitive.Cancel>
+          <ComposerPrimitive.Send asChild>
+            <Button size="sm" aria-label="Update message">
+              更新
+            </Button>
+          </ComposerPrimitive.Send>
+        </div>
+      </ComposerPrimitive.Root>
+    </MessagePrimitive.Root>
+  );
+};
+
+const BranchPicker: FC<BranchPickerPrimitive.Root.Props> = ({
+  className,
+  ...rest
+}) => {
+  return (
+    <BranchPickerPrimitive.Root
+      hideWhenSingleBranch
+      className={cn(
+        "aui-branch-picker-root -ml-2 mr-2 inline-flex items-center text-muted-foreground text-xs",
+        className
+      )}
+      {...rest}
+    >
+      <BranchPickerPrimitive.Previous asChild>
+        <TooltipIconButton tooltip="上一个">
+          <ChevronLeftIcon />
+        </TooltipIconButton>
+      </BranchPickerPrimitive.Previous>
+      <span className="aui-branch-picker-state font-medium">
+        <BranchPickerPrimitive.Number /> / <BranchPickerPrimitive.Count />
+      </span>
+      <BranchPickerPrimitive.Next asChild>
+        <TooltipIconButton tooltip="下一个">
+          <ChevronRightIcon />
+        </TooltipIconButton>
+      </BranchPickerPrimitive.Next>
+    </BranchPickerPrimitive.Root>
+  );
+};

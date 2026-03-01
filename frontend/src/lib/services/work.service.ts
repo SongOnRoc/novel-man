@@ -1,0 +1,112 @@
+/**
+ * @file Work Service
+ * @description This service handles all work-related API calls,
+ * following the layered data flow architecture.
+ */
+
+import type {
+  WorksWorkResponse,
+  WorksCreateWorkRequest,
+  WorksUpdateWorkRequest,
+  GetWorksParams,
+  WorksListWorksResponse,
+  ResponsePagination,
+} from "@/lib/api/generated/api10.schemas";
+import { SnakeToCamelCase } from "@/types/type-utils";
+import { customFetch } from "@/lib/fetch";
+import {
+  getWorks,
+  postWorks,
+  getWorksId,
+  putWorksId,
+  postWorksImport,
+} from "@/lib/api/generated/works/works";
+
+// =================================================================
+// Re-exporting Core Work Types for Application-wide Use
+// This service becomes the single source of truth for work-related types.
+// =================================================================
+export type Work = WorksWorkResponse;
+export type CreateWorkPayload = WorksCreateWorkRequest;
+export type UpdateWorkPayload = WorksUpdateWorkRequest;
+export type WorksParams = GetWorksParams;
+export type WorksList = WorksListWorksResponse;
+export type WorkForClient = SnakeToCamelCase<Work>;
+export type WorksListForClient = {
+  data?: WorkForClient[];
+  pagination?: ResponsePagination;
+};
+
+/**
+ * Fetches a paginated list of works.
+ * @param params - The query parameters for fetching works.
+ * @returns A promise that resolves with the list of works and pagination info.
+ */
+export const getWorksService = (params: WorksParams) => {
+  return getWorks(params);
+};
+
+/**
+ * Creates a new work.
+ * @param data - The data for the new work.
+ * @returns A promise that resolves with the newly created work.
+ */
+export const createWorkService = (data: CreateWorkPayload) => {
+  return postWorks(data);
+};
+
+/**
+ * Fetches a single work by its ID.
+ * @param id - The ID of the work to fetch.
+ * @returns A promise that resolves with the work data.
+ */
+export const getWorkByIdService = (id: number) => {
+  return getWorksId(id);
+};
+
+/**
+ * Updates an existing work.
+ * @param id - The ID of the work to update.
+ * @param data - The new data for the work.
+ * @returns A promise that resolves with the updated work data.
+ */
+export const updateWorkService = (id: number, data: UpdateWorkPayload) => {
+  return putWorksId(id, data);
+};
+
+export type DraftHandling = "delete" | "unlink";
+export type DeleteWorkOptions = {
+  draftHandling?: DraftHandling;
+};
+
+/**
+ * Deletes a work by its ID.
+ * @param id - The ID of the work to delete.
+ * @returns A promise that resolves when the work is deleted.
+ */
+export const deleteWorkService = (id: number, options?: DeleteWorkOptions) => {
+  let url = `/works/${id}`;
+
+  if (options?.draftHandling) {
+    const searchParams = new URLSearchParams({
+      draftHandling: options.draftHandling,
+    });
+    url += `?${searchParams.toString()}`;
+  }
+
+  return customFetch<unknown>({
+    url,
+    method: "DELETE",
+  });
+};
+
+/**
+ * Imports works from a file.
+ * @param file - The file to import.
+ * @returns A promise that resolves with the import result.
+ */
+export const importWorksService = (file: File) => {
+  // The generated client wraps the body in a "data" key in FormData.
+  // We updated the backend to accept "data" key.
+  return postWorksImport({ file });
+};
