@@ -64,7 +64,7 @@ export const getWorkNavConfig = (workId: string): NavGroup[] => [
     title: "创作核心",
     value: "core",
     links: [
-      { title: "章节管理", href: `/works/${workId}`, icon: Book },
+      { title: "章节管理", href: `/works/${workId}/chapters`, icon: Book },
       { title: "大纲规划", href: `/works/${workId}/outline`, icon: FileText },
     ],
   },

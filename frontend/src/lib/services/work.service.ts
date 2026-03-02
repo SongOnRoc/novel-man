@@ -13,12 +13,12 @@ import type {
   ResponsePagination,
 } from "@/lib/api/generated/api10.schemas";
 import { SnakeToCamelCase } from "@/types/type-utils";
+import { customFetch } from "@/lib/fetch";
 import {
   getWorks,
   postWorks,
   getWorksId,
   putWorksId,
-  deleteWorksId,
   postWorksImport,
 } from "@/lib/api/generated/works/works";
 
@@ -74,13 +74,30 @@ export const updateWorkService = (id: number, data: UpdateWorkPayload) => {
   return putWorksId(id, data);
 };
 
+export type DraftHandling = "delete" | "unlink";
+export type DeleteWorkOptions = {
+  draftHandling?: DraftHandling;
+};
+
 /**
  * Deletes a work by its ID.
  * @param id - The ID of the work to delete.
  * @returns A promise that resolves when the work is deleted.
  */
-export const deleteWorkService = (id: number) => {
-  return deleteWorksId(id);
+export const deleteWorkService = (id: number, options?: DeleteWorkOptions) => {
+  let url = `/works/${id}`;
+
+  if (options?.draftHandling) {
+    const searchParams = new URLSearchParams({
+      draftHandling: options.draftHandling,
+    });
+    url += `?${searchParams.toString()}`;
+  }
+
+  return customFetch<unknown>({
+    url,
+    method: "DELETE",
+  });
 };
 
 /**

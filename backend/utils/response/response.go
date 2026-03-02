@@ -40,8 +40,7 @@ func Success(c *gin.Context, httpStatus int, data interface{}) {
 	})
 }
 
-// Error sends a standard error response.
-func Error(c *gin.Context, httpStatus int, code int, message string, err error) {
+func ErrorWithData(c *gin.Context, httpStatus int, code int, message string, data interface{}, err error) {
 	traceID, sourceID := getTraceAndSourceID(c)
 
 	fullMessage := message
@@ -51,8 +50,14 @@ func Error(c *gin.Context, httpStatus int, code int, message string, err error) 
 
 	c.JSON(httpStatus, StandardResponse{
 		Code:     code,
+		Data:     data,
 		Message:  fullMessage,
 		SourceID: sourceID,
 		TraceID:  traceID,
 	})
+}
+
+// Error sends a standard error response.
+func Error(c *gin.Context, httpStatus int, code int, message string, err error) {
+	ErrorWithData(c, httpStatus, code, message, nil, err)
 }

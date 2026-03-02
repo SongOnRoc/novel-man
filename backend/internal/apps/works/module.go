@@ -3,7 +3,9 @@ package works
 import (
 	"novel-man/backend/internal/apps"
 	"novel-man/backend/internal/container"
-	"novel-man/backend/internal/controllers/works"
+	works_contract "novel-man/backend/internal/contracts/works"
+	controller_works "novel-man/backend/internal/controllers/works"
+	"novel-man/backend/internal/events"
 	middle "novel-man/backend/internal/middlewares"
 	"novel-man/backend/internal/middlewares/auth"
 	"novel-man/backend/internal/middlewares/resource"
@@ -21,15 +23,26 @@ func init() {
 	apps.Register(&worksModule{})
 	container.Container.Provide(gorm.NewWorkGormRepository)
 	container.Container.Provide(works_service.NewWorkService)
-	container.Container.Provide(works.NewWorkController)
+	container.Container.Provide(controller_works.NewWorkController)
 }
 
 func (m *worksModule) RegisterRoutes(router *gin.RouterGroup) {
 	err := container.Container.Invoke(func(
-		controller *works.WorkController,
+		controller *controller_works.WorkController,
 		provider *middle.MiddlewareProvider,
+		eventManager *events.EventManager,
+		workService works_contract.WorkService,
 	) {
 		m.middlewareProvider = provider
+
+		eventManager.RegisterRoutes(events.EventTypeWorksCreate, events.ModuleWorks)
+		eventManager.RegisterRoutes(events.EventTypeWorksUpdate, events.ModuleWorks)
+		eventManager.RegisterRoutes(events.EventTypeWorksPublish, events.ModuleWorks)
+		// 事件驱动统计回写：订阅章节变更事件，按 payload.work_id 触发重算写回 works.total_*。
+		eventManager.RegisterRoutes(events.EventTypeChaptersCreate, events.ModuleWorks)
+		eventManager.RegisterRoutes(events.EventTypeChaptersUpdate, events.ModuleWorks)
+		eventManager.RegisterRoutes(events.EventTypeChaptersDelete, events.ModuleWorks)
+		eventManager.RegisterConsumer(events.ModuleWorks, workService.HandleWorkStatsTask)
 
 		// 创建需要认证的路由组
 		authedGroup := router.Group("/works")

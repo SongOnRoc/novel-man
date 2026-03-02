@@ -4,8 +4,9 @@
  * Provides functions to add, remove, and check favorites with optimistic updates.
  */
 
-import { useCallback, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo } from "react";
+
 import {
   useGetFavorites,
   usePostFavorites,
@@ -20,55 +21,116 @@ import { toCamelCase } from "@/lib/utils";
  * @param resourceType - The type of resource (e.g., "prompt", "snippet")
  * @returns An object containing favorites data and mutation functions
  */
-export function useFavorites(resourceType: ResourceType) {
+export function useFavorites(resourceType: ResourceType): {
+  favoriteIds: number[];
+  isLoading: boolean;
+  error: unknown;
+  isError: boolean;
+  isFavorite: (resourceId: number) => boolean;
+  addFavorite: (resourceId: number) => Promise<unknown>;
+  removeFavorite: (resourceId: number) => Promise<unknown>;
+  toggleFavorite: (resourceId: number) => Promise<void>;
+  isAdding: boolean;
+  isRemoving: boolean;
+  isAvailable: boolean;
+} {
   const queryClient = useQueryClient();
 
-    // Query for favorite IDs
-    //使用 retry: false 和 throwOnError: false 避免阻塞主功能
-    const {
-      data: rawData,
-      isLoading,
-      error,
-      isError,
-    } = useGetFavorites(
-      { type: resourceType },
-      {
-        query: {
-          retry: false, // 不重试，避免长时间等待
-          throwOnError: false, // 不抛出错误，允许优雅降级
-          staleTime: 5 * 60 * 1000, // 5分钟缓存
-        },
-      }
-    );
+  // Query for favorite IDs
+  // 使用 retry: false 和 throwOnError: false 避免阻塞主功能
+  const {
+    data: rawData,
+    isLoading,
+    error,
+    isError,
+  } = useGetFavorites(
+    { type: resourceType },
+    {
+      query: {
+        retry: false, // 不重试，避免长时间等待
+        throwOnError: false, // 不抛出错误，允许优雅降级
+        staleTime: 5 * 60 * 1000, // 5分钟缓存
+      },
+    }
+  );
 
-  // Transform the response to camelCase
-  // 如果API失败，返回空数组，允许主功能继续工作
+  const favoritesQueryKey = getGetFavoritesQueryKey({ type: resourceType });
+
+  // NOTE:
+  // customFetch 会把后端的 StandardResponse 自动解包为 data 字段
+  // 因此这里的 rawData 不是 { data: ... }，而是 data 本身（FavoriteIDsResponse）
   const favoriteIds = useMemo(() => {
-    if (isError || !rawData?.data) return [];
-    const data = toCamelCase(rawData.data) as { resourceIds?: number[] };
+    if (isError || !rawData) return [];
+    const data = toCamelCase(rawData) as { resourceIds?: number[] };
     return data.resourceIds || [];
   }, [rawData, isError]);
 
-  // Add favorite mutation
+  // Add favorite mutation (带乐观更新)
   const addFavoriteMutation = usePostFavorites({
     mutation: {
-      onSuccess: () => {
-        // Invalidate the favorites query to refresh the list
-        queryClient.invalidateQueries({
-          queryKey: getGetFavoritesQueryKey({ type: resourceType }),
+      onMutate: async (variables) => {
+        const resourceId = variables.data.resource_id;
+
+        await queryClient.cancelQueries({ queryKey: favoritesQueryKey });
+        const previous = queryClient.getQueryData(favoritesQueryKey);
+
+        queryClient.setQueryData(favoritesQueryKey, (old: unknown) => {
+          const oldData = toCamelCase(old ?? {}) as {
+            resourceType?: string;
+            resourceIds?: number[];
+          };
+          const nextIds = Array.from(
+            new Set([...(oldData.resourceIds ?? []), resourceId])
+          );
+          return {
+            resourceType,
+            resourceIds: nextIds,
+          };
         });
+
+        return { previous };
+      },
+      onError: (_err, _variables, context) => {
+        if (context?.previous !== undefined) {
+          queryClient.setQueryData(favoritesQueryKey, context.previous);
+        }
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries({ queryKey: favoritesQueryKey });
       },
     },
   });
 
-  // Remove favorite mutation
+  // Remove favorite mutation (带乐观更新)
   const removeFavoriteMutation = useDeleteFavoritesTypeId({
     mutation: {
-      onSuccess: () => {
-        // Invalidate the favorites query to refresh the list
-        queryClient.invalidateQueries({
-          queryKey: getGetFavoritesQueryKey({ type: resourceType }),
+      onMutate: async (variables) => {
+        const resourceId = variables.id;
+
+        await queryClient.cancelQueries({ queryKey: favoritesQueryKey });
+        const previous = queryClient.getQueryData(favoritesQueryKey);
+
+        queryClient.setQueryData(favoritesQueryKey, (old: unknown) => {
+          const oldData = toCamelCase(old ?? {}) as {
+            resourceType?: string;
+            resourceIds?: number[];
+          };
+          const nextIds = (oldData.resourceIds ?? []).filter((id) => id !== resourceId);
+          return {
+            resourceType,
+            resourceIds: nextIds,
+          };
         });
+
+        return { previous };
+      },
+      onError: (_err, _variables, context) => {
+        if (context?.previous !== undefined) {
+          queryClient.setQueryData(favoritesQueryKey, context.previous);
+        }
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries({ queryKey: favoritesQueryKey });
       },
     },
   });

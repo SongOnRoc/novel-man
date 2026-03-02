@@ -112,9 +112,21 @@ export const useUpdateWork = () => {
 export const useDeleteWork = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => deleteWorkService(id),
-    onSuccess: () => {
+    mutationFn: (params: { id: number; draftHandling?: "delete" | "unlink" }) =>
+      deleteWorkService(params.id, { draftHandling: params.draftHandling }),
+    onSuccess: (_data, variables) => {
+      // 删除作品可能会同时影响：
+      // - works 列表（当前页）
+      // - works 详情（被删的 workId）
+      // - drafts 列表/详情（draftHandling=delete 时会硬删除关联草稿；unlink 时会改变 work_id）
+      //
+      // drafts 列表页可能命中旧缓存（例如 staleTime 较长或不触发自动 refetch），
+      // 因此这里需要显式 invalidate 相关 query。
       queryClient.invalidateQueries({ queryKey: workKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: workKeys.details(), exact: false });
+      queryClient.invalidateQueries({ queryKey: workKeys.detail(variables.id) });
+
+      queryClient.invalidateQueries({ queryKey: ["drafts"], exact: false });
     },
   });
 };

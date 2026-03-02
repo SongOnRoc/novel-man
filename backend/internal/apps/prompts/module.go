@@ -3,7 +3,9 @@ package prompts
 import (
 	"novel-man/backend/internal/apps"
 	"novel-man/backend/internal/container"
+	prompts_contract "novel-man/backend/internal/contracts/prompts"
 	"novel-man/backend/internal/controllers/prompts"
+	"novel-man/backend/internal/events"
 	middle "novel-man/backend/internal/middlewares"
 	"novel-man/backend/internal/middlewares/auth"
 	"novel-man/backend/internal/middlewares/resource"
@@ -29,7 +31,13 @@ func (m *promptsModule) RegisterRoutes(router *gin.RouterGroup) {
 	err := container.Container.Invoke(func(
 		controller *prompts.PromptController,
 		provider *middle.MiddlewareProvider,
+		eventManager *events.EventManager,
+		promptService prompts_contract.PromptService,
 	) {
+		eventManager.RegisterRoutes(events.EventTypePromptsCreate, events.ModulePrompts)
+		eventManager.RegisterRoutes(events.EventTypePromptsUpdate, events.ModulePrompts)
+		eventManager.RegisterConsumer(events.ModulePrompts, promptService.HandlePromptTask)
+
 		// 创建需要认证的路由组
 		authedGroup := router.Group("/prompts")
 		authMiddleware, ok := provider.Get(auth.AuthMiddlewareName)

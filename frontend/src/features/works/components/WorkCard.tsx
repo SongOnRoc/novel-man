@@ -94,7 +94,11 @@ export function WorkCard({ work, onDelete, isDeleting }: WorkCardProps) {
               className="text-destructive focus:text-destructive"
               onClick={(e) => {
                 e.stopPropagation();
-                onDelete();
+
+                // Radix DropdownMenu -> AlertDialog：同一事件循环内切换 overlay
+                // 可能导致 body 的 pointer-events 被 DismissableLayer 留在 "none"。
+                // 延迟到下一个 macrotask，确保菜单层先完成关闭/清理。
+                setTimeout(() => onDelete(), 0);
               }}
               disabled={isDeleting}
             >

@@ -2,11 +2,18 @@ package drafts
 
 import (
 	"errors"
+	"fmt"
+
+	"novel-man/backend/internal/contracts"
 	"novel-man/backend/internal/contracts/chapters"
 	"novel-man/backend/internal/contracts/drafts"
+	"novel-man/backend/internal/contracts/works"
+	"novel-man/backend/internal/events"
 	"novel-man/backend/internal/models"
 	"novel-man/backend/internal/services"
 	"novel-man/backend/utils/context"
+
+	"gorm.io/gorm"
 )
 
 // DraftService 通过嵌入 GenericService 来复用代码
@@ -14,19 +21,70 @@ type DraftService struct {
 	*services.GenericService[models.Draft, uint, drafts.DraftRepository]
 	repo        drafts.DraftRepository
 	chapterRepo chapters.ChapterRepository
+	workRepo    works.WorkRepository
+	publisher   events.Publisher
+	outbox      events.OutboxStore
 }
 
-func NewDraftService(repo drafts.DraftRepository, chapterRepo chapters.ChapterRepository) drafts.DraftService {
+func NewDraftService(
+	repo drafts.DraftRepository,
+	chapterRepo chapters.ChapterRepository,
+	workRepo works.WorkRepository,
+	publisher events.Publisher,
+	outbox events.OutboxStore,
+) drafts.DraftService {
 	return &DraftService{
 		GenericService: services.NewGenericService[models.Draft, uint, drafts.DraftRepository](repo),
 		repo:           repo,
 		chapterRepo:    chapterRepo,
+		workRepo:       workRepo,
+		publisher:      publisher,
+		outbox:         outbox,
 	}
 }
 
+func (s *DraftService) normalizeDraftWorkAssociation(ctx context.Context, draft *models.Draft) error {
+	if draft.WorkID == nil {
+		return nil
+	}
+	_, err := s.workRepo.GetByID(ctx, *draft.WorkID)
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		draft.WorkID = nil
+		return nil
+	}
+	return err
+}
+
+func (s *DraftService) GetByID(ctx context.Context, id uint) (*models.Draft, error) {
+	draft, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.normalizeDraftWorkAssociation(ctx, draft); err != nil {
+		return nil, err
+	}
+	return draft, nil
+}
+
+func (s *DraftService) List(ctx context.Context, page, limit int, filters contracts.Filters) ([]models.Draft, int64, error) {
+	items, total, err := s.repo.List(ctx, page, limit, filters)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	for i := range items {
+		if err := s.normalizeDraftWorkAssociation(ctx, &items[i]); err != nil {
+			return nil, 0, err
+		}
+	}
+
+	return items, total, nil
+}
 
 func (s *DraftService) Publish(ctx context.Context, draftID uint) (*models.Chapter, error) {
-	// 1. 获取草稿
 	draft, err := s.repo.GetByID(ctx, draftID)
 	if err != nil {
 		return nil, err
@@ -35,7 +93,15 @@ func (s *DraftService) Publish(ctx context.Context, draftID uint) (*models.Chapt
 		return nil, errors.New("draft is not associated with a work")
 	}
 
-	// 2. 创建章节
+	// 确保关联作品存在（含软删视为不存在），否则应返回可识别业务错误。
+	work, err := s.workRepo.GetByID(ctx, int64(*draft.WorkID))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, drafts.ErrAssociatedWorkNotFound
+		}
+		return nil, err
+	}
+
 	chapter := &models.Chapter{
 		WorkID:    *draft.WorkID,
 		Title:     draft.Title,
@@ -47,11 +113,120 @@ func (s *DraftService) Publish(ctx context.Context, draftID uint) (*models.Chapt
 		return nil, err
 	}
 
-	// 3. 删除草稿
+	// 发布 chapters.create 事件（让 works 模块能基于 work_id 触发统计重算写回）。
+	if s.publisher != nil {
+		_ = s.publisher.PublishFactEvent(ctx, events.FactEvent{
+			EventType:     events.EventTypeChaptersCreate,
+			AggregateType: events.AggregateTypeChapter,
+			AggregateID:   fmt.Sprintf("%d", chapter.ID),
+			Producer:      events.ProducerDraftsService,
+			Payload: map[string]any{
+				"chapter_id": chapter.ID,
+				"work_id":    chapter.WorkID,
+			},
+		})
+	}
+
+	// 同步更新作品统计（总字数/总章节数）。
+	// 说明：章节通过草稿发布创建时，绕过 ChapterController 的增量统计更新，
+	// 导致 dashboard 依赖的 works.total_word_count / works.total_chapter_count 偏小。
+	newTotalWordCount := work.TotalWordCount + draft.WordCount
+	if newTotalWordCount < 0 {
+		newTotalWordCount = 0
+	}
+	newTotalChapterCount := work.TotalChapterCount + 1
+	if newTotalChapterCount < 0 {
+		newTotalChapterCount = 0
+	}
+	if err := s.workRepo.UpdateWorkStats(ctx, work.ID, newTotalWordCount, newTotalChapterCount); err != nil {
+		return nil, err
+	}
+
 	if err := s.repo.Delete(ctx, draftID); err != nil {
-		// 如果删除失败，可能需要处理（例如，回滚章节创建），但这里简化处理
 		return nil, err
 	}
 
 	return chapter, nil
+}
+
+func (s *DraftService) HandleDraftTask(ctx context.Context, task events.QueueTask) error {
+	id, err := parseDraftID(task)
+	if err != nil {
+		return err
+	}
+	draft, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if err := s.repo.Update(ctx, id, draft); err != nil {
+		return err
+	}
+	if s.outbox != nil {
+		_ = s.outbox.Add(ctx, events.OutboxMessage{
+			Module:  events.ModuleDrafts,
+			Channel: events.OutboxChannelInApp,
+			Payload: map[string]any{"draft_id": draft.ID, "event_id": task.EventID},
+			Status:  events.OutboxStatusPending,
+		})
+	}
+	return nil
+}
+
+func (s *DraftService) Create(ctx context.Context, entity *models.Draft) error {
+	if err := s.repo.Create(ctx, entity); err != nil {
+		return err
+	}
+	if s.publisher != nil {
+		return s.publisher.PublishFactEvent(ctx, events.FactEvent{
+			EventType:     events.EventTypeDraftsCreate,
+			AggregateType: events.AggregateTypeDraft,
+			AggregateID:   fmt.Sprintf("%d", entity.ID),
+			Producer:      events.ProducerDraftsService,
+			Payload:       map[string]any{"draft_id": entity.ID, "user_id": entity.UserID, "work_id": entity.WorkID},
+		})
+	}
+	return nil
+}
+
+func (s *DraftService) Update(ctx context.Context, id uint, entity *models.Draft) error {
+	if err := s.repo.Update(ctx, id, entity); err != nil {
+		return err
+	}
+	if s.publisher != nil {
+		return s.publisher.PublishFactEvent(ctx, events.FactEvent{
+			EventType:     events.EventTypeDraftsUpdate,
+			AggregateType: events.AggregateTypeDraft,
+			AggregateID:   fmt.Sprintf("%d", id),
+			Producer:      events.ProducerDraftsService,
+			Payload:       map[string]any{"draft_id": id, "user_id": entity.UserID, "work_id": entity.WorkID},
+		})
+	}
+	return nil
+}
+
+func parseDraftID(task events.QueueTask) (uint, error) {
+	if raw, ok := task.Payload["draft_id"]; ok {
+		switch v := raw.(type) {
+		case uint:
+			return v, nil
+		case int:
+			if v >= 0 {
+				return uint(v), nil
+			}
+		case int64:
+			if v >= 0 {
+				return uint(v), nil
+			}
+		case float64:
+			if v >= 0 {
+				return uint(v), nil
+			}
+		}
+	}
+	var id uint
+	_, err := fmt.Sscanf(task.AggregateID, "%d", &id)
+	if err == nil && id > 0 {
+		return id, nil
+	}
+	return 0, fmt.Errorf("invalid draft task aggregate_id=%s", task.AggregateID)
 }

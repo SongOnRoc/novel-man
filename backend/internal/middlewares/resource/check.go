@@ -121,12 +121,15 @@ func checkDraftOwnership(c *gin.Context, s *AllServices, id uint64, userID uint)
 	if draft.WorkID != nil {
 		work, err := s.WorkService.GetByID(*context.New(c), int64(*draft.WorkID))
 		if err != nil {
-			return http.StatusInternalServerError, err
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return http.StatusInternalServerError, err
+			}
+		} else {
+			if work.UserID != userID {
+				return http.StatusForbidden, nil
+			}
+			return http.StatusOK, nil
 		}
-		if work.UserID != userID {
-			return http.StatusForbidden, nil
-		}
-		return http.StatusOK, nil
 	}
 	if draft.UserID != userID {
 		return http.StatusForbidden, nil

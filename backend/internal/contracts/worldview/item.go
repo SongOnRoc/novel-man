@@ -2,6 +2,7 @@ package worldview
 
 import (
 	"novel-man/backend/internal/contracts"
+	"novel-man/backend/internal/events"
 	"novel-man/backend/internal/models"
 	"novel-man/backend/utils/context"
 )
@@ -11,6 +12,7 @@ type WorldviewItemService interface {
 	contracts.GenericCRUD[models.WorldviewItem, uint]
 	// GetItemsByCategoryID 根据分类ID获取条目列表
 	GetItemsByCategoryID(ctx context.Context, categoryID uint) ([]models.WorldviewItem, error)
+	HandleWorldviewItemTask(ctx context.Context, task events.QueueTask) error
 	// 可以在这里添加条目特有的业务方法
 }
 

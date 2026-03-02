@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useParams } from "next/navigation";
 import React, { useEffect } from "react";
+import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -101,10 +102,12 @@ export default function EditWorkPage(): React.ReactElement {
       { id: workId, data: updateData },
       {
         onSuccess: () => {
-          router.push("/works");
+          toast.success("作品信息已更新");
+          router.push(`/works/${workId}`);
         },
         onError: (error) => {
           console.error("更新作品失败:", error);
+          toast.error("更新作品失败，请稍后重试");
         },
       }
     );
@@ -115,7 +118,12 @@ export default function EditWorkPage(): React.ReactElement {
   }
 
   if (!work) {
-    return <div>作品未找到。</div>;
+    return (
+      <div className="space-y-4">
+        <p>作品未找到。</p>
+        <Button variant="outline" onClick={() => router.push("/works")}>返回作品列表</Button>
+      </div>
+    );
   }
 
   return (
@@ -123,6 +131,7 @@ export default function EditWorkPage(): React.ReactElement {
       <PageHeader
         title="编辑作品信息"
         description="更新您的作品详情。"
+        backHref={`/works/${workId}`}
       />
 
       {/* 表单卡片 */}
@@ -235,7 +244,7 @@ export default function EditWorkPage(): React.ReactElement {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => router.push("/works")}
+                  onClick={() => router.push(`/works/${workId}`)}
                   disabled={isSubmitting}
                 >
                   取消

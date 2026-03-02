@@ -2,6 +2,7 @@ package settings
 
 import (
 	"novel-man/backend/internal/contracts"
+	"novel-man/backend/internal/events"
 	"novel-man/backend/internal/models"
 	"novel-man/backend/utils/context"
 )
@@ -13,4 +14,5 @@ type SettingService interface {
 	GetByUserID(ctx context.Context, userID uint) (*models.UserSetting, error)
 	// UpdateByUserID updates a setting by user ID
 	UpdateByUserID(ctx context.Context, userID uint, setting *models.UserSetting) error
+	HandleSettingTask(ctx context.Context, task events.QueueTask) error
 }

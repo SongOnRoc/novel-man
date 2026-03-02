@@ -1,6 +1,5 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
 import { motion, PanInfo, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -10,19 +9,25 @@ import {
   Check,
   ChevronDown,
   Search,
+  MessageSquarePlus,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Thread } from "@/components/assistant-ui/thread";
-import { ThreadList } from "@/components/assistant-ui/thread-list";
-import { AISettingsDialog } from "../chat/AISettingsDialog";
+import React, { useState, useRef, useCallback, useEffect } from "react";
+
 import {
   AssistantRuntimeProvider,
   useChatRuntimeContext,
 } from "@/components/assistant-ui/assistant-runtime-provider";
-import type { RuntimeConfig } from "@/lib/ai/runtime";
-import { getSelectedPromptId, clearSelectedPrompt } from "@/features/ai/components/prompt-selector/useSelectedPromptStore";
+import { Thread } from "@/components/assistant-ui/thread";
+import { ThreadList } from "@/components/assistant-ui/thread-list";
+import { getSelectedPromptId } from "@/features/ai/components/prompt-selector/useSelectedPromptStore";
 import { useAIModels, type AIModel } from "@/hooks/ai/useAIModels";
+import type { RuntimeConfig } from "@/lib/ai/runtime";
+import { cn } from "@/lib/utils";
 import type { EditorTheme } from "@/types/editor";
+
+import { AISettingsDialog } from "../chat/AISettingsDialog";
+
+const SELECTED_MODEL_CACHE_KEY = "ai_selected_model";
 
 interface MobileAIImmersiveProps {
   /** Currently selected text from editor */
@@ -64,6 +69,8 @@ interface MobileAIImmersiveContentProps
   selectedModel: string;
   /** Callback to change selected model */
   onModelChange: (model: string) => void;
+  /** Whether models are loading */
+  isModelsLoading: boolean;
 }
 
 function MobileAIImmersiveContent({
@@ -78,6 +85,7 @@ function MobileAIImmersiveContent({
   models,
   selectedModel,
   onModelChange,
+  isModelsLoading,
 }: MobileAIImmersiveContentProps) {
   const [showHistory, setShowHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -117,10 +125,12 @@ function MobileAIImmersiveContent({
     }
   };
 
-  // Calculate content height based on keyboard
-  const contentHeight = isKeyboardVisible
-    ? viewportHeight - keyboardHeight
-    : viewportHeight;
+  // Edge 移动端下 viewportHeight 已反映可视区高度，不能再次减去 keyboardHeight
+  // 否则会导致沉浸层高度被二次缩减，底部露出正文层
+  //   const contentHeight = isKeyboardVisible
+  //     ? viewportHeight - keyboardHeight
+  //     : viewportHeight;
+  const contentHeight = viewportHeight;
 
   // Session handlers
   const handleSessionSwitch = useCallback(
@@ -148,14 +158,19 @@ function MobileAIImmersiveContent({
       dragElastic={{ top: 0, bottom: 0.3 }}
       onDragEnd={handleDragEnd}
       className={cn(
-        "fixed inset-0 z-50",
+        "fixed top-0 inset-x-0 z-50",
         //使用主题类继承编辑器主题颜色
         `theme-${theme}`,
         "editor-paper",
-        "flex flex-col",
-        "mobile-immersive"
+        "flex flex-col"
       )}
-      style={{ height: contentHeight }}
+      style={{
+        height: contentHeight,
+        maxHeight: contentHeight,
+        minHeight: contentHeight,
+        paddingTop: "var(--safe-area-inset-top)",
+        paddingBottom: "var(--safe-area-inset-bottom)",
+      }}
     >
       {/* Header */}
       <header className="shrink-0 flex items-center justify-between px-3 h-12 border-b border-foreground/10">
@@ -180,8 +195,8 @@ function MobileAIImmersiveContent({
           <button
             onClick={() => setShowModelSheet(true)}
             className={cn(
-              "touch-target flex items-center gap-1.5",
-              "h-10 px-3 rounded-full",
+              "touch-target flex min-w-0 items-center gap-1",
+              "max-w-[120px] px-2.5 rounded-full",
               "bg-foreground/5 text-foreground/80",
               "transition-colors",
               "hover:bg-foreground/10"
@@ -189,17 +204,33 @@ function MobileAIImmersiveContent({
             aria-label="选择模型"
           >
             <Bot className="h-4 w-4 shrink-0" />
-            <span className="text-sm truncate max-w-[100px]">
-              {selectedModel
-                ? models.find((m) => m.value === selectedModel)?.label ||
-                  selectedModel.split("/").pop()
-                : "选择模型"}
+            <span className="truncate text-xs sm:text-sm">
+              {isModelsLoading
+                ? "加载模型中..."
+                : selectedModel
+                  ? models.find((m) => m.value === selectedModel)?.label ||
+                    selectedModel.split("/").pop()
+                  : "请配置模型接口"}
             </span>
             <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-60" />
           </button>
         </div>
 
         <div className="flex items-center gap-1">
+          {/* New Session Button */}
+          <button
+            onClick={handleCreateSession}
+            className={cn(
+              "touch-target flex items-center justify-center",
+              "h-10 w-10 rounded-full",
+              "text-foreground/60 hover:text-foreground hover:bg-foreground/5",
+              "transition-colors"
+            )}
+            aria-label="新建会话"
+          >
+            <MessageSquarePlus className="h-5 w-5" />
+          </button>
+
           {/* Settings Button */}
           <button
             onClick={() => setShowSettings(true)}
@@ -461,27 +492,50 @@ function MobileAIImmersiveContent({
 export function MobileAIImmersive(props: MobileAIImmersiveProps) {
   const [apiKey, setApiKey] = useState("");
   const [baseUrl, setBaseUrl] = useState("");
-  const [selectedModel, setSelectedModel] = useState("gpt-3.5-turbo");
+  const [selectedModel, setSelectedModel] = useState("");
+  const [cachedModel, setCachedModel] = useState<string | null>(null);
 
   useEffect(() => {
     const storedApiKey = localStorage.getItem("ai_api_key");
     const storedBaseUrl = localStorage.getItem("ai_base_url");
     if (storedApiKey) setApiKey(storedApiKey);
     if (storedBaseUrl) setBaseUrl(storedBaseUrl);
+    setCachedModel(localStorage.getItem(SELECTED_MODEL_CACHE_KEY));
   }, []);
 
-  const { models } = useAIModels(apiKey, baseUrl);
+  const { models, isLoading: isModelsLoading } = useAIModels(apiKey, baseUrl);
 
   useEffect(() => {
-    if (models.length > 0 && !models.find((m) => m.value === selectedModel)) {
-      setSelectedModel(models[0].value);
+    if (isModelsLoading) return;
+
+    if (models.length === 0) {
+      if (selectedModel !== "") {
+        setSelectedModel("");
+      }
+      return;
     }
-  }, [models, selectedModel]);
+
+    if (models.some((m) => m.value === selectedModel)) {
+      return;
+    }
+
+    if (cachedModel && models.some((m) => m.value === cachedModel)) {
+      setSelectedModel(cachedModel);
+      return;
+    }
+
+    setSelectedModel(models[0].value);
+  }, [models, selectedModel, cachedModel, isModelsLoading]);
+
+  const handleModelChange = useCallback((model: string) => {
+    setSelectedModel(model);
+    localStorage.setItem(SELECTED_MODEL_CACHE_KEY, model);
+  }, []);
 
   const runtimeConfig: RuntimeConfig = {
     model: selectedModel,
     getSelectedPromptId,
-    onMessageSent: clearSelectedPrompt,
+    selectedText: props.selectedText,
   };
 
   return (
@@ -490,7 +544,8 @@ export function MobileAIImmersive(props: MobileAIImmersiveProps) {
         {...props}
         models={models}
         selectedModel={selectedModel}
-        onModelChange={setSelectedModel}
+        onModelChange={handleModelChange}
+        isModelsLoading={isModelsLoading}
       />
     </AssistantRuntimeProvider>
   );

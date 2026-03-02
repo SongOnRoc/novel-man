@@ -16,7 +16,15 @@ import (
 // InitRouter initializes the Gin router and automatically registers routes for all modules
 func InitRouter(dbInstance *gorm.DB) *gin.Engine {
 	// 创建 Gin 引擎实例
-	r := gin.Default()
+	// 使用 New + 显式挂载默认中间件，避免 Gin 在 debug 下提示“默认中间件已挂载”的 warning 噪音。
+	r := gin.New()
+	r.Use(gin.Logger(), gin.Recovery())
+
+	// 安全基线：不信任任何上游代理（避免 X-Forwarded-For 被伪造）
+	// 如后续接入 Nginx/Ingress，再按实际代理网段放开。
+	if err := r.SetTrustedProxies([]string{}); err != nil {
+		panic("failed to set trusted proxies: " + err.Error())
+	}
 
 	// 将数据库实例存入 Gin Context，供后续中间件和处理函数使用
 	r.Use(func(c *gin.Context) {

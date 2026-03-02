@@ -3725,6 +3725,14 @@ paths:
         required: true
         schema:
           type: integer
+      - description: How to handle associated drafts (required when drafts exist)
+        in: query
+        name: draftHandling
+        schema:
+          enum:
+          - delete
+          - unlink
+          type: string
       responses:
         "200":
           content:
@@ -3756,6 +3764,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/response.StandardResponse'
           description: Work not found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Draft handling required" (data contains draftCount)
         "500":
           content:
             application/json:
