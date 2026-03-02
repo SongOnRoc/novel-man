@@ -1,9 +1,9 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Upload, BookOpen } from "lucide-react";
+import { Upload, BookOpen } from "lucide-react";
 
 import {
   Pagination,
@@ -21,6 +21,7 @@ import { WorkCard } from "@/features/works/components/WorkCard";
 import { useWorkList, useDeleteWork, useImportWorks } from "@/hooks/work/useWorkService";
 import { WorkForClient, WorksList } from "@/lib/services/work.service";
 import { ImportDialog } from "@/components/common/ImportDialog";
+import { sortByUpdatedAtDesc } from "@/lib/utils";
 
 export default function WorksPage(): React.ReactElement {
   const searchParams = useSearchParams();
@@ -33,18 +34,21 @@ export default function WorksPage(): React.ReactElement {
   }, [searchParams]);
 
   const { data: worksResponse, isLoading } = useWorkList({ page, limit: 12 });
-  const { mutate: deleteWork, isPending: isDeleting } = useDeleteWork();
+  const { mutateAsync: deleteWork, isPending: isDeleting } = useDeleteWork();
 
-  const works = (worksResponse as WorksList)?.data || [];
+  const rawWorks = ((worksResponse as WorksList)?.data || []) as WorkForClient[];
+  const works: WorkForClient[] = useMemo(
+    () => sortByUpdatedAtDesc(rawWorks),
+    [rawWorks]
+  );
   const pagination = (worksResponse as WorksList)?.pagination;
 
-  const handleConfirmDelete = (): void => {
-    if (deleteWorkId) {
-      deleteWork(deleteWorkId, {
-        onSuccess: () => {
-          setDeleteWorkId(null);
-        },
-      });
+  const handleConfirmDelete = async (
+    draftHandling?: "delete" | "unlink"
+  ): Promise<void> => {
+    if (deleteWorkId !== null) {
+      await deleteWork({ id: deleteWorkId, draftHandling });
+      setDeleteWorkId(null);
     }
   };
 
@@ -109,25 +113,6 @@ export default function WorksPage(): React.ReactElement {
           <>
             {works.length > 0 ? (
               <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {/* Create New Card (First item) */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3 }}
-                  className="group flex aspect-[3/4] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-muted-foreground/25 bg-muted/30 transition-colors hover:border-primary hover:bg-primary/5"
-                >
-                  <NewWorkButton 
-                    trigger={
-                      <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center">
-                        <div className="mb-4 rounded-full bg-background p-4 shadow-sm transition-transform group-hover:scale-110">
-                          <Plus className="h-8 w-8 text-muted-foreground group-hover:text-primary" />
-                        </div>
-                        <h3 className="text-lg font-semibold text-muted-foreground group-hover:text-primary">创建新作品</h3>
-                      </div>
-                    } 
-                  />
-                </motion.div>
-
                 {works.map((work: WorkForClient, index) => (
                   <motion.div
                     key={work.id}

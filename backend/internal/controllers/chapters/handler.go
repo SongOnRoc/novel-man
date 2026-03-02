@@ -484,16 +484,26 @@ func (c *ChapterController) Import(ctx *gin.Context) {
 		result.Success, result.Failed, result.Total)
 
 	// 更新作品的统计数据
+	// Import 会批量写入章节，若仅做增量更新容易导致 works.total_* 漂移（尤其 total_word_count）。
+	// 这里以“重新计算”作为权威来源，确保 dashboard 汇总正确。
 	if result.Success > 0 {
-		// 这里只能粗略更新章节数，字数统计比较复杂，建议触发重新计算
-		if err := c.updateWorkChapterCount(ctx, int64(workID), result.Success); err != nil {
-			logger.Error(ct, "Failed to update work chapter count after import: %v", err)
+		filters := contracts.Filters{"work_id": int64(workID)}
+		chapterList, _, err := c.service.List(*ct, 1, 100000, filters)
+		if err != nil {
+			logger.Error(ct, "Failed to list chapters for stats recalculation after import: %v", err)
+		} else {
+			totalWordCount := 0
+			for _, chapter := range chapterList {
+				totalWordCount += chapter.WordCount
+			}
+			totalChapterCount := len(chapterList)
+
+			work.TotalWordCount = totalWordCount
+			work.TotalChapterCount = totalChapterCount
+			if err := c.workService.Update(*ct, work.ID, work); err != nil {
+				logger.Error(ct, "Failed to update work stats after import: %v", err)
+			}
 		}
-		// 触发异步重新计算统计数据
-		// 注意：recalculateWorkStats 是 WorkController 的方法，ChapterController 无法直接调用
-		// 我们需要通过 WorkService 或其他方式触发，或者暂时忽略异步重新计算，仅依靠上面的 updateWorkChapterCount
-		// 由于 ChapterController 没有 WorkController 的引用，这里暂时移除 recalculateWorkStats 调用
-		// 以后可以考虑通过事件总线或将 recalculateWorkStats 移至 Service 层来解决
 	}
 
 	response.Success(ctx, http.StatusOK, result)

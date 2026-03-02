@@ -101,6 +101,10 @@ export const useCreateChapter = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: chapterKeys.lists() });
+
+      // 章节变更会影响作品维度的统计字段（总字数/总章节），而 works 列表有 5min staleTime。
+      // 若不显式 invalidate，返回作品管理页会命中“仍然 fresh 的旧缓存”，需要手动刷新才更新。
+      queryClient.invalidateQueries({ queryKey: ["works"], exact: false });
     },
   });
 };
@@ -126,6 +130,9 @@ export const useUpdateChapter = () => {
       queryClient.invalidateQueries({
         queryKey: chapterKeys.detail(variables.id),
       });
+
+      // 同步刷新作品列表/详情的统计字段缓存
+      queryClient.invalidateQueries({ queryKey: ["works"], exact: false });
     },
   });
 };
@@ -140,6 +147,7 @@ export const useDeleteChapter = () => {
     mutationFn: (id: number) => deleteChapterService(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: chapterKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: ["works"], exact: false });
     },
   });
 };
@@ -155,6 +163,7 @@ export const useImportChapters = () => {
       importChaptersService(workId, file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: chapterKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: ["works"], exact: false });
     },
   });
 };

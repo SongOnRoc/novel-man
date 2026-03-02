@@ -1,6 +1,16 @@
 "use client";
 
 import {
+  ActionBarPrimitive,
+  BranchPickerPrimitive,
+  ComposerPrimitive,
+  ErrorPrimitive,
+  MessagePrimitive,
+  ThreadPrimitive,
+  useAssistantApi,
+  useMessage,
+} from "@assistant-ui/react";
+import {
   ArrowDownIcon,
   ArrowUpIcon,
   CheckIcon,
@@ -16,21 +26,6 @@ import {
   Wand2,
   FileEditIcon,
 } from "lucide-react";
-
-import { PromptSelector } from "@/features/ai/components/prompt-selector/PromptSelector";
-import { useSelectedPromptStore } from "@/features/ai/components/prompt-selector/useSelectedPromptStore";
-
-import {
-  ActionBarPrimitive,
-  BranchPickerPrimitive,
-  ComposerPrimitive,
-  ErrorPrimitive,
-  MessagePrimitive,
-  ThreadPrimitive,
-  useAssistantApi,
-  useMessage,
-} from "@assistant-ui/react";
-
 import {
   type FC,
   createContext,
@@ -38,18 +33,20 @@ import {
   useCallback,
   useState,
 } from "react";
+import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
-import { MarkdownText } from "@/components/assistant-ui/markdown-text";
-import { ToolFallback } from "@/components/assistant-ui/tool-fallback";
-import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
 import {
   ComposerAddAttachment,
   ComposerAttachments,
   UserMessageAttachments,
 } from "@/components/assistant-ui/attachment";
-import { toast } from "sonner";
-
+import { MarkdownText } from "@/components/assistant-ui/markdown-text";
+import { ToolFallback } from "@/components/assistant-ui/tool-fallback";
+import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
+import { Button } from "@/components/ui/button";
+import { PromptSelector } from "@/features/ai/components/prompt-selector/PromptSelector";
+import { useSelectedPromptStore } from "@/features/ai/components/prompt-selector/useSelectedPromptStore";
+import { useMediaQuery } from "@/hooks/ui/useMediaQuery";
 import { cn } from "@/lib/utils";
 
 // =============================================================================
@@ -157,10 +154,10 @@ const ThreadWelcome: FC = () => {
       <div className="aui-thread-welcome-center flex w-full grow flex-col items-center justify-center">
         <div className="aui-thread-welcome-message flex size-full flex-col justify-center px-8">
           <div className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-2 animate-in font-semibold text-2xl duration-300 ease-out">
-            Hello there!
+            继续你的创作
           </div>
-          <div className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-2 animate-in text-2xl text-muted-foreground/65 delay-100 duration-300 ease-out">
-            How can I help you today?
+          <div className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-2 animate-in text-lg text-muted-foreground/80 delay-100 duration-300 ease-out">
+            我可以帮你续写情节、润色文风、扩展人物和世界观。
           </div>
         </div>
       </div>
@@ -174,14 +171,14 @@ const ThreadSuggestions: FC = () => {
     <div className="aui-thread-welcome-suggestions grid w-full @md:grid-cols-2 gap-2 pb-4">
       {[
         {
-          title: "What's the weather",
-          label: "in San Francisco?",
-          action: "What's the weather in San Francisco?",
+          title: "续写当前情节",
+          label: "延续人物动机并提升张力",
+          action: "请基于当前内容续写 300 字，保持人物语气一致并增强冲突张力。",
         },
         {
-          title: "Explain React hooks",
-          label: "like useState and useEffect",
-          action: "Explain React hooks like useState and useEffect",
+          title: "润色这段文字",
+          label: "提升文采且不改变原意",
+          action: "请润色这段内容，保留原意与叙事节奏，使中文表达更自然。",
         },
       ].map((suggestedAction, index) => (
         <div
@@ -235,6 +232,7 @@ const Composer: FC = () => {
 const QuickActions: FC = () => {
   const { selectedText } = useThreadContext();
   const { selectedPromptId, setSelectedPromptId } = useSelectedPromptStore();
+  const isMobileViewport = useMediaQuery("(max-width: 767px)");
 
   // 截断选中文本用于显示
   const truncatedText =
@@ -265,8 +263,8 @@ const QuickActions: FC = () => {
       <PromptSelector
         selectedPromptId={selectedPromptId ?? null}
         onSelectPrompt={handleSelectPrompt}
-        isMobile={false}
-        className="px-1"
+        isMobile={isMobileViewport}
+        className="w-full"
       />
     </div>
   );
@@ -348,10 +346,9 @@ const ApplyToEditorButton: FC = () => {
   const { onApplyToEditor } = useThreadContext();
   const message = useMessage();
   
-  // 只在有 onApplyToEditor 回调时显示
-  if (!onApplyToEditor) return null;
-  
   const handleApply = useCallback(() => {
+    if (!onApplyToEditor) return;
+
     const text = extractTextFromMessage(message);
     if (text) {
       onApplyToEditor(text);
@@ -360,6 +357,8 @@ const ApplyToEditorButton: FC = () => {
       toast.error("没有可应用的内容");
     }
   }, [message, onApplyToEditor]);
+  // 只在有 onApplyToEditor 回调时显示
+  if (!onApplyToEditor) return null;
   
   return (
     <TooltipIconButton tooltip="应用到编辑器" onClick={handleApply}>

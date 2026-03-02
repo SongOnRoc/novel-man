@@ -45,7 +45,8 @@ memory-bank
 !Readme.md
 
 # 剔除其他文件
+/.*
 !.vscode
 !.github
-/.*
 web-bundles
+openspec

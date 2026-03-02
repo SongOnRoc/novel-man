@@ -381,9 +381,13 @@ func (c *DraftController) PublishDraft(ctx *gin.Context) {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Draft not found", err)
-		} else {
-			response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to publish draft", err)
+			return
 		}
+		if errors.Is(err, drafts.ErrAssociatedWorkNotFound) {
+			response.Error(ctx, http.StatusConflict, http.StatusConflict, "Associated work not found", err)
+			return
+		}
+		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to publish draft", err)
 		return
 	}
 

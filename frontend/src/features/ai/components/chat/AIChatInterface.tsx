@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Bot,
   Settings2,
@@ -8,7 +8,17 @@ import {
   ChevronsUpDown,
   History,
   ChevronLeft,
+  MessageSquarePlus,
 } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+
+import {
+  AssistantRuntimeProvider,
+  useChatRuntimeContext,
+} from "@/components/assistant-ui/assistant-runtime-provider";
+import { Thread } from "@/components/assistant-ui/thread";
+import { ThreadList } from "@/components/assistant-ui/thread-list";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -22,19 +32,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
-import { AISettingsDialog } from "./AISettingsDialog";
+import { getSelectedPromptId } from "@/features/ai/components/prompt-selector/useSelectedPromptStore";
 import { useAIModels, AIModel } from "@/hooks/ai/useAIModels";
-import { Thread } from "@/components/assistant-ui/thread";
-import { ThreadList } from "@/components/assistant-ui/thread-list";
-import {
-  AssistantRuntimeProvider,
-  useChatRuntimeContext,
-} from "@/components/assistant-ui/assistant-runtime-provider";
 import type { RuntimeConfig } from "@/lib/ai/runtime";
-import { getSelectedPromptId, clearSelectedPrompt } from "@/features/ai/components/prompt-selector/useSelectedPromptStore";
+import { cn } from "@/lib/utils";
+
+import { AISettingsDialog } from "./AISettingsDialog";
+
+const SELECTED_MODEL_CACHE_KEY = "ai_selected_model";
 
 interface AIChatInterfaceProps {
   workId?: number;
@@ -59,7 +64,9 @@ interface AIChatInterfaceContentProps {
   setOpenModelSelect: (open: boolean) => void;
   selectedModel: string;
   setSelectedModel: (model: string) => void;
-  modelOptions: AIModel[];selectedText?: string;
+  modelOptions: AIModel[];
+  isModelsLoading: boolean;
+  selectedText?: string;
   onApplyToEditor?: (text: string) => void;
 }
 
@@ -74,6 +81,7 @@ function AIChatInterfaceContent({
   selectedModel,
   setSelectedModel,
   modelOptions,
+  isModelsLoading,
   selectedText,
   onApplyToEditor,
 }: AIChatInterfaceContentProps) {
@@ -100,8 +108,8 @@ function AIChatInterfaceContent({
   return (
     <>
       {/* Header Area */}
-      <div className="flex items-center justify-between p-2 border-b border-border/10 bg-background/40 backdrop-blur-sm z-20">
-        <div className="flex items-center gap-2">
+      <div className="z-20 flex items-center justify-between gap-1.5 border-b border-border/10 bg-background/40 p-2 backdrop-blur-sm">
+        <div className="order-1 flex min-w-0 flex-1 items-center gap-1.5">
           <button
             onClick={() => setShowHistory(!showHistory)}
             className={cn(
@@ -122,16 +130,18 @@ function AIChatInterfaceContent({
                 variant="ghost"
                 role="combobox"
                 aria-expanded={openModelSelect}
-                className="h-7 text-xs bg-primary/5 border-0 rounded-lg px-2 focus:ring-0 focus:ring-offset-0 justify-between font-normal hover:bg-primary/10 hover:text-foreground min-w-[140px]"
+                className="h-8 min-w-0 max-w-[72px] justify-between rounded-lg border-0 bg-primary/5 px-1.5 text-xs font-normal hover:bg-primary/10 hover:text-foreground focus:ring-0 focus:ring-offset-0 sm:max-w-[96px] lg:max-w-[120px] xl:max-w-[140px]"
               >
-                <div className="flex items-center truncate">
+                <div className="flex min-w-0 items-center truncate">
                   <Bot className="h-3.5 w-3.5 mr-1.5 opacity-70 shrink-0" />
-                  <span className="truncate max-w-[100px]">
-                    {selectedModel
-                      ? modelOptions.find(
-                          (model) => model.value === selectedModel
-                        )?.label || selectedModel
-                      : "请配置模型接口"}
+                  <span className="truncate">
+                    {isModelsLoading
+                      ? "加载模型中..."
+                      : selectedModel
+                        ? modelOptions.find(
+                            (model) => model.value === selectedModel
+                          )?.label || selectedModel
+                        : "请配置模型接口"}
                   </span>
                 </div>
                 <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
@@ -165,9 +175,11 @@ function AIChatInterfaceContent({
                       <CommandItem
                         key={model.value}
                         value={model.value}
-                        onSelect={(currentValue) => {
-                          setSelectedModel(
-                            currentValue === selectedModel ? "" : model.value
+                        onSelect={() => {
+                          setSelectedModel(model.value);
+                          localStorage.setItem(
+                            SELECTED_MODEL_CACHE_KEY,
+                            model.value
                           );
                           setOpenModelSelect(false);
                         }}
@@ -228,20 +240,36 @@ function AIChatInterfaceContent({
           </Popover>
         </div>
 
-        {/* Settings Button */}
-        <button
-          onClick={() => setShowSettings(true)}
-          className="flex items-center justify-center h-7 w-7 rounded-lg bg-primary/5 hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors duration-200"
-          title="AI 设置"
-        >
-          <Settings2 className="h-4 w-4" />
-        </button>
+        <div className="order-2 ml-auto flex shrink-0 items-center gap-1">
+          <button
+            onClick={handleCreateSession}
+            className="flex h-8 items-center justify-center gap-1 rounded-md border border-border/60 bg-primary/5 px-2 text-xs font-medium text-foreground/85 transition-colors duration-200 hover:bg-primary/10 hover:text-primary"
+            title="新建会话"
+            aria-label="新建会话"
+          >
+            <MessageSquarePlus className="h-4 w-4" />
+            <span className="hidden xl:inline">新建</span>
+          </button>
+
+          {/* Settings Button */}
+          <button
+            onClick={() => setShowSettings(true)}
+            className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/5 text-muted-foreground transition-colors duration-200 hover:bg-primary/10 hover:text-primary"
+            title="AI 设置"
+            aria-label="AI 设置"
+          >
+            <Settings2 className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden relative">
         {currentSessionId ? (
-          <Thread selectedText={selectedText} onApplyToEditor={onApplyToEditor} />
+          <Thread
+            selectedText={selectedText}
+            onApplyToEditor={onApplyToEditor}
+          />
         ) : (
           <div className="flex h-full items-center justify-center">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -311,7 +339,8 @@ export function AIChatInterface({
   className,
   hideBorder = false,
 }: AIChatInterfaceProps) {
-  const [selectedModel, setSelectedModel] = useState("gpt-3.5-turbo");
+  const [selectedModel, setSelectedModel] = useState("");
+  const [cachedModel, setCachedModel] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [openModelSelect, setOpenModelSelect] = useState(false);
@@ -325,6 +354,10 @@ export function AIChatInterface({
     if (storedBaseUrl) setBaseUrl(storedBaseUrl);
   }, []);
 
+  useEffect(() => {
+    setCachedModel(localStorage.getItem(SELECTED_MODEL_CACHE_KEY));
+  }, []);
+
   const handleSaveSettings = (key: string, url: string) => {
     setApiKey(key);
     setBaseUrl(url);
@@ -332,25 +365,37 @@ export function AIChatInterface({
     localStorage.setItem("ai_base_url", url);
   };
 
-  const { models } = useAIModels(apiKey, baseUrl);
+  const { models, isLoading: isModelsLoading } = useAIModels(apiKey, baseUrl);
   const modelOptions: AIModel[] = models;
 
-  // If selected model is not in options, select first one
+  // 模型初始化策略：加载中不覆盖；优先缓存；其次首项；空列表提示配置
   useEffect(() => {
-    if (modelOptions.length > 0) {
-      if (!modelOptions.find((m: AIModel) => m.value === selectedModel)) {
-        setSelectedModel(modelOptions[0].value);
+    if (isModelsLoading) return;
+
+    if (modelOptions.length === 0) {
+      if (selectedModel !== "") {
+        setSelectedModel("");
       }
-    } else {
-      setSelectedModel("");
+      return;
     }
-  }, [modelOptions, selectedModel]);
+
+    if (modelOptions.some((m: AIModel) => m.value === selectedModel)) {
+      return;
+    }
+
+    if (cachedModel && modelOptions.some((m: AIModel) => m.value === cachedModel)) {
+      setSelectedModel(cachedModel);
+      return;
+    }
+
+    setSelectedModel(modelOptions[0].value);
+  }, [modelOptions, selectedModel, cachedModel, isModelsLoading]);
 
   // 构建 runtime 配置
   const runtimeConfig: RuntimeConfig = {
     model: selectedModel,
     getSelectedPromptId,
-    onMessageSent: clearSelectedPrompt,
+    selectedText,
   };
 
   return (
@@ -372,6 +417,7 @@ export function AIChatInterface({
           selectedModel={selectedModel}
           setSelectedModel={setSelectedModel}
           modelOptions={modelOptions}
+          isModelsLoading={isModelsLoading}
           selectedText={selectedText}
           onApplyToEditor={onApplyToEditor}
         />

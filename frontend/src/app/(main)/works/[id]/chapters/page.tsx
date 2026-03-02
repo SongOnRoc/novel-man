@@ -40,6 +40,7 @@ export default function ChaptersPage(): React.ReactElement {
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
   const workId = typeof params.id === "string" ? parseInt(params.id, 10) : NaN;
+  const isValidWorkId = Number.isInteger(workId) && workId > 0;
   const { data: work, isLoading: isLoadingWork } = useWorkById(workId);
 
   useEffect(() => {
@@ -94,12 +95,33 @@ export default function ChaptersPage(): React.ReactElement {
     setIsImportDialogOpen(false);
   };
 
+  if (!isValidWorkId) {
+    return (
+      <div className="min-h-[50vh] flex flex-col items-center justify-center gap-4 text-center">
+        <h2 className="text-2xl font-semibold">无效的作品 ID</h2>
+        <p className="text-muted-foreground">请从作品列表重新进入章节管理页面。</p>
+        <Button variant="outline" onClick={() => router.push("/works")}>返回作品列表</Button>
+      </div>
+    );
+  }
+
+  if (!isLoadingWork && !work) {
+    return (
+      <div className="min-h-[50vh] flex flex-col items-center justify-center gap-4 text-center">
+        <h2 className="text-2xl font-semibold">作品不存在</h2>
+        <p className="text-muted-foreground">该作品可能已被删除或无访问权限。</p>
+        <Button variant="outline" onClick={() => router.push("/works")}>返回作品列表</Button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen space-y-8 pb-20 animate-in fade-in duration-500">
       <PageHeader
         title={work?.title || "章节列表"}
         description="管理您的作品章节，创建新章节，或编辑现有章节。"
         showBackButton={true}
+        backHref={`/works/${workId}`}
         actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => setIsImportDialogOpen(true)}>
@@ -107,7 +129,7 @@ export default function ChaptersPage(): React.ReactElement {
               导入章节
             </Button>
             <Button asChild>
-              <Link href={`/drafts/new?workId=${workId}`}>
+              <Link href={`/drafts?workId=${workId}`}>
                 <Plus className="mr-2 h-4 w-4" />
                 新章节
               </Link>
@@ -166,7 +188,7 @@ export default function ChaptersPage(): React.ReactElement {
               导入章节
             </Button>
             <Button asChild>
-              <Link href={`/drafts/new?workId=${workId}`}>
+              <Link href={`/drafts?workId=${workId}`}>
                 <Plus className="mr-2 h-4 w-4" />
                 创建第一章
               </Link>

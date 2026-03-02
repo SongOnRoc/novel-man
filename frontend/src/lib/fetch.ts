@@ -4,11 +4,53 @@ import { toCamelCase, toSnakeCase } from "@/lib/utils";
 // Determine the base URL based on the environment (server-side or client-side).
 const isServer = typeof window === "undefined";
 
+const isProduction = process.env.NODE_ENV === "production";
+
+function isLocalhostHostname(hostname: string): boolean {
+  return (
+    hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1"
+  );
+}
+
+function getServerProxyBaseURL(): string {
+  const rawNextAuthUrl = process.env.NEXTAUTH_URL;
+
+  if (typeof rawNextAuthUrl === "string" && rawNextAuthUrl.trim() !== "") {
+    let parsed: URL;
+    try {
+      parsed = new URL(rawNextAuthUrl);
+    } catch (error) {
+      const message = `[auth] Invalid NEXTAUTH_URL: "${rawNextAuthUrl}"`;
+      if (isProduction) {
+        console.error(message, error);
+        throw new Error(message);
+      }
+      console.warn(message, error);
+      return "http://localhost:3000/api/proxy";
+    }
+
+    if (isProduction && isLocalhostHostname(parsed.hostname)) {
+      const message = `[auth] Refusing NEXTAUTH_URL pointing to localhost in production: "${rawNextAuthUrl}"`;
+      console.error(message);
+      throw new Error(message);
+    }
+
+    return `${parsed.origin}/api/proxy`;
+  }
+
+  if (isProduction) {
+    const message =
+      "[auth] Missing NEXTAUTH_URL in production; server-side requests cannot safely determine origin.";
+    console.error(message);
+    throw new Error(message);
+  }
+
+  return "http://localhost:3000/api/proxy";
+}
+
 // For server-side requests, we need a full URL. For client-side, we can use a relative path.
-// If NEXTAUTH_URL is not set, we fall back to a default localhost URL for development.
-const baseURL = isServer
-  ? `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/proxy`
-  : "/api/proxy";
+// Production must NOT silently fall back to localhost.
+const baseURL = isServer ? getServerProxyBaseURL() : "/api/proxy";
 
 /**
  * A custom fetch wrapper that Orval will use as the mutator.
@@ -96,16 +138,40 @@ export const customFetch = async <T>(
         }
       }
 
-      let errorData;
+      // Prefer preserving error body; avoid swallowing non-2xx JSON.
+      let errorData: any;
       try {
-        errorData = await response.json();
+        const rawText = await response.text();
+        if (rawText) {
+          try {
+            errorData = JSON.parse(rawText);
+          } catch {
+            errorData = { message: rawText };
+          }
+        } else {
+          errorData = { message: response.statusText };
+        }
       } catch {
         errorData = { message: response.statusText };
       }
 
-      // Log error
-      console.error(`API Error ${response.status} on ${fullUrl}`, errorData);
-      
+      // Ensure the frontend can always branch on HTTP status.
+      if (
+        errorData &&
+        typeof errorData === "object" &&
+        !("code" in errorData)
+      ) {
+        errorData.code = response.status;
+      }
+
+      // 4xx (e.g. 409) is an expected business branch in some flows;
+      // only log as error for 5xx.
+      if (response.status >= 500) {
+        console.error(`API Error ${response.status} on ${fullUrl}`, errorData);
+      } else {
+        console.warn(`API Warning ${response.status} on ${fullUrl}`, errorData);
+      }
+
       throw errorData;
     }
 
@@ -119,7 +185,7 @@ export const customFetch = async <T>(
     if (onData && response.body) {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let buffer = '';
+      let buffer = "";
 
       try {
         while (true) {
@@ -136,22 +202,22 @@ export const customFetch = async <T>(
             buffer += chunk;
           }
 
-          const lines = buffer.split('\n');
+          const lines = buffer.split("\n");
 
           // If not done, keep the last line in buffer as it might be incomplete
           // If done, process all lines including the last one
           if (!done) {
-            buffer = lines.pop() || '';
+            buffer = lines.pop() || "";
           } else {
-            buffer = '';
+            buffer = "";
           }
 
           for (const line of lines) {
             const trimmedLine = line.trim();
-            if (!trimmedLine || !trimmedLine.startsWith('data: ')) continue;
+            if (!trimmedLine || !trimmedLine.startsWith("data: ")) continue;
 
             const jsonStr = trimmedLine.slice(6);
-            if (jsonStr === '[DONE]') {
+            if (jsonStr === "[DONE]") {
               onData({ done: true });
               return {} as T;
             }
@@ -163,7 +229,7 @@ export const customFetch = async <T>(
               // console.log('SSE Parsed:', parsed);
               onData(toCamelCase(parsed));
             } catch (e) {
-              console.warn('Failed to parse SSE message:', trimmedLine, e);
+              console.warn("Failed to parse SSE message:", trimmedLine, e);
             }
           }
 
@@ -175,7 +241,7 @@ export const customFetch = async <T>(
         }
       } catch (e: any) {
         // 处理 abort 错误，发送 done 信号
-        if (e.name === 'AbortError') {
+        if (e.name === "AbortError") {
           onData({ done: true, aborted: true });
         } else {
           throw e;
@@ -199,11 +265,10 @@ export const customFetch = async <T>(
     }
 
     return transformedData as T;
-
   } catch (error: any) {
-    if (error.name === 'AbortError') {
-       // Ignore abort errors or rethrow a specific error if needed
-       throw error; 
+    if (error.name === "AbortError") {
+      // Ignore abort errors or rethrow a specific error if needed
+      throw error;
     }
     throw error;
   }

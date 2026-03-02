@@ -88,3 +88,30 @@ export function stripHtml(html: string): string {
   if (!html) return "";
   return html.replace(/<[^>]*>/g, "");
 }
+
+/**
+ * 可参与“按最近更新时间降序”排序的数据结构。
+ */
+export interface HasUpdatedAt {
+  updatedAt?: string | null;
+}
+
+/**
+ * 通用排序工具：按 `updatedAt` 从新到旧排序。
+ *
+ * 设计说明：
+ * - 不修改原数组，返回排序后的新数组；
+ * - `updatedAt` 为空或非法日期时按 0 处理，自动排到后面；
+ * - 适用于任何包含 `updatedAt` 字段的列表。
+ */
+export function sortByUpdatedAtDesc<T extends HasUpdatedAt>(items: T[]): T[] {
+  const toTimestamp = (value?: string | null): number => {
+    if (!value) return 0;
+    const timestamp = new Date(value).getTime();
+    return Number.isNaN(timestamp) ? 0 : timestamp;
+  };
+
+  return [...items].sort(
+    (a, b) => toTimestamp(b.updatedAt) - toTimestamp(a.updatedAt)
+  );
+}

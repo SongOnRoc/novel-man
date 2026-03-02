@@ -1,6 +1,15 @@
 "use client";
 
-import { BookOpen, Download, Edit, Trash2, Users, Globe, Settings, PenTool } from "lucide-react";
+import {
+  BookOpen,
+  Download,
+  Edit,
+  Trash2,
+  Users,
+  Globe,
+  Settings,
+  PenTool,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -11,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteWorkDialog } from "@/features/works/components/DeleteWorkDialog";
 import { useWorkById, useDeleteWork } from "@/hooks/work/useWorkService";
-import { cn } from "@/lib/utils";
+import { cn, formatWordCount } from "@/lib/utils";
 import { Image } from "@/components/ui/image";
 import { GlobalLoading } from "@/components/common/GlobalLoading";
 
@@ -23,7 +32,7 @@ export default function WorkDetailsPage() {
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { data: work, isLoading } = useWorkById(workId);
-  const { mutate: deleteWork, isPending: isDeleting } = useDeleteWork();
+  const { mutateAsync: deleteWork, isPending: isDeleting } = useDeleteWork();
 
   useEffect(() => {
     if (work) {
@@ -31,12 +40,11 @@ export default function WorkDetailsPage() {
     }
   }, [work, workId, setBreadcrumb]);
 
-  const handleDelete = () => {
-    deleteWork(workId, {
-      onSuccess: () => {
-        router.push("/works");
-      },
-    });
+  const handleDelete = async (
+    draftHandling?: "delete" | "unlink"
+  ): Promise<void> => {
+    await deleteWork({ id: workId, draftHandling });
+    router.push("/works");
   };
 
   if (isLoading) {
@@ -61,27 +69,29 @@ export default function WorkDetailsPage() {
       {/* Hero Header (Apple Music Style) */}
       <div className="relative -mx-4 -mt-4 mb-8 overflow-hidden bg-background md:-mx-8 md:-mt-8">
         {/* Blurred Background */}
-        <div 
+        <div
           className="absolute inset-0 z-0 bg-cover bg-center opacity-30 blur-3xl dark:opacity-20"
-          style={{ backgroundImage: `url(${work.coverImageUrl || "/placeholder-cover.jpg"})` }}
+          style={{
+            backgroundImage: `url(${work.coverImageUrl || "/placeholder-cover.jpg"})`,
+          }}
         />
         <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent to-background" />
 
         <div className="relative z-10 flex flex-col gap-8 p-8 md:flex-row md:items-end md:p-12">
           {/* Cover Image */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
             className="relative h-48 w-36 flex-shrink-0 overflow-hidden rounded-lg shadow-2xl md:h-64 md:w-48"
           >
-             <Image
-                src={work.coverImageUrl || ""}
-                alt={work.title || "Work Cover"}
-                fallbackText={work.title || "Work"}
-                className="h-full w-full object-cover"
-                priority
-              />
+            <Image
+              src={work.coverImageUrl || ""}
+              alt={work.title || "Work Cover"}
+              fallbackText={work.title || "Work"}
+              className="h-full w-full object-cover"
+              priority
+            />
           </motion.div>
 
           {/* Info */}
@@ -97,29 +107,50 @@ export default function WorkDetailsPage() {
               <p className="mt-2 text-lg text-muted-foreground line-clamp-2">
                 {work.description || "暂无简介"}
               </p>
+
+              {/* 单作品统计（用于定位统计异常） */}
+              <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                <span className="inline-flex items-center gap-2 rounded-full border bg-background/50 px-3 py-1 backdrop-blur-sm">
+                  <PenTool className="h-4 w-4" />
+                  总字数：{formatWordCount(work.totalWordCount || 0)}
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-full border bg-background/50 px-3 py-1 backdrop-blur-sm">
+                  <BookOpen className="h-4 w-4" />
+                  总章节：{work.totalChapterCount || 0}
+                </span>
+              </div>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
               className="flex flex-wrap gap-3"
             >
-              <Button asChild size="lg" className="rounded-full shadow-lg shadow-primary/20">
+              <Button
+                asChild
+                size="lg"
+                className="rounded-full shadow-lg shadow-primary/20"
+              >
                 <Link href={`/works/${work.id}/chapters`}>
                   <PenTool className="mr-2 h-4 w-4" />
                   开始写作
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" className="rounded-full bg-background/50 backdrop-blur-sm" asChild>
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-full bg-background/50 backdrop-blur-sm"
+                asChild
+              >
                 <Link href={`/works/${work.id}/edit`}>
                   <Edit className="mr-2 h-4 w-4" />
                   编辑信息
                 </Link>
               </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 className="rounded-full hover:bg-destructive/10 hover:text-destructive"
                 onClick={() => setDeleteDialogOpen(true)}
               >
@@ -162,7 +193,7 @@ export default function WorkDetailsPage() {
             title="作品设置"
             description="修改元数据，导出作品"
             icon={Settings}
-            href={`/works/${work.id}/settings`} // Assuming this route exists or will exist
+            href={`/works/${work.id}/edit`}
             color="text-orange-500"
             delay={0.6}
           />
@@ -179,18 +210,18 @@ export default function WorkDetailsPage() {
   );
 }
 
-function NavCard({ 
-  title, 
-  description, 
-  icon: Icon, 
-  href, 
+function NavCard({
+  title,
+  description,
+  icon: Icon,
+  href,
   color,
-  delay 
-}: { 
-  title: string; 
-  description: string; 
-  icon: any; 
-  href: string; 
+  delay,
+}: {
+  title: string;
+  description: string;
+  icon: any;
+  href: string;
   color: string;
   delay: number;
 }) {
@@ -203,13 +234,23 @@ function NavCard({
         whileHover={{ y: -4 }}
         className="group relative overflow-hidden rounded-2xl border bg-card p-6 shadow-sm transition-shadow hover:shadow-md"
       >
-        <div className={cn("mb-4 inline-flex rounded-xl bg-muted p-3 transition-colors group-hover:bg-background", color)}>
+        <div
+          className={cn(
+            "mb-4 inline-flex rounded-xl bg-muted p-3 transition-colors group-hover:bg-background",
+            color
+          )}
+        >
           <Icon className="h-6 w-6" />
         </div>
         <h3 className="mb-1 text-lg font-semibold tracking-tight">{title}</h3>
         <p className="text-sm text-muted-foreground">{description}</p>
-        
-        <div className={cn("absolute -right-4 -top-4 h-24 w-24 rounded-full opacity-5 transition-transform group-hover:scale-150", color.replace("text-", "bg-"))} />
+
+        <div
+          className={cn(
+            "absolute -right-4 -top-4 h-24 w-24 rounded-full opacity-5 transition-transform group-hover:scale-150",
+            color.replace("text-", "bg-")
+          )}
+        />
       </motion.div>
     </Link>
   );

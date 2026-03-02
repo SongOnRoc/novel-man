@@ -3,7 +3,9 @@ package chapters
 import (
 	"novel-man/backend/internal/apps"
 	"novel-man/backend/internal/container"
+	chapters_contract "novel-man/backend/internal/contracts/chapters"
 	"novel-man/backend/internal/controllers/chapters"
+	"novel-man/backend/internal/events"
 	middle "novel-man/backend/internal/middlewares"
 	"novel-man/backend/internal/middlewares/auth"
 	"novel-man/backend/internal/middlewares/resource"
@@ -33,8 +35,14 @@ func (m *chaptersModule) RegisterRoutes(router *gin.RouterGroup) {
 	err := container.Container.Invoke(func(
 		controller *chapters.ChapterController,
 		provider *middle.MiddlewareProvider,
+		eventManager *events.EventManager,
+		chapterService chapters_contract.ChapterService,
 	) {
 		m.middlewareProvider = provider
+
+		eventManager.RegisterRoutes(events.EventTypeChaptersCreate, events.ModuleChapters)
+		eventManager.RegisterRoutes(events.EventTypeChaptersUpdate, events.ModuleChapters)
+		eventManager.RegisterConsumer(events.ModuleChapters, chapterService.HandleChapterTask)
 
 		// 创建需要认证的路由组
 		authedGroup := router.Group("/chapters")

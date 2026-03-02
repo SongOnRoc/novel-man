@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { MoreVertical, Trash2, BookOpen, Calendar, Clock } from "lucide-react";
+import { MoreVertical, Trash2, BookOpen, PenTool, Clock } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { WorkForClient } from "@/lib/services/work.service";
+import { formatWordCount } from "@/lib/utils";
 
 interface WorkCardProps {
   work: WorkForClient;
@@ -24,6 +25,14 @@ interface WorkCardProps {
 }
 
 export function WorkCard({ work, onDelete, isDeleting }: WorkCardProps) {
+  const description = work.description || "";
+  const descriptionMaxLen = 120;
+  const descriptionPreview = description
+    ? description.length > descriptionMaxLen
+      ? `${description.slice(0, descriptionMaxLen)}…`
+      : description
+    : "暂无简介";
+
   return (
     <motion.div
       layoutId={`work-card-${work.id}`}
@@ -39,7 +48,7 @@ export function WorkCard({ work, onDelete, isDeleting }: WorkCardProps) {
             fallbackText={work.title || "Work"}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
-          
+
           {/* 状态标签 */}
           <div className="absolute left-3 top-3">
             <span className="inline-flex items-center rounded-full bg-background/90 px-2.5 py-0.5 text-xs font-medium text-foreground backdrop-blur-sm shadow-sm">
@@ -51,7 +60,7 @@ export function WorkCard({ work, onDelete, isDeleting }: WorkCardProps) {
         {/* 内容区域 */}
         <div className="flex flex-1 flex-col p-5">
           <div className="mb-2 flex items-start justify-between">
-            <motion.h3 
+            <motion.h3
               layoutId={`work-title-${work.id}`}
               className="line-clamp-1 text-lg font-bold text-foreground group-hover:text-primary"
             >
@@ -59,18 +68,34 @@ export function WorkCard({ work, onDelete, isDeleting }: WorkCardProps) {
             </motion.h3>
           </div>
 
-          <p className="mb-4 line-clamp-2 flex-1 text-sm text-muted-foreground">
-            {work.description || "暂无简介"}
+          <p
+            className="mb-4 line-clamp-2 flex-1 text-sm text-muted-foreground"
+            title={descriptionPreview === "暂无简介" ? "暂无简介" : description}
+          >
+            {descriptionPreview}
           </p>
+
+          {/* 作品统计（单作品） */}
+          <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1">
+              <PenTool className="h-3.5 w-3.5" />
+              {formatWordCount(work.totalWordCount || 0)} 字
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <BookOpen className="h-3.5 w-3.5" />
+              {work.totalChapterCount || 0} 章
+            </span>
+          </div>
 
           <div className="mt-auto flex items-center gap-4 text-xs text-muted-foreground">
             <div className="flex items-center gap-1">
-              <Calendar className="h-3.5 w-3.5" />
-              <span>{format(new Date(work.updatedAt || new Date()), "MM-dd", { locale: zhCN })}</span>
-            </div>
-            <div className="flex items-center gap-1">
               <Clock className="h-3.5 w-3.5" />
-              <span>{format(new Date(work.createdAt || new Date()), "yyyy", { locale: zhCN })}</span>
+              <span>
+                更新于{" "}
+                {format(new Date(work.updatedAt || new Date()), "yyyy-MM-dd", {
+                  locale: zhCN,
+                })}
+              </span>
             </div>
           </div>
         </div>
@@ -94,7 +119,11 @@ export function WorkCard({ work, onDelete, isDeleting }: WorkCardProps) {
               className="text-destructive focus:text-destructive"
               onClick={(e) => {
                 e.stopPropagation();
-                onDelete();
+
+                // Radix DropdownMenu -> AlertDialog：同一事件循环内切换 overlay
+                // 可能导致 body 的 pointer-events 被 DismissableLayer 留在 "none"。
+                // 延迟到下一个 macrotask，确保菜单层先完成关闭/清理。
+                setTimeout(() => onDelete(), 0);
               }}
               disabled={isDeleting}
             >

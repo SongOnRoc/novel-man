@@ -24,7 +24,7 @@ interface MobileAIFloatingBarProps {
  * Mobile AI Floating Bar
  *
  * A compact bottom bar with input and collapse functionality.
- * - Input box with edit button to enter immersive mode
+ * - Tap input area to enter immersive mode
  * - Collapse button to minimize the bar to the right
  * Uses theme class to inherit editor theme colors.
  */
@@ -36,6 +36,7 @@ export function MobileAIFloatingBar({
   theme = "default",
 }: MobileAIFloatingBarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const floatingBottomOffset = Math.max(safeAreaBottom, 6);
 
   // Handle drag end to detect swipe up gesture
   const handleDragEnd = (
@@ -78,7 +79,7 @@ export function MobileAIFloatingBar({
           "active:scale-95 transition-transform"
         )}
         style={{
-          marginBottom: `max(${safeAreaBottom}px, env(safe-area-inset-bottom, 8px))`,
+          marginBottom: `max(${floatingBottomOffset}px, env(safe-area-inset-bottom, 16px))`,
         }}
         aria-label="展开 AI 助手"
       >
@@ -99,7 +100,7 @@ export function MobileAIFloatingBar({
       dragElastic={{ top: 0.2, bottom: 0.1 }}
       onDragEnd={handleDragEnd}
       className={cn(
-        "fixed bottom-0 inset-x-0 z-40",
+        "fixed inset-x-0 z-40",
         // 使用主题类继承编辑器主题颜色
         `theme-${theme}`,
         "editor-paper",
@@ -111,7 +112,7 @@ export function MobileAIFloatingBar({
         "shadow-[0_-4px_20px_rgba(0,0,0,0.06)]"
       )}
       style={{
-        paddingBottom: `max(${safeAreaBottom}px, env(safe-area-inset-bottom, 8px))`,
+        bottom: `max(${floatingBottomOffset}px, env(safe-area-inset-bottom, 16px))`,
       }}
     >
       {/* Drag Handle Indicator */}

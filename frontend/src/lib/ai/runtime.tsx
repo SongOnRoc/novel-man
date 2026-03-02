@@ -14,8 +14,8 @@ export interface RuntimeConfig {
   maxTokens?: number;
   /** 获取当前选中的提示词 ID的回调函数 */
   getSelectedPromptId?: () => number | null;
-  /** 发送消息后的回调（用于清除选中状态） */
-  onMessageSent?: () => void;
+  /** 编辑器当前选中文本（会注入本轮用户消息上下文） */
+  selectedText?: string;
 }
 
 // =============================================================================

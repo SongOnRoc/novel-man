@@ -48,7 +48,7 @@ export function EditorLayout({ children, sidebar }: EditorLayoutProps) {
       <motion.div
         initial={false}
         animate={{
-          width: isRightPanelOpen ? "360px" : "0px",
+          width: isRightPanelOpen ? "clamp(340px, 32vw, 460px)" : "0px",
           opacity: isRightPanelOpen ? 1 : 0,
         }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}

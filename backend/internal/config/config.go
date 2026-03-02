@@ -25,6 +25,16 @@ type Config struct {
 	Database DatabaseConfig `mapstructure:"database"`
 	Log      LogConfig      `mapstructure:"logger"`
 	LLM      LLMConfig      `mapstructure:"llm"`
+	Events   EventsConfig   `mapstructure:"events"`
+}
+
+// EventsConfig 存储事件治理相关配置
+// 仅用于启动接线，不改变业务语义。
+type EventsConfig struct {
+	ModuleConcurrency           map[string]int `mapstructure:"module_concurrency"`
+	AlertCollectIntervalSeconds int            `mapstructure:"alert_collect_interval_seconds"`
+	DLQThreshold                int            `mapstructure:"dlq_threshold"`
+	OutboxPendingThreshold      int            `mapstructure:"outbox_pending_threshold"`
 }
 
 // LLMConfig 存储大语言模型相关的配置
@@ -78,6 +88,16 @@ func LoadConfig(configPath string) (*Config, error) {
 	// 设置默认值
 	viper.SetDefault("logger.debug", false)
 	viper.SetDefault("logger.console_log", false)
+	viper.SetDefault("events.module_concurrency.works", 1)
+	viper.SetDefault("events.module_concurrency.chapters", 1)
+	viper.SetDefault("events.module_concurrency.characters", 1)
+	viper.SetDefault("events.module_concurrency.drafts", 1)
+	viper.SetDefault("events.module_concurrency.prompts", 1)
+	viper.SetDefault("events.module_concurrency.settings", 1)
+	viper.SetDefault("events.module_concurrency.worldview", 1)
+	viper.SetDefault("events.alert_collect_interval_seconds", 30)
+	viper.SetDefault("events.dlq_threshold", 1)
+	viper.SetDefault("events.outbox_pending_threshold", 20)
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {

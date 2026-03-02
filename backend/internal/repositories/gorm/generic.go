@@ -76,14 +76,49 @@ func (r *GenericGormRepository[T, ID]) List(ctx context.Context, page, limit int
 }
 
 // applyFilters 应用过滤条件
+// 统一先将 Filters 归一化为 Condition 树，再复用 applyCondition 执行。
 func (r *GenericGormRepository[T, ID]) applyFilters(db *gorm.DB, filters contracts.Filters, schema *schema.Schema) *gorm.DB {
-	for _, value := range filters {
-		// 只处理 Condition 结构体
+	root := r.normalizeFiltersToCondition(filters)
+	if root == nil {
+		return db
+	}
+	return r.applyCondition(db, root, schema)
+}
+
+// normalizeFiltersToCondition 将 Filters 归一化为 Condition 树。
+// - 忽略排序键（order）：排序由 List 中的 Order 分支统一处理，避免被当作字段条件参与 WHERE。
+// - 已是 Condition 的值直接复用
+// - 标量值转换为等值条件
+// - nil 值转换为 IS NULL 条件
+func (r *GenericGormRepository[T, ID]) normalizeFiltersToCondition(filters contracts.Filters) *contracts.Condition {
+	var root *contracts.Condition
+
+	for key, value := range filters {
+		if key == contracts.FilterKeyOrder {
+			continue
+		}
+
+		var current *contracts.Condition
 		if cond, ok := value.(*contracts.Condition); ok {
-			db = r.applyCondition(db, cond, schema)
+			current = cond
+		} else if value == nil {
+			current = contracts.NewCondition(key, nil, contracts.OpIsNull)
+		} else {
+			current = contracts.NewCondition(key, value)
+		}
+
+		if current == nil {
+			continue
+		}
+
+		if root == nil {
+			root = current
+		} else {
+			root = root.And(current)
 		}
 	}
-	return db
+
+	return root
 }
 
 // applyCondition 递归应用 Condition

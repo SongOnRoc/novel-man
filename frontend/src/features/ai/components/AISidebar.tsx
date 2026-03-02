@@ -1,7 +1,11 @@
 "use client";
 
 import { type FC, useState, useCallback } from "react";
-import { PanelRightCloseIcon, PanelRightOpenIcon, Sparkles } from "lucide-react";
+import {
+  PanelRightCloseIcon,
+  PanelRightOpenIcon,
+  Sparkles,
+} from "lucide-react";
 
 import { AIAssistantShell } from "@/components/assistant-ui/ai-assistant-shell";
 import {
@@ -39,7 +43,7 @@ interface AISidebarProps {
 
 /**
  * AI 侧边栏组件
- * 
+ *
  * 用于章节/草稿编辑页面，提供可收起的 AI 助手侧边栏。
  * 编辑器区域会自适应调整宽度。
  */
@@ -56,12 +60,8 @@ export const AISidebar: FC<AISidebarProps> = ({
   const isOpen = onOpenChange ? open : internalOpen;
   const setIsOpen = onOpenChange ?? setInternalOpen;
 
-  const {
-    settings,
-    isDialogOpen,
-    setIsDialogOpen,
-    handleSave,
-  } = useAISettings();
+  const { settings, isDialogOpen, setIsDialogOpen, handleSave } =
+    useAISettings();
 
   // 切换侧边栏
   const toggleSidebar = useCallback(() => {
@@ -74,8 +74,12 @@ export const AISidebar: FC<AISidebarProps> = ({
   }, [setIsDialogOpen]);
 
   // 处理应用到编辑器
-  const handleApply = useCallback((text: string) => {
-    onApplyToEditor?.(text);}, [onApplyToEditor]);
+  const handleApply = useCallback(
+    (text: string) => {
+      onApplyToEditor?.(text);
+    },
+    [onApplyToEditor]
+  );
 
   return (
     <>
@@ -100,21 +104,27 @@ export const AISidebar: FC<AISidebarProps> = ({
           "ai-sidebar fixed top-16 right-0 bottom-0 z-30",
           "bg-background border-l border-border shadow-lg",
           "transition-all duration-300 ease-in-out",
-          isOpen ? "w-96translate-x-0" : "w-0 translate-x-full",
+          // 注意：这里原本少了一个空格（w-96translate-x-0），导致 Tailwind 类名无效，宽度始终无法生效
+          isOpen
+            ? "w-[clamp(360px,34vw,520px)] min-w-[360px] translate-x-0"
+            : "w-0 min-w-0 translate-x-full",
           className
-        )}>
+        )}
+      >
         {isOpen && (
           <AIAssistantShell
             config={{
               model: settings.model,
               temperature: settings.temperature,
-              maxTokens: settings.maxTokens,}}
+              maxTokens: settings.maxTokens,
+            }}
             showThreadList={false}
             compact={true}
             onSettingsClick={handleSettingsClick}
             className="h-full"
           />
-        )}</div>
+        )}
+      </div>
 
       {/* 设置对话框 */}
       <AISettingsDialog
@@ -148,7 +158,8 @@ export const AISidebarToggle: FC<AISidebarToggleProps> = ({
       size="sm"
       onClick={onToggle}
       className={cn("gap-2", className)}
-    ><Sparkles className="h-4 w-4" />
+    >
+      <Sparkles className="h-4 w-4" />
       {open ? "收起 AI" : "AI 助手"}
     </Button>
   );

@@ -3,7 +3,9 @@ package drafts
 import (
 	"novel-man/backend/internal/apps"
 	"novel-man/backend/internal/container"
+	drafts_contract "novel-man/backend/internal/contracts/drafts"
 	"novel-man/backend/internal/controllers/drafts"
+	"novel-man/backend/internal/events"
 	middle "novel-man/backend/internal/middlewares"
 	"novel-man/backend/internal/middlewares/auth"
 	"novel-man/backend/internal/middlewares/resource"
@@ -22,6 +24,7 @@ func init() {
 	// 注册服务实现
 	container.Container.Provide(gorm.NewDraftGormRepository)
 	container.Container.Provide(gorm.NewChapterGormRepository) // 为 DraftService 提供依赖
+	container.Container.Provide(gorm.NewWorkGormRepository)    // 为 DraftService 提供依赖
 	container.Container.Provide(drafts_service.NewDraftService)
 
 	// 注册控制器实现
@@ -32,8 +35,14 @@ func (m *draftsModule) RegisterRoutes(router *gin.RouterGroup) {
 	err := container.Container.Invoke(func(
 		controller *drafts.DraftController,
 		provider *middle.MiddlewareProvider,
+		eventManager *events.EventManager,
+		draftService drafts_contract.DraftService,
 	) {
 		m.middlewareProvider = provider
+
+		eventManager.RegisterRoutes(events.EventTypeDraftsCreate, events.ModuleDrafts)
+		eventManager.RegisterRoutes(events.EventTypeDraftsUpdate, events.ModuleDrafts)
+		eventManager.RegisterConsumer(events.ModuleDrafts, draftService.HandleDraftTask)
 
 		authedGroup := router.Group("/drafts")
 		authMiddleware, ok := m.getMiddleware(auth.AuthMiddlewareName)
