@@ -33,9 +33,10 @@ func (m *authModule) RegisterRoutes(router *gin.RouterGroup) {
 		{
 			authGroup.POST("/register", controller.Register)
 			authGroup.POST("/login", controller.Login)
+			authGroup.POST("/admin/login", controller.AdminLogin)
 		}
 
-		// 需要认证的路由组
+		// 普通用户认证路由组
 		authRequiredGroup := router.Group("/auth")
 		authMiddleware, ok := m.getAuthMiddleware()
 		if !ok {
@@ -47,15 +48,36 @@ func (m *authModule) RegisterRoutes(router *gin.RouterGroup) {
 			authRequiredGroup.GET("/me", controller.GetCurrentUser)
 			authRequiredGroup.POST("/logout", controller.Logout)
 		}
+
+		// 管理后台认证路由组
+		adminAuthRequiredGroup := router.Group("/auth/admin")
+		adminAuthMiddleware, ok := m.getAdminAuthMiddleware()
+		if !ok {
+			panic("admin auth middleware not found")
+		}
+
+		adminAuthRequiredGroup.Use(adminAuthMiddleware)
+		{
+			adminAuthRequiredGroup.GET("/me", controller.GetCurrentAdmin)
+		}
 	})
 	if err != nil {
 		panic(err)
 	}
 }
 
-// getAuthMiddleware 获取认证中间件
+// getAuthMiddleware 获取普通用户认证中间件
 func (m *authModule) getAuthMiddleware() (gin.HandlerFunc, bool) {
 	middleware, ok := m.middlewareProvider.Get("auth")
+	if !ok {
+		return nil, false
+	}
+	return middleware.Handler(), true
+}
+
+// getAdminAuthMiddleware 获取管理后台认证中间件
+func (m *authModule) getAdminAuthMiddleware() (gin.HandlerFunc, bool) {
+	middleware, ok := m.middlewareProvider.Get("admin-auth")
 	if !ok {
 		return nil, false
 	}

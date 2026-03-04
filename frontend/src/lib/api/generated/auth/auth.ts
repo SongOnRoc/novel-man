@@ -24,7 +24,9 @@ import type {
 import type {
   AuthLoginRequest,
   AuthRegisterRequest,
+  GetAuthAdminMe200,
   GetAuthMe200,
+  PostAuthAdminLogin200,
   PostAuthLogin200,
   PostAuthLogout200,
   PostAuthRegister201,
@@ -34,6 +36,260 @@ import type {
 import { customFetch } from "../../../fetch";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+/**
+ * Log in an admin user with identifier (username or email) and password
+ * @summary Log in an admin user
+ */
+export const postAuthAdminLogin = (
+  authLoginRequest: AuthLoginRequest,
+  options?: SecondParameter<typeof customFetch>,
+  signal?: AbortSignal,
+) => {
+  return customFetch<PostAuthAdminLogin200>(
+    {
+      url: `/auth/admin/login`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: authLoginRequest,
+      signal,
+    },
+    options,
+  );
+};
+
+export const getPostAuthAdminLoginMutationOptions = <
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postAuthAdminLogin>>,
+    TError,
+    { data: AuthLoginRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postAuthAdminLogin>>,
+  TError,
+  { data: AuthLoginRequest },
+  TContext
+> => {
+  const mutationKey = ["postAuthAdminLogin"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postAuthAdminLogin>>,
+    { data: AuthLoginRequest }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return postAuthAdminLogin(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PostAuthAdminLoginMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postAuthAdminLogin>>
+>;
+export type PostAuthAdminLoginMutationBody = AuthLoginRequest;
+export type PostAuthAdminLoginMutationError =
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse;
+
+/**
+ * @summary Log in an admin user
+ */
+export const usePostAuthAdminLogin = <
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postAuthAdminLogin>>,
+      TError,
+      { data: AuthLoginRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postAuthAdminLogin>>,
+  TError,
+  { data: AuthLoginRequest },
+  TContext
+> => {
+  const mutationOptions = getPostAuthAdminLoginMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Get the current authenticated admin's information
+ * @summary Get current admin info
+ */
+export const getAuthAdminMe = (
+  options?: SecondParameter<typeof customFetch>,
+  signal?: AbortSignal,
+) => {
+  return customFetch<GetAuthAdminMe200>(
+    { url: `/auth/admin/me`, method: "GET", signal },
+    options,
+  );
+};
+
+export const getGetAuthAdminMeQueryKey = () => {
+  return [`/auth/admin/me`] as const;
+};
+
+export const getGetAuthAdminMeQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAuthAdminMe>>,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof getAuthAdminMe>>, TError, TData>
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAuthAdminMeQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAuthAdminMe>>> = ({
+    signal,
+  }) => getAuthAdminMe(requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAuthAdminMe>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetAuthAdminMeQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAuthAdminMe>>
+>;
+export type GetAuthAdminMeQueryError =
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse;
+
+export function useGetAuthAdminMe<
+  TData = Awaited<ReturnType<typeof getAuthAdminMe>>,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getAuthAdminMe>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAuthAdminMe>>,
+          TError,
+          Awaited<ReturnType<typeof getAuthAdminMe>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAuthAdminMe<
+  TData = Awaited<ReturnType<typeof getAuthAdminMe>>,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getAuthAdminMe>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAuthAdminMe>>,
+          TError,
+          Awaited<ReturnType<typeof getAuthAdminMe>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAuthAdminMe<
+  TData = Awaited<ReturnType<typeof getAuthAdminMe>>,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getAuthAdminMe>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get current admin info
+ */
+
+export function useGetAuthAdminMe<
+  TData = Awaited<ReturnType<typeof getAuthAdminMe>>,
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getAuthAdminMe>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetAuthAdminMeQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
 
 /**
  * Log in a user with identifier (username or email) and password

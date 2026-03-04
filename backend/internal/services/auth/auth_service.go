@@ -11,6 +11,7 @@ import (
 
 	"novel-man/backend/internal/config"
 	"novel-man/backend/internal/contracts/auth"
+	opsc "novel-man/backend/internal/contracts/ops"
 	"novel-man/backend/internal/logger"
 	"novel-man/backend/internal/models"
 	"novel-man/backend/utils/context"
@@ -36,6 +37,7 @@ func (s *authService) Register(ctx context.Context, username, email, password st
 		Username:     username,
 		Email:        email,
 		PasswordHash: string(hashedPassword),
+		Role:         "user",
 	}
 
 	if err := s.userRepo.CreateUser(ctx, user); err != nil {
@@ -52,24 +54,30 @@ func (s *authService) Register(ctx context.Context, username, email, password st
 }
 
 func (s *authService) Login(ctx context.Context, identifier, password string) (string, error) {
-	user, err := s.userRepo.FindUserByUsername(ctx, identifier)
+	user, err := s.authenticateUser(ctx, identifier, password)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// If not found by username, try by email
-			user, err = s.userRepo.FindUserByEmail(ctx, identifier)
-			if err != nil {
-				return "", errors.New("invalid credentials")
-			}
-		} else {
-			return "", err
-		}
+		return "", err
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		return "", errors.New("invalid credentials")
+	token, err := s.generateUserJWT(user)
+	if err != nil {
+		return "", err
 	}
 
-	token, err := s.generateJWT(user)
+	return token, nil
+}
+
+func (s *authService) AdminLogin(ctx context.Context, identifier, password string) (string, error) {
+	user, err := s.authenticateUser(ctx, identifier, password)
+	if err != nil {
+		return "", err
+	}
+
+	if !isAdminRole(user.Role) {
+		return "", auth.ErrAdminAccessDenied
+	}
+
+	token, err := s.generateAdminJWT(user)
 	if err != nil {
 		return "", err
 	}
@@ -87,13 +95,78 @@ func (s *authService) GetCurrentUser(ctx context.Context, userID uint) (*models.
 	return s.userRepo.FindUserByID(ctx, userID)
 }
 
-func (s *authService) generateJWT(user *models.User) (string, error) {
-	claims := jwt.MapClaims{
-		"user_id":  user.ID,
-		"username": user.Username,
-		"exp":      time.Now().Add(time.Hour * 72).Unix(),
+func (s *authService) GetCurrentAdmin(ctx context.Context, adminID uint) (*models.User, error) {
+	user, err := s.userRepo.FindUserByID(ctx, adminID)
+	if err != nil {
+		return nil, err
 	}
 
+	if !isAdminRole(user.Role) {
+		return nil, auth.ErrAdminAccessDenied
+	}
+
+	return user, nil
+}
+
+func (s *authService) authenticateUser(ctx context.Context, identifier, password string) (*models.User, error) {
+	user, err := s.userRepo.FindUserByUsername(ctx, identifier)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// If not found by username, try by email
+			user, err = s.userRepo.FindUserByEmail(ctx, identifier)
+			if err != nil {
+				return nil, errors.New("invalid credentials")
+			}
+		} else {
+			return nil, err
+		}
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+		return nil, errors.New("invalid credentials")
+	}
+
+	return user, nil
+}
+
+func (s *authService) generateUserJWT(user *models.User) (string, error) {
+	claims := jwt.MapClaims{
+		"user_id":    user.ID,
+		"username":   user.Username,
+		"role":       normalizeRole(user.Role),
+		"token_kind": auth.TokenKindUser,
+		"exp":        time.Now().Add(time.Hour * 72).Unix(),
+	}
+
+	return s.signClaims(claims)
+}
+
+func (s *authService) generateAdminJWT(user *models.User) (string, error) {
+	claims := jwt.MapClaims{
+		"admin_id":   user.ID,
+		"username":   user.Username,
+		"admin_role": normalizeRole(user.Role),
+		"token_kind": auth.TokenKindAdmin,
+		"exp":        time.Now().Add(time.Hour * 72).Unix(),
+	}
+
+	return s.signClaims(claims)
+}
+
+func (s *authService) signClaims(claims jwt.MapClaims) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(s.jwtSecret))
+}
+
+func normalizeRole(role string) string {
+	if role == "" {
+		return "user"
+	}
+
+	return role
+}
+
+func isAdminRole(role string) bool {
+	normalized := normalizeRole(role)
+	return normalized == opsc.OpsRoleAdmin || normalized == opsc.OpsRoleOperator
 }

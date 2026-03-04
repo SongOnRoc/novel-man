@@ -8,6 +8,7 @@ import (
 	"novel-man/backend/internal/contracts/chapters"
 	"novel-man/backend/internal/contracts/works"
 	"novel-man/backend/internal/events"
+	"novel-man/backend/internal/logger"
 	"novel-man/backend/internal/models"
 	"novel-man/backend/internal/services"
 	"novel-man/backend/utils/context"
@@ -68,17 +69,23 @@ func (s *WorkService) Update(ctx context.Context, id int64, entity *models.Work)
 func (s *WorkService) HandleWorkStatsTask(ctx context.Context, task events.QueueTask) error {
 	workID, err := parseWorkIDFromTask(task)
 	if err != nil {
+		logger.Warn(&ctx, "works stats consumer parse work id failed event_id={} task_id={} partition_key={} err={}", task.EventID, task.TaskID, task.PartitionKey, err)
 		return err
 	}
 
+	jobID, _ := task.Payload["ops_job_id"].(string)
+	logger.Info(&ctx, "works stats consumer received task job_id={} work_id={} event_id={} task_id={} trace_id={}", jobID, workID, task.EventID, task.TaskID, task.TraceID)
+
 	work, err := s.GetByID(ctx, workID)
 	if err != nil {
+		logger.Warn(&ctx, "works stats consumer load work failed job_id={} work_id={} event_id={} task_id={} err={}", jobID, workID, task.EventID, task.TaskID, err)
 		return err
 	}
 
 	filters := contracts.Filters{"work_id": work.ID}
 	chapterList, _, err := s.chapter.List(ctx, 1, 100000, filters)
 	if err != nil {
+		logger.Warn(&ctx, "works stats consumer list chapters failed job_id={} work_id={} event_id={} task_id={} err={}", jobID, workID, task.EventID, task.TaskID, err)
 		return err
 	}
 
@@ -87,14 +94,18 @@ func (s *WorkService) HandleWorkStatsTask(ctx context.Context, task events.Queue
 		totalWordCount += chapter.WordCount
 	}
 	totalChapterCount := len(chapterList)
+	logger.Info(&ctx, "works stats consumer recomputed totals job_id={} work_id={} event_id={} task_id={} total_word_count={} total_chapter_count={} historical_total_word_count={} historical_total_chapter_count={}", jobID, workID, task.EventID, task.TaskID, totalWordCount, totalChapterCount, work.TotalWordCount, work.TotalChapterCount)
 
 	if totalWordCount == work.TotalWordCount && totalChapterCount == work.TotalChapterCount {
+		logger.Info(&ctx, "works stats consumer persist skipped unchanged job_id={} work_id={} event_id={} task_id={}", jobID, workID, task.EventID, task.TaskID)
 		return nil
 	}
 
 	if err := s.repo.UpdateWorkStats(ctx, work.ID, totalWordCount, totalChapterCount); err != nil {
+		logger.Warn(&ctx, "works stats consumer persist failed job_id={} work_id={} event_id={} task_id={} total_word_count={} total_chapter_count={} err={}", jobID, workID, task.EventID, task.TaskID, totalWordCount, totalChapterCount, err)
 		return err
 	}
+	logger.Info(&ctx, "works stats consumer persist succeeded job_id={} work_id={} event_id={} task_id={} total_word_count={} total_chapter_count={}", jobID, workID, task.EventID, task.TaskID, totalWordCount, totalChapterCount)
 
 	work.TotalWordCount = totalWordCount
 	work.TotalChapterCount = totalChapterCount

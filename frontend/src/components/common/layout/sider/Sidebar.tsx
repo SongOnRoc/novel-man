@@ -19,7 +19,7 @@ import {
   Bell,
   Sun,
   Moon,
-  User
+  User,
 } from "lucide-react";
 
 import { ThemeToggle } from "../ThemeToggle";
@@ -29,9 +29,19 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { sidebarNavConfig, dashboardLink, settingsLink, NavLink, getWorkNavConfig } from "@/lib/config/nav";
+import {
+  sidebarNavConfig,
+  dashboardLink,
+  settingsLink,
+  NavLink,
+  getWorkNavConfig,
+} from "@/lib/config/nav";
 
-export function Sidebar({ showExtraFooter = false }: { showExtraFooter?: boolean }) {
+export function Sidebar({
+  showExtraFooter = false,
+}: {
+  showExtraFooter?: boolean;
+}) {
   const pathname = usePathname();
   const params = useParams();
   const workId = params.id as string;
@@ -77,7 +87,11 @@ export function Sidebar({ showExtraFooter = false }: { showExtraFooter?: boolean
                   </h4>
                   <div className="space-y-1">
                     {group.links.map((item) => (
-                      <SidebarItem key={item.href} item={item} isActive={pathname === item.href} />
+                      <SidebarItem
+                        key={item.href}
+                        item={item}
+                        isActive={pathname === item.href}
+                      />
                     ))}
                   </div>
                 </div>
@@ -122,7 +136,7 @@ export function Sidebar({ showExtraFooter = false }: { showExtraFooter?: boolean
           item={settingsLink}
           isActive={pathname === settingsLink.href}
         />
-        
+
         {/* 仅在移动端编辑器模式下显示，替代被隐藏的 Header 功能 */}
         {showExtraFooter && (
           <div className="space-y-1 animate-in fade-in slide-in-from-bottom-4 pt-2">
@@ -175,7 +189,9 @@ function SidebarItem({ item, isActive }: { item: NavLink; isActive: boolean }) {
       <item.icon
         className={cn(
           "h-4 w-4 transition-colors",
-          isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+          isActive
+            ? "text-primary"
+            : "text-muted-foreground group-hover:text-foreground"
         )}
       />
       <span>{item.title}</span>

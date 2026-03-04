@@ -8,10 +8,10 @@ import (
 )
 
 const (
-	MaxFileSize    = 10 << 20  // 10MB
-	MaxZipSize     = 50 << 20  // 50MB
-	MaxUnzipSize   = 100 << 20 // 100MB
-	MaxFilesInZip  = 100
+	MaxFileSize   = 10 << 20  // 10MB
+	MaxZipSize    = 50 << 20  // 50MB
+	MaxUnzipSize  = 100 << 20 // 100MB
+	MaxFilesInZip = 100
 )
 
 var (

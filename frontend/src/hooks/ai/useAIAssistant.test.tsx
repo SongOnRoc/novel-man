@@ -10,16 +10,16 @@ import {
   useCreateCharacterMutation,
 } from "./useAIAssistant";
 
-import * as aiApi from "@/lib/api/ai";
-import {
-  PolishTextRequest,
-  GetCompletionRequest,
+import * as aiApi from "@/lib/services/ai.service";
+import type {
+  PolishRequest,
+  CompletionRequest,
   GenerateOutlineRequest,
   CreateCharacterRequest,
-} from "@/types/ai";
+} from "@/lib/services/ai.service";
 
-// Mock the AI API module
-vi.mock("@/lib/api/ai");
+// Mock the AI service module
+vi.mock("@/lib/services/ai.service");
 
 const createTestQueryClient = () =>
   new QueryClient({
@@ -39,12 +39,14 @@ const wrapper = ({ children }: { children: React.ReactNode }) => {
 
 describe("useAIAssistant Hooks", () => {
   describe("usePolishTextMutation", () => {
-    it("should call polishText and return result", async () => {
-      const mockData = { polished_text: "Polished text" };
-      const spy = vi.spyOn(aiApi, "polishText").mockResolvedValue(mockData);
+    it("should call polishTextService and return result", async () => {
+      const mockData = { text: "Polished text" };
+      const spy = vi
+        .spyOn(aiApi, "polishTextService")
+        .mockResolvedValue(mockData as any);
       const { result } = renderHook(() => usePolishTextMutation(), { wrapper });
 
-      const params: PolishTextRequest = { text: "some text" };
+      const params: PolishRequest = { text: "some text" };
       result.current.mutate(params);
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -55,14 +57,16 @@ describe("useAIAssistant Hooks", () => {
   });
 
   describe("useGetCompletionMutation", () => {
-    it("should call getCompletion and return result", async () => {
-      const mockData = { completion: "Completed text" };
-      const spy = vi.spyOn(aiApi, "getCompletion").mockResolvedValue(mockData);
+    it("should call getCompletionService and return result", async () => {
+      const mockData = { text: "Completed text" };
+      const spy = vi
+        .spyOn(aiApi, "getCompletionService")
+        .mockResolvedValue(mockData as any);
       const { result } = renderHook(() => useGetCompletionMutation(), {
         wrapper,
       });
 
-      const params: GetCompletionRequest = { text: "some text" };
+      const params: CompletionRequest = { text: "some text" };
       result.current.mutate(params);
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -73,11 +77,11 @@ describe("useAIAssistant Hooks", () => {
   });
 
   describe("useGenerateOutlineMutation", () => {
-    it("should call generateOutline and return result", async () => {
+    it("should call generateOutlineService and return result", async () => {
       const mockData = { outline: "Generated outline" };
       const spy = vi
-        .spyOn(aiApi, "generateOutline")
-        .mockResolvedValue(mockData);
+        .spyOn(aiApi, "generateOutlineService")
+        .mockResolvedValue(mockData as any);
       const { result } = renderHook(() => useGenerateOutlineMutation(), {
         wrapper,
       });
@@ -93,20 +97,20 @@ describe("useAIAssistant Hooks", () => {
   });
 
   describe("useCreateCharacterMutation", () => {
-    it("should call createCharacter and return result", async () => {
+    it("should call createCharacterService and return result", async () => {
       const mockData = {
         name: "Test Character",
         background_story: "A story",
         personality_desc: "A personality",
       };
       const spy = vi
-        .spyOn(aiApi, "createCharacter")
-        .mockResolvedValue(mockData);
+        .spyOn(aiApi, "createCharacterService")
+        .mockResolvedValue(mockData as any);
       const { result } = renderHook(() => useCreateCharacterMutation(), {
         wrapper,
       });
 
-      const params: CreateCharacterRequest = { description: "A description" };
+      const params = { prompt: "A description" } as CreateCharacterRequest;
       result.current.mutate(params);
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));

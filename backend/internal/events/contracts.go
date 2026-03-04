@@ -3,22 +3,29 @@ package events
 import "time"
 
 const (
-	EventTypeWorksCreate             = "works.create"
-	EventTypeWorksUpdate             = "works.update"
-	EventTypeWorksPublish            = "works.publish"
-	EventTypeWorksStatsUpdated       = "works.stats.updated"
-	EventTypeWorksQuery              = "works.query"
-	EventTypeChaptersCreate          = "chapters.create"
-	EventTypeChaptersUpdate          = "chapters.update"
-	EventTypeChaptersDelete          = "chapters.delete"
-	EventTypeCharactersCreate        = "characters.create"
-	EventTypeCharactersUpdate        = "characters.update"
-	EventTypeDraftsCreate            = "drafts.create"
-	EventTypeDraftsUpdate            = "drafts.update"
-	EventTypePromptsCreate           = "prompts.create"
-	EventTypePromptsUpdate           = "prompts.update"
-	EventTypeSettingsCreate          = "settings.create"
-	EventTypeSettingsUpdate          = "settings.update"
+	EventTypeWorksCreate       = "works.create"
+	EventTypeWorksUpdate       = "works.update"
+	EventTypeWorksPublish      = "works.publish"
+	EventTypeWorksRecalcStats  = "works.recalc_stats"
+	EventTypeWorksStatsUpdated = "works.stats.updated"
+	EventTypeWorksQuery        = "works.query"
+
+	EventTypeChaptersCreate = "chapters.create"
+	EventTypeChaptersUpdate = "chapters.update"
+	EventTypeChaptersDelete = "chapters.delete"
+
+	EventTypeCharactersCreate = "characters.create"
+	EventTypeCharactersUpdate = "characters.update"
+
+	EventTypeDraftsCreate = "drafts.create"
+	EventTypeDraftsUpdate = "drafts.update"
+
+	EventTypePromptsCreate = "prompts.create"
+	EventTypePromptsUpdate = "prompts.update"
+
+	EventTypeSettingsCreate = "settings.create"
+	EventTypeSettingsUpdate = "settings.update"
+
 	EventTypeWorldviewCategoryCreate = "worldview.category.create"
 	EventTypeWorldviewCategoryUpdate = "worldview.category.update"
 	EventTypeWorldviewItemCreate     = "worldview.item.create"

@@ -1,4 +1,10 @@
 import { getSession, signOut } from "next-auth/react";
+
+import {
+  clearStoredAdminSession,
+  getStoredAdminAccessToken,
+  isAdminApiPath,
+} from "@/lib/admin-auth";
 import { toCamelCase, toSnakeCase } from "@/lib/utils";
 
 // Determine the base URL based on the environment (server-side or client-side).
@@ -78,18 +84,27 @@ export const customFetch = async <T>(
   }
 
   // 1. Authentication
+  const isAdminRequest = isAdminApiPath(url);
+
   // getSession() is client-side only. On the server, tokens are handled directly.
-  if (!isServer) {
-    const session = await getSession();
-    if (session?.accessToken) {
-      headers["Authorization"] = `Bearer ${session.accessToken}`;
+  if (!isServer && !headers["Authorization"]) {
+    if (isAdminRequest) {
+      const adminAccessToken = getStoredAdminAccessToken();
+      if (adminAccessToken) {
+        headers["Authorization"] = adminAccessToken;
+      }
+    } else {
+      const session = await getSession();
+      if (session?.accessToken) {
+        headers["Authorization"] = `Bearer ${session.accessToken}`;
+      }
     }
   }
 
   // 2. Data Transformation (Request)
   // Transform request params and data to snake_case
   let requestBody = data;
-  let contentType = headers["Content-Type"] || "application/json";
+  const contentType = headers["Content-Type"] || "application/json";
 
   if (data && !(data instanceof FormData)) {
     requestBody = JSON.stringify(toSnakeCase(data));
@@ -127,13 +142,20 @@ export const customFetch = async <T>(
 
     // 4. Error Handling
     if (!response.ok) {
-      // Browser-side 401 handling: sign out and redirect to login
+      // Browser-side 401 handling.
       if (!isServer && response.status === 401) {
-        try {
-          await signOut({ redirect: true, callbackUrl: "/login" });
-        } catch {
+        if (isAdminRequest) {
+          clearStoredAdminSession();
           if (typeof window !== "undefined") {
-            window.location.href = "/login";
+            window.location.href = "/admin/login";
+          }
+        } else {
+          try {
+            await signOut({ redirect: true, callbackUrl: "/login" });
+          } catch {
+            if (typeof window !== "undefined") {
+              window.location.href = "/login";
+            }
           }
         }
       }

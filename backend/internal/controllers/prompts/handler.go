@@ -181,7 +181,7 @@ func (c *PromptController) ListPrompts(ctx *gin.Context) {
 func (c *PromptController) buildListQuery(ctx *gin.Context, userID uint) *contracts.Condition {
 	// 检查 is_system 参数
 	isSystemParam := ctx.Query("is_system")
-	
+
 	var query *contracts.Condition
 	if isSystemParam == "true" {
 		// 仅返回系统提示词

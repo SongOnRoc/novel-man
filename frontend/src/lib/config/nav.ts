@@ -1,4 +1,13 @@
-import { Book, Feather, Home, Settings, Bot, Users, Globe, FileText } from "lucide-react";
+import {
+  Book,
+  Feather,
+  Home,
+  Settings,
+  Bot,
+  Users,
+  Globe,
+  FileText,
+} from "lucide-react";
 
 export interface NavLink {
   title: string;

@@ -18,6 +18,7 @@ import (
 	"novel-man/backend/internal/logger"
 	"novel-man/backend/internal/middlewares"
 	"novel-man/backend/internal/router"
+	opsrunner "novel-man/backend/internal/services/ops/runner"
 	Ctx "novel-man/backend/utils/context"
 
 	"github.com/gin-gonic/gin"
@@ -54,7 +55,12 @@ var apiCmd = &cobra.Command{
 			return
 		}
 
-		if err := container.Container.Invoke(func(scheduler *events.QueueScheduler, outbox events.OutboxStore, notifier *events.NotifierWorker) {
+		if err := container.Container.Invoke(func(
+			scheduler *events.QueueScheduler,
+			outbox events.OutboxStore,
+			notifier *events.NotifierWorker,
+			runner *opsrunner.WorksRecalcStatsRunner,
+		) {
 			applySchedulerConcurrency(ctx, scheduler, config.Cfg.Events.ModuleConcurrency)
 
 			collectorStop := startEventAlertCollector(
@@ -68,6 +74,9 @@ var apiCmd = &cobra.Command{
 
 			// 初始化路由 - 使用新的自动路由注册机制
 			r := router.InitRouter(dbInstance)
+
+			// 运行时再启动 runner，确保此时 `*gorm.DB` 已注册到 DI 容器，且 works 模块已完成事件路由/consumer 注册。
+			runner.Start()
 
 			// 启动服务器（支持优雅停机）
 			addr := fmt.Sprintf(":%d", config.Cfg.Server.Port)

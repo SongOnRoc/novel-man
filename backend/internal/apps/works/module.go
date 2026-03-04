@@ -38,6 +38,7 @@ func (m *worksModule) RegisterRoutes(router *gin.RouterGroup) {
 		eventManager.RegisterRoutes(events.EventTypeWorksCreate, events.ModuleWorks)
 		eventManager.RegisterRoutes(events.EventTypeWorksUpdate, events.ModuleWorks)
 		eventManager.RegisterRoutes(events.EventTypeWorksPublish, events.ModuleWorks)
+		eventManager.RegisterRoutes(events.EventTypeWorksRecalcStats, events.ModuleWorks)
 		// 事件驱动统计回写：订阅章节变更事件，按 payload.work_id 触发重算写回 works.total_*。
 		eventManager.RegisterRoutes(events.EventTypeChaptersCreate, events.ModuleWorks)
 		eventManager.RegisterRoutes(events.EventTypeChaptersUpdate, events.ModuleWorks)
