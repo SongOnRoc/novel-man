@@ -50,3 +50,5 @@ memory-bank
 !.github
 web-bundles
 openspec
+.ace-tool/
+doc/tasks

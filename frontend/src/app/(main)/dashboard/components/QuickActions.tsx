@@ -32,7 +32,11 @@ export function QuickActions({
     {
       title: "继续写作",
       icon: PenTool,
-      href: latestDraft ? `/drafts/${latestDraft.id}/edit` : "#",
+      href: latestDraft
+        ? latestDraft.workId
+          ? `/works/${latestDraft.workId}/drafts/${latestDraft.id}/edit`
+          : `/drafts/${latestDraft.id}/edit`
+        : "#",
       variant: "default",
       disabled: !latestDraft,
     },

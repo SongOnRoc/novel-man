@@ -131,7 +131,7 @@ export default function EditWorkPage(): React.ReactElement {
       <PageHeader
         title="编辑作品信息"
         description="更新您的作品详情。"
-        backHref={`/works/${workId}`}
+        backButton={{ href: `/works/${workId}`, label: "返回作品" }}
       />
 
       {/* 表单卡片 */}

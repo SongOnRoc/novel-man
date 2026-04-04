@@ -27,13 +27,17 @@ interface DraftCardProps {
   workTitle?: string;
   onDelete: () => void;
   onPublish: () => void;
+  getDraftEditHref?: (draft: DraftForClient) => string;
 }
+
+const getDefaultDraftEditHref = (draft: DraftForClient): string => `/drafts/${draft.id}/edit`;
 
 export function DraftCard({
   draft,
   workTitle,
   onDelete,
   onPublish,
+  getDraftEditHref = getDefaultDraftEditHref,
 }: DraftCardProps) {
   const router = useRouter();
 
@@ -45,7 +49,7 @@ export function DraftCard({
     ) {
       return;
     }
-    router.push(`/drafts/${draft.id}/edit`);
+    router.push(getDraftEditHref(draft));
   };
 
   return (
@@ -124,7 +128,7 @@ export function DraftCard({
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
-                  router.push(`/drafts/${draft.id}/edit`);
+                  router.push(getDraftEditHref(draft));
                 }}
               >
                 <Edit2 className="mr-2 h-4 w-4" />

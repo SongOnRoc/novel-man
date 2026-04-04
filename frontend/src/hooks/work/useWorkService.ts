@@ -64,12 +64,12 @@ export const useWorkList = (params: WorksParams) => {
  * Hook to fetch a single work by its ID.
  * @param id - The ID of the work to fetch.
  */
-export const useWorkById = (id: number) => {
+export const useWorkById = (id?: number) => {
   return useQuery({
-    queryKey: workKeys.detail(id),
-    queryFn: () => getWorkByIdService(id),
+    queryKey: workKeys.detail(id ?? 0),
+    queryFn: () => getWorkByIdService(id as number),
     select: (data: unknown) => toCamelCase(data) as WorkForClient,
-    enabled: !!id,
+    enabled: typeof id === "number" && id > 0,
   });
 };
 

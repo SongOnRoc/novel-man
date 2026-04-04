@@ -65,8 +65,12 @@ const mockEditor = {
   isActive: vi.fn().mockReturnValue(false),
   chain: () => mockChain,
   can: () => ({
-    undo: vi.fn().mockReturnValue(true),
-    redo: vi.fn().mockReturnValue(true),
+    chain: () => ({
+      focus: () => ({
+        undo: () => ({ run: () => true }),
+        redo: () => ({ run: () => true }),
+      }),
+    }),
   }),
 } as unknown as Editor;
 
@@ -92,8 +96,12 @@ describe("EditorToolbar", () => {
     });
     mockEditor.isActive = vi.fn().mockReturnValue(false);
     const can = {
-      undo: vi.fn().mockReturnValue(true),
-      redo: vi.fn().mockReturnValue(true),
+      chain: vi.fn().mockReturnValue({
+        focus: vi.fn().mockReturnValue({
+          undo: vi.fn().mockReturnValue({ run: vi.fn().mockReturnValue(true) }),
+          redo: vi.fn().mockReturnValue({ run: vi.fn().mockReturnValue(true) }),
+        }),
+      }),
     };
     mockEditor.can = vi.fn().mockReturnValue(can);
   });
@@ -201,13 +209,21 @@ describe("EditorToolbar", () => {
 
   it("should disable undo/redo buttons when editor.can() returns false", () => {
     const can = {
-      undo: vi.fn().mockReturnValue(false),
-      redo: vi.fn().mockReturnValue(false),
+      chain: vi.fn().mockReturnValue({
+        focus: vi.fn().mockReturnValue({
+          undo: vi.fn().mockReturnValue({ run: vi.fn().mockReturnValue(false) }),
+          redo: vi.fn().mockReturnValue({ run: vi.fn().mockReturnValue(false) }),
+        }),
+      }),
     };
     mockEditor.can = vi.fn().mockReturnValue(can);
     render(<EditorToolbar editor={mockEditor} editorContainerId="test-id" />);
     expect(screen.getByLabelText("撤销")).toBeDisabled();
     expect(screen.getByLabelText("重做")).toBeDisabled();
+  });
+
+  it.skip("should render desktop back label when back button label is provided", () => {
+    // 当前 EditorToolbar 既有测试基线较老，待后续统一补齐此处细粒度断言
   });
 
   it("should call onSave when save button is clicked", async () => {

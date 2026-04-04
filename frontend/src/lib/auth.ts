@@ -6,8 +6,9 @@ import {
     LoginResponseForClient,
     AuthUser,
 } from "@/lib/services/auth.service";
+import { isStrictProductionRuntime } from "@/lib/runtime-env";
 
-const isProduction = process.env.NODE_ENV === "production";
+const isProduction = isStrictProductionRuntime();
 
 function isLocalhostHostname(hostname: string): boolean {
     return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";

@@ -1,10 +1,11 @@
 import { getSession, signOut } from "next-auth/react";
 import { toCamelCase, toSnakeCase } from "@/lib/utils";
+import { isStrictProductionRuntime } from "@/lib/runtime-env";
 
 // Determine the base URL based on the environment (server-side or client-side).
 const isServer = typeof window === "undefined";
 
-const isProduction = process.env.NODE_ENV === "production";
+const isProduction = isStrictProductionRuntime();
 
 function isLocalhostHostname(hostname: string): boolean {
   return (
@@ -50,7 +51,9 @@ function getServerProxyBaseURL(): string {
 
 // For server-side requests, we need a full URL. For client-side, we can use a relative path.
 // Production must NOT silently fall back to localhost.
-const baseURL = isServer ? getServerProxyBaseURL() : "/api/proxy";
+function getBaseURL(): string {
+  return isServer ? getServerProxyBaseURL() : "/api/proxy";
+}
 
 /**
  * A custom fetch wrapper that Orval will use as the mutator.
@@ -72,6 +75,7 @@ export const customFetch = async <T>(
 ): Promise<T> => {
   const { url, method = "GET", headers = {}, params, data, signal } = config;
   const { onData, headers: optionHeaders } = options || {};
+  const baseURL = getBaseURL();
 
   if (optionHeaders) {
     Object.assign(headers, optionHeaders);

@@ -14,7 +14,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { PageHeader } from "@/components/common/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -25,11 +24,13 @@ import {
 } from "@/components/ui/select";
 import { GlobalLoading } from "@/components/common/GlobalLoading";
 import { TiptapEditor } from "@/features/editor/components/TiptapEditor";
+import { PublishDraftDialog } from "@/features/drafts/components/PublishDraftDialog";
 import {
   useDraftById,
   useUpdateDraft,
   usePublishDraft,
 } from "@/hooks/draft/useDraftService";
+import { useChapterList } from "@/hooks/chapter/useChapterService";
 import { useWorkList } from "@/hooks/work/useWorkService";
 import {
   DraftForClient,
@@ -42,22 +43,29 @@ const EditDraftPage = (): React.ReactElement => {
   const router = useRouter();
   const { setBreadcrumb } = useBreadcrumb();
 
+  const [isSelectingWork, setIsSelectingWork] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [selectedWorkId, setSelectedWorkId] = useState<string | undefined>(
     undefined
   );
-  const [isAIOpen, setIsAIOpen] = useState(true);
-  const [selectedText, setSelectedText] = useState("");
 
   const draftId = parseInt(params.id as string, 10);
   const { data: draft, isLoading, error } = useDraftById(draftId);
   const {
-    mutate: updateDraft,
     mutateAsync: updateDraftAsync,
     isPending: isSaving,
   } = useUpdateDraft();
   const { mutate: publishDraft, isPending: isPublishingPending } =
     usePublishDraft();
+
+  const selectedWorkIdNumber = selectedWorkId ? parseInt(selectedWorkId, 10) : NaN;
+  const isValidSelectedWorkId = Number.isInteger(selectedWorkIdNumber) && selectedWorkIdNumber > 0;
+  const { data: chaptersResponse, isLoading: isLoadingChapters } = useChapterList({
+    workId: isValidSelectedWorkId ? selectedWorkIdNumber : 0,
+    page: 1,
+    limit: 9999,
+  });
+  const chapters = chaptersResponse?.data || [];
 
   const { data: worksResponse } = useWorkList({});
   const works = worksResponse?.data || [];
@@ -106,34 +114,39 @@ const EditDraftPage = (): React.ReactElement => {
       return;
     }
 
-    const associateAndPublish = () => {
-      publishDraft(draftId, {
-        onSuccess: () => {
-          toast.success("发布成功！");
-          router.push(`/works/${selectedWorkId}/chapters`);
-        },
-        onError: (err) => {
-          toast.error(`发布失败: ${err.message}`);
+    setIsSelectingWork(false);
+    setIsPublishing(true);
+  };
+
+  const handleConfirmPublishWithTitle = async (args: { normalizedTitle: string }) => {
+    if (!isValidSelectedWorkId) {
+      toast.error("请选择一个作品进行发布。");
+      return;
+    }
+
+    try {
+      await updateDraftAsync({
+        id: draftId,
+        data: {
+          workId: selectedWorkIdNumber,
+          title: args.normalizedTitle,
         },
       });
-    };
-
-    if (draft?.workId?.toString() !== selectedWorkId) {
-      updateDraft(
-        { id: draftId, data: { workId: parseInt(selectedWorkId, 10) } },
-        {
-          onSuccess: () => {
-            toast.success("作品关联成功，正在发布...");
-            associateAndPublish();
-          },
-          onError: (err) => {
-            toast.error(`关联作品失败: ${err.message}`);
-          },
-        }
-      );
-    } else {
-      associateAndPublish();
+    } catch (updateError) {
+      toast.error(`发布前更新草稿失败: ${(updateError as Error).message}`);
+      return;
     }
+
+    publishDraft(draftId, {
+      onSuccess: () => {
+        toast.success("发布成功！");
+        setIsPublishing(false);
+        router.push(`/works/${selectedWorkIdNumber}/chapters`);
+      },
+      onError: (err) => {
+        toast.error(`发布失败: ${err.message}`);
+      },
+    });
   };
 
   if (isLoading) {
@@ -160,7 +173,7 @@ const EditDraftPage = (): React.ReactElement => {
               onTargetCountChange={() => {}}
               isSaving={isSaving}
               onBack={() => router.back()}
-              onPublish={() => setIsPublishing(true)}
+              onPublish={() => setIsSelectingWork(true)}
             />
           ) : (
             <div className="text-center text-muted-foreground p-8">
@@ -170,7 +183,7 @@ const EditDraftPage = (): React.ReactElement => {
         </div>
       </div>
 
-      <AlertDialog open={isPublishing} onOpenChange={setIsPublishing}>
+      <AlertDialog open={isSelectingWork} onOpenChange={setIsSelectingWork}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>发布为新章节</AlertDialogTitle>
@@ -198,11 +211,23 @@ const EditDraftPage = (): React.ReactElement => {
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmPublish}>
-              确认发布
+              下一步
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {draft ? (
+        <PublishDraftDialog
+          open={isPublishing}
+          onOpenChange={setIsPublishing}
+          draft={draft}
+          workId={isValidSelectedWorkId ? selectedWorkIdNumber : 0}
+          chapters={chapters}
+          isPending={isSaving || isLoadingChapters || isPublishingPending}
+          onConfirm={({ normalizedTitle }) => handleConfirmPublishWithTitle({ normalizedTitle })}
+        />
+      ) : null}
     </>
   );
 };

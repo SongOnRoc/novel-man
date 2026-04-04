@@ -5,18 +5,31 @@ server:
 # 数据库配置
 database:
   # 'type' can be 'mysql', 'postgres', or 'sqlite'
-  type: "postgres"
+  type: "sqlite"
   # Data Source Name (DSN) for the database connection
   # DSN examples:
   # mysql: "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
   # postgres: "host=localhost user=user password=password dbname=novel_man port=5432 sslmode=disable"
   # sqlite: "novel_man.db"
-  dsn: "host=localhost user=user password=password dbname=novel_man port=5432 sslmode=disable"
+  # dsn: "host=localhost user=user password=password dbname=novel_man port=5432 sslmode=disable"
+  dsn: "novel_man.db"
 
-# 日志配置 (可选)
-# 如果此部分不存在，将使用默认值 (debug: false, console_log: false)
+# 日志配置
 logger:
   # 是否开启 Debug 模式，会打印更详细的日志
-  debug: false
-  # 是否同时将日志输出到控制台 (默认只输出到文件)
+  debug: true
+  # 是否同时输出到控制台，默认只输出到文件
   console_log: false
+
+# LLM (Large Language Model) 配置
+llm:
+  # 提供商 (目前仅支持 openai, 兼容其他 OpenAI 格式接口)
+  provider: "openai"
+  # API Key (也可以通过环境变量 LLM_API_KEY 设置)
+  api_key: "sk-1UUKG9HEalrDQNVRCaE072095cF64dBbA0F97bDd2e3dD95f"
+  # Base URL (可选, 用于自定义代理或兼容接口)
+  base_url: "https://aio.209527.xyz/v1"
+  # 模型名称 (例如 gpt-3.5-turbo, gpt-4)
+  # model: "gpt-4o-mini"
+  # model: "zai-glm-4.6"
+  model: "gemini-2.5-flash"

@@ -122,7 +122,7 @@ export default function ChapterPreviewPage(): React.ReactElement {
     <div className="container mx-auto max-w-4xl py-8">
       <PageHeader
         title={chapter.title || "章节预览"}
-        showBackButton={true}
+        backButton={{ href: `/works/${workId}`, label: "返回作品" }}
         actions={
           <div className="flex gap-2">
             <Button variant="outline" size="sm" asChild>

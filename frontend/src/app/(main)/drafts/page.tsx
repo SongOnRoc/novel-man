@@ -8,6 +8,16 @@ import { toast } from "sonner";
 import { DeleteItemDialog } from "@/components/common/DeleteItemDialog";
 import { Button } from "@/components/ui/button";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Pagination,
   PaginationContent,
   PaginationItem,
@@ -15,27 +25,40 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { GlobalLoading } from "@/components/common/GlobalLoading";
 import { DraftCard } from "@/features/drafts/components/DraftCard";
 import { DraftList } from "@/features/drafts/components/DraftList";
 import { DraftToolbar } from "@/features/drafts/components/DraftToolbar";
 import { NewDraftDialog } from "@/features/drafts/components/NewDraftDialog";
+import { PublishDraftDialog } from "@/features/drafts/components/PublishDraftDialog";
 import { useDraftCreationController } from "@/features/drafts/hooks/useDraftCreationController";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useChapterList } from "@/hooks/chapter/useChapterService";
 import {
   useCreateDraft,
   useDraftList,
   useDeleteDraft,
   usePublishDraft,
+  useUpdateDraft,
 } from "@/hooks/draft/useDraftService";
 import { useWorkList } from "@/hooks/work/useWorkService";
 import { DraftForClient } from "@/lib/services/draft.service";
 import { Work, WorksList } from "@/lib/services/work.service";
 
+const UNLINKED_DRAFTS_WORK_ID = 0;
+
 type ViewMode = "list" | "grid";
 
+const getGlobalDraftEditHref = (draft: DraftForClient): string => `/drafts/${draft.id}/edit`;
+
 const DraftsContent = ({
-  workId,
   page,
   view,
   searchQuery,
@@ -45,7 +68,6 @@ const DraftsContent = ({
   onPublish,
   onCreateDraft,
 }: {
-  workId?: number;
   page: number;
   view: ViewMode;
   searchQuery: string;
@@ -53,15 +75,10 @@ const DraftsContent = ({
   onPageChange: (newPage: number) => void;
   onDelete: (draft: DraftForClient) => void;
   onPublish: (draft: DraftForClient) => void;
-  onCreateDraft: (workId?: number) => void;
+  onCreateDraft: () => void;
 }) => {
-  // Determine if we are filtering by "Other Drafts" (workId=0)
-  // workId=0 means drafts without a work association
-  // Backend now supports work_id=0 to filter drafts with work_id IS NULL
-  const apiWorkId = workId;
-
   const { data: draftsResponse, isLoading } = useDraftList({
-    workId: apiWorkId,
+    workId: UNLINKED_DRAFTS_WORK_ID,
     page: page,
     limit: 10,
     q: searchQuery || undefined,
@@ -104,17 +121,15 @@ const DraftsContent = ({
           <Sparkles className="h-12 w-12 text-primary" />
         </div>
         <h2 className="text-2xl font-bold tracking-tight text-foreground">
-          {workId ? "这部作品暂无草稿" : "灵感空空如也"}
+          灵感空空如也
         </h2>
         <p className="mb-8 mt-3 max-w-md text-muted-foreground leading-relaxed">
-          {workId
-            ? "每一个伟大的故事都始于一个微小的想法。现在就开始记录，让灵感生根发芽。"
-            : "不要让灵感溜走。无论是只言片语还是宏大构想，这里都是它们最好的归宿。"}
+          不要让灵感溜走。无论是只言片语还是宏大构想，这里都是它们最好的归宿。
         </p>
         <Button
           type="button"
           size="lg"
-          onClick={() => onCreateDraft(workId)}
+          onClick={onCreateDraft}
           className="h-12 rounded-full px-8 shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:shadow-primary/30"
         >
           <FilePlus className="mr-2 h-5 w-5" />
@@ -132,6 +147,7 @@ const DraftsContent = ({
             drafts={displayDrafts}
             onDelete={onDelete}
             onPublish={onPublish}
+            getDraftEditHref={getGlobalDraftEditHref}
           />
         </div>
       ) : (
@@ -143,6 +159,7 @@ const DraftsContent = ({
               workTitle={works.find((w) => w.id === draft.workId)?.title}
               onDelete={() => onDelete(draft)}
               onPublish={() => onPublish(draft)}
+              getDraftEditHref={getGlobalDraftEditHref}
             />
           ))}
         </div>
@@ -242,24 +259,32 @@ export default function DraftsPage(): React.ReactElement {
     null
   );
 
+  const [draftToPublish, setDraftToPublish] = useState<DraftForClient | null>(null);
+  const [isSelectingWork, setIsSelectingWork] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [selectedWorkId, setSelectedWorkId] = useState<string | undefined>(undefined);
+
   const { data: worksResponse, isLoading: isLoadingWorks } = useWorkList({});
   const works = (worksResponse as WorksList)?.data || [];
 
   const { mutate: deleteDraft, isPending: isDeleting } = useDeleteDraft();
-  const { mutate: publishDraft } = usePublishDraft();
+  const { mutate: publishDraft, isPending: isPublishingPending } = usePublishDraft();
+  const { mutateAsync: updateDraftAsync, isPending: isSaving } = useUpdateDraft();
   const { mutateAsync: createDraft } = useCreateDraft();
 
-  const workId = searchParams.get("workId");
+  const selectedWorkIdNumber = selectedWorkId ? parseInt(selectedWorkId, 10) : NaN;
+  const isValidSelectedWorkId = Number.isInteger(selectedWorkIdNumber) && selectedWorkIdNumber > 0;
+  const { data: chaptersResponse, isLoading: isLoadingChapters } = useChapterList({
+    workId: isValidSelectedWorkId ? selectedWorkIdNumber : 0,
+    page: 1,
+    limit: 9999,
+  });
+  const chapters = chaptersResponse?.data || [];
+
   const page = useMemo(() => {
     const pageParam = searchParams.get("page");
     return pageParam ? parseInt(pageParam, 10) : 1;
   }, [searchParams]);
-
-  const selectedWorkId = useMemo(() => {
-    if (!workId) return undefined;
-    const parsed = parseInt(workId, 10);
-    return Number.isFinite(parsed) ? parsed : undefined;
-  }, [workId]);
 
   const updateParams = (updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -268,13 +293,6 @@ export default function DraftsPage(): React.ReactElement {
       else params.delete(key);
     });
     router.push(`/drafts?${params.toString()}`);
-  };
-
-  const handleSelectWork = (wid: string): void => {
-    updateParams({
-      workId: wid === "all" ? null : wid,
-      page: "1",
-    });
   };
 
   const handlePageChange = (newPage: number): void => {
@@ -296,9 +314,50 @@ export default function DraftsPage(): React.ReactElement {
   };
 
   const handlePublish = (draft: DraftForClient) => {
-    publishDraft(draft.id!, {
+    setDraftToPublish(draft);
+    if (draft.workId && Number.isInteger(draft.workId) && draft.workId > 0) {
+      setSelectedWorkId(String(draft.workId));
+    }
+    setIsSelectingWork(true);
+  };
+
+  const handleNextFromWorkSelect = () => {
+    if (!selectedWorkId) {
+      toast.error("请选择一个作品进行发布。");
+      return;
+    }
+    setIsSelectingWork(false);
+    setIsPublishing(true);
+  };
+
+  const handleConfirmPublishWithTitle = async (args: { normalizedTitle: string }) => {
+    if (!draftToPublish) {
+      return;
+    }
+    if (!isValidSelectedWorkId) {
+      toast.error("请选择一个作品进行发布。");
+      return;
+    }
+
+    try {
+      await updateDraftAsync({
+        id: draftToPublish.id!,
+        data: {
+          workId: selectedWorkIdNumber,
+          title: args.normalizedTitle,
+        },
+      });
+    } catch (updateError) {
+      toast.error(`发布前更新草稿失败: ${(updateError as Error).message}`);
+      return;
+    }
+
+    publishDraft(draftToPublish.id!, {
       onSuccess: () => {
-        toast.success(`草稿 "${draft.title}" 已发布`);
+        toast.success(`草稿“${draftToPublish.title || "无标题草稿"}”已发布`);
+        setIsPublishing(false);
+        setDraftToPublish(null);
+        router.push(`/works/${selectedWorkIdNumber}/chapters`);
       },
       onError: (error: Error) => {
         toast.error(`发布失败: ${error.message}`);
@@ -316,7 +375,6 @@ export default function DraftsPage(): React.ReactElement {
     updateValues,
     confirmCreate,
   } = useDraftCreationController({
-    initialWorkId: selectedWorkId,
     createDraft,
     onNavigate: (path) => router.push(path),
   });
@@ -327,14 +385,13 @@ export default function DraftsPage(): React.ReactElement {
     }
     return (
       <DraftsContent
-        workId={selectedWorkId}
         page={page}
         view={view}
         searchQuery={searchQuery}
         onPageChange={handlePageChange}
         onDelete={setDraftToDelete}
         onPublish={handlePublish}
-        onCreateDraft={openDialog}
+        onCreateDraft={() => openDialog()}
         works={works}
       />
     );
@@ -349,17 +406,14 @@ export default function DraftsPage(): React.ReactElement {
               灵感草稿箱
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl">
-              捕捉稍纵即逝的想法，将碎片化的灵感编织成动人的故事。
+              这里只保留未关联作品的灵感草稿，方便统一沉淀零散想法。
             </p>
           </div>
 
           <DraftToolbar
             viewMode={view}
             onViewModeChange={handleViewChange}
-            workId={workId ?? "all"}
-            onWorkIdChange={handleSelectWork}
-            works={works}
-            onCreateDraft={() => openDialog(selectedWorkId)}
+            onCreateDraft={() => openDialog()}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
           />
@@ -379,6 +433,65 @@ export default function DraftsPage(): React.ReactElement {
         />
       )}
 
+      {draftToPublish ? (
+        <AlertDialog
+          open={isSelectingWork}
+          onOpenChange={(nextOpen) => {
+            setIsSelectingWork(nextOpen);
+            if (!nextOpen) {
+              setIsPublishing(false);
+              setDraftToPublish(null);
+            }
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>发布为新章节</AlertDialogTitle>
+              <AlertDialogDescription>
+                请为这篇草稿选择要发布到的作品。发布时系统会提示将发布为第X章，并自动修正冲突章号。
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="py-4">
+              <Select onValueChange={setSelectedWorkId} defaultValue={selectedWorkId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="请选择关联作品" />
+                </SelectTrigger>
+                <SelectContent>
+                  {works.map((work) => (
+                    <SelectItem key={work.id} value={work.id!.toString()}>
+                      {work.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel>取消</AlertDialogCancel>
+              <AlertDialogAction onClick={handleNextFromWorkSelect}>
+                下一步
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ) : null}
+
+      {draftToPublish ? (
+        <PublishDraftDialog
+          open={isPublishing}
+          onOpenChange={(nextOpen) => {
+            setIsPublishing(nextOpen);
+            if (!nextOpen) {
+              setDraftToPublish(null);
+            }
+          }}
+          draft={draftToPublish}
+          workId={isValidSelectedWorkId ? selectedWorkIdNumber : 0}
+          chapters={chapters}
+          isPending={isSaving || isLoadingChapters || isPublishingPending}
+          onConfirm={({ normalizedTitle }) => handleConfirmPublishWithTitle({ normalizedTitle })}
+        />
+      ) : null}
+
       <NewDraftDialog
         open={open}
         isCreating={isCreating}
@@ -387,7 +500,7 @@ export default function DraftsPage(): React.ReactElement {
         errorMessage={errorMessage}
         onOpenChange={(next) => {
           if (next) {
-            openDialog(selectedWorkId);
+            openDialog();
             return;
           }
           closeDialog();

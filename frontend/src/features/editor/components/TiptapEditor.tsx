@@ -69,6 +69,7 @@ interface TiptapEditorProps {
   }) => void;
   onSelectionChange?: (text: string) => void; // 选中文本回调
   onBack?: () => void; // 返回回调
+  backLabel?: string;
   onPublish?: () => void; // 发布回调
 }
 
@@ -111,6 +112,7 @@ export function TiptapEditor({
   onContentUpdate,
   onSelectionChange,
   onBack,
+  backLabel,
   onPublish,
 }: TiptapEditorProps) {
   const [title, setTitle] = useState(initialContent.title || "");
@@ -411,6 +413,7 @@ export function TiptapEditor({
             onSettingsChange={handleSettingsChange}
             onApply={handleApplySettings}
             onBack={handleBack}
+            backLabel={backLabel}
             onPublish={onPublish}
             onOpenSearch={toggleSearch}
           />

@@ -21,9 +21,10 @@ interface TOCChapterListProps {
   chapters: ChapterForClient[];
   workId: number;
   onDelete: (chapter: ChapterForClient) => void;
+  onReorder: (chapter: ChapterForClient) => void;
 }
 
-export function TOCChapterList({ chapters, workId, onDelete }: TOCChapterListProps) {
+export function TOCChapterList({ chapters, workId, onDelete, onReorder }: TOCChapterListProps) {
   return (
     <div className="space-y-2">
       {chapters.map((chapter, index) => (
@@ -39,9 +40,9 @@ export function TOCChapterList({ chapters, workId, onDelete }: TOCChapterListPro
             <GripVertical className="h-5 w-5" />
           </div>
 
-          {/* Chapter Index (Visual) */}
+          {/* Chapter Order (display_order authoritative) */}
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-            {index + 1}
+            {chapter.displayOrder ?? "-"}
           </div>
 
           {/* Content */}
@@ -83,16 +84,20 @@ export function TOCChapterList({ chapters, workId, onDelete }: TOCChapterListPro
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link href={`/works/${workId}/chapters/${chapter.id}/preview`}>
-                    预览章节
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="text-destructive focus:text-destructive"
-                  onClick={() => onDelete(chapter)}
-                >
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link href={`/works/${workId}/chapters/${chapter.id}/preview`}>
+                      预览章节
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onReorder(chapter)}>
+                    <GripVertical className="mr-2 h-4 w-4" />
+                    调整章节号
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="text-destructive focus:text-destructive"
+                    onClick={() => onDelete(chapter)}
+                  >
                   <Trash2 className="mr-2 h-4 w-4" />
                   删除
                 </DropdownMenuItem>

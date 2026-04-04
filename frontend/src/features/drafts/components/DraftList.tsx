@@ -20,9 +20,17 @@ interface DraftListProps {
   drafts: DraftForClient[];
   onDelete: (draft: DraftForClient) => void;
   onPublish: (draft: DraftForClient) => void;
+  getDraftEditHref?: (draft: DraftForClient) => string;
 }
 
-export function DraftList({ drafts, onDelete, onPublish }: DraftListProps) {
+const getDefaultDraftEditHref = (draft: DraftForClient): string => `/drafts/${draft.id}/edit`;
+
+export function DraftList({
+  drafts,
+  onDelete,
+  onPublish,
+  getDraftEditHref = getDefaultDraftEditHref,
+}: DraftListProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-border/40 bg-card/30 backdrop-blur-sm">
       {/* Header - Hidden on mobile, visible on sm+ */}
@@ -43,7 +51,7 @@ export function DraftList({ drafts, onDelete, onPublish }: DraftListProps) {
             {/* Title Section: Full width on mobile, 6 cols on desktop */}
             <div className="w-full sm:col-span-6">
               <Link
-                href={`/drafts/${draft.id}/edit`}
+                href={getDraftEditHref(draft)}
                 className="block text-base font-semibold text-foreground/90 transition-colors hover:text-primary"
               >
                 {draft.title || "无标题草稿"}
@@ -91,7 +99,7 @@ export function DraftList({ drafts, onDelete, onPublish }: DraftListProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem asChild>
-                        <Link href={`/drafts/${draft.id}/edit`}>
+                        <Link href={getDraftEditHref(draft)}>
                           <Edit2 className="mr-2 h-4 w-4" />
                           编辑草稿
                         </Link>
@@ -154,7 +162,7 @@ export function DraftList({ drafts, onDelete, onPublish }: DraftListProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem asChild>
-                    <Link href={`/drafts/${draft.id}/edit`}>
+                    <Link href={getDraftEditHref(draft)}>
                       <Edit2 className="mr-2 h-4 w-4" />
                       编辑草稿
                     </Link>

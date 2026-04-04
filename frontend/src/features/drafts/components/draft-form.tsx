@@ -26,10 +26,15 @@ const formSchema = z.object({
 interface DraftFormProps {
   workId?: number;
   draft?: DraftForClient;
+  onSuccessNavigateTo?: string;
 }
 
-export const DraftForm = ({ workId, draft }: DraftFormProps) => {
+const getDefaultNavigatePath = (workId?: number): string =>
+  typeof workId === "number" && workId > 0 ? `/works/${workId}/drafts` : "/drafts";
+
+export const DraftForm = ({ workId, draft, onSuccessNavigateTo }: DraftFormProps) => {
   const router = useRouter();
+  const navigatePath = onSuccessNavigateTo ?? getDefaultNavigatePath(workId);
   const createDraftMutation = useCreateDraft();
   const updateDraftMutation = useUpdateDraft();
 
@@ -66,11 +71,11 @@ export const DraftForm = ({ workId, draft }: DraftFormProps) => {
         { id: draft.id!, data: payload },
         {
           onSuccess: () => {
-            toast.success("Draft updated successfully");
-            router.push(workId ? `/drafts?workId=${workId}` : "/drafts");
+            toast.success("草稿保存成功");
+            router.push(navigatePath);
           },
           onError: (error: any) => {
-            toast.error(`Failed to update draft: ${error.message}`);
+            toast.error(`草稿保存失败: ${error.message}`);
           },
         }
       );
@@ -79,11 +84,11 @@ export const DraftForm = ({ workId, draft }: DraftFormProps) => {
         { ...payload, workId: workId } as CreateDraftPayload,
         {
           onSuccess: () => {
-            toast.success("Draft created successfully");
-            router.push(workId ? `/drafts?workId=${workId}` : "/drafts");
+            toast.success("草稿创建成功");
+            router.push(navigatePath);
           },
           onError: (error: any) => {
-            toast.error(`Failed to create draft: ${error.message}`);
+            toast.error(`草稿创建失败: ${error.message}`);
           },
         }
       );

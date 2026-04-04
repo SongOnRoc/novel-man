@@ -98,9 +98,37 @@ describe("useDraftCreationController", () => {
     expect(result.current.errorMessage).toContain("创建失败");
   });
 
-  it("创建中重复确认仅发送一次请求", async () => {
+  it("作品上下文创建后应跳转到作品内编辑页", async () => {
+    const createDraft = vi.fn().mockResolvedValue({ id: 404 });
+    const onNavigate = vi.fn();
+    const getDraftEditPath = vi.fn((draftId: number, workId?: number) =>
+      `/works/${workId}/drafts/${draftId}/edit`,
+    );
+
+    const { result } = renderHook(() =>
+      useDraftCreationController({
+        initialWorkId: 15,
+        createDraft,
+        onNavigate,
+        getDraftEditPath,
+      }),
+    );
+
+    act(() => {
+      result.current.openDialog();
+    });
+
+    await act(async () => {
+      await result.current.confirmCreate();
+    });
+
+    expect(getDraftEditPath).toHaveBeenCalledWith(404, 15);
+    expect(onNavigate).toHaveBeenCalledWith("/works/15/drafts/404/edit");
+  });
+
+  it("创建进行中时不应重复提交", async () => {
     const deferred = createDeferred<{ id: number }>();
-    const createDraft = vi.fn().mockImplementation(() => deferred.promise);
+    const createDraft = vi.fn().mockReturnValue(deferred.promise);
 
     const { result } = renderHook(() =>
       useDraftCreationController({
@@ -113,16 +141,20 @@ describe("useDraftCreationController", () => {
       result.current.openDialog();
     });
 
-    act(() => {
-      void result.current.confirmCreate();
-      void result.current.confirmCreate();
+    let firstCreate: Promise<void>;
+    let secondCreate: Promise<void>;
+
+    await act(async () => {
+      firstCreate = result.current.confirmCreate();
+      secondCreate = result.current.confirmCreate();
+      await Promise.resolve();
     });
 
     expect(createDraft).toHaveBeenCalledTimes(1);
 
     await act(async () => {
-      deferred.resolve({ id: 303 });
-      await deferred.promise;
+      deferred.resolve({ id: 505 });
+      await Promise.all([firstCreate, secondCreate]);
     });
 
     await waitFor(() => {

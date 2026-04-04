@@ -48,7 +48,7 @@ export function useCharacters(workId?: number) {
     queryFn: () =>
       // TODO: Replace with `getCharactersService({ work_id: workId })` when backend supports it.
       getCharactersService({}),
-    enabled: !!workId, // The query will only run if workId is provided.
+    enabled: typeof workId === "number" && workId > 0,
   });
 }
 

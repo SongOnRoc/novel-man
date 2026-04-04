@@ -5,15 +5,7 @@ import React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Work } from "@/lib/services/work.service";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,9 +19,6 @@ import {
 interface DraftToolbarProps {
   viewMode: "list" | "grid";
   onViewModeChange: (mode: "list" | "grid") => void;
-  workId: string;
-  onWorkIdChange: (workId: string) => void;
-  works: Work[];
   onCreateDraft: () => void;
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
@@ -38,9 +27,6 @@ interface DraftToolbarProps {
 export function DraftToolbar({
   viewMode,
   onViewModeChange,
-  workId,
-  onWorkIdChange,
-  works,
   onCreateDraft,
   searchQuery,
   onSearchChange,
@@ -58,49 +44,32 @@ export function DraftToolbar({
       </div>
 
       <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-        <div className="flex items-center gap-2">
-          <Select value={workId} onValueChange={onWorkIdChange}>
-            <SelectTrigger className="w-full border-border/50 bg-background/50 sm:w-[160px]">
-              <SelectValue placeholder="筛选作品" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部作品</SelectItem>
-              <SelectItem value="0">其他草稿</SelectItem>
-              {works.map((work) => (
-                <SelectItem key={work.id} value={work.id!.toString()}>
-                  {work.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="border-border/50 bg-background/50"
-              >
-                <Filter className="h-4 w-4 text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>排序方式</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup value="updated_desc">
-                <DropdownMenuRadioItem value="updated_desc">
-                  最近更新
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="created_desc">
-                  最近创建
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="title_asc">
-                  标题 A-Z
-                </DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className="border-border/50 bg-background/50"
+            >
+              <Filter className="h-4 w-4 text-muted-foreground" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>排序方式</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuRadioGroup value="updated_desc">
+              <DropdownMenuRadioItem value="updated_desc">
+                最近更新
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="created_desc">
+                最近创建
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="title_asc">
+                标题 A-Z
+              </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <div className="hidden h-6 w-px bg-border/50 sm:block" />
 

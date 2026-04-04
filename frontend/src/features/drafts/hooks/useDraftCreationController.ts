@@ -68,13 +68,17 @@ type UseDraftCreationControllerOptions = {
   initialWorkId?: number;
   createDraft: (payload: CreateDraftPayloadForClient) => Promise<unknown>;
   onNavigate: (path: string) => void;
+  getDraftEditPath?: (draftId: number, workId?: number) => string;
   onAfterCreate?: () => void;
 };
+
+const getDefaultDraftEditPath = (draftId: number): string => `/drafts/${draftId}/edit`;
 
 export function useDraftCreationController({
   initialWorkId,
   createDraft,
   onNavigate,
+  getDraftEditPath = getDefaultDraftEditPath,
   onAfterCreate,
 }: UseDraftCreationControllerOptions) {
   const defaultValues = useMemo(
@@ -125,10 +129,11 @@ export function useDraftCreationController({
     setIsCreating(true);
     setErrorMessage(undefined);
 
+    const selectedWorkId = values.workId === "none" ? undefined : Number(values.workId);
     const payload: CreateDraftPayloadForClient = {
       title: values.title.trim() || DEFAULT_NEW_DRAFT_TITLE,
       content: getTemplateContent(values.templateKey),
-      workId: values.workId === "none" ? undefined : Number(values.workId),
+      workId: selectedWorkId,
     };
 
     try {
@@ -140,7 +145,7 @@ export function useDraftCreationController({
 
       onAfterCreate?.();
       setOpen(false);
-      onNavigate(`/drafts/${draftId}/edit`);
+      onNavigate(getDraftEditPath(draftId, selectedWorkId));
     } catch (error) {
       const message =
         error instanceof Error

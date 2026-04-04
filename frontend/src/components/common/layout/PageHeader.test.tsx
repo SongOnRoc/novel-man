@@ -19,16 +19,32 @@ describe("PageHeader", () => {
   });
 
   it("提供 backHref 时点击返回应走 router.push", () => {
-    render(<PageHeader title="章节列表" backHref="/works/1" />);
+    render(
+      <PageHeader
+        title="章节列表"
+        backButton={{ href: "/works/1", label: "返回作品" }}
+      />,
+    );
 
-    fireEvent.click(screen.getByRole("button", { name: "返回" }));
+    fireEvent.click(screen.getByRole("button", { name: "返回作品" }));
 
     expect(mockPush).toHaveBeenCalledWith("/works/1");
     expect(mockBack).not.toHaveBeenCalled();
   });
 
+  it("配置返回按钮文案时桌面端应展示文案", () => {
+    render(
+      <PageHeader
+        title="章节列表"
+        backButton={{ href: "/works/1", label: "返回作品" }}
+      />,
+    );
+
+    expect(screen.getByText("返回作品")).toBeInTheDocument();
+  });
+
   it("未提供 backHref 时点击返回应走 router.back", () => {
-    render(<PageHeader title="编辑作品" />);
+    render(<PageHeader title="编辑作品" showBackButton={true} />);
 
     fireEvent.click(screen.getByRole("button", { name: "返回" }));
 

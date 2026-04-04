@@ -37,6 +37,7 @@ interface EditorToolbarProps {
   onSettingsChange: (settings: EditorSettingsType) => void;
   onApply?: () => void;
   onBack?: () => void;
+  backLabel?: string;
   onPublish?: () => void;
   onOpenSearch?: () => void;
 }
@@ -62,6 +63,7 @@ export function EditorToolbar({
   onSettingsChange,
   onApply,
   onBack,
+  backLabel = "返回",
   onPublish,
   onOpenSearch,
 }: EditorToolbarProps) {
@@ -191,12 +193,13 @@ export function EditorToolbar({
       {onBack && (
         <Button
           variant="ghost"
-          size="icon"
-          className="h-8 w-8 shrink-0"
+          className="h-8 shrink-0 gap-2 px-2 sm:px-3"
           onClick={onBack}
-          title="返回"
+          aria-label={backLabel}
+          title={backLabel}
         >
           <ArrowLeft className="h-4 w-4" />
+          <span className="hidden sm:inline">{backLabel}</span>
         </Button>
       )}
       
