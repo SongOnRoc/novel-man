@@ -26,9 +26,9 @@ export function RecentWorkCard({ work, index }: RecentWorkCardProps): React.Reac
       initial={{ opacity: 0, x: -12 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3, delay: index * 0.08 }}
-      className="rounded-[1rem] border border-border/55 bg-white p-2.5 shadow-[0_8px_22px_rgba(15,23,42,0.03)] transition-all hover:bg-primary/[0.025] hover:shadow-[0_10px_24px_rgba(15,23,42,0.04)]"
+      className="rounded-[1.2rem] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.9))] p-3 shadow-[0_18px_32px_-28px_rgba(15,23,42,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/18 hover:shadow-[0_24px_40px_-30px_rgba(15,23,42,0.42)]"
     >
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         <div className="flex items-start justify-between gap-2">
           <Link href={`/works/${work.id}`} className="block min-w-0 flex-1">
             <h4 className="truncate text-[14px] font-semibold tracking-tight text-foreground transition-colors hover:text-primary">
@@ -39,10 +39,10 @@ export function RecentWorkCard({ work, index }: RecentWorkCardProps): React.Reac
           {work.status && (
             <span
               className={cn(
-                "inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium",
+                "inline-flex shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold shadow-[0_10px_18px_-16px_rgba(15,23,42,0.3)]",
                 work.status === "serial"
-                  ? "bg-primary/10 text-primary"
-                  : "bg-orange-100 text-orange-700"
+                  ? "border-primary/12 bg-primary/10 text-primary"
+                  : "border-orange-200 bg-orange-50 text-orange-700"
               )}
             >
               {work.status === "serial" ? "连载中" : "已完结"}

@@ -34,12 +34,12 @@ export function QuickAction({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, delay }}
           className={cn(
-            "group flex items-center gap-3 rounded-[1.125rem] border border-border/50 bg-white px-3.5 py-3.5 transition-all hover:bg-primary/[0.025] hover:shadow-[0_8px_22px_rgba(15,23,42,0.04)] sm:gap-3.5 sm:px-4 sm:py-4",
+            "group flex h-full items-center gap-3 rounded-[1.35rem] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.9))] px-4 py-4 shadow-[0_18px_32px_-28px_rgba(15,23,42,0.38)] transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-[0_24px_40px_-30px_rgba(15,23,42,0.42)] sm:gap-3.5 sm:px-[18px] sm:py-4",
             className
           )}
         >
-          <div className="inline-flex shrink-0 rounded-full bg-primary/8 p-2 text-primary sm:p-2">
-            <Icon className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
+          <div className="inline-flex shrink-0 rounded-full border border-primary/10 bg-primary/10 p-2.5 text-primary shadow-[0_14px_24px_-20px_rgba(20,184,166,0.55)]">
+            <Icon className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="text-sm font-semibold tracking-tight text-foreground sm:text-[15px]">{title}</div>
@@ -47,7 +47,9 @@ export function QuickAction({
               {description}
             </div>
           </div>
-          <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5 sm:h-4 sm:w-4" />
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border/70 bg-white/90 text-muted-foreground/70 transition-all duration-200 group-hover:border-primary/20 group-hover:bg-primary/5 group-hover:text-primary">
+            <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          </div>
         </motion.div>
       </Link>
     );
@@ -61,10 +63,10 @@ export function QuickAction({
         transition={{ duration: 0.35, delay }}
         whileHover={{ y: -2 }}
         className={cn(
-          "group flex h-full flex-col justify-between rounded-2xl border p-5 transition-all",
+          "group flex h-full flex-col justify-between rounded-[1.55rem] border p-5 shadow-[0_22px_40px_-34px_rgba(15,23,42,0.38)] transition-all duration-200",
           tone === "primary"
-            ? "border-primary/20 bg-primary/5 hover:border-primary/30 hover:bg-primary/10"
-            : "border-border bg-card hover:border-primary/20 hover:bg-muted/40",
+            ? "border-primary/18 bg-[linear-gradient(160deg,rgba(240,253,250,0.95),rgba(255,255,255,0.92))] hover:border-primary/28 hover:shadow-[0_28px_46px_-34px_rgba(20,184,166,0.32)]"
+            : "border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.9))] hover:border-primary/18 hover:shadow-[0_28px_46px_-34px_rgba(15,23,42,0.42)]",
           className
         )}
       >
@@ -72,8 +74,10 @@ export function QuickAction({
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                "inline-flex shrink-0 rounded-2xl p-3",
-                tone === "primary" ? "bg-primary/10 text-primary" : "bg-muted text-primary"
+                "inline-flex shrink-0 rounded-2xl border p-3 shadow-[0_14px_24px_-20px_rgba(20,184,166,0.45)]",
+                tone === "primary"
+                  ? "border-primary/10 bg-primary/10 text-primary"
+                  : "border-primary/10 bg-primary/8 text-primary"
               )}
             >
               <Icon className="h-5 w-5" />
@@ -86,12 +90,13 @@ export function QuickAction({
           </div>
         </div>
 
-        <div className="mt-5 inline-flex items-center gap-2 whitespace-nowrap text-sm font-medium text-primary">
+        <div className="mt-5 inline-flex items-center gap-2 whitespace-nowrap text-sm font-semibold text-primary">
           <span>立即前往</span>
-          <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-primary/10 bg-primary/5 transition-colors duration-200 group-hover:bg-primary/10">
+            <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
+          </div>
         </div>
       </motion.div>
     </Link>
   );
 }
-

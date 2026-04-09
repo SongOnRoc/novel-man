@@ -166,10 +166,13 @@ export default function DashboardPage(): React.ReactElement {
   }, [refreshHitokoto]);
 
   return (
-    <div className="animate-in fade-in bg-neutral-50 p-3.5 duration-500 sm:p-5 xl:p-6">
-      <div className="mx-auto w-full max-w-[1680px] space-y-3 sm:space-y-4">
-        <section className="rounded-[1.375rem] border border-border/55 bg-card p-4 shadow-sm sm:p-5 xl:p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div className="relative min-h-screen animate-in fade-in overflow-hidden bg-[linear-gradient(180deg,#f8fafc_0%,#f8fafc_34%,#f4fbfb_100%)] p-3.5 duration-500 sm:p-5 xl:p-6">
+      <div className="pointer-events-none absolute inset-x-0 top-0 hidden h-[24rem] bg-[radial-gradient(circle_at_top_left,rgba(20,184,166,0.10),transparent_30%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.09),transparent_28%)] xl:block" />
+      <div className="relative mx-auto w-full max-w-[1680px] space-y-3 sm:space-y-4">
+        <section className="relative overflow-hidden rounded-[1.75rem] border border-border/55 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,255,255,0.93)_58%,rgba(240,253,250,0.92))] p-4 shadow-[0_26px_60px_-42px_rgba(15,23,42,0.34)] sm:p-5 xl:p-6">
+          <div className="pointer-events-none absolute -left-8 top-6 hidden h-40 w-40 rounded-full bg-primary/12 blur-3xl xl:block" />
+          <div className="pointer-events-none absolute right-0 top-0 hidden h-full w-[28rem] bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.12),transparent_36%),radial-gradient(circle_at_45%_65%,rgba(20,184,166,0.07),transparent_30%)] xl:block" />
+          <div className="relative flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-3 lg:max-w-4xl">
               <div className="flex items-start justify-between gap-3 sm:block">
                 <div className="space-y-2">
@@ -209,37 +212,35 @@ export default function DashboardPage(): React.ReactElement {
                 </span>
               </button>
 
-              <div className="hidden items-start gap-7 text-sm text-muted-foreground sm:flex">
-                <div className="min-w-0">
-                  <div className="text-[11px] font-medium tracking-wide text-muted-foreground/65">总字数</div>
-                  <div className="mt-1.5 text-[1.375rem] font-semibold tracking-tight text-foreground">
+              <div className="hidden items-start gap-4 text-sm text-muted-foreground sm:flex">
+                <div className="rounded-[1.35rem] border border-white/80 bg-white/84 px-4 py-3 shadow-[0_18px_32px_-28px_rgba(15,23,42,0.42)] backdrop-blur-sm">
+                  <div className="text-[11px] font-semibold tracking-[0.18em] text-muted-foreground/70">总字数</div>
+                  <div className="mt-2 text-[1.45rem] font-semibold tracking-tight text-foreground">
                     {formatWordCount(totalWordCount)}
                   </div>
                 </div>
-                <div className="mt-1 h-9 w-px bg-border/45" />
-                <div className="min-w-0">
-                  <div className="text-[11px] font-medium tracking-wide text-muted-foreground/65">章节</div>
-                  <div className="mt-1.5 text-[1.375rem] font-semibold tracking-tight text-foreground">{totalChapters}</div>
+                <div className="rounded-[1.35rem] border border-white/80 bg-white/84 px-4 py-3 shadow-[0_18px_32px_-28px_rgba(15,23,42,0.42)] backdrop-blur-sm">
+                  <div className="text-[11px] font-semibold tracking-[0.18em] text-muted-foreground/70">章节</div>
+                  <div className="mt-2 text-[1.45rem] font-semibold tracking-tight text-foreground">{totalChapters}</div>
                 </div>
-                <div className="mt-1 h-9 w-px bg-border/45" />
-                <div className="min-w-0">
-                  <div className="text-[11px] font-medium tracking-wide text-muted-foreground/65">草稿</div>
-                  <div className="mt-1.5 text-[1.375rem] font-semibold tracking-tight text-foreground">{totalDrafts}</div>
+                <div className="rounded-[1.35rem] border border-white/80 bg-white/84 px-4 py-3 shadow-[0_18px_32px_-28px_rgba(15,23,42,0.42)] backdrop-blur-sm">
+                  <div className="text-[11px] font-semibold tracking-[0.18em] text-muted-foreground/70">草稿</div>
+                  <div className="mt-2 text-[1.45rem] font-semibold tracking-tight text-foreground">{totalDrafts}</div>
                 </div>
               </div>
 
               <div className="grid max-w-2xl grid-cols-3 gap-2.5 text-[13px] text-muted-foreground sm:hidden sm:text-sm">
-                <div className="rounded-[1rem] border border-border/60 bg-white px-3 py-2.5 shadow-sm shadow-black/[0.02] sm:px-4">
+                <div className="rounded-[1rem] border border-white/80 bg-white/90 px-3 py-2.5 shadow-[0_16px_28px_-24px_rgba(15,23,42,0.38)] sm:px-4">
                   <div className="text-[11px] font-medium tracking-wide text-muted-foreground/75">总字数</div>
                   <div className="mt-1 text-base font-semibold text-foreground sm:text-lg">
                     {formatWordCount(totalWordCount)}
                   </div>
                 </div>
-                <div className="rounded-[1rem] border border-border/60 bg-white px-3 py-2.5 shadow-sm shadow-black/[0.02] sm:px-4">
+                <div className="rounded-[1rem] border border-white/80 bg-white/90 px-3 py-2.5 shadow-[0_16px_28px_-24px_rgba(15,23,42,0.38)] sm:px-4">
                   <div className="text-[11px] font-medium tracking-wide text-muted-foreground/75">章节</div>
                   <div className="mt-1 text-base font-semibold text-foreground sm:text-lg">{totalChapters}</div>
                 </div>
-                <div className="rounded-[1rem] border border-border/60 bg-white px-3 py-2.5 shadow-sm shadow-black/[0.02] sm:px-4">
+                <div className="rounded-[1rem] border border-white/80 bg-white/90 px-3 py-2.5 shadow-[0_16px_28px_-24px_rgba(15,23,42,0.38)] sm:px-4">
                   <div className="text-[11px] font-medium tracking-wide text-muted-foreground/75">草稿</div>
                   <div className="mt-1 text-base font-semibold text-foreground sm:text-lg">{totalDrafts}</div>
                 </div>
@@ -337,7 +338,7 @@ export default function DashboardPage(): React.ReactElement {
               </div>
             </section>
 
-            <section className="hidden rounded-[1.5rem] bg-gradient-to-br from-primary/[0.035] via-primary/[0.015] to-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] sm:block">
+             <section className="hidden rounded-[1.75rem] border border-border/50 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(245,251,251,0.94))] p-5 shadow-[0_24px_52px_-40px_rgba(15,23,42,0.36)] sm:block">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between gap-4">
                   <div className="min-w-0">
@@ -372,55 +373,55 @@ export default function DashboardPage(): React.ReactElement {
                   </div>
                 </div>
 
-                {latestWork ? (
-                  <div className="rounded-[1.375rem] bg-white/92 p-4 shadow-[0_12px_32px_rgba(15,23,42,0.05)] backdrop-blur-[1px]">
-                    <div className="space-y-3">
-                      <div className="grid gap-3 xl:grid-cols-[minmax(0,1.7fr)_220px]">
-                        <div className="rounded-[1.25rem] bg-gradient-to-br from-primary/[0.075] via-primary/[0.028] to-white p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]">
-                          <div className="space-y-1.5">
-                            <div className="text-[11px] font-medium tracking-wide text-primary/70">
-                              当前写作焦点
-                            </div>
-                            <div className="mt-1 text-xl font-semibold tracking-tight text-foreground">
-                              {latestWork.title}
-                            </div>
-                            <p className="max-w-xl text-sm leading-6 text-muted-foreground">
-                              最近更新于 {latestUpdatedLabel.replace(/\s*更新$/, "")}，当前累计
-                              {formatWordCount(latestWork.totalWordCount || 0)}，共
-                              {latestWork.totalChapterCount || 0} 章。
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="grid gap-2 text-sm text-muted-foreground xl:grid-cols-1">
-                          <div className="rounded-[1rem] bg-primary/[0.018] px-3 py-2.5">
-                            <div className="text-[10px] font-medium tracking-wide text-muted-foreground/70">
-                              最近更新
-                            </div>
-                            <div className="mt-1 text-base font-semibold text-foreground">
-                              {latestUpdatedLabel.replace(/\s*更新$/, "")}
-                            </div>
-                          </div>
-                          <div className="rounded-[1rem] bg-primary/[0.018] px-3 py-2.5">
-                            <div className="text-[10px] font-medium tracking-wide text-muted-foreground/70">
-                              当前字数
-                            </div>
-                            <div className="mt-1 text-base font-semibold text-foreground">
-                              {formatWordCount(latestWork.totalWordCount || 0)}
-                            </div>
-                          </div>
-                          <div className="rounded-[1rem] bg-primary/[0.018] px-3 py-2.5">
-                            <div className="text-[10px] font-medium tracking-wide text-muted-foreground/70">
-                              当前章节
-                            </div>
-                            <div className="mt-1 text-base font-semibold text-foreground">
-                              {latestWork.totalChapterCount || 0} 章
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                 {latestWork ? (
+                   <div className="rounded-[1.55rem] border border-white/80 bg-white/90 p-4 shadow-[0_22px_44px_-34px_rgba(15,23,42,0.4)] backdrop-blur-sm">
+                     <div className="space-y-3">
+                       <div className="grid gap-3 xl:grid-cols-[minmax(0,1.7fr)_220px]">
+                         <div className="rounded-[1.35rem] border border-primary/10 bg-[linear-gradient(160deg,rgba(240,253,250,0.95),rgba(239,246,255,0.82)_56%,rgba(255,255,255,0.94))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.82)]">
+                           <div className="space-y-1.5">
+                             <div className="text-[11px] font-semibold tracking-[0.18em] text-primary/75">
+                               当前写作焦点
+                             </div>
+                             <div className="mt-1 text-xl font-semibold tracking-tight text-foreground">
+                               {latestWork.title}
+                             </div>
+                             <p className="max-w-xl text-sm leading-6 text-muted-foreground">
+                               最近更新于 {latestUpdatedLabel.replace(/\s*更新$/, "")}，当前累计
+                               {formatWordCount(latestWork.totalWordCount || 0)}，共
+                               {latestWork.totalChapterCount || 0} 章。
+                             </p>
+                           </div>
+                         </div>
+ 
+                         <div className="grid gap-2 text-sm text-muted-foreground xl:grid-cols-1">
+                           <div className="rounded-[1.1rem] border border-white/80 bg-white/88 px-3.5 py-3 shadow-[0_18px_28px_-28px_rgba(15,23,42,0.42)]">
+                             <div className="text-[10px] font-semibold tracking-[0.18em] text-muted-foreground/70">
+                               最近更新
+                             </div>
+                             <div className="mt-1.5 text-base font-semibold text-foreground">
+                               {latestUpdatedLabel.replace(/\s*更新$/, "")}
+                             </div>
+                           </div>
+                           <div className="rounded-[1.1rem] border border-white/80 bg-white/88 px-3.5 py-3 shadow-[0_18px_28px_-28px_rgba(15,23,42,0.42)]">
+                             <div className="text-[10px] font-semibold tracking-[0.18em] text-muted-foreground/70">
+                               当前字数
+                             </div>
+                             <div className="mt-1.5 text-base font-semibold text-foreground">
+                               {formatWordCount(latestWork.totalWordCount || 0)}
+                             </div>
+                           </div>
+                           <div className="rounded-[1.1rem] border border-white/80 bg-white/88 px-3.5 py-3 shadow-[0_18px_28px_-28px_rgba(15,23,42,0.42)]">
+                             <div className="text-[10px] font-semibold tracking-[0.18em] text-muted-foreground/70">
+                               当前章节
+                             </div>
+                             <div className="mt-1.5 text-base font-semibold text-foreground">
+                               {latestWork.totalChapterCount || 0} 章
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
                 ) : (
                   <div className="rounded-[1.25rem] border border-dashed bg-white p-5 text-center text-sm text-muted-foreground">
                     暂无最近作品
@@ -429,7 +430,7 @@ export default function DashboardPage(): React.ReactElement {
               </div>
             </section>
 
-            <section className="rounded-[1.5rem] border border-border/45 bg-card p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] sm:p-5">
+            <section className="rounded-[1.6rem] border border-border/50 bg-white/82 p-5 shadow-[0_24px_52px_-40px_rgba(15,23,42,0.34)] backdrop-blur-sm sm:p-5">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between gap-3">
                   <h3 className="text-xl font-semibold tracking-tight text-foreground">
@@ -465,7 +466,7 @@ export default function DashboardPage(): React.ReactElement {
                 />
               </div>
 
-              <div className="mt-4 hidden gap-3 md:grid md:grid-cols-3">
+                <div className="mt-4 hidden gap-4 md:grid md:grid-cols-3">
                 <QuickAction
                   title="灵感速记"
                   description={`${totalDrafts} 条草稿待处理`}
@@ -490,7 +491,7 @@ export default function DashboardPage(): React.ReactElement {
               </div>
             </section>
 
-            <section className="rounded-[1.5rem] border border-border/45 bg-card p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] sm:p-5">
+            <section className="rounded-[1.6rem] border border-border/50 bg-white/82 p-5 shadow-[0_24px_52px_-40px_rgba(15,23,42,0.34)] backdrop-blur-sm sm:p-5">
               <div className="space-y-1.5">
                 <h3 className="text-xl font-semibold tracking-tight text-foreground">
                   创作动态
@@ -508,8 +509,8 @@ export default function DashboardPage(): React.ReactElement {
                 </div>
               </div>
 
-              <div className="mt-4 hidden gap-3 md:grid md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-                <div className="rounded-[1.125rem] border border-border/70 bg-neutral-50/90 p-4 transition-colors hover:border-primary/12 hover:bg-primary/[0.02]">
+               <div className="mt-4 hidden gap-4 md:grid md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+                <div className="rounded-[1.25rem] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(245,251,251,0.9))] p-4 shadow-[0_20px_40px_-32px_rgba(15,23,42,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/15 hover:shadow-[0_26px_46px_-34px_rgba(15,23,42,0.42)]">
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1.5">
                       <div className="text-[11px] font-medium tracking-wide text-primary/65">
@@ -525,7 +526,7 @@ export default function DashboardPage(): React.ReactElement {
                     </div>
                   </div>
                 </div>
-                <div className="rounded-[1.125rem] border border-border/70 bg-neutral-50/90 p-4 transition-colors hover:border-primary/12 hover:bg-primary/[0.02]">
+                <div className="rounded-[1.25rem] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(245,251,251,0.9))] p-4 shadow-[0_20px_40px_-32px_rgba(15,23,42,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/15 hover:shadow-[0_26px_46px_-34px_rgba(15,23,42,0.42)]">
                   <div className="space-y-3">
                     <div className="space-y-1.5">
                       <div className="text-[11px] font-medium tracking-wide text-primary/65">
@@ -583,12 +584,12 @@ export default function DashboardPage(): React.ReactElement {
           </section>
           </div>
 
-          <aside className="hidden space-y-4 rounded-[1.5rem] border border-border/45 bg-card p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] xl:block">
+           <aside className="hidden space-y-4 rounded-[1.6rem] border border-border/50 bg-white/82 p-5 shadow-[0_24px_52px_-40px_rgba(15,23,42,0.34)] backdrop-blur-sm xl:block">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold tracking-tight text-foreground">最近编辑</h2>
             </div>
 
-            <div className="rounded-[1.125rem] bg-gradient-to-br from-primary/[0.035] via-primary/[0.012] to-white p-3.5 shadow-[0_6px_18px_rgba(45,212,191,0.05)]">
+            <div className="rounded-[1.25rem] border border-white/80 bg-[linear-gradient(160deg,rgba(240,253,250,0.94),rgba(239,246,255,0.82)_58%,rgba(255,255,255,0.92))] p-4 shadow-[0_20px_38px_-30px_rgba(20,184,166,0.32)]">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-primary">状态</p>
