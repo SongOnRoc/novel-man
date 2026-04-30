@@ -65,17 +65,25 @@ export default function WorksPage(): React.ReactElement {
   }, [works]);
 
   return (
-    <div className="min-h-screen space-y-8 pb-20 animate-in fade-in duration-500">
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_360px]">
-        <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8 shadow-sm md:p-10">
-          <div className="relative z-10 max-w-3xl space-y-6">
-            <div className="inline-flex items-center rounded-full border border-primary/20 bg-background/80 px-3 py-1 text-sm text-primary shadow-sm">
-              <FolderKanban className="mr-2 h-4 w-4" />
-              作品管理入口
+    <div className="relative space-y-4 pb-12 animate-in fade-in duration-500 sm:space-y-5">
+      <div className="grid gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.5fr)_360px]">
+        <section className="relative overflow-hidden rounded-2xl border border-[var(--primary-200)]/60 bg-[linear-gradient(135deg,#ffffff_0%,#ffffff_50%,var(--primary-50)_100%)] p-5 sm:p-7">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-8 -top-8 hidden h-44 w-44 rounded-full bg-[var(--primary-500)]/10 blur-2xl sm:block"
+          />
+          <div className="relative z-10 max-w-3xl space-y-4">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--primary-200)]/60 bg-[var(--primary-50)] py-1 pl-1 pr-3">
+              <span className="inline-flex h-5 min-w-[24px] items-center justify-center rounded-full bg-[var(--primary-500)] px-1 text-[10px] font-bold tracking-wider text-white">
+                <FolderKanban className="h-3 w-3" />
+              </span>
+              <span className="text-[11px] font-semibold tracking-wider text-[var(--primary-700)]">
+                作品管理入口
+              </span>
             </div>
-            <div className="space-y-3">
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">作品工作台</h1>
-              <p className="max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
+            <div className="space-y-2">
+              <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">作品工作台</h1>
+              <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
                 从这里进入每一部作品的统一工作台，围绕总览、章节、草稿、大纲、角色与设定持续推进创作。
               </p>
             </div>
@@ -87,26 +95,23 @@ export default function WorksPage(): React.ReactElement {
                 allowedTypes={[".json"]}
                 onImport={(file) => importMutation.mutateAsync(file)}
                 trigger={
-                  <Button variant="outline" size="lg" className="h-12 px-6">
-                    <Upload className="mr-2 h-5 w-5" />
+                  <Button variant="outline" size="lg" className="h-11 rounded-full border-[var(--border-default)]/60 px-5">
+                    <Upload className="mr-2 h-4 w-4" />
                     导入作品
                   </Button>
                 }
               />
-              <Button variant="ghost" size="lg" asChild className="h-12 px-6">
+              <Button variant="ghost" size="lg" asChild className="h-11 rounded-full px-5">
                 <Link href="/drafts">
-                  <Sparkles className="mr-2 h-5 w-5" />
+                  <Sparkles className="mr-2 h-4 w-4" />
                   打开全局草稿箱
                 </Link>
               </Button>
             </div>
           </div>
+        </section>
 
-          <div className="absolute -right-20 -top-20 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
-          <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl" />
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-1">
+        <div className="grid gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-1">
           <SummaryPanel
             icon={FolderKanban}
             title="当前页职责"
@@ -128,15 +133,15 @@ export default function WorksPage(): React.ReactElement {
         </div>
       </div>
 
-      <section className="space-y-4 rounded-3xl border border-border/60 bg-card/50 p-5 shadow-sm md:p-6">
+      <section className="space-y-4 rounded-2xl border border-[var(--border-default)]/60 bg-card/80 backdrop-blur-sm p-4 sm:p-5">
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div className="space-y-1">
-            <h2 className="text-xl font-semibold">我的作品</h2>
-            <p className="text-sm leading-6 text-muted-foreground">
+            <h2 className="text-lg font-bold tracking-tight text-foreground sm:text-xl">我的作品</h2>
+            <p className="text-[13px] leading-5 text-muted-foreground">
               选择任一作品即可进入统一工作台，在当前作品上下文中继续章节、草稿与创作资产管理。
             </p>
           </div>
-          <Button variant="outline" asChild>
+          <Button variant="outline" asChild className="rounded-full border-[var(--border-default)]/60">
             <Link href="/drafts">查看未关联草稿</Link>
           </Button>
         </div>
@@ -145,7 +150,7 @@ export default function WorksPage(): React.ReactElement {
           {isLoading ? (
             <GlobalLoading fullScreen={false} />
           ) : works.length > 0 ? (
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {works.map((work: WorkForClient, index) => (
                 <motion.div
                   key={work.id}
@@ -162,17 +167,17 @@ export default function WorksPage(): React.ReactElement {
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border/70 bg-background/50 py-20 text-center">
-              <div className="mb-6 rounded-full bg-muted p-8">
-                <BookOpen className="h-12 w-12 text-muted-foreground/50" />
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--border-default)]/70 bg-muted/30 py-16 text-center">
+              <div className="mb-5 rounded-xl bg-primary/10 p-5 text-primary">
+                <BookOpen className="h-9 w-9" />
               </div>
-              <h2 className="text-2xl font-semibold">暂无作品</h2>
-              <p className="mb-8 mt-2 max-w-md text-muted-foreground">
+              <h2 className="text-xl font-bold tracking-tight text-foreground">暂无作品</h2>
+              <p className="mb-6 mt-2 max-w-md text-sm text-muted-foreground">
                 先创建第一部作品，随后即可进入统一工作台，围绕章节、草稿、大纲与设定持续创作。
               </p>
               <div className="flex flex-wrap justify-center gap-3">
                 <NewWorkButton />
-                <Button variant="outline" asChild>
+                <Button variant="outline" asChild className="rounded-full border-[var(--border-default)]/60">
                   <Link href="/drafts">先去草稿箱记录灵感</Link>
                 </Button>
               </div>
@@ -181,7 +186,7 @@ export default function WorksPage(): React.ReactElement {
         </div>
 
         {totalPages > 1 && (
-          <div className="flex justify-center pt-6">
+          <div className="flex justify-center pt-4">
             <Pagination>
               <PaginationContent>
                 {page > 1 && (
@@ -229,13 +234,13 @@ function SummaryPanel({
   description: string;
 }): React.ReactElement {
   return (
-    <div className="rounded-3xl border border-border/60 bg-card/80 p-5 shadow-sm">
-      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-        <Icon className="h-5 w-5" />
+    <div className="rounded-2xl border border-[var(--border-default)]/60 bg-card/80 backdrop-blur-sm p-4">
+      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <Icon className="h-4 w-4" />
       </div>
-      <div className="mt-4 text-sm text-muted-foreground">{title}</div>
-      <div className="mt-2 text-2xl font-semibold tracking-tight">{value}</div>
-      <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+      <div className="mt-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80">{title}</div>
+      <div className="mt-1 text-xl font-extrabold tracking-tight text-foreground tabular-nums">{value}</div>
+      <p className="mt-2 text-[13px] leading-5 text-muted-foreground">{description}</p>
     </div>
   );
 }

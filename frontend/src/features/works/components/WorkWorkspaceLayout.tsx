@@ -113,45 +113,73 @@ export function WorkWorkspaceLayout({
   children: React.ReactNode;
 }): React.ReactElement {
   return (
-    <div className="min-h-screen space-y-6 pb-20 animate-in fade-in duration-500">
-      <Card className="overflow-hidden border-border/60 bg-card/80 shadow-sm">
-        <CardContent className="space-y-6 p-6 lg:p-8">
-          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <Button variant="ghost" size="sm" asChild className="-ml-2 text-muted-foreground">
-                  <Link href="/works">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    返回作品库
-                  </Link>
-                </Button>
-                <Badge variant="secondary">作品工作台</Badge>
-                <Badge variant="outline">{getWorkStatusLabel(work.status)}</Badge>
-                <Badge variant="outline">最近更新：{getUpdatedAtLabel(work.updatedAt)}</Badge>
+    <div className="space-y-4 pb-12 animate-in fade-in duration-500 sm:space-y-5">
+      <Card className="overflow-hidden rounded-2xl border-[var(--primary-200)]/60 bg-[linear-gradient(135deg,#ffffff_0%,#ffffff_50%,var(--primary-50)_100%)] shadow-none">
+        <CardContent className="space-y-5 p-5 sm:p-6">
+          <div className="relative">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -right-6 -top-6 hidden h-40 w-40 rounded-full bg-[var(--primary-500)]/10 blur-2xl sm:block"
+            />
+            <div className="relative flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    asChild
+                    className="-ml-2 h-8 rounded-full text-muted-foreground hover:bg-[var(--primary-50)] hover:text-[var(--primary-700)]"
+                  >
+                    <Link href="/works">
+                      <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
+                      返回作品库
+                    </Link>
+                  </Button>
+                  <Badge className="rounded-full border border-[var(--primary-200)]/60 bg-[var(--primary-50)] px-3 py-1 text-[11px] font-semibold text-[var(--primary-700)] hover:bg-[var(--primary-50)]">
+                    作品工作台
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className="rounded-full border-[var(--border-default)]/60 bg-card/70 px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
+                  >
+                    {getWorkStatusLabel(work.status)}
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className="rounded-full border-[var(--border-default)]/60 bg-card/70 px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
+                  >
+                    更新 {getUpdatedAtLabel(work.updatedAt)}
+                  </Badge>
+                </div>
+
+                <div className="space-y-2">
+                  <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+                    {work.title}
+                  </h1>
+                  <p className="max-w-3xl text-sm leading-6 text-muted-foreground sm:text-base">
+                    {work.description ||
+                      "暂无简介，您可以从总览、章节、草稿或创作资产模块继续完善这部作品。"}
+                  </p>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{work.title}</h1>
-                <p className="max-w-3xl text-sm leading-6 text-muted-foreground md:text-base">
-                  {work.description || "暂无简介，您可以从总览、章节、草稿或创作资产模块继续完善这部作品。"}
-                </p>
-              </div>
+              {actions ? <div className="flex flex-wrap gap-2 xl:justify-end">{actions}</div> : null}
             </div>
-
-            {actions ? <div className="flex flex-wrap gap-3 xl:justify-end">{actions}</div> : null}
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <WorkspaceStatCard label="当前模块" value={moduleTitle} />
             <WorkspaceStatCard label="总字数" value={formatWordCount(work.totalWordCount || 0)} />
-            <WorkspaceStatCard label="总章节" value={`${work.totalChapterCount || 0}`} />
+            <WorkspaceStatCard label="总章节" value={`${work.totalChapterCount || 0}`} unit="章" />
             <WorkspaceStatCard label="最后更新" value={getUpdatedAtLabel(work.updatedAt)} />
           </div>
 
-          <div className="rounded-3xl border border-border/60 bg-muted/15 p-4">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="rounded-xl border border-[var(--border-default)]/60 bg-card/80 backdrop-blur-sm p-4">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
               <div className="space-y-1">
-                <div className="text-lg font-semibold">{moduleTitle}</div>
+                <div className="text-base font-bold tracking-tight text-foreground">
+                  {moduleTitle}
+                </div>
                 <p className="text-sm leading-6 text-muted-foreground">{moduleDescription}</p>
               </div>
             </div>
@@ -167,13 +195,13 @@ export function WorkWorkspaceLayout({
                       key={module.key}
                       href={getWorkspaceHref(work.id!, module.key)}
                       className={cn(
-                        "inline-flex min-w-fit items-center gap-2 rounded-2xl border px-4 py-2 text-sm transition-colors",
+                        "inline-flex min-w-fit items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
                         isActive
-                          ? "border-primary/30 bg-primary/10 text-primary shadow-sm"
-                          : "border-border/50 bg-background/70 text-muted-foreground hover:bg-background hover:text-foreground"
+                          ? "border-[var(--primary-200)]/60 bg-[var(--primary-50)] text-[var(--primary-700)]"
+                          : "border-[var(--border-default)]/60 bg-card/70 text-muted-foreground hover:border-[var(--primary-200)] hover:bg-[var(--primary-50)]/40 hover:text-[var(--primary-700)]"
                       )}
                     >
-                      <Icon className="h-4 w-4" />
+                      <Icon className="h-3.5 w-3.5" />
                       <span>{module.label}</span>
                     </Link>
                   );
@@ -203,10 +231,15 @@ export function WorkModuleSection({
   className?: string;
 }): React.ReactElement {
   return (
-    <section className={cn("space-y-6 rounded-3xl border border-border/60 bg-card/70 p-4 shadow-sm md:p-6", className)}>
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <section
+      className={cn(
+        "space-y-5 rounded-2xl border border-[var(--border-default)]/60 bg-card/80 backdrop-blur-sm p-5 sm:p-6",
+        className
+      )}
+    >
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-1">
-          <h2 className="text-lg font-semibold">{title}</h2>
+          <h2 className="text-lg font-bold tracking-tight text-foreground sm:text-xl">{title}</h2>
           <p className="text-sm leading-6 text-muted-foreground">{description}</p>
         </div>
         {actions ? <div className="flex flex-wrap gap-2 lg:justify-end">{actions}</div> : null}
@@ -226,19 +259,37 @@ export function WorkModuleEmptyState({
   action?: React.ReactNode;
 }): React.ReactElement {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/70 bg-background/60 px-6 py-12 text-center">
-      <h3 className="text-lg font-semibold">{title}</h3>
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--border-default)]/70 bg-muted/30 px-6 py-12 text-center">
+      <h3 className="text-lg font-bold tracking-tight text-foreground">{title}</h3>
       <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">{description}</p>
       {action ? <div className="mt-6">{action}</div> : null}
     </div>
   );
 }
 
-function WorkspaceStatCard({ label, value }: { label: string; value: string }): React.ReactElement {
+function WorkspaceStatCard({
+  label,
+  value,
+  unit,
+}: {
+  label: string;
+  value: string;
+  unit?: string;
+}): React.ReactElement {
   return (
-    <div className="rounded-2xl border border-border/50 bg-background/70 p-4">
-      <div className="text-sm text-muted-foreground">{label}</div>
-      <div className="mt-2 text-lg font-semibold tracking-tight">{value}</div>
+    <div className="rounded-xl border border-[var(--border-default)]/60 bg-card/80 backdrop-blur-sm px-4 py-3">
+      <div className="flex items-center gap-1.5">
+        <span aria-hidden className="h-1 w-1 rounded-full bg-[var(--primary-500)]" />
+        <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80">
+          {label}
+        </span>
+      </div>
+      <div className="mt-1 flex items-baseline gap-1">
+        <span className="truncate text-base font-extrabold tracking-tight text-foreground tabular-nums">
+          {value}
+        </span>
+        {unit ? <span className="text-[11px] font-medium text-muted-foreground">{unit}</span> : null}
+      </div>
     </div>
   );
 }

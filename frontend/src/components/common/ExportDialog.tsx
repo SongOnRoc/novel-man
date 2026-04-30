@@ -1,7 +1,7 @@
 "use client";
 
 import { Download } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,15 +26,16 @@ import {
 interface ExportDialogProps {
   onExport: (options: ExportOptions) => void;
   disabled?: boolean;
+  /** 自定义触发器；不传则使用默认 outline 按钮 */
+  trigger?: ReactNode;
 }
 
 export interface ExportOptions {
   format: "txt" | "png";
   range: "current" | "volume" | "all" | "custom";
-  // 在实际应用中，这里可能还需要 volumeId, chapterIds 等
 }
 
-export function ExportDialog({ onExport, disabled }: ExportDialogProps) {
+export function ExportDialog({ onExport, disabled, trigger }: ExportDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [format, setFormat] = useState<"txt" | "png">("txt");
   const [range, setRange] = useState<"current" | "volume" | "all" | "custom">(
@@ -49,10 +50,12 @@ export function ExportDialog({ onExport, disabled }: ExportDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" disabled={disabled}>
-          <Download className="mr-2 h-4 w-4" />
-          导出
-        </Button>
+        {trigger ?? (
+          <Button variant="outline" size="sm" disabled={disabled}>
+            <Download className="mr-2 h-4 w-4" />
+            导出
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>

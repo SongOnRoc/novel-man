@@ -65,17 +65,16 @@ export function Sidebar({ showExtraFooter = false }: { showExtraFooter?: boolean
         </div>
       )}
 
-      <ScrollArea className="flex-1 px-3">
-        <div className="space-y-6">
+      <ScrollArea className="flex-1 px-2.5">
+        <div className="space-y-5">
           {isWorkContext ? (
-            // === 作品上下文导航 ===
-            <div className="space-y-6">
+            <div className="space-y-5">
               {workNavConfig.map((group, index) => (
-                <div key={index} className="space-y-2">
-                  <h4 className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
+                <div key={index} className="space-y-1">
+                  <h4 className="px-3 pb-1 text-[11px] font-medium uppercase tracking-wider text-[var(--text-tertiary)]">
                     {group.title}
                   </h4>
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     {group.links.map((item) => (
                       <SidebarItem key={item.href} item={item} isActive={pathname === item.href} />
                     ))}
@@ -84,23 +83,20 @@ export function Sidebar({ showExtraFooter = false }: { showExtraFooter?: boolean
               ))}
             </div>
           ) : (
-            // === 全局导航 ===
-            <div className="space-y-6">
-              {/* 仪表盘 */}
-              <div className="space-y-1">
+            <div className="space-y-5">
+              <div className="space-y-0.5">
                 <SidebarItem
                   item={dashboardLink}
                   isActive={pathname === dashboardLink.href}
                 />
               </div>
 
-              {/* 分组导航 */}
               {sidebarNavConfig.map((group) => (
-                <div key={group.value} className="space-y-2">
-                  <h4 className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
+                <div key={group.value} className="space-y-1">
+                  <h4 className="px-3 pb-1 text-[11px] font-medium uppercase tracking-wider text-[var(--text-tertiary)]">
                     {group.title}
                   </h4>
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     {group.links.map((link) => (
                       <SidebarItem
                         key={link.href}
@@ -116,8 +112,8 @@ export function Sidebar({ showExtraFooter = false }: { showExtraFooter?: boolean
         </div>
       </ScrollArea>
 
-      <div className="mt-auto px-3 space-y-4">
-        <Separator />
+      <div className="mt-auto px-2.5 space-y-3">
+        <Separator className="bg-[var(--border-subtle)]" />
         <SidebarItem
           item={settingsLink}
           isActive={pathname === settingsLink.href}
@@ -166,23 +162,23 @@ function SidebarItem({ item, isActive }: { item: NavLink; isActive: boolean }) {
     <Link
       href={item.href}
       className={cn(
-        "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+        "group relative flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150",
         isActive
-          ? "bg-primary/10 text-primary shadow-sm"
-          : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+          ? "bg-[var(--primary-50)] text-[var(--primary-700)]"
+          : "text-[var(--text-secondary)] hover:bg-[var(--neutral-100)] hover:text-[var(--text-primary)]",
       )}
     >
       <item.icon
         className={cn(
           "h-4 w-4 transition-colors",
-          isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+          isActive ? "text-[var(--primary-600)]" : "text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)]",
         )}
       />
       <span>{item.title}</span>
       {isActive && (
         <motion.div
           layoutId="sidebar-active-indicator"
-          className="absolute left-0 h-6 w-1 rounded-r-full bg-primary"
+          className="absolute left-0 h-5 w-0.5 rounded-r-full bg-[var(--primary-500)]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

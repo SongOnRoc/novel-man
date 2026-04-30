@@ -107,11 +107,11 @@ export default function PromptsPage() {
   };
 
   return (
-    <div className="min-h-screen pb-20 animate-in fade-in duration-500">
+    <div className="pb-12 animate-in fade-in duration-500">
       {/* Header Section */}
-      <div className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-lg">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="flex items-center gap-x-8 overflow-x-auto py-4 no-scrollbar">
+      <div className="sticky top-0 z-10 -mx-4 border-b border-[var(--border-subtle)]/60 bg-card/70 backdrop-blur-xl md:-mx-6">
+        <div className="px-4 md:px-6">
+          <div className="flex items-center gap-x-8 overflow-x-auto py-3 no-scrollbar">
             {topNavItems.map((item) => (
               <button
                 key={item}
@@ -127,32 +127,32 @@ export default function PromptsPage() {
         </div>
       </div>
 
-      <div className="container mx-auto py-8 px-4 md:px-6 space-y-8">
+      <div className="space-y-4 pt-5 sm:space-y-5">
         {/* Search & Filter Bar */}
-        <div className="rounded-2xl border bg-card p-6 shadow-sm">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center">
+        <div className="rounded-2xl border border-[var(--border-default)]/60 bg-card/80 backdrop-blur-sm p-4 sm:p-5">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
             <div className="relative flex-grow">
-              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="搜索提示词..."
-                className="h-12 rounded-full border-muted bg-muted/30 pl-12 pr-4 text-base transition-all focus:bg-background focus:ring-2 focus:ring-primary/20"
+                className="h-11 rounded-full border-[var(--border-default)]/60 bg-muted/30 pl-11 pr-4 text-sm transition-all focus:bg-card focus:ring-2 focus:ring-[var(--primary-500)]/20"
               />
             </div>
-            <Button size="lg" className="h-12 rounded-full px-8 shadow-lg shadow-primary/20">
+            <Button size="lg" className="h-11 rounded-full bg-primary px-6 text-primary-foreground hover:bg-primary/90">
               <Search className="mr-2 h-4 w-4" /> 搜索
             </Button>
           </div>
-          
-          <div className="mt-6">
+
+          <div className="mt-5">
             <div
               className="flex cursor-pointer items-center justify-between"
               onClick={() => setIsFiltersOpen(!isFiltersOpen)}
             >
               <div className="flex items-center gap-2">
-                <div className="rounded-full bg-primary/10 p-2 text-primary">
+                <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <Filter className="h-4 w-4" />
                 </div>
-                <span className="font-semibold">高级筛选</span>
+                <span className="text-sm font-semibold">高级筛选</span>
                 {(selectedMain.length > 0 || selectedSecondary.length > 0) && (
                   <Badge variant="secondary" className="rounded-full">
                     {selectedMain.length + selectedSecondary.length}
@@ -186,7 +186,7 @@ export default function PromptsPage() {
               animate={{ height: isFiltersOpen ? "auto" : 0, opacity: isFiltersOpen ? 1 : 0 }}
               className="overflow-hidden"
             >
-              <div className="space-y-4 pt-6">
+              <div className="space-y-3 pt-5">
                 <div className="flex flex-wrap gap-2">
                   {mainCategories.map((cat) => {
                     const isSelected =
@@ -220,7 +220,7 @@ export default function PromptsPage() {
                         onClick={() => toggleSelection(cat, "secondary")}
                         className={cn(
                           "rounded-full",
-                          isSelected && "bg-amber-100 text-amber-900 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-100"
+                          isSelected && "bg-[var(--accent-100)]/80 text-[var(--accent-700)] hover:bg-[var(--accent-200)]/80"
                         )}
                       >
                         {cat}
@@ -283,25 +283,25 @@ export default function PromptsPage() {
           {contentTabs.map((tab) => (
             <TabsContent key={tab} value={tab} className="mt-0">
               {isLoading ? (
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="h-64 w-full animate-pulse rounded-xl bg-muted" />
+                    <div key={i} className="h-64 w-full animate-pulse rounded-xl bg-muted/40" />
                   ))}
                 </div>
               ) : (
-                <div className="columns-1 gap-6 md:columns-2 lg:columns-3 xl:columns-4 space-y-6">
+                <div className="columns-1 gap-4 md:columns-2 lg:columns-3 xl:columns-4 space-y-4">
                   {prompts.map((prompt) => (
                     <div key={`${tab}-${prompt.id}`} className="break-inside-avoid">
                       <PromptCard prompt={prompt} />
                     </div>
                   ))}
                   {prompts.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-20 text-center col-span-full">
-                      <div className="mb-4 rounded-full bg-muted p-6">
-                        <Sparkles className="h-10 w-10 text-muted-foreground/50" />
+                    <div className="flex flex-col items-center justify-center py-16 text-center col-span-full">
+                      <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <Sparkles className="h-7 w-7" />
                       </div>
-                      <h3 className="text-xl font-semibold">暂无提示词</h3>
-                      <p className="mt-2 text-muted-foreground">
+                      <h3 className="text-lg font-bold tracking-tight">暂无提示词</h3>
+                      <p className="mt-2 text-sm text-muted-foreground">
                         该分类下还没有提示词，快来创建第一个吧！
                       </p>
                     </div>

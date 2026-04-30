@@ -22,12 +22,12 @@ export function WorkMobileActions({
   workId,
 }: WorkMobileActionsProps): React.ReactElement {
   return (
-    <div className={cn("flex items-center gap-2", compact ? "justify-end" : "justify-start")}> 
+    <div className={cn("flex items-center gap-2", compact ? "justify-end" : "justify-start")}>
       <Button
         asChild
         variant="ghost"
         className={cn(
-          "rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 shadow-none hover:bg-emerald-100",
+          "rounded-full border border-[var(--primary-200)]/60 bg-[var(--primary-50)] text-[var(--primary-700)] shadow-none hover:bg-[var(--primary-100)]/80",
           compact ? "h-6 px-3 text-[11px]" : "h-7 px-3 text-xs"
         )}
       >
@@ -43,7 +43,7 @@ export function WorkMobileActions({
             variant="ghost"
             aria-label="更多操作"
             className={cn(
-              "rounded-full border border-border/70 bg-muted/20 text-foreground shadow-none hover:bg-muted/40",
+              "rounded-full border border-[var(--border-default)]/60 bg-muted/40 text-foreground shadow-none hover:bg-muted/60",
               compact ? "h-5 px-3 text-[10px]" : "h-6 px-3 text-[11px]"
             )}
           >
@@ -52,9 +52,9 @@ export function WorkMobileActions({
         </SheetTrigger>
         <SheetContent
           side="bottom"
-          className="rounded-t-[28px] border-x-0 border-b-0 px-0 pb-4 pt-2 [&>button]:hidden"
+          className="rounded-t-2xl border-x-0 border-b-0 px-0 pb-4 pt-2 [&>button]:hidden"
         >
-          <div className="mx-auto h-1.5 w-20 rounded-full bg-border/80" />
+          <div className="mx-auto h-1.5 w-16 rounded-full bg-muted-foreground/30" />
           <div className="px-4 pt-2">
             <div className="flex items-center justify-end">
               <SheetTitle className="sr-only">更多操作</SheetTitle>
@@ -63,7 +63,7 @@ export function WorkMobileActions({
                 variant="ghost"
                 size="icon"
                 aria-label="关闭更多操作"
-                className="h-7 w-7 rounded-full text-muted-foreground"
+                className="h-7 w-7 rounded-full text-muted-foreground hover:bg-[var(--primary-50)] hover:text-[var(--primary-700)]"
                 onClick={() => onOpenChange(false)}
               >
                 <X className="h-3.5 w-3.5" />
@@ -74,14 +74,14 @@ export function WorkMobileActions({
             <div className="mt-2 grid grid-cols-2 gap-3">
               <ActionCard
                 href={`/works/${workId}/chapters`}
-                icon={<BookOpen className="h-4 w-4 text-indigo-600" />}
-                iconClassName="bg-indigo-50"
+                icon={BookOpen}
+                tone="primary"
                 label="新建章节"
               />
               <ActionCard
                 href={`/works/${workId}/edit`}
-                icon={<Edit className="h-4 w-4 text-amber-600" />}
-                iconClassName="bg-amber-50"
+                icon={Edit}
+                tone="accent"
                 label="编辑作品"
               />
             </div>
@@ -94,21 +94,27 @@ export function WorkMobileActions({
 
 function ActionCard({
   href,
-  icon,
-  iconClassName,
+  icon: Icon,
+  tone,
   label,
 }: {
   href: string;
-  icon: React.ReactNode;
-  iconClassName: string;
+  icon: React.ComponentType<{ className?: string }>;
+  tone: "primary" | "accent";
   label: string;
 }): React.ReactElement {
+  const iconClass =
+    tone === "primary"
+      ? "bg-primary/10 text-[var(--primary-600)]"
+      : "bg-[var(--accent-100)]/80 text-[var(--accent-600)]";
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm shadow-black/5 transition-colors hover:bg-slate-50"
+      className="group flex items-center gap-3 rounded-xl border border-[var(--border-default)]/60 bg-card px-4 py-3.5 transition-all hover:border-[var(--primary-200)] hover:bg-[var(--primary-50)]/40 hover:shadow-sm"
     >
-      <span className={cn("flex h-6 w-6 items-center justify-center rounded-lg", iconClassName)}>{icon}</span>
+      <span className={cn("flex h-8 w-8 items-center justify-center rounded-lg", iconClass)}>
+        <Icon className="h-4 w-4" />
+      </span>
       <span className="text-sm font-semibold text-foreground">{label}</span>
     </Link>
   );

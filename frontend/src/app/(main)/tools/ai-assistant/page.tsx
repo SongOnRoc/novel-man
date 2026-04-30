@@ -31,33 +31,40 @@ export default function AIAssistantPage(): React.ReactElement {
   }, [setIsDialogOpen]);
 
   return (
-    <div className="h-[calc(100vh-64px)] -m-8 flex flex-col bg-gradient-to-br from-background via-background to-primary/5">
-      {/* Header */}
-      <div className="px-8 py-6 z-10">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+    <div className="flex h-[calc(100vh-7.5rem)] flex-col gap-4 animate-in fade-in duration-500 sm:gap-5">
+      {/* Hero */}
+      <section className="relative overflow-hidden rounded-2xl border border-[var(--primary-200)]/60 bg-[linear-gradient(135deg,#ffffff_0%,#ffffff_50%,var(--primary-50)_100%)] p-5 sm:p-6">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-8 -top-8 hidden h-40 w-40 rounded-full bg-[var(--primary-500)]/10 blur-2xl sm:block"
+        />
+        <div className="relative space-y-2">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--primary-200)]/60 bg-[var(--primary-50)] py-1 pl-3 pr-3">
+            <span className="text-[11px] font-semibold tracking-wider text-[var(--primary-700)]">
+              AI 创作伙伴
+            </span>
+          </div>
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
             AI 写作助手
           </h1>
-          <p className="text-muted-foreground mt-2 text-lg">
+          <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
             激发创作灵感，优化文字表达，您的智能创作伙伴。
           </p>
         </div>
-      </div>
-      
+      </section>
+
       {/* Main Content */}
-      <div className="flex-1 overflow-hidden px-8 pb-8">
-        <div className="h-full bg-background/60 backdrop-blur-xl rounded-2xl border shadow-sm overflow-hidden ring-1 ring-border/50">
-          <AIAssistantShell
-            config={{
-              model: settings.model,
-              temperature: settings.temperature,
-              maxTokens: settings.maxTokens,
-            }}
-            showThreadList={true}
-            onSettingsClick={handleSettingsClick}
-            className="h-full bg-transparent"
-          />
-        </div>
+      <div className="flex-1 overflow-hidden rounded-2xl border border-[var(--border-default)]/60 bg-card/80 backdrop-blur-sm">
+        <AIAssistantShell
+          config={{
+            model: settings.model,
+            temperature: settings.temperature,
+            maxTokens: settings.maxTokens,
+          }}
+          showThreadList={true}
+          onSettingsClick={handleSettingsClick}
+          className="h-full bg-transparent"
+        />
       </div>
 
       {/* 设置对话框 */}

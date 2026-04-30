@@ -80,15 +80,27 @@ export default function SettingsPage(): React.ReactElement {
   };
 
   return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-6">设置</h1>
-
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <p>加载设置中...</p>
+    <div className="space-y-4 pb-12 animate-in fade-in duration-500 sm:space-y-5">
+      <section className="relative overflow-hidden rounded-2xl border border-[var(--primary-200)]/60 bg-[linear-gradient(135deg,#ffffff_0%,#ffffff_50%,var(--primary-50)_100%)] p-5 sm:p-7">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-8 -top-8 hidden h-40 w-40 rounded-full bg-[var(--primary-500)]/10 blur-2xl sm:block"
+        />
+        <div className="relative space-y-2">
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">设置</h1>
+          <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+            管理编辑器、AI 助手与速查设定的个性化偏好。
+          </p>
         </div>
-      ) : (
-        <Tabs defaultValue="editor" className="w-full">
+      </section>
+
+      <section className="rounded-2xl border border-[var(--border-default)]/60 bg-card/80 backdrop-blur-sm p-4 sm:p-5">
+        {isLoading ? (
+          <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
+            <p>加载设置中...</p>
+          </div>
+        ) : (
+          <Tabs defaultValue="editor" className="w-full">
           <TabsList>
             <TabsTrigger value="editor">编辑器设置</TabsTrigger>
             <TabsTrigger value="ai">AI助手设置</TabsTrigger>
@@ -227,6 +239,7 @@ export default function SettingsPage(): React.ReactElement {
           </TabsContent>
         </Tabs>
       )}
+      </section>
     </div>
   );
 }
