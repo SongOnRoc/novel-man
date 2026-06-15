@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -5,7 +6,7 @@ import {
   DraftTemplateKey,
   NewDraftDialogFormValues,
 } from "@/features/drafts/components/NewDraftDialog";
-import { CreateDraftPayloadForClient } from "@/hooks/draft/useDraftService";
+import { CreateDraftPayloadForClient, draftKeys } from "@/hooks/draft/useDraftService";
 
 export const DEFAULT_NEW_DRAFT_TITLE = "无标题草稿";
 
@@ -81,6 +82,7 @@ export function useDraftCreationController({
   getDraftEditPath = getDefaultDraftEditPath,
   onAfterCreate,
 }: UseDraftCreationControllerOptions) {
+  const queryClient = useQueryClient();
   const defaultValues = useMemo(
     () => buildInitialValues(initialWorkId),
     [initialWorkId],
@@ -142,6 +144,16 @@ export function useDraftCreationController({
       if (!draftId) {
         throw new Error("未获取到草稿 ID");
       }
+
+      // 预填详情缓存：跳转到 edit 页时 useDraftById 立即命中、不闪 loading。
+      // 内容即刚提交的（标题 + 模板内容），与后端一致；word_count 由 edit 页后台 refetch 补全。
+      queryClient.setQueryData(draftKeys.detail(draftId), {
+        id: draftId,
+        work_id: selectedWorkId,
+        title: payload.title,
+        content: payload.content,
+        word_count: 0,
+      });
 
       onAfterCreate?.();
       setOpen(false);

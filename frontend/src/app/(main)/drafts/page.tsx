@@ -377,6 +377,12 @@ export default function DraftsPage(): React.ReactElement {
   } = useDraftCreationController({
     createDraft,
     onNavigate: (path) => router.push(path),
+    // 关联了作品 → 跳作品草稿编辑页（草稿归属该作品，不在全局列表）；
+    // 未关联 → 跳全局草稿编辑页（保持全局草稿）。
+    getDraftEditPath: (draftId, workId) =>
+      workId
+        ? `/works/${workId}/drafts/${draftId}/edit`
+        : `/drafts/${draftId}/edit`,
   });
 
   const renderContent = (): React.ReactElement => {

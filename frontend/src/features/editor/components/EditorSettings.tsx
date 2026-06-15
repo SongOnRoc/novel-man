@@ -90,7 +90,7 @@ export function EditorSettings({
         side={isDesktop ? "right" : "bottom"}
         className={cn(
           "p-0 gap-0 flex flex-col bg-background/95 backdrop-blur-sm",
-          isDesktop ? "w-full sm:w-[540px]" : "h-[70vh] rounded-t-[2rem] border-t-0"
+          isDesktop ? "w-full sm:w-[540px]" : "h-[70vh] rounded-t-2xl border-t-0"
         )}
       >
       <SheetHeader className="px-6 py-4 border-b bg-muted/10 shrink-0">
@@ -304,17 +304,17 @@ export function EditorSettings({
 
         <SheetFooter className="flex-none px-4 py-3 sm:px-6 sm:py-6 border-t bg-muted/10 flex-row">
           <div className="flex items-center justify-between w-full gap-3">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               onClick={resetToDefaults}
-              className="text-muted-foreground hover:text-foreground gap-2 h-9 sm:h-10"
+              className="gap-2 h-9 rounded-full text-muted-foreground hover:bg-[var(--primary-50)] hover:text-[var(--primary-700)] sm:h-10"
             >
               <RotateCcw className="h-4 w-4" />
               恢复默认
             </Button>
-            <Button 
-              onClick={onApply} 
-              className="px-4 sm:px-8 gap-2 shadow-lg shadow-primary/20 h-9 sm:h-10"
+            <Button
+              onClick={onApply}
+              className="gap-2 h-9 rounded-full bg-primary px-4 text-primary-foreground hover:bg-primary/90 sm:h-10 sm:px-8"
             >
               <Save className="h-4 w-4" />
               应用设置

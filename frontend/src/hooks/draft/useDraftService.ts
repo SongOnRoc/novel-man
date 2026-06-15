@@ -42,7 +42,7 @@ export type UseDraftListParams = Omit<DraftsParams, "work_id"> & {
 /**
  * Centralized query keys for drafts.
  */
-const draftKeys = {
+export const draftKeys = {
   all: ["drafts"] as const,
   lists: () => [...draftKeys.all, "list"] as const,
   list: (params: DraftsParams) => [...draftKeys.lists(), params] as const,
