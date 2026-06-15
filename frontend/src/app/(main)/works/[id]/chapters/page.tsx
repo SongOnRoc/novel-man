@@ -1,7 +1,6 @@
 "use client";
 
-import { GripVertical, Plus, Upload } from "lucide-react";
-import Link from "next/link";
+import { GripVertical } from "lucide-react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
@@ -30,10 +29,8 @@ import {
 import {
   useChapterList,
   useDeleteChapter,
-  useImportChapters,
   useUpdateChapter,
 } from "@/hooks/chapter/useChapterService";
-import { ImportDialog } from "@/components/common/ImportDialog";
 import { ChapterForClient } from "@/lib/services/chapter.service";
 import { useWorkById } from "@/hooks/work/useWorkService";
 import { GlobalLoading } from "@/components/common/GlobalLoading";
@@ -56,7 +53,6 @@ export default function ChaptersPage(): React.ReactElement {
   const searchParams = useSearchParams();
   const { setBreadcrumb } = useBreadcrumb();
   const [chapterToDelete, setChapterToDelete] = useState<ChapterForClient | null>(null);
-  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [chapterToReorder, setChapterToReorder] = useState<ChapterForClient | null>(null);
   const [targetDisplayOrder, setTargetDisplayOrder] = useState("");
   const [directoryQuery, setDirectoryQuery] = useState("");
@@ -74,7 +70,6 @@ export default function ChaptersPage(): React.ReactElement {
   }, [work, workId, setBreadcrumb]);
 
   const { mutate: deleteChapter, isPending: isDeleting } = useDeleteChapter();
-  const { mutateAsync: importChaptersAsync, isPending: isImporting } = useImportChapters();
   const { mutateAsync: updateChapterAsync, isPending: isReordering } = useUpdateChapter();
 
   const page = useMemo(() => {
@@ -308,15 +303,6 @@ export default function ChaptersPage(): React.ReactElement {
     }
   };
 
-  const handleImport = async (file: File) => {
-    if (isNaN(workId)) throw new Error("Invalid Work ID");
-    return importChaptersAsync({ workId, file });
-  };
-
-  const handleImportSuccess = (_result: unknown) => {
-    setIsImportDialogOpen(false);
-  };
-
   const reorderPreviewPrefix = useMemo(() => {
     const nextDisplayOrder = parseInt(targetDisplayOrder, 10);
     if (!Number.isInteger(nextDisplayOrder) || nextDisplayOrder <= 0 || nextDisplayOrder > chapters.length) {
@@ -411,20 +397,6 @@ export default function ChaptersPage(): React.ReactElement {
           title="章节目录"
           description="快速定位卷章结构，并进入目标章节继续阅读或编辑。"
           backButton={{ href: `/works/${workId}`, label: "返回作品" }}
-          actions={
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={() => setIsImportDialogOpen(true)}>
-                <Upload className="mr-2 h-4 w-4" />
-                导入章节
-              </Button>
-              <Button asChild>
-                <Link href={`/works/${workId}/drafts`}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  新建章节草稿
-                </Link>
-              </Button>
-            </div>
-          }
         />
 
         <div className="rounded-2xl border border-border/60 bg-card/70 p-4 shadow-sm md:p-6">
@@ -492,18 +464,14 @@ export default function ChaptersPage(): React.ReactElement {
             <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-12 text-center">
               <h2 className="text-2xl font-semibold">暂无章节</h2>
               <p className="mb-6 mt-2 text-muted-foreground">
-                当前作品还没有正式章节。可以先进入作品草稿继续创作，再从草稿发布为章节；也可以直接导入已有内容。
+                当前作品还没有正式章节。前往作品草稿页新建或导入草稿，写好后发布为章节。
               </p>
               <div className="flex flex-wrap justify-center gap-3">
-                <Button variant="outline" onClick={() => setIsImportDialogOpen(true)}>
-                  <Upload className="mr-2 h-4 w-4" />
-                  导入章节
+                <Button onClick={() => router.push(`/works/${workId}/drafts/new`)}>
+                  新建草稿
                 </Button>
-                <Button asChild>
-                  <Link href={`/works/${workId}/drafts`}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    前往作品草稿
-                  </Link>
+                <Button variant="outline" onClick={() => router.push(`/works/${workId}/drafts`)}>
+                  前往草稿页
                 </Button>
               </div>
             </div>
@@ -511,17 +479,6 @@ export default function ChaptersPage(): React.ReactElement {
           </div>
         </div>
       </div>
-
-      <ImportDialog
-        open={isImportDialogOpen}
-        onOpenChange={setIsImportDialogOpen}
-        onImport={handleImport}
-        onSuccess={handleImportSuccess}
-        title="导入章节"
-        description="支持导入 .txt, .md, .json, .zip 格式的文件。如果是压缩包，将自动解压并导入其中的章节。"
-        allowedTypes={[".txt", ".md", ".json", ".zip"]}
-        isUploading={isImporting}
-      />
 
       {chapterToDelete && (
         <DeleteItemDialog

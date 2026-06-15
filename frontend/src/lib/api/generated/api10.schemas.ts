@@ -180,6 +180,10 @@ export interface DraftsListDraftsResponse {
   pagination?: ResponsePagination;
 }
 
+export interface DraftsPublishBatchRequest {
+  draft_ids: number[];
+}
+
 export interface DraftsUpdateDraftRequest {
   content?: string;
   description?: string;
@@ -680,6 +684,34 @@ export type GetDrafts200 = Data & {
 };
 
 export type PostDrafts201 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type PostDraftsBatchPublish200 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type PostDraftsImportParams = {
+  /**
+   * Work ID
+   */
+  work_id: number;
+};
+
+export type PostDraftsImportBody = {
+  /** File to upload */
+  file: Blob;
+};
+
+export type PostDraftsImport200 = Data & {
   code?: number;
   data?: unknown;
   message?: string;

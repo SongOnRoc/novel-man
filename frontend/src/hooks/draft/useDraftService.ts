@@ -15,6 +15,8 @@ import {
   updateDraftService,
   deleteDraftService,
   publishDraftService,
+  importDraftsService,
+  batchPublishDraftsService,
 } from "@/lib/services/draft.service";
 import type {
   DraftsParams,
@@ -163,6 +165,39 @@ export const usePublishDraft = () => {
       // works 列表默认 staleTime=5min，必须显式 invalidate 才能避免“返回作品管理页需要手动刷新”。
       queryClient.invalidateQueries({ queryKey: ["works"], exact: false });
 
+      router.refresh();
+    },
+  });
+};
+
+/**
+ * Hook：将文件批量导入为作品草稿（方案 A，不直接生成章节）。
+ * 成功后失效草稿列表缓存。
+ */
+export const useImportDrafts = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workId, file }: { workId: number; file: File }) =>
+      importDraftsService(workId, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: draftKeys.lists() });
+    },
+  });
+};
+
+/**
+ * Hook：批量发布草稿为章节。
+ * 与单篇发布一致地同步失效草稿/章节/作品统计缓存。
+ */
+export const useBatchPublishDrafts = () => {
+  const queryClient = useQueryClient();
+  const router = useRouter();
+  return useMutation({
+    mutationFn: (draftIds: number[]) => batchPublishDraftsService(draftIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: draftKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: ["chapters", "list"] });
+      queryClient.invalidateQueries({ queryKey: ["works"], exact: false });
       router.refresh();
     },
   });

@@ -61,6 +61,14 @@ vi.mock("@/features/drafts/components/NewDraftDialog", () => ({
   NewDraftDialog: () => <div>新建草稿弹窗</div>,
 }));
 
+vi.mock("@/features/drafts/components/ImportInspirationDialog", () => ({
+  ImportInspirationDialog: () => null,
+}));
+
+vi.mock("@/features/drafts/components/BatchPublishDraftsDialog", () => ({
+  BatchPublishDraftsDialog: () => null,
+}));
+
 const mockWork = {
   id: 12,
   title: "测试作品",
@@ -118,11 +126,9 @@ describe("WorkDraftsPage", () => {
     expect(screen.getAllByText("测试作品").length).toBeGreaterThan(0);
     expect(screen.getByText("管理当前作品下的创作草稿，并在准备就绪后发布为正式章节。")).toBeInTheDocument();
     expect(screen.getByText("作品草稿列表")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "查看未关联草稿箱" })).toHaveAttribute(
-      "href",
-      "/drafts",
-    );
-    expect(screen.getByRole("link", { name: "新建作品草稿" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "批量发布" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "引入灵感" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "新建" })).toHaveAttribute(
       "href",
       "/works/12/drafts/new",
     );
@@ -153,7 +159,7 @@ describe("WorkDraftsPage", () => {
     render(<WorkDraftsPage />);
 
     expect(screen.getByText("这部作品暂无草稿")).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: "新建作品草稿" })[0]).toHaveAttribute(
+    expect(screen.getAllByRole("link", { name: "新建" })[0]).toHaveAttribute(
       "href",
       "/works/12/drafts/new",
     );

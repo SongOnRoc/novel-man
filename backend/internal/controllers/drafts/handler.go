@@ -393,3 +393,102 @@ func (c *DraftController) PublishDraft(ctx *gin.Context) {
 
 	response.Success(ctx, http.StatusOK, toChapterResponse(chapter))
 }
+
+// ImportDrafts godoc
+// @Summary Import drafts from file
+// @Description Import an uploaded file (.txt/.md/.json/.zip) as work drafts (Plan A). Imported content always becomes drafts, never chapters directly; users can then batch-publish them as chapters.
+// @Tags drafts
+// @Security BearerAuth
+// @Accept multipart/form-data
+// @Produce json
+// @Param work_id query int true "Work ID"
+// @Param file formData file true "File to import"
+// @Success 200 {object} response.StandardResponse{data=contracts.ImportResult}
+// @Failure 400 {object} response.StandardResponse "Invalid file or work_id"
+// @Failure 401 {object} response.StandardResponse "Unauthorized"
+// @Failure 403 {object} response.StandardResponse "Permission denied"
+// @Failure 404 {object} response.StandardResponse "Work not found"
+// @Failure 500 {object} response.StandardResponse "Failed to import drafts"
+// @Router /drafts/import [post]
+func (c *DraftController) ImportDrafts(ctx *gin.Context) {
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		response.Error(ctx, http.StatusUnauthorized, http.StatusUnauthorized, "Unauthorized", nil)
+		return
+	}
+
+	workIDStr := ctx.Query("work_id")
+	if workIDStr == "" {
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "work_id is required", nil)
+		return
+	}
+	workID, err := strconv.ParseInt(workIDStr, 10, 64)
+	if err != nil {
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid work_id", err)
+		return
+	}
+
+	// 兼容前端生成客户端使用的 "data" 字段，回退到 "file"。
+	file, err := ctx.FormFile("data")
+	if err != nil {
+		file, err = ctx.FormFile("file")
+	}
+	if err != nil {
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "No file uploaded", err)
+		return
+	}
+
+	result, err := c.service.ImportDrafts(*context.New(ctx), file, userID.(uint), workID)
+	if err != nil {
+		if errors.Is(err, drafts.ErrWorkPermissionDenied) {
+			response.Error(ctx, http.StatusForbidden, http.StatusForbidden, "Permission denied", err)
+			return
+		}
+		if errors.Is(err, drafts.ErrAssociatedWorkNotFound) {
+			response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Work not found", err)
+			return
+		}
+		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to import drafts", err)
+		return
+	}
+
+	response.Success(ctx, http.StatusOK, result)
+}
+
+// PublishBatchRequest 批量发布草稿请求体
+type PublishBatchRequest struct {
+	DraftIDs []uint `json:"draft_ids" binding:"required"`
+}
+
+// PublishBatch godoc
+// @Summary Batch publish drafts to chapters
+// @Description Publish multiple drafts as chapters in one request (partial-success semantics; each draft is published individually).
+// @Tags drafts
+// @Accept json
+// @Produce json
+// @Param body body PublishBatchRequest true "Draft IDs to publish"
+// @Success 200 {object} response.StandardResponse{data=contracts.ImportResult}
+// @Failure 400 {object} response.StandardResponse "Invalid request body"
+// @Failure 401 {object} response.StandardResponse "Unauthorized"
+// @Failure 500 {object} response.StandardResponse "Failed to publish drafts"
+// @Security BearerAuth
+// @Router /drafts/batch-publish [post]
+func (c *DraftController) PublishBatch(ctx *gin.Context) {
+	var req PublishBatchRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	if len(req.DraftIDs) == 0 {
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "draft_ids is required", nil)
+		return
+	}
+
+	result, err := c.service.PublishBatch(*context.New(ctx), req.DraftIDs)
+	if err != nil {
+		response.Error(ctx, http.StatusInternalServerError, http.StatusInternalServerError, "Failed to publish drafts", err)
+		return
+	}
+
+	response.Success(ctx, http.StatusOK, result)
+}

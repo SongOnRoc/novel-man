@@ -10,6 +10,7 @@ import type {
   DraftsUpdateDraftRequest,
   GetDraftsParams,
   DraftsListDraftsResponse,
+  ContractsImportResult,
 } from "@/lib/api/generated/api10.schemas";
 import {
   getDrafts as apiGetDrafts,
@@ -18,6 +19,8 @@ import {
   putDraftsId as apiUpdateDraft,
   deleteDraftsId as apiDeleteDraft,
   postDraftsIdPublish as apiPublishDraft,
+  postDraftsImport,
+  postDraftsBatchPublish,
 } from "@/lib/api/generated/drafts/drafts";
 
 // transform snake_case to camelCase
@@ -100,4 +103,34 @@ export const deleteDraftService = (id: number) => {
  */
 export const publishDraftService = (id: number) => {
   return apiPublishDraft(id);
+};
+
+/**
+ * 批量导入/批量发布的结果结构（后端 contracts.ImportResult）。
+ * 注意：`customFetch` 在运行时已解包响应信封，返回的即该结构本体。
+ */
+export type DraftBatchResult = ContractsImportResult;
+
+/**
+ * 将文件批量导入为「作品草稿」（方案 A：导入只生成草稿，不直接生成章节）。
+ * 调用由 swag/orval 生成的 `postDraftsImport`，与项目代码生成工作流保持一致。
+ * @param workId - 目标作品 ID。
+ * @param file - 待导入文件（.txt/.md/.json/.zip）。
+ */
+export const importDraftsService = (workId: number, file: File) => {
+  return postDraftsImport(
+    { file },
+    { work_id: workId },
+  ) as unknown as Promise<DraftBatchResult>;
+};
+
+/**
+ * 批量发布草稿为章节（部分成功语义，逐篇发布）。
+ * 调用生成的 `postDraftsBatchPublish`。
+ * @param draftIds - 待发布的草稿 ID 列表。
+ */
+export const batchPublishDraftsService = (draftIds: number[]) => {
+  return postDraftsBatchPublish({
+    draft_ids: draftIds,
+  }) as unknown as Promise<DraftBatchResult>;
 };

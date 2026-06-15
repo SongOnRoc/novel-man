@@ -24,12 +24,17 @@ import type {
 import type {
   DeleteDraftsId200,
   DraftsCreateDraftRequest,
+  DraftsPublishBatchRequest,
   DraftsUpdateDraftRequest,
   GetDrafts200,
   GetDraftsId200,
   GetDraftsParams,
   PostDrafts201,
+  PostDraftsBatchPublish200,
   PostDraftsIdPublish200,
+  PostDraftsImport200,
+  PostDraftsImportBody,
+  PostDraftsImportParams,
   PutDraftsId200,
   ResponseStandardResponse,
 } from "../api10.schemas";
@@ -297,6 +302,219 @@ export const usePostDrafts = <
   TContext
 > => {
   const mutationOptions = getPostDraftsMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Publish multiple drafts as chapters in one request (partial-success semantics; each draft is published individually).
+ * @summary Batch publish drafts to chapters
+ */
+export const postDraftsBatchPublish = (
+  draftsPublishBatchRequest: DraftsPublishBatchRequest,
+  options?: SecondParameter<typeof customFetch>,
+  signal?: AbortSignal,
+) => {
+  return customFetch<PostDraftsBatchPublish200>(
+    {
+      url: `/drafts/batch-publish`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: draftsPublishBatchRequest,
+      signal,
+    },
+    options,
+  );
+};
+
+export const getPostDraftsBatchPublishMutationOptions = <
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postDraftsBatchPublish>>,
+    TError,
+    { data: DraftsPublishBatchRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postDraftsBatchPublish>>,
+  TError,
+  { data: DraftsPublishBatchRequest },
+  TContext
+> => {
+  const mutationKey = ["postDraftsBatchPublish"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postDraftsBatchPublish>>,
+    { data: DraftsPublishBatchRequest }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return postDraftsBatchPublish(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PostDraftsBatchPublishMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postDraftsBatchPublish>>
+>;
+export type PostDraftsBatchPublishMutationBody = DraftsPublishBatchRequest;
+export type PostDraftsBatchPublishMutationError =
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse;
+
+/**
+ * @summary Batch publish drafts to chapters
+ */
+export const usePostDraftsBatchPublish = <
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postDraftsBatchPublish>>,
+      TError,
+      { data: DraftsPublishBatchRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postDraftsBatchPublish>>,
+  TError,
+  { data: DraftsPublishBatchRequest },
+  TContext
+> => {
+  const mutationOptions = getPostDraftsBatchPublishMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Import an uploaded file (.txt/.md/.json/.zip) as work drafts (Plan A). Imported content always becomes drafts, never chapters directly; users can then batch-publish them as chapters.
+ * @summary Import drafts from file
+ */
+export const postDraftsImport = (
+  postDraftsImportBody: PostDraftsImportBody,
+  params: PostDraftsImportParams,
+  options?: SecondParameter<typeof customFetch>,
+  signal?: AbortSignal,
+) => {
+  const formData = new FormData();
+  formData.append(`file`, postDraftsImportBody.file);
+
+  return customFetch<PostDraftsImport200>(
+    {
+      url: `/drafts/import`,
+      method: "POST",
+      headers: { "Content-Type": "multipart/form-data" },
+      data: formData,
+      params,
+      signal,
+    },
+    options,
+  );
+};
+
+export const getPostDraftsImportMutationOptions = <
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postDraftsImport>>,
+    TError,
+    { data: PostDraftsImportBody; params: PostDraftsImportParams },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postDraftsImport>>,
+  TError,
+  { data: PostDraftsImportBody; params: PostDraftsImportParams },
+  TContext
+> => {
+  const mutationKey = ["postDraftsImport"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postDraftsImport>>,
+    { data: PostDraftsImportBody; params: PostDraftsImportParams }
+  > = (props) => {
+    const { data, params } = props ?? {};
+
+    return postDraftsImport(data, params, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PostDraftsImportMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postDraftsImport>>
+>;
+export type PostDraftsImportMutationBody = PostDraftsImportBody;
+export type PostDraftsImportMutationError =
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse
+  | ResponseStandardResponse;
+
+/**
+ * @summary Import drafts from file
+ */
+export const usePostDraftsImport = <
+  TError =
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse
+    | ResponseStandardResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postDraftsImport>>,
+      TError,
+      { data: PostDraftsImportBody; params: PostDraftsImportParams },
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postDraftsImport>>,
+  TError,
+  { data: PostDraftsImportBody; params: PostDraftsImportParams },
+  TContext
+> => {
+  const mutationOptions = getPostDraftsImportMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };

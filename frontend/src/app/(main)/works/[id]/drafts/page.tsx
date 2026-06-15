@@ -1,6 +1,6 @@
 "use client";
 
-import { FilePlus, Sparkles } from "lucide-react";
+import { FilePlus, Send, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
@@ -22,6 +22,8 @@ import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { DraftCard } from "@/features/drafts/components/DraftCard";
 import { DraftList } from "@/features/drafts/components/DraftList";
 import { DraftToolbar } from "@/features/drafts/components/DraftToolbar";
+import { BatchPublishDraftsDialog } from "@/features/drafts/components/BatchPublishDraftsDialog";
+import { ImportInspirationDialog } from "@/features/drafts/components/ImportInspirationDialog";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
   useDeleteDraft,
@@ -110,6 +112,8 @@ export default function WorkDraftsPage(): React.ReactElement {
 
   const [draftToDelete, setDraftToDelete] = useState<DraftForClient | null>(null);
   const [draftToPublish, setDraftToPublish] = useState<DraftForClient | null>(null);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isBatchPublishOpen, setIsBatchPublishOpen] = useState(false);
 
   useEffect(() => {
     if (work && isValidWorkId) {
@@ -225,13 +229,18 @@ export default function WorkDraftsPage(): React.ReactElement {
           backButton={{ href: `/works/${workId}`, label: "返回作品" }}
           actions={
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" asChild>
-                <Link href="/drafts">查看未关联草稿箱</Link>
+              <Button variant="outline" onClick={() => setIsBatchPublishOpen(true)}>
+                <Send className="mr-2 h-4 w-4" />
+                批量发布
+              </Button>
+              <Button variant="outline" onClick={() => setIsImportOpen(true)}>
+                <Sparkles className="mr-2 h-4 w-4" />
+                引入灵感
               </Button>
               <Button asChild>
                 <Link href={`/works/${workId}/drafts/new`}>
                   <FilePlus className="mr-2 h-4 w-4" />
-                  新建作品草稿
+                  新建
                 </Link>
               </Button>
             </div>
@@ -330,11 +339,12 @@ export default function WorkDraftsPage(): React.ReactElement {
                 <Button asChild>
                   <Link href={`/works/${workId}/drafts/new`}>
                     <FilePlus className="mr-2 h-4 w-4" />
-                    新建作品草稿
+                    新建
                   </Link>
                 </Button>
-                <Button variant="outline" asChild>
-                  <Link href="/drafts">查看未关联草稿箱</Link>
+                <Button variant="outline" onClick={() => setIsImportOpen(true)}>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  引入灵感
                 </Button>
               </div>
             </div>
@@ -364,6 +374,18 @@ export default function WorkDraftsPage(): React.ReactElement {
           onConfirm={({ normalizedTitle }) => handleConfirmPublish({ normalizedTitle })}
         />
       ) : null}
+
+      <ImportInspirationDialog
+        workId={workId}
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+      />
+
+      <BatchPublishDraftsDialog
+        workId={workId}
+        open={isBatchPublishOpen}
+        onOpenChange={setIsBatchPublishOpen}
+      />
     </>
   );
 }

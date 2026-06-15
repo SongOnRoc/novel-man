@@ -313,6 +313,16 @@ components:
         pagination:
           $ref: '#/components/schemas/response.Pagination'
       type: object
+    drafts.PublishBatchRequest:
+      properties:
+        draft_ids:
+          items:
+            type: integer
+          type: array
+          uniqueItems: false
+      required:
+      - draft_ids
+      type: object
     drafts.UpdateDraftRequest:
       properties:
         content:
@@ -2030,6 +2040,132 @@ paths:
       security:
       - BearerAuth: []
       summary: Publish a draft to a chapter
+      tags:
+      - drafts
+  /drafts/batch-publish:
+    post:
+      description: Publish multiple drafts as chapters in one request (partial-success
+        semantics; each draft is published individually).
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/drafts.PublishBatchRequest'
+        description: Draft IDs to publish
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Invalid request body
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Failed to publish drafts
+      security:
+      - BearerAuth: []
+      summary: Batch publish drafts to chapters
+      tags:
+      - drafts
+  /drafts/import:
+    post:
+      description: Import an uploaded file (.txt/.md/.json/.zip) as work drafts (Plan
+        A). Imported content always becomes drafts, never chapters directly; users
+        can then batch-publish them as chapters.
+      parameters:
+      - description: Work ID
+        in: query
+        name: work_id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: file
+        description: File to import
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Invalid file or work_id
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Permission denied
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Work not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Failed to import drafts
+      security:
+      - BearerAuth: []
+      summary: Import drafts from file
       tags:
       - drafts
   /favorites:

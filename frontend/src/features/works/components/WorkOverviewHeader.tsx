@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, PencilLine, Sparkles } from "lucide-react";
+import { PencilLine, Sparkles, Upload } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 
@@ -23,6 +23,7 @@ interface WorkOverviewHeaderProps {
   isCollapsed: boolean;
   mobileMoreOpen: boolean;
   onMobileMoreOpenChange: (open: boolean) => void;
+  onImportClick?: () => void;
 }
 
 export function WorkOverviewHeader({
@@ -33,6 +34,7 @@ export function WorkOverviewHeader({
   isCollapsed,
   mobileMoreOpen,
   onMobileMoreOpenChange,
+  onImportClick,
 }: WorkOverviewHeaderProps): React.ReactElement {
   const title = work.title || "未命名作品";
   const description = work.description?.trim() || "";
@@ -108,12 +110,14 @@ export function WorkOverviewHeader({
                 <DesktopAction href={`/works/${work.id}/drafts/new`} icon={Sparkles} tone="primary">
                   新建草稿
                 </DesktopAction>
-                <DesktopAction href={`/works/${work.id}/chapters`} icon={BookOpen} tone="primary">
-                  新建章节
-                </DesktopAction>
                 <DesktopAction href={`/works/${work.id}/edit`} icon={PencilLine} tone="ghost">
-                  编辑作品
+                  编辑
                 </DesktopAction>
+                {onImportClick && (
+                  <DesktopAction onClick={onImportClick} icon={Upload} tone="ghost">
+                    导入文件
+                  </DesktopAction>
+                )}
               </div>
             </div>
           </div>
@@ -161,6 +165,7 @@ export function WorkOverviewHeader({
               workId={work.id!}
               open={mobileMoreOpen}
               onOpenChange={onMobileMoreOpenChange}
+              onImportClick={onImportClick}
             />
           </div>
         ) : (
@@ -178,6 +183,7 @@ export function WorkOverviewHeader({
               workId={work.id!}
               open={mobileMoreOpen}
               onOpenChange={onMobileMoreOpenChange}
+              onImportClick={onImportClick}
             />
           </div>
         )}
@@ -188,28 +194,38 @@ export function WorkOverviewHeader({
 
 function DesktopAction({
   href,
+  onClick,
   children,
   icon: Icon,
   tone,
 }: {
-  href: string;
+  href?: string;
+  onClick?: () => void;
   children: React.ReactNode;
   icon: React.ComponentType<{ className?: string }>;
   tone: "primary" | "ghost";
 }): React.ReactElement {
   const className =
     tone === "primary"
-      ? "h-10 rounded-full bg-primary px-5 text-primary-foreground hover:bg-primary/90"
-      : "h-10 rounded-full border border-[var(--border-default)]/60 bg-card/80 px-5 text-foreground hover:border-[var(--primary-200)] hover:bg-[var(--primary-50)]/60 hover:text-[var(--primary-700)]";
+      ? "h-11 rounded-full bg-primary px-6 text-primary-foreground transition-colors hover:bg-primary/90"
+      : "h-11 rounded-full border border-[var(--border-default)]/60 bg-card/80 px-5 text-foreground transition-all duration-300 hover:border-[var(--primary-200)] hover:bg-[var(--primary-50)]/30";
+
+  const baseClassName = cn(
+    "inline-flex items-center gap-2 text-sm font-semibold",
+    className
+  );
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={baseClassName}>
+        <Icon className="h-4 w-4" />
+        {children}
+      </button>
+    );
+  }
 
   return (
-    <Link
-      href={href}
-      className={cn(
-        "inline-flex items-center gap-2 text-sm font-semibold transition-colors",
-        className
-      )}
-    >
+    <Link href={href!} className={baseClassName}>
       <Icon className="h-4 w-4" />
       {children}
     </Link>

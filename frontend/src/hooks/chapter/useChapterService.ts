@@ -155,6 +155,10 @@ export const useDeleteChapter = () => {
 /**
  * Hook to import chapters from a file.
  * Invalidates the chapter list query on success.
+ *
+ * @deprecated 违反"章节只能由草稿发布"铁律（直连章节）。UI 已改用
+ * `useImportDrafts`（导入为草稿）+ `useBatchPublishDrafts`（批量发布）。
+ * 保留仅为兼容，请勿在新代码中使用。
  */
 export const useImportChapters = () => {
   const queryClient = useQueryClient();

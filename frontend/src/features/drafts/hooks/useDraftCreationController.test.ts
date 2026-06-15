@@ -1,7 +1,19 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createElement, type ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { useDraftCreationController } from "./useDraftCreationController";
+
+// useDraftCreationController 内部使用 useQueryClient 预填详情缓存，
+// 因此 renderHook 需要包裹 QueryClientProvider。每次用全新 client 隔离用例。
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return ({ children }: { children: ReactNode }) =>
+    createElement(QueryClientProvider, { client: queryClient }, children);
+};
 
 const createDeferred = <T,>() => {
   let resolve!: (value: T) => void;
@@ -24,6 +36,7 @@ describe("useDraftCreationController", () => {
         createDraft,
         onNavigate,
       }),
+      { wrapper: createWrapper() },
     );
 
     act(() => {
@@ -52,6 +65,7 @@ describe("useDraftCreationController", () => {
         createDraft,
         onNavigate,
       }),
+      { wrapper: createWrapper() },
     );
 
     act(() => {
@@ -81,6 +95,7 @@ describe("useDraftCreationController", () => {
         createDraft,
         onNavigate: vi.fn(),
       }),
+      { wrapper: createWrapper() },
     );
 
     act(() => {
@@ -112,6 +127,7 @@ describe("useDraftCreationController", () => {
         onNavigate,
         getDraftEditPath,
       }),
+      { wrapper: createWrapper() },
     );
 
     act(() => {
@@ -135,6 +151,7 @@ describe("useDraftCreationController", () => {
         createDraft,
         onNavigate: vi.fn(),
       }),
+      { wrapper: createWrapper() },
     );
 
     act(() => {

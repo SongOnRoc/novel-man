@@ -53,6 +53,8 @@ func (m *draftsModule) RegisterRoutes(router *gin.RouterGroup) {
 		{
 			authedGroup.POST("", controller.CreateDraft)
 			authedGroup.GET("", controller.ListDrafts)
+			authedGroup.POST("/import", controller.ImportDrafts)
+			authedGroup.POST("/batch-publish", controller.PublishBatch)
 
 			resourceGroup := authedGroup.Group("/:id")
 			existenceMiddleware, ok := m.getMiddleware(resource.ExistenceMiddlewareName(resource.DraftResource))

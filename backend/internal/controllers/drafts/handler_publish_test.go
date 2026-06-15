@@ -2,6 +2,7 @@ package drafts
 
 import (
 	"encoding/json"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -35,6 +36,12 @@ func (s *fakeDraftPublishService) List(ctx ctxpkg.Context, page, limit int, filt
 }
 func (s *fakeDraftPublishService) Publish(ctx ctxpkg.Context, draftID uint) (*models.Chapter, error) {
 	return nil, s.publishErr
+}
+func (s *fakeDraftPublishService) ImportDrafts(ctx ctxpkg.Context, file *multipart.FileHeader, userID uint, workID int64) (*contracts.ImportResult, error) {
+	return nil, nil
+}
+func (s *fakeDraftPublishService) PublishBatch(ctx ctxpkg.Context, draftIDs []uint) (*contracts.ImportResult, error) {
+	return nil, nil
 }
 func (s *fakeDraftPublishService) HandleDraftTask(ctx ctxpkg.Context, task events.QueueTask) error {
 	return nil

@@ -10,7 +10,6 @@ const mockSetBreadcrumb = vi.fn();
 const mockUseWorkById = vi.fn();
 const mockUseChapterList = vi.fn();
 const mockUseDeleteChapter = vi.fn();
-const mockUseImportChapters = vi.fn();
 const mockUseUpdateChapter = vi.fn();
 const mockToastError = vi.fn();
 const mockToastSuccess = vi.fn();
@@ -47,7 +46,6 @@ vi.mock("@/hooks/work/useWorkService", () => ({
 vi.mock("@/hooks/chapter/useChapterService", () => ({
   useChapterList: (...args: unknown[]) => mockUseChapterList(...args),
   useDeleteChapter: () => mockUseDeleteChapter(),
-  useImportChapters: () => mockUseImportChapters(),
   useUpdateChapter: () => mockUseUpdateChapter(),
 }));
 
@@ -210,10 +208,6 @@ describe("ChaptersPage", () => {
       mutateAsync: vi.fn(),
       isPending: false,
     });
-    mockUseImportChapters.mockReturnValue({
-      mutateAsync: vi.fn(),
-      isPending: false,
-    });
   });
 
   it("应展示章节目录页骨架而不是旧的洞察卡片", () => {
@@ -236,7 +230,7 @@ describe("ChaptersPage", () => {
 
     const moreActions = screen.getByRole("button", { name: "更多操作" }).parentElement;
     expect(moreActions).not.toBeNull();
-    expect(within(moreActions as HTMLElement).queryByText("导入章节")).not.toBeInTheDocument();
+    expect(within(moreActions as HTMLElement).queryByText("导入为草稿")).not.toBeInTheDocument();
   });
 
   it("没有章节时应展示草稿导向空状态入口", () => {
@@ -253,14 +247,11 @@ describe("ChaptersPage", () => {
     expect(screen.getByText("暂无章节")).toBeInTheDocument();
     expect(
       screen.getByText(
-        "当前作品还没有正式章节。可以先进入作品草稿继续创作，再从草稿发布为章节；也可以直接导入已有内容。",
+        "当前作品还没有正式章节。前往作品草稿页新建或导入草稿，写好后发布为章节。",
       ),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "前往作品草稿" })).toHaveAttribute(
-      "href",
-      "/works/12/drafts",
-    );
-    expect(screen.getAllByRole("button", { name: "导入章节" }).length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: "新建草稿" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "前往草稿页" })).toBeInTheDocument();
   });
 
   it("无效作品 id 时应阻止加载章节模块主体", () => {
