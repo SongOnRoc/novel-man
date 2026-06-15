@@ -19,7 +19,9 @@ export function MainLayout({ children }: MainLayoutProps) {
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
 
-  const isEditorPage = pathname?.includes("/edit");
+  const isEditorPage = Boolean(
+    pathname?.includes("/edit") || pathname?.endsWith("/drafts/new"),
+  );
   const isReadingChapterPage = pathname ? /\/works\/\d+\/chapters\/\d+$/.test(pathname) : false;
   const isImmersivePage = isEditorPage || isReadingChapterPage;
   const isMobileEditor = isMobile && isEditorPage;

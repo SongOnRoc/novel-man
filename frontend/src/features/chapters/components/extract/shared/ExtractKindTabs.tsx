@@ -49,7 +49,7 @@ export function ExtractKindTabs({
               "flex items-center gap-1 rounded-full font-medium transition-colors",
               size === "sm" ? "px-3 py-1" : "px-3.5 py-1.5",
               active
-                ? "bg-emerald-600 text-white shadow-sm"
+                ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:bg-background hover:text-foreground",
             )}
           >
@@ -58,7 +58,7 @@ export function ExtractKindTabs({
               <span
                 className={cn(
                   "rounded-full px-1.5 text-[10px] leading-4",
-                  active ? "bg-white/20 text-white" : "bg-background text-muted-foreground",
+                  active ? "bg-primary-foreground/20 text-primary-foreground" : "bg-background text-muted-foreground",
                 )}
               >
                 {count}

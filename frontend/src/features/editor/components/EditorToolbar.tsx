@@ -1,22 +1,14 @@
 "use client";
 
 import { Editor } from "@tiptap/react";
-import { Expand, Shrink, Check, AlertCircle, Loader2, ArrowLeft, Info, Undo2, Redo2 } from "lucide-react";
+import { Expand, Shrink, Check, AlertCircle, Loader2, ArrowLeft, Undo2, Redo2, Upload } from "lucide-react";
 import { useState, useEffect } from "react";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   EditorSettings as EditorSettingsType,
 } from "@/types/editor";
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 import { EditorSettings } from "./EditorSettings";
 import { TreasureChest } from "./TreasureChest";
@@ -101,80 +93,35 @@ export function EditorToolbar({
     switch (saveStatus) {
       case 'saving':
         return (
-          <Button variant="ghost" size="sm" className="h-auto py-0 px-0 gap-1 text-blue-500 hover:text-blue-600 hover:bg-transparent cursor-default" disabled>
+          <span className="inline-flex items-center gap-1 text-blue-500">
             <Loader2 className="h-3 w-3 animate-spin" />
             <span>保存中</span>
-          </Button>
+          </span>
         );
       case 'saved':
-        if (onPublish) {
-          return (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="h-auto py-0 px-0 gap-1 text-green-600 hover:text-green-700 hover:bg-transparent cursor-pointer group"
-              onClick={onPublish}
-            >
-              <TooltipProvider>
-                <Tooltip delayDuration={300}>
-                  <TooltipTrigger asChild>
-                    <div 
-                      className="mr-0.5 cursor-help"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Mobile support
-                        if (window.matchMedia('(max-width: 768px)').matches) {
-                           toast.info("当前内容已保存。您可以随时点击已保存按钮将草稿发布为正式章节。", {
-                            duration: 3000,
-                            position: "top-center"
-                          });
-                        }
-                      }}
-                    >
-                      <InfoIcon className="bg-zinc-400 text-white/90" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs bg-card text-card-foreground border shadow-sm">
-                    <p className="text-sm font-normal">
-                      当前内容已保存。
-                      <br />
-                      您可以随时点击<span className="font-bold text-green-600 mx-1">已保存</span>按钮将草稿发布为正式章节。
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <span>已保存</span>
-            </Button>
-          );
-        }
         return (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-auto py-0 px-0 gap-1 text-green-600 hover:text-green-700 hover:bg-transparent cursor-default"
-            title="已保存"
-          >
+          <span className="inline-flex items-center gap-1 text-green-600">
             <Check className="h-3 w-3" />
             <span>已保存</span>
-          </Button>
+          </span>
         );
       case 'unsaved':
-          return (
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="h-auto py-0 px-0 gap-1 text-yellow-600 hover:text-yellow-700 hover:bg-transparent cursor-pointer"
-              onClick={onSave}
-              title="点击保存"
-            >
-              <InfoIcon className="bg-yellow-500 text-white mr-0.5" />
-              <span>未保存</span>
-            </Button>
-          );
+        return (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-auto py-0 px-0 gap-1 text-yellow-600 hover:text-yellow-700 hover:bg-transparent cursor-pointer"
+            onClick={onSave}
+            title="点击保存"
+          >
+            <InfoIcon className="bg-yellow-500 text-white mr-0.5" />
+            <span>未保存</span>
+          </Button>
+        );
       case 'error':
         return (
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="sm"
             className="h-auto py-0 px-0 gap-1 text-red-500 hover:text-red-600 hover:bg-transparent cursor-pointer"
             onClick={onSave}
@@ -233,11 +180,27 @@ export function EditorToolbar({
       {/* 右侧操作区 */}
       <div className="flex items-center gap-1 sm:gap-3 ml-auto">
 
-        {/* 状态显示：保存状态 | 字数 */}
+        {/* 状态显示：保存状态 | 字数（纯展示） */}
         <div className="flex items-center gap-1 text-sm text-muted-foreground select-none px-2 sm:px-3 py-1.5">
           {getSaveStatusDisplay()}
           <span className="font-mono text-sm">{wordCount} 字</span>
         </div>
+
+        {/* 发布：与工具栏其它按钮同款 ghost 形态，主色图标体现主操作 */}
+        {onPublish && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onPublish}
+            className="h-8 shrink-0 gap-1.5 px-2 text-primary hover:bg-primary/10 hover:text-primary sm:px-3"
+            aria-label="发布为章节"
+            title="发布为章节"
+          >
+            <Upload className="h-4 w-4" />
+            <span className="hidden sm:inline">发布为章节</span>
+          </Button>
+        )}
 
         <EditorSettings
           settings={settings}

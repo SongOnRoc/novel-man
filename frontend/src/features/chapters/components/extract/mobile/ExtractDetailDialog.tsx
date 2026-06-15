@@ -61,15 +61,15 @@ export function ExtractDetailDialog({
   if (!candidate) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-sm rounded-3xl" />
+        <DialogContent className="max-w-sm rounded-2xl" />
       </Dialog>
     );
   }
   const link = detailHref(candidate, workId);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm rounded-3xl border-emerald-100 bg-emerald-50/60 p-0">
-        <div className="rounded-3xl bg-white p-5">
+      <DialogContent className="max-w-sm rounded-2xl border-[var(--border-default)]/60 bg-card p-0">
+        <div className="rounded-2xl bg-card p-5">
           <DialogHeader className="space-y-2 text-left">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -94,7 +94,7 @@ export function ExtractDetailDialog({
             <div className="flex flex-wrap items-center gap-2">
               <ExtractStatusBadge status={candidate.match.status} />
               {candidate.match.matchInfo ? (
-                <span className="text-[11px] text-emerald-700">{candidate.match.matchInfo}</span>
+                <span className="text-[11px] text-[var(--primary-700)]">{candidate.match.matchInfo}</span>
               ) : null}
             </div>
           </DialogHeader>
@@ -120,7 +120,7 @@ export function ExtractDetailDialog({
 
           <section className="mt-4 space-y-2">
             <h4 className="text-[12px] font-semibold text-muted-foreground">提取细节</h4>
-            <p className="rounded-xl bg-slate-50 px-3 py-2 text-[13px] leading-6 text-slate-700">
+            <p className="rounded-xl bg-muted/50 px-3 py-2 text-[13px] leading-6 text-muted-foreground">
               {candidate.description}
             </p>
             {candidate.matchEvidence ? (
@@ -133,10 +133,10 @@ export function ExtractDetailDialog({
               <h4 className="text-[12px] font-semibold text-muted-foreground">
                 {candidate.identityAnchor.title ?? "身份锚点"}
               </h4>
-              <dl className="grid grid-cols-1 gap-1 rounded-xl bg-emerald-50/60 p-3 text-[12px] text-slate-700">
+              <dl className="grid grid-cols-1 gap-1 rounded-xl bg-[var(--primary-50)]/60 p-3 text-[12px] text-muted-foreground">
                 {candidate.identityAnchor.facets.map((facet) => (
                   <div key={`${facet.label}-${facet.value}`} className="flex gap-1">
-                    <dt className="font-medium text-slate-500">{facet.label}：</dt>
+                    <dt className="font-medium text-muted-foreground/70">{facet.label}：</dt>
                     <dd className="flex-1">{facet.value}</dd>
                   </div>
                 ))}
@@ -160,7 +160,7 @@ export function ExtractDetailDialog({
             {link ? (
               <Button
                 asChild
-                className="rounded-full bg-emerald-600 text-white hover:bg-emerald-700"
+                className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 <Link href={link} onClick={() => onOpenChange(false)}>
                   <Eye className="mr-1 h-3.5 w-3.5" />
@@ -170,7 +170,7 @@ export function ExtractDetailDialog({
             ) : (
               <Button
                 type="button"
-                className="rounded-full bg-emerald-600 text-white hover:bg-emerald-700"
+                className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={() => onOpenChange(false)}
               >
                 <Eye className="mr-1 h-3.5 w-3.5" />

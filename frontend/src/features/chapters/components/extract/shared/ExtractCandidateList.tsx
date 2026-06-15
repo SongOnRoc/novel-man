@@ -40,11 +40,11 @@ export function ExtractCandidateList({
     return (
       <div
         className={cn(
-          "flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 py-10 text-center text-sm text-muted-foreground",
+          "flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--border-default)]/60 bg-muted/40 py-10 text-center text-sm text-muted-foreground",
           className,
         )}
       >
-        <ScrollText className="h-5 w-5 text-slate-400" />
+        <ScrollText className="h-5 w-5 text-muted-foreground/40" />
         <p>暂无 {EXTRACT_KIND_LABEL[kind]} 候选</p>
       </div>
     );
@@ -64,7 +64,7 @@ export function ExtractCandidateList({
         ))}
       </div>
       {(onConfirmAll || onIgnoreAll) ? (
-        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
+        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border-subtle)] pt-3">
           <span className="text-[12px] text-muted-foreground">
             共 {candidates.length} 条 · {pendingCount} 待处理
           </span>
@@ -79,7 +79,7 @@ export function ExtractCandidateList({
                 type="button"
                 size="sm"
                 onClick={onConfirmAll}
-                className="h-7 rounded-full bg-emerald-600 px-3 text-white hover:bg-emerald-700"
+                className="h-7 rounded-full bg-primary px-3 text-primary-foreground hover:bg-primary/90"
               >
                 全部确认
               </Button>

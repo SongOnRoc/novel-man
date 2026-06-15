@@ -41,7 +41,7 @@ const stages = [
   {
     id: "outline",
     title: "大纲/剧情",
-    color: "bg-blue-500/10 text-blue-600 border-blue-200 dark:border-blue-900",
+    color: "bg-primary/10 text-[var(--primary-700)] border-[var(--primary-200)]",
     items: [
       { id: "3", title: "第一卷：初出茅庐", content: "主要讲述主角离开新手村...", date: "2023-10-05" },
       { id: "4", title: "核心冲突设定", content: "传统魔法与机械文明的冲突...", date: "2023-10-06" },
@@ -51,7 +51,7 @@ const stages = [
   {
     id: "draft",
     title: "草稿/撰写",
-    color: "bg-emerald-500/10 text-emerald-600 border-emerald-200 dark:border-emerald-900",
+    color: "bg-muted/60 text-muted-foreground border-[var(--border-default)]",
     items: [
       { id: "6", title: "第一章：觉醒", content: "已完成初稿，待润色...", date: "2023-10-10" },
       { id: "7", title: "第二章：相遇", content: "正在撰写中...", date: "2023-10-12" },
@@ -60,7 +60,7 @@ const stages = [
   {
     id: "review",
     title: "审阅/修订",
-    color: "bg-purple-500/10 text-purple-600 border-purple-200 dark:border-purple-900",
+    color: "bg-[var(--accent-100)]/80 text-[var(--accent-700)] border-[var(--accent-200)]",
     items: [
       { id: "8", title: "序章", content: "需要重新调整节奏...", date: "2023-09-30" },
     ],

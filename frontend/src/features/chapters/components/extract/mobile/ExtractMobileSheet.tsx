@@ -58,10 +58,10 @@ export function ExtractMobileSheet({
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent
           side="bottom"
-          className="h-[92vh] rounded-t-3xl bg-slate-50 p-0"
+          className="h-[92vh] rounded-t-2xl bg-[var(--bg-page)] p-0"
         >
           <div className="flex h-full flex-col">
-            <SheetHeader className="space-y-1 border-b border-slate-200 bg-white px-4 py-3">
+            <SheetHeader className="space-y-1 border-b border-[var(--border-subtle)] bg-card px-4 py-3">
               <div className="flex items-center justify-between">
                 <SheetTitle className="text-base font-semibold">
                   {chapterTitle} · 智能提取
@@ -85,7 +85,7 @@ export function ExtractMobileSheet({
               <ExtractReader
                 paragraphs={paragraphs}
                 terms={workflow.terms}
-                className="bg-white"
+                className="rounded-xl bg-card p-4"
               />
 
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -100,7 +100,7 @@ export function ExtractMobileSheet({
                   size="sm"
                   onClick={onTrigger}
                   disabled={workflow.status === "loading"}
-                  className="rounded-full bg-emerald-600 text-white hover:bg-emerald-700"
+                  className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <Sparkles className="mr-1 h-3.5 w-3.5" />
                   {workflow.status === "loading" ? "提取中" : "提取"}
@@ -129,7 +129,7 @@ export function ExtractMobileSheet({
 
             <footer
               className={cn(
-                "flex items-center justify-between gap-2 border-t border-slate-200 bg-white px-4 py-3",
+                "flex items-center justify-between gap-2 border-t border-[var(--border-subtle)] bg-card px-4 py-3",
               )}
             >
               <Button
@@ -144,7 +144,7 @@ export function ExtractMobileSheet({
               <Button
                 type="button"
                 onClick={onConfirmAll}
-                className="rounded-full bg-emerald-600 text-white hover:bg-emerald-700"
+                className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 全部确认
               </Button>

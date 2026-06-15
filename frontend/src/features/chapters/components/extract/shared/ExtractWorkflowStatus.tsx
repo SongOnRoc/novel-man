@@ -25,7 +25,7 @@ export function ExtractWorkflowStatus({
     return (
       <div
         className={cn(
-          "flex items-center gap-2 rounded-xl bg-emerald-50/60 px-3 py-2.5 text-sm text-emerald-900",
+          "flex items-center gap-2 rounded-xl bg-[var(--primary-50)]/60 px-3 py-2.5 text-sm text-[var(--primary-700)]",
           className,
         )}
       >
@@ -38,7 +38,7 @@ export function ExtractWorkflowStatus({
     return (
       <div
         className={cn(
-          "flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50/80 px-3 py-2.5 text-sm text-rose-900",
+          "flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive",
           className,
         )}
       >
@@ -51,7 +51,7 @@ export function ExtractWorkflowStatus({
               size="sm"
               variant="ghost"
               onClick={onRetry}
-              className="h-7 rounded-full px-2 text-rose-700 hover:bg-rose-100 hover:text-rose-800"
+              className="h-7 rounded-full px-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
               重试
             </Button>
@@ -64,12 +64,12 @@ export function ExtractWorkflowStatus({
     return (
       <div
         className={cn(
-          "flex items-center gap-2 rounded-xl border border-dashed border-emerald-200 bg-emerald-50/30 px-3 py-2.5 text-sm text-emerald-900",
+          "flex items-center gap-2 rounded-xl border border-dashed border-[var(--primary-200)] bg-[var(--primary-50)]/30 px-3 py-2.5 text-sm text-[var(--primary-700)]",
           className,
         )}
       >
         <Sparkles className="h-3.5 w-3.5" />
-        <span>点击右上"智能提取"，自动识别角色 / 世界观 / 纲要</span>
+        <span>点击右上&quot;智能提取&quot;，自动识别角色 / 世界观 / 纲要</span>
       </div>
     );
   }

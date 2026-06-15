@@ -19,17 +19,17 @@ const STATUS_MAP: Record<
 > = {
   matched: {
     label: "已命中",
-    tone: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    tone: "bg-[var(--primary-50)] text-[var(--primary-700)] border-[var(--primary-200)]",
     icon: CheckCircle2,
   },
   suspect: {
     label: "疑似",
-    tone: "bg-amber-50 text-amber-700 border-amber-200",
+    tone: "bg-[var(--accent-50)] text-[var(--accent-700)] border-[var(--accent-200)]",
     icon: CircleHelp,
   },
   unmatched: {
     label: "未命中",
-    tone: "bg-slate-50 text-slate-600 border-slate-200",
+    tone: "bg-muted/60 text-muted-foreground border-[var(--border-default)]",
     icon: MinusCircle,
   },
 };
@@ -68,10 +68,10 @@ export function ExtractConfidenceBadge({
   const rounded = Math.round(confidence);
   const tone =
     rounded >= 80
-      ? "text-emerald-600"
+      ? "text-[var(--primary-600)]"
       : rounded >= 50
-        ? "text-amber-600"
-        : "text-slate-500";
+        ? "text-[var(--accent-600)]"
+        : "text-muted-foreground";
   return (
     <span className={cn("font-semibold tabular-nums", tone, className)}>{rounded}%</span>
   );

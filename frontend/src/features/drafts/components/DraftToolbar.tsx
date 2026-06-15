@@ -103,7 +103,7 @@ export function DraftToolbar({
           <Button
             type="button"
             onClick={onCreateDraft}
-            className="flex-1 shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:shadow-primary/30 sm:flex-none"
+            className="flex-1 rounded-full bg-primary text-primary-foreground transition-colors hover:bg-primary/90 sm:flex-none"
           >
             <FilePlus className="mr-2 h-4 w-4" />
             新草稿

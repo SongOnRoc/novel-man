@@ -116,23 +116,23 @@ const DraftsContent = ({
     }
 
     return (
-      <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-primary/10 bg-primary/5 p-20 text-center animate-in fade-in zoom-in-95 duration-500">
-        <div className="mb-8 rounded-full bg-background p-6 shadow-xl shadow-primary/5 ring-1 ring-primary/10">
-          <Sparkles className="h-12 w-12 text-primary" />
+      <div className="flex flex-col items-center justify-center rounded-2xl border border-[var(--primary-200)]/60 bg-[var(--primary-50)]/40 p-12 text-center animate-in fade-in zoom-in-95 duration-500">
+        <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <Sparkles className="h-7 w-7" />
         </div>
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+        <h2 className="text-xl font-bold tracking-tight text-foreground">
           灵感空空如也
         </h2>
-        <p className="mb-8 mt-3 max-w-md text-muted-foreground leading-relaxed">
+        <p className="mb-6 mt-2 max-w-md text-sm text-muted-foreground leading-relaxed">
           不要让灵感溜走。无论是只言片语还是宏大构想，这里都是它们最好的归宿。
         </p>
         <Button
           type="button"
           size="lg"
           onClick={onCreateDraft}
-          className="h-12 rounded-full px-8 shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:shadow-primary/30"
+          className="h-11 rounded-full bg-primary px-6 text-primary-foreground transition-colors hover:bg-primary/90"
         >
-          <FilePlus className="mr-2 h-5 w-5" />
+          <FilePlus className="mr-2 h-4 w-4" />
           开始创作
         </Button>
       </div>
@@ -264,7 +264,7 @@ export default function DraftsPage(): React.ReactElement {
   const [isPublishing, setIsPublishing] = useState(false);
   const [selectedWorkId, setSelectedWorkId] = useState<string | undefined>(undefined);
 
-  const { data: worksResponse, isLoading: isLoadingWorks } = useWorkList({});
+  const { data: worksResponse, isLoading: isLoadingWorks } = useWorkList({ limit: 1000 });
   const works = (worksResponse as WorksList)?.data || [];
 
   const { mutate: deleteDraft, isPending: isDeleting } = useDeleteDraft();
@@ -399,25 +399,39 @@ export default function DraftsPage(): React.ReactElement {
 
   return (
     <>
-      <div className="min-h-screen space-y-8 pb-20 animate-in fade-in duration-500">
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
+      <div className="space-y-4 pb-12 animate-in fade-in duration-500 sm:space-y-5">
+        <section className="relative overflow-hidden rounded-2xl border border-[var(--primary-200)]/60 bg-[linear-gradient(135deg,#ffffff_0%,#ffffff_50%,var(--primary-50)_100%)] p-5 sm:p-7">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-8 -top-8 hidden h-40 w-40 rounded-full bg-[var(--primary-500)]/10 blur-2xl sm:block"
+          />
+          <div className="relative space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--primary-200)]/60 bg-[var(--primary-50)] py-1 pl-1 pr-3">
+              <span className="inline-flex h-5 min-w-[24px] items-center justify-center rounded-full bg-[var(--primary-500)] px-1 text-[10px] font-bold tracking-wider text-white">
+                <Sparkles className="h-3 w-3" />
+              </span>
+              <span className="text-[11px] font-semibold tracking-wider text-[var(--primary-700)]">
+                灵感沉淀
+              </span>
+            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
               灵感草稿箱
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl">
+            <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
               这里只保留未关联作品的灵感草稿，方便统一沉淀零散想法。
             </p>
           </div>
 
-          <DraftToolbar
-            viewMode={view}
-            onViewModeChange={handleViewChange}
-            onCreateDraft={() => openDialog()}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-          />
-        </div>
+          <div className="relative mt-4 sm:mt-5">
+            <DraftToolbar
+              viewMode={view}
+              onViewModeChange={handleViewChange}
+              onCreateDraft={() => openDialog()}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+            />
+          </div>
+        </section>
 
         <div className="min-h-[500px]">{renderContent()}</div>
       </div>

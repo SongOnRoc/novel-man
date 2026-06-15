@@ -55,7 +55,7 @@ export function ExtractDesktopPanel({
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.32fr)_minmax(0,1fr)]">
         <ExtractReader paragraphs={paragraphs} terms={workflow.terms} />
 
-        <aside className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-white p-4 shadow-sm">
+        <aside className="flex flex-col gap-3 rounded-2xl border border-[var(--border-default)]/60 bg-card p-4">
           {hasResults ? (
             <>
               <ExtractKindTabs
@@ -81,10 +81,10 @@ export function ExtractDesktopPanel({
                 errorMessage={workflow.errorMessage}
                 onRetry={workflow.retry}
               />
-              <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 py-10 text-center text-sm text-muted-foreground">
-                <ScrollText className="h-6 w-6 text-slate-400" />
+              <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--border-default)]/60 bg-muted/40 py-10 text-center text-sm text-muted-foreground">
+                <ScrollText className="h-6 w-6 text-muted-foreground/40" />
                 <p>暂无候选结果</p>
-                <p className="text-xs text-slate-400">触发智能提取后将自动归类显示</p>
+                <p className="text-xs text-muted-foreground/60">触发智能提取后将自动归类显示</p>
               </div>
             </>
           )}

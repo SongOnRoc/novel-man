@@ -22,11 +22,8 @@ import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { DraftCard } from "@/features/drafts/components/DraftCard";
 import { DraftList } from "@/features/drafts/components/DraftList";
 import { DraftToolbar } from "@/features/drafts/components/DraftToolbar";
-import { NewDraftDialog } from "@/features/drafts/components/NewDraftDialog";
-import { useDraftCreationController } from "@/features/drafts/hooks/useDraftCreationController";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
-  useCreateDraft,
   useDeleteDraft,
   useDraftList,
   usePublishDraft,
@@ -104,7 +101,6 @@ export default function WorkDraftsPage(): React.ReactElement {
   const { mutate: deleteDraft, isPending: isDeleting } = useDeleteDraft();
   const { mutate: publishDraft, isPending: isPublishingPending } = usePublishDraft();
   const { mutateAsync: updateDraftAsync, isPending: isSaving } = useUpdateDraft();
-  const { mutateAsync: createDraft } = useCreateDraft();
   const { data: chaptersResponse, isLoading: isLoadingChapters } = useChapterList({
     workId: isValidWorkId ? workId : 0,
     page: 1,
@@ -192,23 +188,6 @@ export default function WorkDraftsPage(): React.ReactElement {
     });
   };
 
-  const {
-    open,
-    isCreating,
-    values,
-    errorMessage,
-    openDialog,
-    closeDialog,
-    updateValues,
-    confirmCreate,
-  } = useDraftCreationController({
-    initialWorkId: isValidWorkId ? workId : undefined,
-    createDraft,
-    onNavigate: (path) => router.push(path),
-    getDraftEditPath: (draftId, nextWorkId) =>
-      `/works/${nextWorkId ?? workId}/drafts/${draftId}/edit`,
-  });
-
   if (!isValidWorkId) {
     return (
       <div className="min-h-[50vh] flex flex-col items-center justify-center gap-4 text-center">
@@ -270,7 +249,7 @@ export default function WorkDraftsPage(): React.ReactElement {
             <DraftToolbar
               viewMode={view}
               onViewModeChange={handleViewChange}
-              onCreateDraft={() => openDialog(workId)}
+              onCreateDraft={() => router.push(`/works/${workId}/drafts/new`)}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
             />
@@ -385,23 +364,6 @@ export default function WorkDraftsPage(): React.ReactElement {
           onConfirm={({ normalizedTitle }) => handleConfirmPublish({ normalizedTitle })}
         />
       ) : null}
-
-      <NewDraftDialog
-        open={open}
-        isCreating={isCreating}
-        works={[work]}
-        values={values}
-        errorMessage={errorMessage}
-        onOpenChange={(nextOpen) => {
-          if (nextOpen) {
-            openDialog(workId);
-            return;
-          }
-          closeDialog();
-        }}
-        onValuesChange={updateValues}
-        onConfirm={confirmCreate}
-      />
     </>
   );
 }

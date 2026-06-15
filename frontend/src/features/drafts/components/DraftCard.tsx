@@ -55,9 +55,8 @@ export function DraftCard({
   return (
     <div
       onClick={handleCardClick}
-      className="group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-border/40 bg-card/50 p-6 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/20 hover:bg-card/80 hover:shadow-xl hover:shadow-primary/5 cursor-pointer animate-in fade-in zoom-in-95 duration-300"
+      className="group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-[var(--border-default)]/60 bg-card/80 p-5 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--primary-200)] hover:bg-card hover:shadow-sm cursor-pointer animate-in fade-in zoom-in-95 duration-300"
     >
-      {/* Decorative Gradient Blob */}
       <div className="absolute -right-20 -top-20 h-40 w-40 rounded-full bg-primary/5 blur-3xl transition-all duration-500 group-hover:bg-primary/10" />
 
       <div className="relative z-10 flex flex-col gap-4">
