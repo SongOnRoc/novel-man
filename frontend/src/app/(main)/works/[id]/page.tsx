@@ -3,8 +3,10 @@
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import {
+  AlignLeft,
   BookOpen,
   ChevronRight,
+  Clock,
   FileText,
   PenTool,
   Settings,
@@ -14,10 +16,8 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
 import { useWorkHeaderCollapse } from "@/features/works/components/useWorkHeaderCollapse";
@@ -40,7 +40,7 @@ const MANAGEMENT_TABS = [
 
 type ManagementTabKey = (typeof MANAGEMENT_TABS)[number]["key"];
 
-export default function WorkDetailsPage(): React.ReactElement {
+export default function WorkDetailsPage(): React.ReactElement | null {
   const params = useParams();
   const router = useRouter();
   const workId = Number(params.id);
@@ -126,7 +126,7 @@ export default function WorkDetailsPage(): React.ReactElement {
   }
 
   if (isLoading) {
-    return <WorkManagementSkeleton />;
+    return null;
   }
 
   if (!work) {
@@ -145,7 +145,7 @@ export default function WorkDetailsPage(): React.ReactElement {
 
   return (
     <>
-      <div className="relative flex flex-col gap-4 animate-in fade-in duration-500 sm:gap-5">
+      <div className="relative flex flex-col gap-5 animate-in fade-in duration-500 sm:gap-6">
         <WorkOverviewHeader
           work={work}
           draftTotal={draftTotal}
@@ -199,44 +199,37 @@ export default function WorkDetailsPage(): React.ReactElement {
 
                 <TabsContent
                   value="chapters"
-                  className="mt-0 min-h-0 flex-1 overflow-auto pt-3 lg:pt-4"
+                  className="mt-0 min-h-0 flex-1 overflow-auto pt-4 lg:pt-5"
                 >
                   <ManagementSection>
-                    {isLoadingChapters ? (
-                      <ListSkeleton rows={3} />
-                    ) : chapters.length > 0 ? (
+                    {isLoadingChapters ? null : chapters.length > 0 ? (
                       <div className="space-y-3">
                         {orderedChapters.map((chapter) => (
                           <Link
                             key={chapter.id}
                             href={`/works/${work.id}/chapters/${chapter.id}`}
-                            className="group flex items-center justify-between rounded-xl border border-[var(--border-default)]/60 bg-card px-5 py-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--primary-200)] hover:bg-[var(--primary-50)]/30 hover:shadow-sm"
+                            className="group flex items-center justify-between gap-3 rounded-xl border border-[var(--border-default)]/60 bg-card px-4 py-3.5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--primary-200)] hover:bg-[var(--primary-50)]/30 hover:shadow-sm"
                           >
-                            <div className="space-y-2">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <Badge
-                                  variant="secondary"
-                                  className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold text-[var(--primary-700)] hover:bg-primary/10"
-                                >
+                            <div className="min-w-0 flex-1 space-y-2">
+                              <div className="flex items-center gap-2">
+                                <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-[var(--primary-700)]">
                                   第 {chapter.displayOrder ?? "-"} 章
-                                </Badge>
-                                <div className="text-base font-semibold tracking-tight text-foreground">
-                                  {chapter.title || "未命名章节"}
-                                </div>
-                              </div>
-                              <div className="flex flex-wrap gap-3 text-[13px] text-muted-foreground">
-                                <span>
-                                  字数：
-                                  {formatWordCount(chapter.wordCount || 0)}
                                 </span>
-                                <span>大纲：待联动</span>
-                                <span>角色：待提取</span>
-                                <span>设定：待提取</span>
+                                <span className="truncate text-[15px] font-semibold tracking-tight text-foreground">
+                                  {chapter.title || "未命名章节"}
+                                </span>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium text-[var(--primary-700)]">
+                                  <AlignLeft className="h-3 w-3" />
+                                  {formatWordCount(chapter.wordCount || 0)} 字
+                                </span>
+                                <DimensionChip label="大纲" status="待联动" />
+                                <DimensionChip label="角色" status="待提取" />
+                                <DimensionChip label="设定" status="待提取" />
                               </div>
                             </div>
-                            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border-default)]/60 bg-card text-muted-foreground transition-all duration-300 group-hover:border-[var(--primary-200)] group-hover:bg-primary/5 group-hover:text-[var(--primary-600)]">
-                              <ChevronRight className="h-4 w-4" />
-                            </div>
+                            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/40 transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-[var(--primary-600)]" />
                           </Link>
                         ))}
                         <MobileViewAllLink
@@ -269,38 +262,37 @@ export default function WorkDetailsPage(): React.ReactElement {
                   className="mt-0 min-h-0 flex-1 overflow-auto pt-4 lg:pt-5"
                 >
                   <ManagementSection>
-                    {isLoadingDrafts ? (
-                      <ListSkeleton rows={3} />
-                    ) : drafts.length > 0 ? (
+                    {isLoadingDrafts ? null : drafts.length > 0 ? (
                       <div className="space-y-3">
                         {drafts.map((draft) => (
                           <Link
                             key={draft.id}
                             href={`/works/${work.id}/drafts/${draft.id}/edit`}
-                            className="group flex items-center justify-between rounded-xl border border-[var(--border-default)]/60 bg-card px-5 py-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--primary-200)] hover:bg-[var(--primary-50)]/30 hover:shadow-sm"
+                            className="group flex items-center justify-between gap-3 rounded-xl border border-[var(--border-default)]/60 bg-card px-4 py-3.5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--accent-200)] hover:bg-[var(--accent-50)]/40 hover:shadow-sm"
                           >
-                            <div className="space-y-2">
-                              <div className="text-base font-semibold tracking-tight text-foreground">
+                            <div className="min-w-0 flex-1 space-y-2">
+                              <div className="truncate text-[15px] font-semibold tracking-tight text-foreground">
                                 {draft.title || "未命名草稿"}
                               </div>
-                              <div className="flex flex-wrap gap-3 text-[13px] text-muted-foreground">
-                                <span>
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <span className="inline-flex items-center gap-1 rounded-md bg-muted/50 px-1.5 py-0.5 text-[11px] text-muted-foreground">
+                                  <Clock className="h-3 w-3" />
                                   {draft.updatedAt
-                                    ? `最近更新：${formatDistanceToNow(
+                                    ? formatDistanceToNow(
                                         new Date(draft.updatedAt),
                                         {
                                           addSuffix: true,
                                           locale: zhCN,
                                         },
-                                      )}`
+                                      )
                                     : "等待继续创作"}
                                 </span>
-                                <span>状态：未发布</span>
+                                <span className="inline-flex items-center rounded-md bg-[var(--accent-50)] px-1.5 py-0.5 text-[11px] font-medium text-[var(--accent-700)]">
+                                  未发布
+                                </span>
                               </div>
                             </div>
-                            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border-default)]/60 bg-card text-muted-foreground transition-all duration-300 group-hover:border-[var(--primary-200)] group-hover:bg-primary/5 group-hover:text-[var(--primary-600)]">
-                              <ChevronRight className="h-4 w-4" />
-                            </div>
+                            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/40 transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-[var(--accent-700)]" />
                           </Link>
                         ))}
                         <MobileViewAllLink
@@ -535,93 +527,17 @@ function MobileViewAllLink({
   );
 }
 
-function ListSkeleton({ rows = 3 }: { rows?: number }): React.ReactElement {
+function DimensionChip({
+  label,
+  status,
+}: {
+  label: string;
+  status: string;
+}): React.ReactElement {
   return (
-    <div className="space-y-3">
-      {Array.from({ length: rows }, (_, index) => (
-        <div
-          key={index}
-          className="rounded-xl border border-[var(--border-default)]/60 bg-card/60 px-4 py-3"
-        >
-          <Skeleton className="h-5 w-40" />
-          <Skeleton className="mt-3 h-4 w-24" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function WorkManagementSkeleton(): React.ReactElement {
-  return (
-    <div className="space-y-5 pb-12">
-      <Card className="rounded-2xl border-[var(--border-default)]/60 bg-card/80 backdrop-blur-sm shadow-none">
-        <CardContent className="space-y-5 p-5 sm:p-6">
-          <div className="space-y-2">
-            <Skeleton className="h-5 w-20" />
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-              <div className="space-y-2">
-                <Skeleton className="h-10 w-72" />
-                <Skeleton className="h-5 w-full max-w-2xl" />
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Skeleton className="h-6 w-24 rounded-full" />
-                <Skeleton className="h-6 w-28 rounded-full" />
-                <Skeleton className="h-6 w-32 rounded-full" />
-              </div>
-            </div>
-          </div>
-          <div className="grid gap-4 xl:grid-cols-[260px_minmax(0,1fr)] xl:items-start">
-            <Skeleton className="aspect-[3/4] w-full rounded-xl" />
-            <div className="space-y-4">
-              <div className="space-y-3 rounded-xl border border-[var(--border-default)]/60 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="space-y-2">
-                    <Skeleton className="h-6 w-24" />
-                    <Skeleton className="h-4 w-56" />
-                  </div>
-                  <Skeleton className="h-6 w-20 rounded-full" />
-                </div>
-                <Skeleton className="h-5 w-full max-w-2xl" />
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  {Array.from({ length: 4 }, (_, index) => (
-                    <Skeleton key={index} className="h-24 rounded-xl" />
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-3 rounded-xl border border-[var(--border-default)]/60 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="space-y-2">
-                    <Skeleton className="h-6 w-24" />
-                    <Skeleton className="h-4 w-60" />
-                  </div>
-                  <Skeleton className="h-10 w-10 rounded-lg" />
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  <Skeleton className="h-10 w-28 rounded-lg" />
-                  <Skeleton className="h-10 w-28 rounded-lg" />
-                  <Skeleton className="h-10 w-36 rounded-lg" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="rounded-2xl border-[var(--border-default)]/60 bg-card/80 backdrop-blur-sm shadow-none">
-        <CardContent className="space-y-5 p-5 sm:p-6">
-          <div className="space-y-3">
-            <Skeleton className="h-5 w-24" />
-            <Skeleton className="h-6 w-40" />
-            <Skeleton className="h-5 w-full max-w-xl" />
-          </div>
-          <div className="flex gap-2 overflow-hidden">
-            {Array.from({ length: 5 }, (_, index) => (
-              <Skeleton key={index} className="h-10 w-20 rounded-lg" />
-            ))}
-          </div>
-          <ListSkeleton rows={4} />
-        </CardContent>
-      </Card>
-    </div>
+    <span className="inline-flex items-center gap-1 rounded-md bg-muted/50 px-1.5 py-0.5 text-[11px]">
+      <span className="font-medium text-foreground/70">{label}</span>
+      <span className="text-muted-foreground/70">{status}</span>
+    </span>
   );
 }

@@ -73,16 +73,29 @@ export function WorkOverviewHeader({
                 {/* 元信息一行：状态 · ID · 更新 */}
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-muted-foreground">
                   <span className="inline-flex items-center gap-1.5">
-                    <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[var(--primary-500)]" />
-                    <span className="font-medium text-[var(--primary-700)]">{statusLabel}</span>
+                    <span
+                      aria-hidden
+                      className="h-1.5 w-1.5 rounded-full bg-[var(--primary-500)]"
+                    />
+                    <span className="font-medium text-[var(--primary-700)]">
+                      {statusLabel}
+                    </span>
                   </span>
-                  <span aria-hidden className="h-1 w-1 rounded-full bg-muted-foreground/40" />
+                  <span
+                    aria-hidden
+                    className="h-1 w-1 rounded-full bg-muted-foreground/40"
+                  />
                   <span>ID {work.id}</span>
-                  <span aria-hidden className="h-1 w-1 rounded-full bg-muted-foreground/40" />
+                  <span
+                    aria-hidden
+                    className="h-1 w-1 rounded-full bg-muted-foreground/40"
+                  />
                   <span>{updatedAtLabel}</span>
                 </div>
                 {description ? (
-                  <p className="max-w-3xl text-sm leading-6 text-muted-foreground">{description}</p>
+                  <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+                    {description}
+                  </p>
                 ) : null}
               </div>
 
@@ -91,7 +104,10 @@ export function WorkOverviewHeader({
                 {metaPills.map((pill, idx) => (
                   <React.Fragment key={pill.label}>
                     {idx > 0 && (
-                      <span aria-hidden className="hidden h-4 w-px bg-[var(--border-default)] sm:block" />
+                      <span
+                        aria-hidden
+                        className="hidden h-4 w-px bg-[var(--border-default)] sm:block"
+                      />
                     )}
                     <div className="flex items-baseline gap-1.5">
                       <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/80">
@@ -107,14 +123,26 @@ export function WorkOverviewHeader({
 
               {/* CTA */}
               <div className="flex flex-wrap gap-2">
-                <DesktopAction href={`/works/${work.id}/drafts/new`} icon={Sparkles} tone="primary">
+                <DesktopAction
+                  href={`/works/${work.id}/drafts/new`}
+                  icon={Sparkles}
+                  tone="primary"
+                >
                   新建草稿
                 </DesktopAction>
-                <DesktopAction href={`/works/${work.id}/edit`} icon={PencilLine} tone="ghost">
+                <DesktopAction
+                  href={`/works/${work.id}/edit`}
+                  icon={PencilLine}
+                  tone="ghost"
+                >
                   编辑
                 </DesktopAction>
                 {onImportClick && (
-                  <DesktopAction onClick={onImportClick} icon={Upload} tone="ghost">
+                  <DesktopAction
+                    onClick={onImportClick}
+                    icon={Upload}
+                    tone="ghost"
+                  >
                     导入文件
                   </DesktopAction>
                 )}
@@ -128,13 +156,13 @@ export function WorkOverviewHeader({
       <section
         className={cn(
           "rounded-2xl border border-[var(--primary-200)]/60 bg-[linear-gradient(135deg,#ffffff_0%,#ffffff_50%,var(--primary-50)_100%)] lg:hidden",
-          isCollapsed ? "p-3" : "p-4"
+          isCollapsed ? "p-3" : "p-4",
         )}
       >
         {!isCollapsed ? (
           <div className="space-y-3">
-            <div className="grid grid-cols-[60px_minmax(0,1fr)] gap-3">
-              <div className="aspect-[3/4] rounded-lg border border-[var(--primary-200)]/60 bg-card flex items-center justify-center text-2xl font-extrabold text-[var(--primary-500)]">
+            <div className="grid grid-cols-[64px_minmax(0,1fr)] gap-3">
+              <div className="flex aspect-[3/4] items-center justify-center rounded-lg border border-[var(--primary-200)]/60 bg-[linear-gradient(180deg,var(--primary-50),var(--primary-100)/40)] text-2xl font-extrabold text-[var(--primary-500)]">
                 {monogram}
               </div>
               <div className="min-w-0 space-y-1.5">
@@ -143,22 +171,45 @@ export function WorkOverviewHeader({
                 </h1>
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
                   <span className="inline-flex items-center gap-1">
-                    <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[var(--primary-500)]" />
-                    <span className="font-medium text-[var(--primary-700)]">{statusLabel}</span>
+                    <span
+                      aria-hidden
+                      className="h-1.5 w-1.5 rounded-full bg-[var(--primary-500)]"
+                    />
+                    <span className="font-medium text-[var(--primary-700)]">
+                      {statusLabel}
+                    </span>
                   </span>
-                  <span>· ID {work.id}</span>
-                  <span>· {updatedAtLabel}</span>
+                  <span
+                    aria-hidden
+                    className="h-1 w-1 rounded-full bg-muted-foreground/40"
+                  />
+                  <span>ID {work.id}</span>
+                  <span
+                    aria-hidden
+                    className="h-1 w-1 rounded-full bg-muted-foreground/40"
+                  />
+                  <span>{updatedAtLabel}</span>
                 </div>
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg bg-card/70 px-3 py-2">
-              {metaPills.map((pill) => (
-                <div key={pill.label} className="flex items-baseline gap-1">
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                    {pill.label}
-                  </span>
-                  <span className="text-[13px] font-bold tabular-nums text-foreground">{pill.value}</span>
-                </div>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 rounded-lg bg-card/70 px-3.5 py-2.5">
+              {metaPills.map((pill, idx) => (
+                <React.Fragment key={pill.label}>
+                  {idx > 0 && (
+                    <span
+                      aria-hidden
+                      className="h-4 w-px bg-[var(--border-default)]/70"
+                    />
+                  )}
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+                      {pill.label}
+                    </span>
+                    <span className="text-[15px] font-bold tabular-nums tracking-tight text-foreground">
+                      {pill.value}
+                    </span>
+                  </div>
+                </React.Fragment>
               ))}
             </div>
             <WorkMobileActions
@@ -212,7 +263,7 @@ function DesktopAction({
 
   const baseClassName = cn(
     "inline-flex items-center gap-2 text-sm font-semibold",
-    className
+    className,
   );
 
   if (onClick) {
