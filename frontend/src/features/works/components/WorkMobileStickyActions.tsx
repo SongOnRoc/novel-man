@@ -5,7 +5,13 @@ import Link from "next/link";
 import React from "react";
 
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 interface WorkMobileActionsProps {
@@ -24,17 +30,24 @@ export function WorkMobileActions({
   onImportClick,
 }: WorkMobileActionsProps): React.ReactElement {
   return (
-    <div className={cn("flex items-center gap-2", compact ? "justify-end" : "justify-start")}>
+    <div
+      className={cn(
+        "flex items-center gap-2",
+        compact ? "justify-end" : "justify-start",
+      )}
+    >
       <Button
         asChild
         variant="outline"
         className={cn(
           "rounded-full border-[var(--primary-200)]/60 bg-[var(--primary-50)] text-[var(--primary-700)] shadow-none hover:bg-[var(--primary-100)]/80",
-          compact ? "h-6 px-3 text-[11px]" : "h-7 px-3 text-xs"
+          compact ? "h-6 px-3 text-[11px]" : "h-7 px-3 text-xs",
         )}
       >
         <Link href={`/works/${workId}/drafts/new`}>
-          <Plus className={cn(compact ? "h-3 w-3 mr-1" : "h-3.5 w-3.5 mr-1.5")} />
+          <Plus
+            className={cn(compact ? "h-3 w-3 mr-1" : "h-3.5 w-3.5 mr-1.5")}
+          />
           新建草稿
         </Link>
       </Button>
@@ -46,7 +59,7 @@ export function WorkMobileActions({
             aria-label="更多操作"
             className={cn(
               "rounded-full border-[var(--border-default)]/60 bg-muted/40 text-foreground shadow-none hover:bg-muted/60",
-              compact ? "h-5 px-3 text-[10px]" : "h-6 px-3 text-[11px]"
+              compact ? "h-5 px-3 text-[10px]" : "h-6 px-3 text-[11px]",
             )}
           >
             更多
@@ -61,7 +74,9 @@ export function WorkMobileActions({
 
           <div className="px-5">
             <SheetTitle className="sr-only">操作菜单</SheetTitle>
-            <SheetDescription className="sr-only">选择要执行的操作</SheetDescription>
+            <SheetDescription className="sr-only">
+              选择要执行的操作
+            </SheetDescription>
 
             {/* 关闭按钮 */}
             <Button
@@ -119,16 +134,26 @@ function ActionCard({
   tone: "primary" | "accent";
   label: string;
 }): React.ReactElement {
-  const iconBg = tone === "primary" ? "bg-[var(--primary-100)]" : "bg-[var(--accent-100)]";
-  const iconColor = tone === "primary" ? "text-[var(--primary-700)]" : "text-[var(--accent-700)]";
+  const iconBg =
+    tone === "primary" ? "bg-[var(--primary-100)]" : "bg-[var(--accent-100)]";
+  const iconColor =
+    tone === "primary"
+      ? "text-[var(--primary-700)]"
+      : "text-[var(--accent-700)]";
 
   return (
     <Link
       href={href}
       className="flex items-center gap-3 rounded-xl border border-[var(--border-default)]/60 bg-card px-4 py-3.5 transition-all active:scale-[0.97]"
     >
-      <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg", iconBg, iconColor)}>
-        <Icon className="h-5 w-5" strokeWidth={2} />
+      <div
+        className={cn(
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+          iconBg,
+          iconColor,
+        )}
+      >
+        <Icon className="h-5 w-5" />
       </div>
       <span className="text-sm font-semibold text-foreground">{label}</span>
     </Link>
@@ -146,8 +171,12 @@ function ActionButton({
   tone: "primary" | "accent";
   label: string;
 }): React.ReactElement {
-  const iconBg = tone === "primary" ? "bg-[var(--primary-100)]" : "bg-[var(--accent-100)]";
-  const iconColor = tone === "primary" ? "text-[var(--primary-700)]" : "text-[var(--accent-700)]";
+  const iconBg =
+    tone === "primary" ? "bg-[var(--primary-100)]" : "bg-[var(--accent-100)]";
+  const iconColor =
+    tone === "primary"
+      ? "text-[var(--primary-700)]"
+      : "text-[var(--accent-700)]";
 
   return (
     <button
@@ -155,8 +184,14 @@ function ActionButton({
       onClick={onClick}
       className="flex items-center gap-3 rounded-xl border border-[var(--border-default)]/60 bg-card px-4 py-3.5 transition-all active:scale-[0.97]"
     >
-      <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg", iconBg, iconColor)}>
-        <Icon className="h-5 w-5" strokeWidth={2} />
+      <div
+        className={cn(
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+          iconBg,
+          iconColor,
+        )}
+      >
+        <Icon className="h-5 w-5" />
       </div>
       <span className="text-sm font-semibold text-foreground">{label}</span>
     </button>

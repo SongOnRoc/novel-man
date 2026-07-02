@@ -39,6 +39,12 @@ func (s *fakeDraftService) Publish(ctx ctxpkg.Context, draftID uint) (*models.Ch
 func (s *fakeDraftService) HandleDraftTask(ctx ctxpkg.Context, task events.QueueTask) error {
 	return nil
 }
+func (s *fakeDraftService) ImportDrafts(ctx ctxpkg.Context, file *multipart.FileHeader, userID uint, workID int64) (*contracts.ImportResult, error) {
+	return nil, nil
+}
+func (s *fakeDraftService) PublishBatch(ctx ctxpkg.Context, draftIDs []uint) (*contracts.ImportResult, error) {
+	return nil, nil
+}
 
 type fakeWorkService struct {
 	Work *models.Work

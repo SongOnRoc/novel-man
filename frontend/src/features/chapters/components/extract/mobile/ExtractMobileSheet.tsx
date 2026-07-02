@@ -50,7 +50,9 @@ export function ExtractMobileSheet({
   onConfirmAll,
   onIgnoreAll,
 }: ExtractMobileSheetProps): React.ReactElement {
-  const [detailCandidate, setDetailCandidate] = useState<ExtractCandidate | undefined>();
+  const [detailCandidate, setDetailCandidate] = useState<
+    ExtractCandidate | undefined
+  >();
   const detailOpen = Boolean(detailCandidate);
 
   return (
@@ -111,7 +113,6 @@ export function ExtractMobileSheet({
                 status={workflow.status}
                 errorMessage={workflow.errorMessage}
                 onRetry={workflow.retry}
-                onTrigger={onTrigger}
               />
 
               {workflow.status === "success" ? (
@@ -121,7 +122,9 @@ export function ExtractMobileSheet({
                   pendingCount={workflow.pendingCount}
                   workId={workId}
                   compact
-                  onIgnore={(candidate) => workflow.ignoreCandidate(candidate.id)}
+                  onIgnore={(candidate) =>
+                    workflow.ignoreCandidate(candidate.id)
+                  }
                   onViewDetail={(candidate) => setDetailCandidate(candidate)}
                 />
               ) : null}
@@ -140,7 +143,9 @@ export function ExtractMobileSheet({
               >
                 全部忽略
               </Button>
-              <div className="text-[12px] text-muted-foreground">{workflow.pendingCount} 个待处理</div>
+              <div className="text-[12px] text-muted-foreground">
+                {workflow.pendingCount} 个待处理
+              </div>
               <Button
                 type="button"
                 onClick={onConfirmAll}

@@ -102,12 +102,27 @@ func (s *DraftService) Publish(ctx context.Context, draftID uint) (*models.Chapt
 		return nil, err
 	}
 
+	// 计算新章节展示序号：取该作品当前最大章节号 + 1（1-based）。
+	// 用 max 而非 count，避免删除中间章节后 count+1 与现有章节号重复撞号。
+	existing, _, err := s.chapterRepo.List(ctx, 1, 1, contracts.Filters{
+		"work_id":                *draft.WorkID,
+		contracts.FilterKeyOrder: "display_order desc",
+	})
+	if err != nil {
+		return nil, err
+	}
+	nextDisplayOrder := 1
+	if len(existing) > 0 {
+		nextDisplayOrder = existing[0].DisplayOrder + 1
+	}
+
 	chapter := &models.Chapter{
-		WorkID:    *draft.WorkID,
-		Title:     draft.Title,
-		Content:   draft.Content,
-		WordCount: draft.WordCount,
-		Status:    "published",
+		WorkID:       *draft.WorkID,
+		Title:        draft.Title,
+		Content:      draft.Content,
+		WordCount:    draft.WordCount,
+		Status:       "published",
+		DisplayOrder: nextDisplayOrder,
 	}
 	if err := s.chapterRepo.Create(ctx, chapter); err != nil {
 		return nil, err
