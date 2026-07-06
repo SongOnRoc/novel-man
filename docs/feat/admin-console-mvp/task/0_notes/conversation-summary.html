@@ -1,0 +1,493 @@
+<!DOCTYPE html><html><head>
+      <title>conversation-summary</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:///c:\Users\dell\.vscode\extensions\shd101wyy.markdown-preview-enhanced-0.8.11\crossnote\dependencies\katex\katex.min.css">
+      
+      
+      <script type="text/javascript" src="file:///c:\Users\dell\.vscode\extensions\shd101wyy.markdown-preview-enhanced-0.8.11\crossnote\dependencies\mermaid\mermaid.min.js" charset="UTF-8"></script>
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+      <!-- The content below will be included at the end of the <head> element. --><script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script></head><body for="html-export">
+    
+    
+      <div class="crossnote markdown-preview  ">
+      <div>
+<h1 id="admin-console-mvpmilestone-2对话实现总结交接--验收">Admin Console MVP（Milestone 2）对话实现总结（交接 + 验收） </h1>
+<blockquote>
+<p>文档定位：<strong>交接 + 验收对照</strong>。用于让后续接手者快速理解“做到哪了/为什么这么做/下一步怎么做”，并提供可执行的验证与运维手册。</p>
+<p>对齐主指南：<a href="docs/guides/admin-console-mvp-guide.md:1"><code>docs/guides/admin-console-mvp-guide.md</code></a></p>
+</blockquote>
+<hr>
+<h2 id="1-目标与范围">1. 目标与范围 </h2>
+<h3 id="11-原始目标按指南">1.1 原始目标（按指南） </h3>
+<p>指南要求在管理后台 MVP 中完成：</p>
+<ul>
+<li>Ops API + Job 体系（先 API，再 UI）：<a href="docs/guides/admin-console-mvp-guide.md:55"><code>docs/guides/admin-console-mvp-guide.md</code></a></li>
+<li><code>works.recalc_stats</code> 数据治理作业：<a href="docs/guides/admin-console-mvp-guide.md:102"><code>docs/guides/admin-console-mvp-guide.md</code></a></li>
+<li>权限模型：<code>role in {admin, operator}</code>，替换临时 <code>userID == 1</code>：<a href="docs/guides/admin-console-mvp-guide.md:84"><code>docs/guides/admin-console-mvp-guide.md</code></a></li>
+</ul>
+<h3 id="12-本次实现范围实际落地到仓库的内容">1.2 本次实现范围（实际落地到仓库的内容） </h3>
+<p>已落地（完成）：</p>
+<ol>
+<li>角色字段 + JWT role + Gin context 注入 role</li>
+<li>替换 settings 的 <code>userID==1</code> 临时判定为 role-based</li>
+<li><code>ops_jobs</code> / <code>ops_job_locks</code> 的数据模型 + AutoMigrate 接入</li>
+<li>Ops API（路由/DI/controller/service）实现：支持 create/list/detail/cancel(request)</li>
+<li><code>ops_jobs</code> 与 <code>ops_job_locks</code> 的 GORM repository（用于 Ops API 与后续 runner）</li>
+<li>最小可行单测 + 工程校验：新增 ops service 单测；<code>go fmt ./...</code> + <code>go test ./...</code> 通过</li>
+</ol>
+<p>未落地（待做）：</p>
+<ul>
+<li>作业执行 runner（批量 enqueue work stats 重算任务 + 续租/进度上报 + cancel ack）</li>
+<li>前端 Admin Console UI（Milestone 1）</li>
+</ul>
+<hr>
+<h2 id="2-关键决策why">2. 关键决策（Why） </h2>
+<h3 id="21-role-模型usersrole默认-user">2.1 Role 模型：<code>users.role</code>（默认 <code>user</code>） </h3>
+<ul>
+<li>决策：在 <code>users</code> 表增加 <code>role</code> 字段；JWT 里携带 role；但服务端以 DB 为准注入 role 到 Gin context（避免 token 过期/脏数据）。</li>
+<li>证据位置：
+<ul>
+<li><code>User.Role</code> 字段：<a href="backend/internal/models/models.go:1"><code>backend/internal/models/models.go</code></a></li>
+<li>JWT 生成包含 role：<a href="backend/internal/services/auth/auth_service.go:1"><code>AuthService.Login()</code> / <code>GenerateToken</code> 逻辑</a></li>
+<li>中间件从 DB 读取 role 并注入：<a href="backend/internal/middlewares/auth/auth.go:55"><code>AuthMiddleware.Handler()</code></a></li>
+</ul>
+</li>
+</ul>
+<h3 id="22-ops-job-全局唯一跨-db-的锁表方案推荐-mvp-默认">2.2 Ops Job 全局唯一：跨 DB 的锁表方案（推荐 MVP 默认） </h3>
+<ul>
+<li>背景：项目需要兼容 MySQL/Postgres/SQLite，且迁移采用 GORM AutoMigrate。</li>
+<li>决策：采用统一 fallback：<code>ops_job_locks</code>（按 <code>job_type</code> 主键唯一）实现“同 job_type 同一时间最多一个 running”的集群安全入口；并通过 <code>lease_expires_at</code> 支持超时接管。</li>
+<li>设计稿：<a href="tasks/admin-console-mvp/2.1_design/ops_jobs-model-and-uniqueness.md:1"><code>tasks/admin-console-mvp/2.1_design/ops_jobs-model-and-uniqueness.md</code></a></li>
+<li>落地模型：<a href="backend/internal/models/ops_job_lock.go:18"><code>backend/internal/models/ops_job_lock.go</code></a></li>
+<li>落地 repo：<a href="backend/internal/repositories/gorm/ops_job_repository.go:86"><code>OpsJobLockGormRepository.AcquireOrSteal()</code></a></li>
+</ul>
+<hr>
+<h2 id="3-已完成内容what">3. 已完成内容（What） </h2>
+<h3 id="31-权限与认证milestone-2-的一部分">3.1 权限与认证（Milestone 2 的一部分） </h3>
+<ul>
+<li>实现：
+<ul>
+<li><code>users.role</code> 字段默认 <code>user</code></li>
+<li>注册默认 role=<code>user</code></li>
+<li>JWT 带 role claim</li>
+<li>Auth middleware 注入 <code>userID</code> 与 <code>role</code></li>
+</ul>
+</li>
+<li>替换临时 admin 判定：
+<ul>
+<li>settings 列表接口改为 <code>role in {admin, operator}</code>：<a href="backend/internal/controllers/settings/handler.go:239"><code>SettingController.ListSettings()</code></a></li>
+</ul>
+</li>
+</ul>
+<h3 id="32-ops_jobs-设计与模型milestone-0-的基础设施">3.2 ops_jobs 设计与模型（Milestone 0 的基础设施） </h3>
+<ul>
+<li>设计文档已产出：<a href="tasks/admin-console-mvp/2.1_design/ops_jobs-model-and-uniqueness.md:1"><code>tasks/admin-console-mvp/2.1_design/ops_jobs-model-and-uniqueness.md</code></a></li>
+<li>数据模型：
+<ul>
+<li>作业：<a href="backend/internal/models/ops_job.go:20"><code>backend/internal/models/ops_job.go</code></a></li>
+<li>锁：<a href="backend/internal/models/ops_job_lock.go:18"><code>backend/internal/models/ops_job_lock.go</code></a></li>
+</ul>
+</li>
+<li>迁移接入（AutoMigrate）：在启动迁移中加入 <code>OpsJob</code>/<code>OpsJobLock</code>（位置：<a href="backend/internal/cmd/root.go:1"><code>backend/internal/cmd/root.go</code></a>）</li>
+</ul>
+<h3 id="33-ops-module-工程实现已完成">3.3 ops module 工程实现（已完成） </h3>
+<ul>
+<li>已实现并接入：
+<ul>
+<li>module（注册 + DI + 路由 + role guard）：<a href="backend/internal/apps/ops/module.go:1"><code>backend/internal/apps/ops/module.go</code></a></li>
+<li>controller（create/list/detail/cancel endpoints）：<a href="backend/internal/controllers/ops/handler.go:1"><code>backend/internal/controllers/ops/handler.go</code></a></li>
+<li>service（抢锁 + 创建 running job + 查询 + request cancel）：<a href="backend/internal/services/ops/ops_service.go:1"><code>backend/internal/services/ops/ops_service.go</code></a></li>
+<li>contracts（DTO + OpsService 接口）：<a href="backend/internal/contracts/ops/service.go:1"><code>backend/internal/contracts/ops/service.go</code></a></li>
+</ul>
+</li>
+<li>模块导入已激活：<a href="backend/internal/cmd/construct.go:3"><code>backend/internal/cmd/construct.go</code></a></li>
+<li>最小单测已补齐：<a href="backend/internal/services/ops/ops_service_test.go:1"><code>backend/internal/services/ops/ops_service_test.go</code></a></li>
+</ul>
+<h3 id="34-repository用于后续-ops-apirunner">3.4 repository（用于后续 Ops API/runner） </h3>
+<ul>
+<li>作业 repo：<a href="backend/internal/repositories/gorm/ops_job_repository.go:13"><code>OpsJobGormRepository</code></a>
+<ul>
+<li><code>Create()</code></li>
+<li><code>GetByJobID()</code></li>
+<li><code>List()</code></li>
+<li><code>RequestCancel()</code>（仅写 cancel_requested_at 等字段；两段式取消的第一段）</li>
+</ul>
+</li>
+<li>锁 repo：<a href="backend/internal/repositories/gorm/ops_job_repository.go:77"><code>OpsJobLockGormRepository</code></a>
+<ul>
+<li><code>AcquireOrSteal()</code></li>
+<li><code>Renew()</code></li>
+<li><code>Get()</code></li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="4-当前状态快照where-we-are">4. 当前状态快照（Where we are） </h2>
+<h3 id="41-能力完成度">4.1 能力完成度 </h3>
+<ul>
+<li>✅ 数据层：models + migration + repo</li>
+<li>✅ API 层：Ops routes/controller/service 已实现（create/list/detail/cancel(request)）</li>
+<li>❌ 执行层：runner 未实现</li>
+<li>❌ UI 层：未开始</li>
+<li>✅ 基本工程可用性：<code>go fmt ./...</code> + <code>go test ./...</code> 通过（包含 ops service 最小单测）</li>
+</ul>
+<h3 id="42-与里程碑的对应关系">4.2 与里程碑的对应关系 </h3>
+<p>详见指南里程碑：<a href="docs/guides/admin-console-mvp-guide.md:201"><code>docs/guides/admin-console-mvp-guide.md</code></a></p>
+<ul>
+<li>Milestone 0（Ops API + Job）：<strong>部分完成</strong>（Ops API 已实现；job runner 未实现）</li>
+<li>Milestone 1（UI）：未开始</li>
+<li>Milestone 2（权限与审计硬化）：<strong>部分完成</strong>（role-based 已完成；审计字段在创建 job 时已写入，但“结果/终态/取消 ack”仍依赖 runner）</li>
+</ul>
+<h3 id="43-当前已实现功能清单可验收">4.3 当前已实现功能清单（可验收） </h3>
+<h4 id="431-ops-apihttp">4.3.1 Ops API（HTTP） </h4>
+<ul>
+<li>路由前缀：<code>/api/v1/ops</code>（模块注册机制：<a href="backend/internal/router/router.go:16"><code>router.InitRouter()</code></a> → 遍历模块 <a href="backend/internal/apps/registry.go:1"><code>apps.GetRegisteredModules()</code></a>）</li>
+<li>权限链路：JWT → Auth middleware 注入 <code>userID/role</code> → ops role guard（<code>role in {admin, operator}</code>）
+<ul>
+<li>Auth middleware：<a href="backend/internal/middlewares/auth/auth.go:55"><code>AuthMiddleware.Handler()</code></a></li>
+<li>Ops role guard：<a href="backend/internal/apps/ops/module.go:71"><code>requireOpsRole()</code></a></li>
+</ul>
+</li>
+</ul>
+<p>已实现端点（见 <a href="backend/internal/apps/ops/module.go:35"><code>(*opsModule).RegisterRoutes()</code></a> + <a href="backend/internal/controllers/ops/handler.go:16"><code>OpsController</code></a>）：</p>
+<ul>
+<li><code>POST /api/v1/ops/jobs/works/recalc-stats</code>：创建 <code>works.recalc_stats</code> 作业（全局唯一入口：锁表）</li>
+<li><code>GET /api/v1/ops/jobs</code>：分页列表（支持 <code>type/status/page/limit</code>）</li>
+<li><code>GET /api/v1/ops/jobs/:job_id</code>：详情</li>
+<li><code>POST /api/v1/ops/jobs/:job_id/cancel</code>：请求取消（两段式 cancel 的第一段：写 cancel_requested_at 等字段）</li>
+</ul>
+<h4 id="432-ops-job-数据与一致性">4.3.2 Ops Job 数据与一致性 </h4>
+<ul>
+<li>数据表（GORM models）：
+<ul>
+<li><code>ops_jobs</code>：<a href="backend/internal/models/ops_job.go:20"><code>models.OpsJob</code></a></li>
+<li><code>ops_job_locks</code>：<a href="backend/internal/models/ops_job_lock.go:18"><code>models.OpsJobLock</code></a></li>
+</ul>
+</li>
+<li>全局唯一（同 <code>job_type</code> 同时最多 1 个 running job）：
+<ul>
+<li>API 创建 job 时先抢锁：<a href="backend/internal/services/ops/ops_service.go:36"><code>opsService.CreateWorksRecalcStatsJob()</code></a></li>
+<li>锁实现（跨 DB fallback）：<a href="backend/internal/repositories/gorm/ops_job_repository.go:88"><code>OpsJobLockGormRepository.AcquireOrSteal()</code></a></li>
+</ul>
+</li>
+<li>请求取消：<a href="backend/internal/repositories/gorm/ops_job_repository.go:59"><code>OpsJobGormRepository.RequestCancel()</code></a></li>
+</ul>
+<h4 id="433-最小单测与工程校验">4.3.3 最小单测与工程校验 </h4>
+<ul>
+<li>最小单测（锁冲突 + cancel 仅对 running 生效）：<a href="backend/internal/services/ops/ops_service_test.go:1"><code>backend/internal/services/ops/ops_service_test.go</code></a></li>
+<li>工程校验：<code>go fmt ./...</code> + <code>go test ./...</code>（backend 目录下）</li>
+</ul>
+<h3 id="44-当前架构设计ops-job-子系统">4.4 当前架构设计（Ops Job 子系统） </h3>
+<h4 id="441-代码架构模块化单体--di--repository">4.4.1 代码架构（模块化单体 + DI + Repository） </h4>
+<ul>
+<li>入口：<a href="backend/internal/router/router.go:16"><code>router.InitRouter()</code></a></li>
+<li>模块激活：通过空白导入触发各模块 <code>init()</code> 注册（含 ops）：<a href="backend/internal/cmd/construct.go:1"><code>backend/internal/cmd/construct.go</code></a></li>
+<li>ops 模块内部：<code>init()</code> 注册模块 + DI 提供 repo/service/controller；<code>RegisterRoutes()</code> 负责挂载路由与中间件：<a href="backend/internal/apps/ops/module.go:23"><code>backend/internal/apps/ops/module.go</code></a></li>
+</ul>
+<h4 id="442-架构图组件视图">4.4.2 架构图（组件视图） </h4>
+<div class="mermaid">flowchart TB
+  Client[Client / Admin Console / curl] --&gt;|HTTP| Gin[gin.Engine]
+  Gin --&gt;|/api/v1| APIV1[/gin.RouterGroup\n/api/v1/]
+
+  subgraph Modules[Apps Modules auto-registered]
+    Registry[apps registry] --&gt; OpsModule[ops module]
+  end
+
+  APIV1 --&gt; OpsGroup[/RouterGroup\n/api/v1/ops/]
+  OpsGroup --&gt;|Use| AuthMW[Auth middleware\nJWT -&gt; userID/role]
+  AuthMW --&gt; RoleGuard[requireOpsRole\nadmin/operator]
+
+  RoleGuard --&gt; OpsController[OpsController\ncreate/list/detail/cancel]
+  OpsController --&gt; OpsService[OpsService\nCreate/Get/List/RequestCancel]
+
+  OpsService --&gt; JobRepo[OpsJobGormRepository]
+  OpsService --&gt; LockRepo[OpsJobLockGormRepository]
+
+  JobRepo --&gt; DB[(DB)]
+  LockRepo --&gt; DB
+  DB --&gt; TJobs[ops_jobs]
+  DB --&gt; TLocks[ops_job_locks]
+</div><h4 id="443-流程图创建-jobworksrecalc_stats">4.4.3 流程图：创建 Job（works.recalc_stats） </h4>
+<div class="mermaid">sequenceDiagram
+  autonumber
+  participant C as Client
+  participant R as Gin Router
+  participant A as AuthMiddleware
+  participant G as requireOpsRole
+  participant H as OpsController
+  participant S as OpsService
+  participant L as OpsJobLockRepo
+  participant J as OpsJobRepo
+  participant DB as DB
+
+  C-&gt;&gt;R: POST /api/v1/ops/jobs/works/recalc-stats
+  R-&gt;&gt;A: Auth middleware
+  A--&gt;&gt;R: ctx.userID + ctx.role
+  R-&gt;&gt;G: role guard
+  G--&gt;&gt;R: allow (admin/operator)
+  R-&gt;&gt;H: CreateWorksRecalcStatsJob
+  H-&gt;&gt;S: CreateWorksRecalcStatsJob(ctx,userID,traceID,req)
+  S-&gt;&gt;L: AcquireOrSteal(jobType, owner="api", token, leaseTTL)
+  L-&gt;&gt;DB: first_or_create ops_job_locks + conditional update
+  DB--&gt;&gt;L: rows affected?
+  alt lock not acquired
+    L--&gt;&gt;S: acquired=false
+    S--&gt;&gt;H: error "job already running"
+    H--&gt;&gt;C: 409 Conflict
+  else lock acquired
+    L--&gt;&gt;S: acquired=true
+    S-&gt;&gt;J: Create(ops_jobs status=running + audit + params)
+    J-&gt;&gt;DB: INSERT ops_jobs
+    DB--&gt;&gt;J: ok
+    J--&gt;&gt;S: ok
+    S--&gt;&gt;H: job
+    H--&gt;&gt;C: 201 Created (job)
+  end
+</div><h4 id="444-流程图请求取消-job两段式-cancel-的第一段">4.4.4 流程图：请求取消 Job（两段式 cancel 的第一段） </h4>
+<div class="mermaid">sequenceDiagram
+  autonumber
+  participant C as Client
+  participant R as Gin Router
+  participant A as AuthMiddleware
+  participant G as requireOpsRole
+  participant H as OpsController
+  participant S as OpsService
+  participant J as OpsJobRepo
+  participant DB as DB
+
+  C-&gt;&gt;R: POST /api/v1/ops/jobs/:job_id/cancel
+  R-&gt;&gt;A: Auth middleware
+  A--&gt;&gt;R: ctx.userID + ctx.role
+  R-&gt;&gt;G: role guard
+  G--&gt;&gt;R: allow
+  R-&gt;&gt;H: CancelJob
+  H-&gt;&gt;S: GetJob(job_id)
+  S-&gt;&gt;J: GetByJobID(job_id)
+  J-&gt;&gt;DB: SELECT ops_jobs WHERE job_id
+  DB--&gt;&gt;J: job
+  J--&gt;&gt;S: job
+  S--&gt;&gt;H: job
+  alt job not running
+    H--&gt;&gt;C: 409 Conflict
+  else job running
+    H-&gt;&gt;S: RequestCancel(job_id, userID, reason)
+    S-&gt;&gt;J: RequestCancel(job_id, userID, reason, now)
+    J-&gt;&gt;DB: UPDATE ops_jobs SET cancel_requested_at,... WHERE job_id AND status=running
+    DB--&gt;&gt;J: rows affected
+    J--&gt;&gt;S: requested=true/false
+    S--&gt;&gt;H: requested
+    H--&gt;&gt;C: 200 OK {requested}
+  end
+</div><hr>
+<h2 id="5-下一步实施计划how-to-continue">5. 下一步实施计划（How to continue） </h2>
+<blockquote>
+<p>目标：先打通 Milestone 0 的闭环：<strong>能创建作业、能查询、能并发安全、能取消（请求）</strong>。</p>
+</blockquote>
+<h3 id="51-补齐-ops-module-的-di--路由">5.1 补齐 ops module 的 DI + 路由 </h3>
+<p>参考现有模块模式：</p>
+<ul>
+<li>works：<a href="backend/internal/apps/works/module.go:22"><code>backend/internal/apps/works/module.go</code></a></li>
+<li>settings：<a href="backend/internal/apps/settings/module.go:21"><code>backend/internal/apps/settings/module.go</code></a></li>
+</ul>
+<p>需要在 <a href="backend/internal/apps/ops/module.go:1"><code>backend/internal/apps/ops/module.go</code></a> 增加：</p>
+<ol>
+<li><code>init()</code>：<code>apps.Register(&amp;opsModule{})</code> + <code>container.Container.Provide(...)</code></li>
+<li><code>RegisterRoutes(router *gin.RouterGroup)</code>：挂载 <code>/ops</code> 路由组并加 auth middleware</li>
+<li>role guard：复用 settings 的判定逻辑（<code>role in {admin, operator}</code>）</li>
+</ol>
+<h3 id="52-实现-ops-api-endpoints">5.2 实现 Ops API endpoints </h3>
+<p>按指南：<a href="docs/guides/admin-console-mvp-guide.md:143"><code>docs/guides/admin-console-mvp-guide.md</code></a></p>
+<ul>
+<li><code>POST /api/v1/ops/jobs/works/recalc-stats</code>
+<ul>
+<li>先 <code>AcquireOrSteal(jobType)</code> 成功才允许创建 running job</li>
+<li>写审计字段：<code>created_by_user_id</code>、<code>trace_id</code>（traceId 来自 <code>X-Trace-ID</code>，见 <a href="backend/utils/response/response.go:21"><code>backend/utils/response/response.go</code></a>）</li>
+<li><code>params</code> 存 JSON 字符串</li>
+</ul>
+</li>
+<li><code>GET /api/v1/ops/jobs</code>（分页）</li>
+<li><code>GET /api/v1/ops/jobs/:job_id</code></li>
+<li><code>POST /api/v1/ops/jobs/:job_id/cancel</code>
+<ul>
+<li>仅请求取消（写 cancel_requested_at 等），对应设计稿“两段式取消”的第一段：<a href="tasks/admin-console-mvp/2.1_design/ops_jobs-model-and-uniqueness.md:348"><code>tasks/admin-console-mvp/2.1_design/ops_jobs-model-and-uniqueness.md</code></a></li>
+</ul>
+</li>
+</ul>
+<h3 id="53-runner后续">5.3 runner（后续） </h3>
+<ul>
+<li>扫描 works（分页），enqueue “按 work_id 重算”任务</li>
+<li>消费侧复用：<a href="backend/internal/services/works/work_service.go:68"><code>WorkService.HandleWorkStatsTask()</code></a></li>
+</ul>
+<hr>
+<h2 id="6-验收对照表milestone-012">6. 验收对照表（Milestone 0/1/2） </h2>
+<h3 id="61-milestone-0只做-ops-api--job无-ui">6.1 Milestone 0：只做 Ops API + Job（无 UI） </h3>
+<ul>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 能创建 <code>works.recalc_stats</code> 作业（API + service 已实现）</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 能查询 job 状态与进度（list/detail API 已实现；progress 字段已暴露，runner 阶段再补更新）</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 集群下并发创建不会重复执行（全局唯一：以 <code>ops_job_locks</code> 为入口；单测覆盖二次创建冲突）</li>
+</ul>
+<h3 id="62-milestone-1补-ui管理后台-mvp">6.2 Milestone 1：补 UI（管理后台 MVP） </h3>
+<ul>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> jobs 列表/详情可视化</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> “作品统计重算”表单可触发 job</li>
+</ul>
+<h3 id="63-milestone-2权限与审计硬化">6.3 Milestone 2：权限与审计硬化 </h3>
+<ul>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> role-based 权限（替代 <code>userID==1</code>）——见 <a href="backend/internal/controllers/settings/handler.go:239"><code>SettingController.ListSettings()</code></a></li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 审计记录（谁触发、参数、时间）——Ops API 创建 job 时写入 <code>created_by_user_id/trace_id/params/started_at/lease_*</code>：<a href="backend/internal/services/ops/ops_service.go:36"><code>opsService.CreateWorksRecalcStatsJob()</code></a></li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 审计记录（结果/终态）——依赖 runner 写入 <code>finished_at/status/error_*</code> 等字段</li>
+</ul>
+<hr>
+<h2 id="7-运维手册如何验证--如何调用">7. 运维手册（如何验证 / 如何调用） </h2>
+<blockquote>
+<p>说明：以下 curl 示例不包含真实 token。实际调用需要先登录拿到 JWT。</p>
+</blockquote>
+<h3 id="71-获取-jwt">7.1 获取 JWT </h3>
+<ul>
+<li>登录接口：<a href="backend/internal/apps/auth/module.go:32"><code>POST /api/v1/auth/login</code></a></li>
+</ul>
+<p>示例：</p>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">curl</span> <span class="token parameter variable">-X</span> POST http://localhost:8080/api/v1/auth/login <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"X-Trace-ID: local-test"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"username":"YOUR_USERNAME","password":"YOUR_PASSWORD"}'</span>
+</code></pre><h3 id="72-调用-ops-api已实现可用">7.2 调用 Ops API（已实现，可用） </h3>
+<blockquote>
+<p>路由由 ops module 注册到 <code>/api/v1/ops</code>：<a href="backend/internal/apps/ops/module.go:35"><code>backend/internal/apps/ops/module.go</code></a></p>
+</blockquote>
+<ul>
+<li>创建作业（示例 payload 按指南）：<a href="docs/guides/admin-console-mvp-guide.md:151"><code>docs/guides/admin-console-mvp-guide.md</code></a></li>
+</ul>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">curl</span> <span class="token parameter variable">-X</span> POST http://localhost:8080/api/v1/ops/jobs/works/recalc-stats <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer &lt;JWT&gt;"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"X-Trace-ID: ops-recalc-001"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"mode":"all","dry_run":false}'</span>
+</code></pre><ul>
+<li>列表</li>
+</ul>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">curl</span> <span class="token string">"http://localhost:8080/api/v1/ops/jobs?type=works.recalc_stats&amp;status=running&amp;page=1&amp;limit=20"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer &lt;JWT&gt;"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"X-Trace-ID: ops-jobs-list-001"</span>
+</code></pre><ul>
+<li>详情</li>
+</ul>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">curl</span> <span class="token string">"http://localhost:8080/api/v1/ops/jobs/&lt;job_id&gt;"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer &lt;JWT&gt;"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"X-Trace-ID: ops-job-get-001"</span>
+</code></pre><ul>
+<li>请求取消（两段式取消的第一段）</li>
+</ul>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">curl</span> <span class="token parameter variable">-X</span> POST <span class="token string">"http://localhost:8080/api/v1/ops/jobs/&lt;job_id&gt;/cancel"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Authorization: Bearer &lt;JWT&gt;"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"Content-Type: application/json"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-H</span> <span class="token string">"X-Trace-ID: ops-job-cancel-001"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-d</span> <span class="token string">'{"reason":"stop"}'</span>
+</code></pre><hr>
+<h2 id="8-风险-回滚与排障">8. 风险、回滚与排障 </h2>
+<h3 id="81-风险清单">8.1 风险清单 </h3>
+<ol>
+<li><strong>并发与锁语义不一致</strong>：如果 API 端未严格以 <code>ops_job_locks</code> 抢锁为入口，可能出现同 job_type 并发创建多个 running job。</li>
+<li><strong>lease 续租/抢占缺失</strong>：目前 lock repo 提供了 <code>Renew()</code>，但 runner 未实现，可能导致长作业无法安全接管。</li>
+<li><strong>取消语义未闭环</strong>：目前仅有 request cancel（DB 字段），runner 未实现“ack cancel 并将 job 置为 canceled 终态”。</li>
+<li><strong>SQLite 写并发限制</strong>：若生产使用 SQLite，需控制续租/进度更新频率（设计稿已有建议）。</li>
+</ol>
+<h3 id="82-回滚策略mvp-推荐">8.2 回滚策略（MVP 推荐） </h3>
+<ul>
+<li><strong>数据库层回滚（保守）</strong>：不建议直接删表。保留 <code>ops_jobs/ops_job_locks</code> 作为历史记录；若要禁用功能，优先通过：
+<ol>
+<li>不注册 ops module 路由（移除空白导入或关闭模块注册）</li>
+<li>UI 不暴露入口</li>
+</ol>
+</li>
+<li><strong>权限层紧急收口</strong>：将 role guard 收紧为仅 <code>admin</code>（参考 <code>role</code> 判定模式：<a href="backend/internal/controllers/settings/handler.go:239"><code>SettingController.ListSettings()</code></a>）。</li>
+</ul>
+<h3 id="83-常见故障排查">8.3 常见故障排查 </h3>
+<ul>
+<li>403 Permission denied：确认用户 role（<code>/auth/me</code> 应返回 role；实现位置见 <a href="backend/internal/controllers/auth/handler.go:1"><code>backend/internal/controllers/auth/handler.go</code></a>）。</li>
+<li>401 Unauthorized：确认 Authorization Bearer token；确认 auth middleware 正常注入（见 <a href="backend/internal/middlewares/auth/auth.go:55"><code>AuthMiddleware.Handler()</code></a>）。</li>
+<li>无法创建 job（锁抢不到）：检查 <code>ops_job_locks</code> 中该 <code>job_type</code> 的 <code>lease_expires_at</code> 是否未过期；检查 API 是否实现了“过期可抢占”。</li>
+</ul>
+<hr>
+<h2 id="9-读者测试交接有效性自检">9. 读者测试（交接有效性自检） </h2>
+<p>如果把本文档交给不了解上下文的同事，他应当能：</p>
+<ul>
+<li>找到指南与设计稿</li>
+<li>知道哪些已完成、哪些未完成</li>
+<li>知道下一步该改哪些文件（ops module/controller/service/contracts）</li>
+<li>知道如何用 curl 验证</li>
+</ul>
+<hr>
+<h2 id="10-附录关键文件索引快速跳转">10. 附录：关键文件索引（快速跳转） </h2>
+<ul>
+<li>指南：<a href="docs/guides/admin-console-mvp-guide.md:1"><code>docs/guides/admin-console-mvp-guide.md</code></a></li>
+<li>设计稿：<a href="tasks/admin-console-mvp/2.1_design/ops_jobs-model-and-uniqueness.md:1"><code>tasks/admin-console-mvp/2.1_design/ops_jobs-model-and-uniqueness.md</code></a></li>
+<li>OpsJob 模型：<a href="backend/internal/models/ops_job.go:20"><code>backend/internal/models/ops_job.go</code></a></li>
+<li>OpsJobLock 模型：<a href="backend/internal/models/ops_job_lock.go:18"><code>backend/internal/models/ops_job_lock.go</code></a></li>
+<li>Ops repos：<a href="backend/internal/repositories/gorm/ops_job_repository.go:13"><code>backend/internal/repositories/gorm/ops_job_repository.go</code></a></li>
+<li>Auth middleware（注入 role）：<a href="backend/internal/middlewares/auth/auth.go:55"><code>backend/internal/middlewares/auth/auth.go</code></a></li>
+<li>Settings role guard 示例：<a href="backend/internal/controllers/settings/handler.go:239"><code>backend/internal/controllers/settings/handler.go</code></a></li>
+<li>模块注册机制：<a href="backend/internal/apps/registry.go:5"><code>backend/internal/apps/registry.go</code></a></li>
+<li>Router 自动注册：<a href="backend/internal/router/router.go:16"><code>backend/internal/router/router.go</code></a></li>
+</ul>
+</div>
+      </div>
+      
+      
+    
+    
+    <script type="module">
+// TODO: If ZenUML gets integrated into mermaid in the future,
+//      we can remove the following lines.
+
+
+var MERMAID_CONFIG = ({"startOnLoad":false});
+if (typeof MERMAID_CONFIG !== 'undefined') {
+  MERMAID_CONFIG.startOnLoad = false
+  MERMAID_CONFIG.cloneCssStyles = false
+  MERMAID_CONFIG.theme = "default"
+}
+
+mermaid.initialize(MERMAID_CONFIG || {})
+if (typeof(window['Reveal']) !== 'undefined') {
+  function mermaidRevealHelper(event) {
+    var currentSlide = event.currentSlide
+    var diagrams = currentSlide.querySelectorAll('.mermaid')
+    for (var i = 0; i < diagrams.length; i++) {
+      var diagram = diagrams[i]
+      if (!diagram.hasAttribute('data-processed')) {
+        mermaid.init(null, diagram, ()=> {
+          Reveal.slide(event.indexh, event.indexv)
+        })
+      }
+    }
+  }
+  Reveal.addEventListener('slidetransitionend', mermaidRevealHelper)
+  Reveal.addEventListener('ready', mermaidRevealHelper)
+  await mermaid.run({
+    nodes: document.querySelectorAll('.mermaid')
+  })
+} else {
+  await mermaid.run({
+    nodes: document.querySelectorAll('.mermaid')
+  })
+}
+</script>
+    
+    
+    
+  
+    </body></html>

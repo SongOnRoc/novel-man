@@ -15,6 +15,11 @@ import (
 // ModuleConsumer 表示模块消费者执行入口。
 type ModuleConsumer func(ctx context.Context, task QueueTask) error
 
+type DispatchPlan struct {
+	Modules          []string
+	MissingConsumers []string
+}
+
 // EventManager 负责事件路由并生成 QueueTask。
 type EventManager struct {
 	scheduler *QueueScheduler
@@ -63,21 +68,42 @@ func (m *EventManager) RegisterConsumer(module string, consumer ModuleConsumer) 
 	m.consumers[module] = consumer
 }
 
+func (m *EventManager) BuildDispatchPlan(eventType string) DispatchPlan {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	plan := DispatchPlan{
+		Modules:          append([]string{}, m.subscribers[eventType]...),
+		MissingConsumers: make([]string, 0),
+	}
+	for _, module := range plan.Modules {
+		if _, ok := m.consumers[module]; !ok {
+			plan.MissingConsumers = append(plan.MissingConsumers, module)
+		}
+	}
+	return plan
+}
+
 // Dispatch 将 FactEvent 路由为 QueueTask 并提交调度。
 func (m *EventManager) Dispatch(ctx context.Context, event FactEvent) error {
 	if m.scheduler == nil {
 		return errors.New("queue scheduler is nil")
 	}
 
+	plan := m.BuildDispatchPlan(event.EventType)
+	if len(plan.Modules) == 0 {
+		logger.Warn(&ctx, "skip dispatch because route not registered event_id={} event_type={}", event.EventID, event.EventType)
+		return nil
+	}
+
 	m.mu.RLock()
-	modules := append([]string{}, m.subscribers[event.EventType]...)
 	consumers := make(map[string]ModuleConsumer, len(m.consumers))
 	for module, consumer := range m.consumers {
 		consumers[module] = consumer
 	}
 	m.mu.RUnlock()
 
-	for _, module := range modules {
+	for _, module := range plan.Modules {
 		consumer, ok := consumers[module]
 		if !ok {
 			logger.Warn(&ctx, "skip route because consumer not registered event_id={} module={}", event.EventID, module)

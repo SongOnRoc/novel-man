@@ -21,11 +21,12 @@ func RegisterOnConfigChangeCallback(cb OnConfigChangeCallback) {
 
 // Config 存储所有应用程序的配置
 type Config struct {
-	Server   ServerConfig   `mapstructure:"server"`
-	Database DatabaseConfig `mapstructure:"database"`
-	Log      LogConfig      `mapstructure:"logger"`
-	LLM      LLMConfig      `mapstructure:"llm"`
-	Events   EventsConfig   `mapstructure:"events"`
+	Server   ServerConfig         `mapstructure:"server"`
+	Database DatabaseConfig       `mapstructure:"database"`
+	Log      LogConfig            `mapstructure:"logger"`
+	LLM      LLMConfig            `mapstructure:"llm"`
+	Events   EventsConfig         `mapstructure:"events"`
+	Admin    AdminBootstrapConfig `mapstructure:"admin"`
 }
 
 // EventsConfig 存储事件治理相关配置
@@ -54,6 +55,19 @@ type ServerConfig struct {
 type DatabaseConfig struct {
 	Type string `mapstructure:"type"`
 	DSN  string `mapstructure:"dsn"`
+}
+
+// AdminBootstrapConfig 存储默认后台管理员引导配置
+//   - enabled: 是否启用启动时管理员引导
+//   - username/email/password: 默认管理员账号信息
+//   - reset_password_on_boot: 是否在每次启动时重置密码
+//     默认 false，仅在首次创建时写入密码，避免意外覆盖现有管理员密码。
+type AdminBootstrapConfig struct {
+	Enabled             bool   `mapstructure:"enabled"`
+	Username            string `mapstructure:"username"`
+	Email               string `mapstructure:"email"`
+	Password            string `mapstructure:"password"`
+	ResetPasswordOnBoot bool   `mapstructure:"reset_password_on_boot"`
 }
 
 var (
@@ -98,6 +112,8 @@ func LoadConfig(configPath string) (*Config, error) {
 	viper.SetDefault("events.alert_collect_interval_seconds", 30)
 	viper.SetDefault("events.dlq_threshold", 1)
 	viper.SetDefault("events.outbox_pending_threshold", 20)
+	viper.SetDefault("admin.enabled", false)
+	viper.SetDefault("admin.reset_password_on_boot", false)
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {

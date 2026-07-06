@@ -240,9 +240,19 @@ func (c *SettingController) ListSettings(ctx *gin.Context) {
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
 
-	// Basic admin check (e.g., userID == 1)
-	userID, exists := ctx.Get("userID")
-	if !exists || userID.(uint) != 1 {
+	roleAny, exists := ctx.Get("role")
+	if !exists {
+		response.Error(ctx, http.StatusForbidden, http.StatusForbidden, "Permission denied", nil)
+		return
+	}
+
+	role, ok := roleAny.(string)
+	if !ok {
+		response.Error(ctx, http.StatusForbidden, http.StatusForbidden, "Permission denied", nil)
+		return
+	}
+
+	if role != "admin" && role != "operator" {
 		response.Error(ctx, http.StatusForbidden, http.StatusForbidden, "Permission denied", nil)
 		return
 	}

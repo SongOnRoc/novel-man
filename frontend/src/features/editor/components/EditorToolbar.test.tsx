@@ -8,7 +8,6 @@ import { useBookmarks } from "@/hooks/editor/useBookmarks";
 
 import { EditorToolbar } from "./EditorToolbar";
 
-
 // Mock 子组件
 vi.mock("./BookmarkManager", () => ({
   BookmarkManager: (props: any) => (
@@ -113,7 +112,23 @@ describe("EditorToolbar", () => {
 
   it("should not render if editor is null", () => {
     const { container } = render(
-      <EditorToolbar editor={null} editorContainerId="test-id" />,
+      <EditorToolbar
+        editor={null}
+        editorContainerId="test-id"
+        title="Test"
+        settings={{
+          fontSize: 16,
+          lineSpacing: 1.6,
+          showWordCount: true,
+          enableAutoSave: true,
+          autoSaveInterval: 30,
+          customTitleStyle: true,
+          paragraphSpacing: 1.0,
+          paragraphIndent: true,
+          theme: "default",
+        }}
+        onSettingsChange={() => {}}
+      />
     );
     expect(container.firstChild).toBeNull();
   });
@@ -124,7 +139,20 @@ describe("EditorToolbar", () => {
         editor={mockEditor}
         editorContainerId="test-id"
         workId="w1"
-      />,
+        title="Test"
+        settings={{
+          fontSize: 16,
+          lineSpacing: 1.6,
+          showWordCount: true,
+          enableAutoSave: true,
+          autoSaveInterval: 30,
+          customTitleStyle: true,
+          paragraphSpacing: 1.0,
+          paragraphIndent: true,
+          theme: "default",
+        }}
+        onSettingsChange={() => {}}
+      />
     );
     expect(screen.getByLabelText("加粗")).toBeInTheDocument();
     expect(screen.getByLabelText("斜体")).toBeInTheDocument();
@@ -136,21 +164,75 @@ describe("EditorToolbar", () => {
   });
 
   it("should call toggleBold when bold button is clicked", async () => {
-    render(<EditorToolbar editor={mockEditor} editorContainerId="test-id" />);
+    render(
+      <EditorToolbar
+        editor={mockEditor}
+        editorContainerId="test-id"
+        title="Test"
+        settings={{
+          fontSize: 16,
+          lineSpacing: 1.6,
+          showWordCount: true,
+          enableAutoSave: true,
+          autoSaveInterval: 30,
+          customTitleStyle: true,
+          paragraphSpacing: 1.0,
+          paragraphIndent: true,
+          theme: "default",
+        }}
+        onSettingsChange={() => {}}
+      />
+    );
     await user.click(screen.getByLabelText("加粗"));
     expect(mockChain.toggleBold).toHaveBeenCalled();
     expect(mockChain.run).toHaveBeenCalled();
   });
 
   it("should call toggleItalic when italic button is clicked", async () => {
-    render(<EditorToolbar editor={mockEditor} editorContainerId="test-id" />);
+    render(
+      <EditorToolbar
+        editor={mockEditor}
+        editorContainerId="test-id"
+        title="Test"
+        settings={{
+          fontSize: 16,
+          lineSpacing: 1.6,
+          showWordCount: true,
+          enableAutoSave: true,
+          autoSaveInterval: 30,
+          customTitleStyle: true,
+          paragraphSpacing: 1.0,
+          paragraphIndent: true,
+          theme: "default",
+        }}
+        onSettingsChange={() => {}}
+      />
+    );
     await user.click(screen.getByLabelText("斜体"));
     expect(mockChain.toggleItalic).toHaveBeenCalled();
     expect(mockChain.run).toHaveBeenCalled();
   });
 
   it("should call toggleUnderline when underline button is clicked", async () => {
-    render(<EditorToolbar editor={mockEditor} editorContainerId="test-id" />);
+    render(
+      <EditorToolbar
+        editor={mockEditor}
+        editorContainerId="test-id"
+        title="Test"
+        settings={{
+          fontSize: 16,
+          lineSpacing: 1.6,
+          showWordCount: true,
+          enableAutoSave: true,
+          autoSaveInterval: 30,
+          customTitleStyle: true,
+          paragraphSpacing: 1.0,
+          paragraphIndent: true,
+          theme: "default",
+        }}
+        onSettingsChange={() => {}}
+      />
+    );
     await user.click(screen.getByLabelText("下划线"));
     expect(mockChain.toggleUnderline).toHaveBeenCalled();
     expect(mockChain.run).toHaveBeenCalled();
@@ -162,7 +244,25 @@ describe("EditorToolbar", () => {
     ["右对齐", "right"],
     ["两端对齐", "justify"],
   ])("should call setTextAlign for %s", async (label, alignment) => {
-    render(<EditorToolbar editor={mockEditor} editorContainerId="test-id" />);
+    render(
+      <EditorToolbar
+        editor={mockEditor}
+        editorContainerId="test-id"
+        title="Test"
+        settings={{
+          fontSize: 16,
+          lineSpacing: 1.6,
+          showWordCount: true,
+          enableAutoSave: true,
+          autoSaveInterval: 30,
+          customTitleStyle: true,
+          paragraphSpacing: 1.0,
+          paragraphIndent: true,
+          theme: "default",
+        }}
+        onSettingsChange={() => {}}
+      />
+    );
     await user.click(screen.getByLabelText(label));
     expect(mockChain.setTextAlign).toHaveBeenCalledWith(alignment);
     expect(mockChain.run).toHaveBeenCalled();
@@ -173,35 +273,125 @@ describe("EditorToolbar", () => {
     ["二级标题", 2],
     ["三级标题", 3],
   ])("should call toggleHeading for %s", async (label, level) => {
-    render(<EditorToolbar editor={mockEditor} editorContainerId="test-id" />);
+    render(
+      <EditorToolbar
+        editor={mockEditor}
+        editorContainerId="test-id"
+        title="Test"
+        settings={{
+          fontSize: 16,
+          lineSpacing: 1.6,
+          showWordCount: true,
+          enableAutoSave: true,
+          autoSaveInterval: 30,
+          customTitleStyle: true,
+          paragraphSpacing: 1.0,
+          paragraphIndent: true,
+          theme: "default",
+        }}
+        onSettingsChange={() => {}}
+      />
+    );
     await user.click(screen.getByLabelText(label));
     expect(mockChain.toggleHeading).toHaveBeenCalledWith({ level });
     expect(mockChain.run).toHaveBeenCalled();
   });
 
   it("should call toggleBulletList when bullet list button is clicked", async () => {
-    render(<EditorToolbar editor={mockEditor} editorContainerId="test-id" />);
+    render(
+      <EditorToolbar
+        editor={mockEditor}
+        editorContainerId="test-id"
+        title="Test"
+        settings={{
+          fontSize: 16,
+          lineSpacing: 1.6,
+          showWordCount: true,
+          enableAutoSave: true,
+          autoSaveInterval: 30,
+          customTitleStyle: true,
+          paragraphSpacing: 1.0,
+          paragraphIndent: true,
+          theme: "default",
+        }}
+        onSettingsChange={() => {}}
+      />
+    );
     await user.click(screen.getByLabelText("无序列表"));
     expect(mockChain.toggleBulletList).toHaveBeenCalled();
     expect(mockChain.run).toHaveBeenCalled();
   });
 
   it("should call toggleOrderedList when ordered list button is clicked", async () => {
-    render(<EditorToolbar editor={mockEditor} editorContainerId="test-id" />);
+    render(
+      <EditorToolbar
+        editor={mockEditor}
+        editorContainerId="test-id"
+        title="Test"
+        settings={{
+          fontSize: 16,
+          lineSpacing: 1.6,
+          showWordCount: true,
+          enableAutoSave: true,
+          autoSaveInterval: 30,
+          customTitleStyle: true,
+          paragraphSpacing: 1.0,
+          paragraphIndent: true,
+          theme: "default",
+        }}
+        onSettingsChange={() => {}}
+      />
+    );
     await user.click(screen.getByLabelText("有序列表"));
     expect(mockChain.toggleOrderedList).toHaveBeenCalled();
     expect(mockChain.run).toHaveBeenCalled();
   });
 
   it("should call undo when undo button is clicked", async () => {
-    render(<EditorToolbar editor={mockEditor} editorContainerId="test-id" />);
+    render(
+      <EditorToolbar
+        editor={mockEditor}
+        editorContainerId="test-id"
+        title="Test"
+        settings={{
+          fontSize: 16,
+          lineSpacing: 1.6,
+          showWordCount: true,
+          enableAutoSave: true,
+          autoSaveInterval: 30,
+          customTitleStyle: true,
+          paragraphSpacing: 1.0,
+          paragraphIndent: true,
+          theme: "default",
+        }}
+        onSettingsChange={() => {}}
+      />
+    );
     await user.click(screen.getByLabelText("撤销"));
     expect(mockChain.undo).toHaveBeenCalled();
     expect(mockChain.run).toHaveBeenCalled();
   });
 
   it("should call redo when redo button is clicked", async () => {
-    render(<EditorToolbar editor={mockEditor} editorContainerId="test-id" />);
+    render(
+      <EditorToolbar
+        editor={mockEditor}
+        editorContainerId="test-id"
+        title="Test"
+        settings={{
+          fontSize: 16,
+          lineSpacing: 1.6,
+          showWordCount: true,
+          enableAutoSave: true,
+          autoSaveInterval: 30,
+          customTitleStyle: true,
+          paragraphSpacing: 1.0,
+          paragraphIndent: true,
+          theme: "default",
+        }}
+        onSettingsChange={() => {}}
+      />
+    );
     await user.click(screen.getByLabelText("重做"));
     expect(mockChain.redo).toHaveBeenCalled();
     expect(mockChain.run).toHaveBeenCalled();
@@ -217,40 +407,78 @@ describe("EditorToolbar", () => {
       }),
     };
     mockEditor.can = vi.fn().mockReturnValue(can);
-    render(<EditorToolbar editor={mockEditor} editorContainerId="test-id" />);
+    render(
+      <EditorToolbar
+        editor={mockEditor}
+        editorContainerId="test-id"
+        title="Test"
+        settings={{
+          fontSize: 16,
+          lineSpacing: 1.6,
+          showWordCount: true,
+          enableAutoSave: true,
+          autoSaveInterval: 30,
+          customTitleStyle: true,
+          paragraphSpacing: 1.0,
+          paragraphIndent: true,
+          theme: "default",
+        }}
+        onSettingsChange={() => {}}
+      />
+    );
     expect(screen.getByLabelText("撤销")).toBeDisabled();
     expect(screen.getByLabelText("重做")).toBeDisabled();
   });
 
-  it.skip("should render desktop back label when back button label is provided", () => {
-    // 当前 EditorToolbar 既有测试基线较老，待后续统一补齐此处细粒度断言
-  });
-
-  it("should call onSave when save button is clicked", async () => {
+  it("should call onSave when save status is unsaved and user clicks", async () => {
     const onSave = vi.fn();
     render(
       <EditorToolbar
         editor={mockEditor}
         onSave={onSave}
+        saveStatus="unsaved"
         editorContainerId="test-id"
-      />,
+        title="Test"
+        settings={{
+          fontSize: 16,
+          lineSpacing: 1.6,
+          showWordCount: true,
+          enableAutoSave: true,
+          autoSaveInterval: 30,
+          customTitleStyle: true,
+          paragraphSpacing: 1.0,
+          paragraphIndent: true,
+          theme: "default",
+        }}
+        onSettingsChange={() => {}}
+      />
     );
-    await user.click(screen.getByRole("button", { name: "保存" }));
+    await user.click(screen.getByRole("button", { name: "未保存" }));
     expect(onSave).toHaveBeenCalled();
   });
 
-  it("should show '保存中...' and disable button when isSaving is true", () => {
+  it("should show '保存中' when saveStatus is saving", () => {
     render(
       <EditorToolbar
         editor={mockEditor}
-        onSave={() => {}}
-        isSaving={true}
+        saveStatus="saving"
         editorContainerId="test-id"
-      />,
+        title="Test"
+        settings={{
+          fontSize: 16,
+          lineSpacing: 1.6,
+          showWordCount: true,
+          enableAutoSave: true,
+          autoSaveInterval: 30,
+          customTitleStyle: true,
+          paragraphSpacing: 1.0,
+          paragraphIndent: true,
+          theme: "default",
+        }}
+        onSettingsChange={() => {}}
+      />
     );
-    const saveButton = screen.getByRole("button", { name: "保存中..." });
-    expect(saveButton).toBeInTheDocument();
-    expect(saveButton).toBeDisabled();
+    expect(screen.getByText("保存中")).toBeInTheDocument();
   });
 
   it("should load settings from localStorage", () => {
@@ -261,16 +489,42 @@ describe("EditorToolbar", () => {
       showWordCount: false,
     };
     localStorage.setItem("editor-settings", JSON.stringify(settings));
-    render(<EditorToolbar editor={mockEditor} editorContainerId="test-id" />);
+    render(
+      <EditorToolbar
+        editor={mockEditor}
+        editorContainerId="test-id"
+        title="Test"
+        settings={settings as any}
+        onSettingsChange={() => {}}
+      />
+    );
     expect(screen.queryByText(/字/)).not.toBeInTheDocument();
   });
 
   it("should save settings to localStorage when they change", async () => {
-    render(<EditorToolbar editor={mockEditor} editorContainerId="test-id" />);
+    render(
+      <EditorToolbar
+        editor={mockEditor}
+        editorContainerId="test-id"
+        title="Test"
+        settings={{
+          fontSize: 16,
+          lineSpacing: 1.6,
+          showWordCount: true,
+          enableAutoSave: true,
+          autoSaveInterval: 30,
+          customTitleStyle: true,
+          paragraphSpacing: 1.0,
+          paragraphIndent: true,
+          theme: "default",
+        }}
+        onSettingsChange={() => {}}
+      />
+    );
 
     // 默认设置 showWordCount 是 true, 所以初始保存时应该是 true
     const initialSettings = JSON.parse(
-      localStorage.getItem("editor-settings")!,
+      localStorage.getItem("editor-settings")!
     );
     expect(initialSettings.showWordCount).toBe(true);
 
@@ -279,7 +533,7 @@ describe("EditorToolbar", () => {
 
     // 验证 localStorage 的内容是否已更新
     const updatedSettings = JSON.parse(
-      localStorage.getItem("editor-settings")!,
+      localStorage.getItem("editor-settings")!
     );
     expect(updatedSettings.showWordCount).toBe(false);
   });
@@ -290,7 +544,20 @@ describe("EditorToolbar", () => {
         editor={mockEditor}
         editorContainerId="test-id"
         wordCount={123}
-      />,
+        title="Test"
+        settings={{
+          fontSize: 16,
+          lineSpacing: 1.6,
+          showWordCount: true,
+          enableAutoSave: true,
+          autoSaveInterval: 30,
+          customTitleStyle: true,
+          paragraphSpacing: 1.0,
+          paragraphIndent: true,
+          theme: "default",
+        }}
+        onSettingsChange={() => {}}
+      />
     );
     expect(screen.getByText("123 字")).toBeInTheDocument();
     await user.click(screen.getByText("Toggle Word Count"));
@@ -300,7 +567,25 @@ describe("EditorToolbar", () => {
   });
 
   it("should not render SettingsLookup if workId is not provided", () => {
-    render(<EditorToolbar editor={mockEditor} editorContainerId="test-id" />);
+    render(
+      <EditorToolbar
+        editor={mockEditor}
+        editorContainerId="test-id"
+        title="Test"
+        settings={{
+          fontSize: 16,
+          lineSpacing: 1.6,
+          showWordCount: true,
+          enableAutoSave: true,
+          autoSaveInterval: 30,
+          customTitleStyle: true,
+          paragraphSpacing: 1.0,
+          paragraphIndent: true,
+          theme: "default",
+        }}
+        onSettingsChange={() => {}}
+      />
+    );
     expect(screen.queryByTestId("settings-lookup")).not.toBeInTheDocument();
   });
 
@@ -318,11 +603,29 @@ describe("EditorToolbar", () => {
 
     localStorage.setItem("editor-settings", "invalid json");
 
-    render(<EditorToolbar editor={mockEditor} editorContainerId="test-id" />);
+    render(
+      <EditorToolbar
+        editor={mockEditor}
+        editorContainerId="test-id"
+        title="Test"
+        settings={{
+          fontSize: 16,
+          lineSpacing: 1.6,
+          showWordCount: true,
+          enableAutoSave: true,
+          autoSaveInterval: 30,
+          customTitleStyle: true,
+          paragraphSpacing: 1.0,
+          paragraphIndent: true,
+          theme: "default",
+        }}
+        onSettingsChange={() => {}}
+      />
+    );
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       "加载编辑器设置失败:",
-      expect.any(Error),
+      expect.any(Error)
     );
     const editorElement = document.querySelector(".ProseMirror");
     expect(editorElement?.classList.contains("theme-default")).toBe(true);
@@ -344,7 +647,25 @@ describe("EditorToolbar", () => {
     };
     localStorage.setItem("editor-settings", JSON.stringify(settings));
 
-    render(<EditorToolbar editor={mockEditor} editorContainerId="test-id" />);
+    render(
+      <EditorToolbar
+        editor={mockEditor}
+        editorContainerId="test-id"
+        title="Test"
+        settings={{
+          fontSize: 16,
+          lineSpacing: 1.6,
+          showWordCount: true,
+          enableAutoSave: true,
+          autoSaveInterval: 30,
+          customTitleStyle: true,
+          paragraphSpacing: 1.0,
+          paragraphIndent: true,
+          theme: "default",
+        }}
+        onSettingsChange={() => {}}
+      />
+    );
 
     const editorElement = document.querySelector(".ProseMirror");
     expect(editorElement).not.toBeNull();

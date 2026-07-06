@@ -41,6 +41,14 @@ type UserProfileResponse struct {
 	ID       uint   `json:"id"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
+	Role     string `json:"role"`
+}
+
+type AdminProfileResponse struct {
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Role     string `json:"role"`
 }
 
 // Register godoc
@@ -113,6 +121,38 @@ func (c *AuthController) Login(ctx *gin.Context) {
 	response.Success(ctx, http.StatusOK, LoginResponse{AccessToken: token, TokenType: "Bearer"})
 }
 
+// AdminLogin godoc
+// @Summary Log in an admin user
+// @Description Log in an admin user with identifier (username or email) and password
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param   user  body      LoginRequest  true  "Admin login info"
+// @Success 200   {object}  response.StandardResponse{data=LoginResponse}
+// @Failure 400   {object}  response.StandardResponse "Invalid request body"
+// @Failure 401   {object}  response.StandardResponse "Invalid identifier or password"
+// @Failure 403   {object}  response.StandardResponse "Admin access denied"
+// @Router /auth/admin/login [post]
+func (c *AuthController) AdminLogin(ctx *gin.Context) {
+	var req LoginRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		response.Error(ctx, http.StatusBadRequest, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+
+	token, err := c.authService.AdminLogin(*context.New(ctx), req.Identifier, req.Password)
+	if err != nil {
+		if err == auth.ErrAdminAccessDenied {
+			response.Error(ctx, http.StatusForbidden, http.StatusForbidden, "Admin access denied", err)
+			return
+		}
+		response.Error(ctx, http.StatusUnauthorized, http.StatusUnauthorized, "Invalid identifier or password", err)
+		return
+	}
+
+	response.Success(ctx, http.StatusOK, LoginResponse{AccessToken: token, TokenType: "Bearer"})
+}
+
 // GetCurrentUser godoc
 // @Summary Get current user info
 // @Description Get the current authenticated user's information
@@ -136,10 +176,53 @@ func (c *AuthController) GetCurrentUser(ctx *gin.Context) {
 		return
 	}
 
+	role := user.Role
+	if role == "" {
+		role = "user"
+	}
+
 	resp := UserProfileResponse{
 		ID:       user.ID,
 		Username: user.Username,
 		Email:    user.Email,
+		Role:     role,
+	}
+	response.Success(ctx, http.StatusOK, resp)
+}
+
+// GetCurrentAdmin godoc
+// @Summary Get current admin info
+// @Description Get the current authenticated admin's information
+// @Tags auth
+// @Security BearerAuth
+// @Produce  json
+// @Success 200 {object} response.StandardResponse{data=AdminProfileResponse}
+// @Failure 401 {object} response.StandardResponse "Unauthorized"
+// @Failure 403 {object} response.StandardResponse "Admin access denied"
+// @Failure 404 {object} response.StandardResponse "Admin not found"
+// @Router /auth/admin/me [get]
+func (c *AuthController) GetCurrentAdmin(ctx *gin.Context) {
+	adminID, exists := ctx.Get("adminID")
+	if !exists {
+		response.Error(ctx, http.StatusUnauthorized, http.StatusUnauthorized, "Admin not authenticated", nil)
+		return
+	}
+
+	adminUser, err := c.authService.GetCurrentAdmin(*context.New(ctx), adminID.(uint))
+	if err != nil {
+		if err == auth.ErrAdminAccessDenied {
+			response.Error(ctx, http.StatusForbidden, http.StatusForbidden, "Admin access denied", err)
+			return
+		}
+		response.Error(ctx, http.StatusNotFound, http.StatusNotFound, "Admin not found", err)
+		return
+	}
+
+	resp := AdminProfileResponse{
+		ID:       adminUser.ID,
+		Username: adminUser.Username,
+		Email:    adminUser.Email,
+		Role:     adminUser.Role,
 	}
 	response.Success(ctx, http.StatusOK, resp)
 }

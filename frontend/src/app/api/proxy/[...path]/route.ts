@@ -119,10 +119,19 @@ async function validateFileUpload(
 }
 
 // Public path whitelist (prefix match)
-const PUBLIC_PATHS = ["/auth/login", "/auth/register", "/health"];
+const PUBLIC_PATHS = [
+  "/auth/login",
+  "/auth/register",
+  "/auth/admin/login",
+  "/health",
+];
 
 function isPublicPath(path: string): boolean {
   return PUBLIC_PATHS.some((p) => path.startsWith(p));
+}
+
+function isAdminOpsPath(path: string): boolean {
+  return path === "/ops" || path.startsWith("/ops/");
 }
 
 async function ensureAuthorized(
@@ -139,7 +148,18 @@ async function ensureAuthorized(
     authorizationHeader.toLowerCase().startsWith("bearer ");
   if (hasBearer) return { ok: true };
 
-  // 3) Otherwise require a valid NextAuth session
+  // 3) Admin ops APIs must use an explicit independent Bearer token.
+  if (isAdminOpsPath(path)) {
+    return {
+      ok: false,
+      res: NextResponse.json(
+        { message: "Admin Authorization header is required" },
+        { status: 401 }
+      ),
+    };
+  }
+
+  // 4) Otherwise require a valid NextAuth session
   const session = await getServerSession(authOptions);
   if (!session) {
     return {
@@ -170,7 +190,7 @@ async function handler(req: NextRequest) {
   const headers: Record<string, string> = {};
   let authorization = req.headers.get("Authorization");
 
-  if (!authorization && session?.accessToken) {
+  if (!authorization && !isAdminOpsPath(path) && session?.accessToken) {
     authorization = `Bearer ${session.accessToken}`;
   }
 

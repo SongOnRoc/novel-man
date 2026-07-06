@@ -33,3 +33,13 @@ llm:
   # model: "gpt-4o-mini"
   # model: "zai-glm-4.6"
   model: "gemini-2.5-flash"
+
+# 默认后台管理员引导配置（可选）
+# - enabled=true 时，服务启动后会确保该管理员账号存在且角色为 admin
+# - 默认不会覆盖现有密码，除非显式开启 reset_password_on_boot
+admin:
+  enabled: false
+  username: "admin"
+  email: "admin@example.com"
+  password: "ChangeMe123!"
+  reset_password_on_boot: false

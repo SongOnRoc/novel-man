@@ -5,6 +5,13 @@
  * This is the API for Test.
  * OpenAPI spec version: 1.0
  */
+export interface AuthAdminProfileResponse {
+  email?: string;
+  id?: number;
+  role?: string;
+  username?: string;
+}
+
 export interface AuthLoginRequest {
   identifier: string;
   password: string;
@@ -32,6 +39,7 @@ export interface AuthRegisterResponse {
 export interface AuthUserProfileResponse {
   email?: string;
   id?: number;
+  role?: string;
   username?: string;
 }
 
@@ -247,6 +255,65 @@ export interface ModelsModelResponse {
   id?: string;
   label?: string;
   name?: string;
+}
+
+export interface ModelsOpsJob {
+  cancel_reason?: string;
+  cancel_requested_at?: string;
+  canceled_at?: string;
+  canceled_by_user_id?: number;
+  created_at?: string;
+  created_by_user_id?: number;
+  created_by_username?: string;
+  error_details?: string;
+  error_summary?: string;
+  finished_at?: string;
+  id?: number;
+  job_id?: string;
+  job_type?: string;
+  job_version?: string;
+  lease_expires_at?: string;
+  lease_owner?: string;
+  lease_token?: string;
+  lock_version?: number;
+  params?: string;
+  progress_done?: number;
+  progress_failed?: number;
+  progress_total?: number;
+  started_at?: string;
+  status?: string;
+  trace_id?: string;
+  updated_at?: string;
+}
+
+export type OpsCreateWorksRecalcStatsJobMode =
+  (typeof OpsCreateWorksRecalcStatsJobMode)[keyof typeof OpsCreateWorksRecalcStatsJobMode];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const OpsCreateWorksRecalcStatsJobMode = {
+  CreateWorksRecalcStatsJobModeAll: "all",
+  CreateWorksRecalcStatsJobModeWorkID: "work_id",
+  CreateWorksRecalcStatsJobModePredicate: "predicate",
+} as const;
+
+export type OpsCreateWorksRecalcStatsJobRequestPredicate = {
+  [key: string]: unknown;
+};
+
+export interface OpsCreateWorksRecalcStatsJobRequest {
+  dry_run?: boolean;
+  mode: OpsCreateWorksRecalcStatsJobMode;
+  predicate?: OpsCreateWorksRecalcStatsJobRequestPredicate;
+  work_id?: number;
+}
+
+export interface OpsListJobsResponse {
+  data?: unknown;
+  pagination?: ResponsePagination;
+}
+
+export interface OpsRequestCancelJobRequest {
+  reason?: string;
 }
 
 export type PromptsCreatePromptRequestSummary = { [key: string]: unknown };
@@ -491,6 +558,22 @@ export interface WorldviewUpdateItemRequest {
   description?: string;
   name?: string;
 }
+
+export type PostAuthAdminLogin200 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type GetAuthAdminMe200 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
 
 export type PostAuthLogin200 = Data & {
   code?: number;
@@ -822,6 +905,92 @@ export type GetGenerateModelsParams = {
 export type GetGenerateModelsBody = { [key: string]: unknown };
 
 export type GetGenerateModels200 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type DeleteOpsJobsParams = {
+  /**
+   * Page number (default: 1)
+   */
+  page?: number;
+  /**
+   * Page size (default: 20)
+   */
+  limit?: number;
+  /**
+   * Filter by job_type
+   */
+  type?: string;
+  /**
+   * Filter by status
+   */
+  status?: string;
+};
+
+export type DeleteOpsJobs200 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type GetOpsJobsParams = {
+  /**
+   * Page number (default: 1)
+   */
+  page?: number;
+  /**
+   * Page size (default: 20)
+   */
+  limit?: number;
+  /**
+   * Filter by job_type
+   */
+  type?: string;
+  /**
+   * Filter by status
+   */
+  status?: string;
+};
+
+export type GetOpsJobs200 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type PostOpsJobsWorksRecalcStats201 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type DeleteOpsJobsJobId200 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type GetOpsJobsJobId200 = Data & {
+  code?: number;
+  data?: unknown;
+  message?: string;
+  sourceId?: string;
+  traceId?: string;
+};
+
+export type PostOpsJobsJobIdCancel200 = Data & {
   code?: number;
   data?: unknown;
   message?: string;

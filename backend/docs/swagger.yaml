@@ -1,5 +1,16 @@
 components:
   schemas:
+    auth.AdminProfileResponse:
+      properties:
+        email:
+          type: string
+        id:
+          type: integer
+        role:
+          type: string
+        username:
+          type: string
+      type: object
     auth.LoginRequest:
       properties:
         identifier:
@@ -48,6 +59,8 @@ components:
           type: string
         id:
           type: integer
+        role:
+          type: string
         username:
           type: string
       type: object
@@ -426,6 +439,96 @@ components:
         label:
           type: string
         name:
+          type: string
+      type: object
+    models.OpsJob:
+      properties:
+        cancel_reason:
+          type: string
+        cancel_requested_at:
+          type: string
+        canceled_at:
+          type: string
+        canceled_by_user_id:
+          type: integer
+        created_at:
+          type: string
+        created_by_user_id:
+          type: integer
+        created_by_username:
+          type: string
+        error_details:
+          type: string
+        error_summary:
+          type: string
+        finished_at:
+          type: string
+        id:
+          type: integer
+        job_id:
+          type: string
+        job_type:
+          type: string
+        job_version:
+          type: string
+        lease_expires_at:
+          type: string
+        lease_owner:
+          type: string
+        lease_token:
+          type: string
+        lock_version:
+          type: integer
+        params:
+          type: string
+        progress_done:
+          type: integer
+        progress_failed:
+          type: integer
+        progress_total:
+          type: integer
+        started_at:
+          type: string
+        status:
+          type: string
+        trace_id:
+          type: string
+        updated_at:
+          type: string
+      type: object
+    ops.CreateWorksRecalcStatsJobMode:
+      enum:
+      - all
+      - work_id
+      - predicate
+      type: string
+      x-enum-varnames:
+      - CreateWorksRecalcStatsJobModeAll
+      - CreateWorksRecalcStatsJobModeWorkID
+      - CreateWorksRecalcStatsJobModePredicate
+    ops.CreateWorksRecalcStatsJobRequest:
+      properties:
+        dry_run:
+          type: boolean
+        mode:
+          $ref: '#/components/schemas/ops.CreateWorksRecalcStatsJobMode'
+        predicate:
+          additionalProperties: {}
+          type: object
+        work_id:
+          type: integer
+      required:
+      - mode
+      type: object
+    ops.ListJobsResponse:
+      properties:
+        data: {}
+        pagination:
+          $ref: '#/components/schemas/response.Pagination'
+      type: object
+    ops.RequestCancelJobRequest:
+      properties:
+        reason:
           type: string
       type: object
     prompts.CreatePromptRequest:
@@ -893,6 +996,101 @@ info:
   version: "1.0"
 openapi: 3.1.0
 paths:
+  /auth/admin/login:
+    post:
+      description: Log in an admin user with identifier (username or email) and password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/auth.LoginRequest'
+        description: Admin login info
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Invalid request body
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Invalid identifier or password
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Admin access denied
+      summary: Log in an admin user
+      tags:
+      - auth
+  /auth/admin/me:
+    get:
+      description: Get the current authenticated admin's information
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Admin access denied
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Admin not found
+      security:
+      - BearerAuth: []
+      summary: Get current admin info
+      tags:
+      - auth
   /auth/login:
     post:
       description: Log in a user with identifier (username or email) and password
@@ -2513,6 +2711,400 @@ paths:
       summary: Get Available Models
       tags:
       - Generate
+  /ops/jobs:
+    delete:
+      description: Hard delete ops jobs by filters + pagination range (page/limit
+        are part of the clearing scope)
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        schema:
+          type: integer
+      - description: 'Page size (default: 20)'
+        in: query
+        name: limit
+        schema:
+          type: integer
+      - description: Filter by job_type
+        in: query
+        name: type
+        schema:
+          type: string
+      - description: Filter by status
+        in: query
+        name: status
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Permission denied
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Failed to clear jobs
+      security:
+      - BearerAuth: []
+      summary: Clear ops jobs by current filter (including pagination)
+      tags:
+      - ops
+    get:
+      description: List ops jobs with optional filters and pagination
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        schema:
+          type: integer
+      - description: 'Page size (default: 20)'
+        in: query
+        name: limit
+        schema:
+          type: integer
+      - description: Filter by job_type
+        in: query
+        name: type
+        schema:
+          type: string
+      - description: Filter by status
+        in: query
+        name: status
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Permission denied
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Failed to list jobs
+      security:
+      - BearerAuth: []
+      summary: List ops jobs
+      tags:
+      - ops
+  /ops/jobs/{job_id}:
+    delete:
+      description: Hard delete an ops job by job_id (permanent)
+      parameters:
+      - description: Job ID
+        in: path
+        name: job_id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Invalid job_id
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Permission denied
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Failed to delete job
+      security:
+      - BearerAuth: []
+      summary: Permanently delete an ops job
+      tags:
+      - ops
+    get:
+      description: Get a single ops job by job_id
+      parameters:
+      - description: Job ID
+        in: path
+        name: job_id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Invalid job_id
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Permission denied
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Job not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Failed to get job
+      security:
+      - BearerAuth: []
+      summary: Get ops job detail
+      tags:
+      - ops
+  /ops/jobs/{job_id}/cancel:
+    post:
+      description: 'Request cancel for a running job (two-phase cancel: request only)'
+      parameters:
+      - description: Job ID
+        in: path
+        name: job_id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ops.RequestCancelJobRequest'
+        description: Cancel reason
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Invalid request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Permission denied
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Job not found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Job not running
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Failed to request cancel
+      security:
+      - BearerAuth: []
+      summary: Request cancel ops job
+      tags:
+      - ops
+  /ops/jobs/works/recalc-stats:
+    post:
+      description: Create a new ops job of type works.recalc_stats (cluster-safe unique
+        by lock)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ops.CreateWorksRecalcStatsJobRequest'
+        description: Create job payload
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/data'
+                properties:
+                  code:
+                    type: integer
+                  data: {}
+                  message:
+                    type: string
+                  sourceId:
+                    type: string
+                  traceId:
+                    type: string
+                type: object
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Invalid request body
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Permission denied
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Job already running
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.StandardResponse'
+          description: Failed to create job
+      security:
+      - BearerAuth: []
+      summary: Create a works stats recalculation ops job
+      tags:
+      - ops
   /prompts:
     get:
       description: Get a paginated list of prompts for the current user, with optional

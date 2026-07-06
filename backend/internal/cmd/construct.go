@@ -3,6 +3,7 @@ package cmd
 import (
 	"novel-man/backend/internal/container"
 	"novel-man/backend/internal/events"
+	opsrunner "novel-man/backend/internal/services/ops/runner"
 
 	// 激活各业务模块 - 通过空白导入实现模块的自动注册
 	_ "novel-man/backend/internal/apps/auth"
@@ -11,6 +12,7 @@ import (
 	_ "novel-man/backend/internal/apps/drafts"
 	_ "novel-man/backend/internal/apps/favorites"
 	_ "novel-man/backend/internal/apps/generate"
+	_ "novel-man/backend/internal/apps/ops"
 	_ "novel-man/backend/internal/apps/prompts"
 	_ "novel-man/backend/internal/apps/relationships"
 	_ "novel-man/backend/internal/apps/settings"
@@ -39,6 +41,15 @@ func init() {
 		panic(err)
 	}
 	if err := container.Container.Invoke(func(*events.NotifierWorker) {}); err != nil {
+		panic(err)
+	}
+
+	// ops runner: works.recalc_stats
+	// 仅注册 provider；实际启动必须延后到数据库完成初始化并注入容器之后。
+	if err := container.Container.Provide(opsrunner.NewGormWorkScannerDB); err != nil {
+		panic(err)
+	}
+	if err := container.Container.Provide(opsrunner.NewWorksRecalcStatsRunner); err != nil {
 		panic(err)
 	}
 }

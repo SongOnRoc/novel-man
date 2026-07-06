@@ -52,7 +52,7 @@ type CategoryResponse struct {
 }
 
 type ListCategoriesResponse struct {
-	Data       []CategoryResponse    `json:"data"`
+	Data       []CategoryResponse  `json:"data"`
 	Pagination response.Pagination `json:"pagination"`
 }
 
@@ -83,7 +83,7 @@ type ItemResponse struct {
 }
 
 type ListItemsResponse struct {
-	Data       []ItemResponse        `json:"data"`
+	Data       []ItemResponse      `json:"data"`
 	Pagination response.Pagination `json:"pagination"`
 }
 
